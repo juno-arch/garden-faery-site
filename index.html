@@ -339,11 +339,13 @@
     .est-row input, .est-row select {
       width: 100%;
       padding: 11px 12px;
-      border: 1px solid var(--border);
+      border: 1px solid rgba(255,255,255,0.5);
       border-radius: 8px;
       font-family: inherit;
       font-size: 15px;
-      background: white;
+      background: rgba(255,255,255,0.4);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       color: var(--text);
     }
     .est-row input:focus, .est-row select:focus {
@@ -450,6 +452,7 @@
       margin-bottom: 24px;
       position: relative;
       overflow: hidden;
+      transform: rotate(-0.4deg);
     }
     .contact-card h3 { font-family: 'Blueberry', cursive; color: white; font-size: 28px; margin-bottom: 6px; }
     .contact-card .subtitle { color: #d4b8a0; font-size: 14px; margin-bottom: 16px; }
@@ -643,7 +646,7 @@
       <h4>Get the Dirt</h4>
       <p>Seasonal garden wisdom, project updates, and new offerings. No spam &mdash; just good green vibes.</p>
       <form onsubmit="subscribeEmail(event)" style="display:flex; gap:8px; max-width:400px; margin:0 auto;">
-        <input type="email" id="sub-email" placeholder="your@email.com" required style="flex:1; padding:11px 14px; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:14px; background:white;">
+        <input type="email" id="sub-email" placeholder="your@email.com" required style="flex:1; padding:11px 14px; border:1px solid rgba(255,255,255,0.5); border-radius:8px; font-family:inherit; font-size:14px; background:rgba(255,255,255,0.4); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);">
         <button type="submit" style="padding:11px 18px; background:linear-gradient(135deg, var(--mushroom), var(--gold)); color:white; border:none; border-radius:8px; font-size:16px; font-weight:600; cursor:pointer; font-family:'Blueberry', cursive; white-space:nowrap; letter-spacing:0.5px;">Sign Up</button>
       </form>
       <div id="sub-thanks" style="display:none; color:var(--mushroom); font-size:14px; margin-top:10px; font-weight:500;">Thanks! Opening your email to confirm the signup.</div>
