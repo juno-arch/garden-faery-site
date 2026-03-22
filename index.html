@@ -187,6 +187,31 @@
       text-shadow: 0 1px 4px rgba(0,0,0,0.3);
       font-style: italic;
     }
+    .hero-rate {
+      color: white;
+      font-family: 'Blueberry', cursive;
+      font-size: 18px;
+      margin-top: 12px;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      letter-spacing: 0.3px;
+    }
+    .hero-cta {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 12px 28px;
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 10px;
+      color: white;
+      text-decoration: none;
+      font-family: 'Blueberry', cursive;
+      font-size: 18px;
+      letter-spacing: 0.5px;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .hero-cta:hover { background: rgba(255,255,255,0.3); transform: scale(1.03); }
 
     .content {
       max-width: 560px;
@@ -384,43 +409,72 @@
       border-top: 1px solid var(--border);
     }
 
-    /* Photos */
-    .photo-section { margin-bottom: 28px; }
-    .photo-section-title {
+    /* Gallery */
+    .gallery-section { margin-bottom: 28px; }
+    .gallery-title {
       font-family: 'Blueberry', cursive;
       font-size: 24px;
       font-weight: 700;
       color: var(--warm-dark);
-      margin-bottom: 12px;
+      margin-bottom: 4px;
     }
-    .photo-grid {
+    .gallery-subtitle {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-bottom: 14px;
+      font-style: italic;
+    }
+    .gallery-subtitle a {
+      color: var(--fairy-pink);
+      text-decoration: none;
+      font-style: normal;
+      font-weight: 600;
+    }
+    .gallery-subtitle a:hover { text-decoration: underline; }
+    .gallery-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
-    .photo-grid img {
-      width: 100%;
+    .gallery-item {
+      position: relative;
       border-radius: 12px;
-      aspect-ratio: 4/3;
-      object-fit: cover;
+      overflow: hidden;
+      aspect-ratio: 1/1;
       border: 1px solid rgba(255,255,255,0.4);
       box-shadow: 0 4px 16px rgba(0,0,0,0.08);
       transition: transform 0.3s;
     }
-    .photo-grid img:first-child { transform: rotate(-1deg); }
-    .photo-grid img:last-child { transform: rotate(0.8deg); }
-    .photo-grid img:hover { transform: scale(1.03) rotate(0deg); }
-    .photo-placeholder {
+    .gallery-item:nth-child(odd) { transform: rotate(-0.8deg); }
+    .gallery-item:nth-child(even) { transform: rotate(0.6deg); }
+    .gallery-item:hover { transform: scale(1.03) rotate(0deg); }
+    .gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .gallery-item .caption {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: linear-gradient(transparent, rgba(74,53,32,0.7));
+      color: white;
+      font-size: 11px;
+      padding: 20px 10px 8px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .gallery-item:hover .caption { opacity: 1; }
+    .gallery-empty {
+      grid-column: 1 / -1;
       background: rgba(255,255,255,0.2);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border-radius: 12px;
-      aspect-ratio: 4/3;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      padding: 40px 20px;
+      text-align: center;
       color: var(--fairy-pink);
-      font-size: 13px;
+      font-size: 14px;
       font-style: italic;
       border: 1px dashed rgba(255,255,255,0.4);
     }
@@ -528,14 +582,15 @@
     </div>
     <div class="hero-inner">
       <h1>Garden Faery</h1>
-      <p>a little magic for your outside space &middot; Arcata, CA</p>
+      <p>Arcata &amp; surrounding areas &middot; $25/hr</p>
+      <a class="hero-cta" href="mailto:gardenfaeryy@gmail.com">Get in Touch</a>
     </div>
   </div>
 
   <div class="content">
 
     <div class="intro">
-      <strong>Hi there, I'm Taya</strong> &mdash; your favorite garden faery, buzzing in to make your outside space more beautiful. I bring hands-on experience in regenerative farming, beekeeping, mushroom and micro-green care to every visit.
+      <strong>Hi, I'm Taya</strong> &mdash; a garden faery with roots in mushroom and microgreen cultivation, regenerative permaculture, and beekeeping. I bring that knowledge straight to your backyard so you can enjoy a thriving, productive garden without lifting a finger. I show up regularly to tend what you love.
     </div>
 
     <div class="divider"><div class="divider-line"></div><img src="faery-silhouette.png" alt="" style="height:100px; opacity:0.8; filter: drop-shadow(0 1px 3px rgba(196,149,106,0.3));"><div class="divider-line"></div></div>
@@ -545,21 +600,21 @@
 
       <div class="offering glass">
         <div class="offering-text">
-          <strong>Custom raised beds &mdash; built, filled, and planted.</strong>
-          <span>Cedar frames with hardware cloth lining, conjured to fit your space. Delivered with soil and ready for growing magic.</span>
+          <strong>Custom raised beds &mdash; hand built, filled, and planted.</strong>
+          <span>Cedar frames with hardware cloth lining, built to fit your space. Delivered with soil and ready for growing.</span>
         </div>
       </div>
 
       <div class="offering glass">
         <div class="offering-text">
           <strong>Garden tending and weeding.</strong>
-          <span>Regular visits to keep your garden lush, happy, and blooming with life.</span>
+          <span>Regular visits to keep your garden lush, happy, and blooming with life throughout the season. I harvest so you don't have to.</span>
         </div>
       </div>
 
       <div class="offering glass">
         <div class="offering-text">
-          <strong>Honey bee sitting, swarm wrangling, and hive care.</strong>
+          <strong>Honey bee sitting, swarm relocating, and hive care.</strong>
           <span>Gentle beekeeper energy for your buzzy friends &mdash; swarm relocation, hive checks, and all things honeybee.</span>
         </div>
       </div>
@@ -567,7 +622,7 @@
       <div class="offering glass">
         <div class="offering-text">
           <strong>Out-of-town pet and plant sitting.</strong>
-          <span>Your garden and critters, lovingly looked after while you're off on adventures.</span>
+          <span>Your garden and furry ones, lovingly looked after while you're off on adventures.</span>
         </div>
       </div>
     </div>
@@ -598,28 +653,11 @@
 
     <div class="divider"><div class="divider-line"></div><img src="faery-silhouette.png" alt="" style="height:100px; opacity:0.8; filter: drop-shadow(0 1px 3px rgba(196,149,106,0.3));"><div class="divider-line"></div></div>
 
-    <!-- Photos -->
-    <div class="photo-section">
-      <div class="photo-section-title">Glimpses from the Garden</div>
-      <div class="photo-grid">
-        <img src="taya.jpg" alt="Taya, the Garden Faery" loading="lazy">
-        <img src="img_1306.jpg" alt="Garden beds and greenery" loading="lazy">
-      </div>
-      <div class="photo-grid" style="margin-top:10px;">
-        <img src="img_0537.jpg" alt="Beautiful garden work by Garden Faery" loading="lazy">
-        <div class="photo-placeholder">more magic coming soon</div>
-      </div>
-    </div>
-
-    <!-- Contact -->
-    <div class="contact-card">
-      <h3>Let's Make Magic</h3>
-      <div class="subtitle">Free estimates &middot; Arcata &amp; surrounding areas</div>
-      <div class="email-row">
-        <a class="email-link" href="mailto:gardenfaeryy@gmail.com">gardenfaeryy@gmail.com</a>
-        <button class="copy-btn" onclick="copyEmail(this)">copy</button>
-      </div>
-      <div class="details">Cash or check &middot; $25/hr for garden tending</div>
+    <!-- Gallery — swap galleryPhotos array for Instagram API later -->
+    <div class="gallery-section">
+      <div class="gallery-title">Glimpses from the Garden</div>
+      <div class="gallery-subtitle" id="gallery-follow"></div>
+      <div class="gallery-grid" id="gallery-grid"></div>
     </div>
 
     <!-- Contact form -->
@@ -665,17 +703,23 @@
       var volumeCuFt = L * W * 1;
       var soilCostPerCuFt = 60 / 27;
       var soilCost = volumeCuFt * soilCostPerCuFt;
-      var screwsMisc = 2;
-      var laborHours = 2 + (L * W > 20 ? 1 : 0);
+      // Screws: 6 per corner x 4 corners = 24 screws per bed
+      // 3" deck screw ~0.3oz each, sold by weight at Almquist
+      var screwsPerBed = 24;
+      var ozPerScrew = 0.3;
+      var costPerLb = 4.00; // UPDATE with Almquist price per pound
+      var screwCost = (screwsPerBed * ozPerScrew / 16) * costPerLb;
+      var sqft = L * W;
+      var laborHours = 1 + Math.ceil(sqft / 16);
       var laborCost = laborHours * 25;
-      var total = lumberCost + clothCost + soilCost + screwsMisc + laborCost;
+      var total = lumberCost + clothCost + soilCost + screwCost + laborCost;
       document.getElementById('est-total').textContent = '~$' + total.toFixed(0) + ' estimated*';
       document.getElementById('est-breakdown').innerHTML =
         L + '\' x ' + W + '\' x 12" bed<br>' +
         'Cedar lumber: ' + lumberFt + ' ft @ $4.75/ft = $' + lumberCost.toFixed(0) + '<br>' +
         'Hardware cloth: ' + L + ' ft (' + clothWidth + 'ft roll) = $' + clothCost.toFixed(0) + '<br>' +
         'Soil mix: ' + volumeCuFt.toFixed(0) + ' cu ft ($60/yard) = $' + soilCost.toFixed(0) + '<br>' +
-        'Screws &amp; hardware: $' + screwsMisc + '<br>' +
+        'Screws: ' + screwsPerBed + ' x 3" @ $' + costPerLb.toFixed(2) + '/lb = $' + screwCost.toFixed(2) + '<br>' +
         'Labor: ~' + laborHours + ' hrs @ $25/hr = $' + laborCost.toFixed(0);
       document.getElementById('est-result').style.display = 'block';
     }
@@ -714,6 +758,54 @@
       e.target.style.display = 'none';
       window.location.href = 'mailto:gardenfaeryy@gmail.com?subject=' + subject + '&body=' + body;
     }
+
+    // =============================================
+    // GALLERY CONFIG — swap this for Instagram API
+    // =============================================
+    // To add photos: drop them in the gallery/ folder
+    // and add an entry here. When Instagram is ready,
+    // replace this whole block with the API fetch.
+    var galleryPhotos = [
+      { src: 'gallery/taya.jpg', alt: 'Taya, the Garden Faery', caption: '' },
+      { src: 'gallery/img_1306.jpg', alt: 'Garden beds and greenery', caption: '' },
+      { src: 'gallery/img_0537.jpg', alt: 'Garden work', caption: '' },
+      { src: 'gallery/farm.jpg', alt: 'The farm', caption: '' }
+    ];
+
+    // Instagram handle — set this when the account is made
+    var instagramHandle = ''; // e.g. 'gardenfaeryy'
+
+    (function buildGallery() {
+      var grid = document.getElementById('gallery-grid');
+      var follow = document.getElementById('gallery-follow');
+
+      // Show follow link if Instagram is set
+      if (instagramHandle) {
+        follow.innerHTML = 'follow along <a href="https://instagram.com/' + instagramHandle + '" target="_blank" rel="noopener">@' + instagramHandle + '</a>';
+      }
+
+      if (galleryPhotos.length === 0) {
+        grid.innerHTML = '<div class="gallery-empty">more magic coming soon</div>';
+        return;
+      }
+
+      galleryPhotos.forEach(function(photo) {
+        var item = document.createElement('div');
+        item.className = 'gallery-item';
+        var img = document.createElement('img');
+        img.src = photo.src;
+        img.alt = photo.alt || '';
+        img.loading = 'lazy';
+        item.appendChild(img);
+        if (photo.caption) {
+          var cap = document.createElement('div');
+          cap.className = 'caption';
+          cap.textContent = photo.caption;
+          item.appendChild(cap);
+        }
+        grid.appendChild(item);
+      });
+    })();
 
     // Generate glitter particles
     (function() {
