@@ -67,84 +67,6 @@
       pointer-events: none;
     }
 
-    /* Glitter sparkles */
-    @keyframes glitter {
-      0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
-      15% { opacity: 1; transform: scale(1) rotate(45deg); }
-      30% { opacity: 0.6; transform: scale(0.8) rotate(90deg); }
-      50% { opacity: 1; transform: scale(1.1) rotate(180deg); }
-      70% { opacity: 0.4; transform: scale(0.6) rotate(270deg); }
-      85% { opacity: 0.9; transform: scale(1) rotate(315deg); }
-    }
-    .glitter-field {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      pointer-events: none;
-      z-index: 9999;
-      overflow: hidden;
-    }
-    .glitter-field .glitter {
-      position: absolute;
-      width: 3px; height: 3px;
-      border-radius: 50%;
-      animation: glitter 4s ease-in-out infinite;
-    }
-    .glitter-field .glitter::before {
-      content: '';
-      position: absolute;
-      top: -1px; left: 50%;
-      transform: translateX(-50%);
-      width: 1px; height: 5px;
-      background: inherit;
-      border-radius: 1px;
-    }
-    .glitter-field .glitter::after {
-      content: '';
-      position: absolute;
-      left: -1px; top: 50%;
-      transform: translateY(-50%);
-      width: 5px; height: 1px;
-      background: inherit;
-      border-radius: 1px;
-    }
-    .glitter-gold { background: var(--gold); box-shadow: 0 0 4px var(--gold); }
-    .glitter-pink { background: var(--fairy-pink); box-shadow: 0 0 4px var(--fairy-pink); }
-    .glitter-lavender { background: var(--lavender); box-shadow: 0 0 3px var(--lavender); }
-    .glitter-white { background: #fff; box-shadow: 0 0 4px rgba(255,255,255,0.8); }
-
-    /* Sparkle particles */
-    @keyframes sparkle-drift {
-      0% { transform: translateY(0) scale(0); opacity: 0; }
-      20% { transform: translateY(-10px) scale(1); opacity: 1; }
-      80% { transform: translateY(-40px) scale(0.8); opacity: 0.6; }
-      100% { transform: translateY(-60px) scale(0); opacity: 0; }
-    }
-    @keyframes twinkle {
-      0%, 100% { opacity: 0.3; }
-      50% { opacity: 1; }
-    }
-    @keyframes gentle-float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-6px); }
-    }
-
-    .sparkle-field {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      top: 0; left: 0;
-      pointer-events: none;
-      overflow: hidden;
-    }
-    .sparkle-field .spark {
-      position: absolute;
-      width: 4px; height: 4px;
-      background: radial-gradient(circle, var(--gold) 0%, transparent 70%);
-      border-radius: 50%;
-      animation: twinkle 3s ease-in-out infinite;
-    }
-
     /* Hero */
     .hero {
       width: 100%;
@@ -566,18 +488,7 @@
 </head>
 <body>
 
-  <!-- Glitter overlay -->
-  <div class="glitter-field" id="glitter-field"></div>
-
   <div class="hero">
-    <div class="sparkle-field">
-      <div class="spark" style="left:10%;top:20%;animation-delay:0s;"></div>
-      <div class="spark" style="left:25%;top:60%;animation-delay:1s;"></div>
-      <div class="spark" style="left:70%;top:30%;animation-delay:0.5s;"></div>
-      <div class="spark" style="left:85%;top:70%;animation-delay:1.5s;"></div>
-      <div class="spark" style="left:50%;top:15%;animation-delay:2s;"></div>
-      <div class="spark" style="left:40%;top:80%;animation-delay:0.8s;"></div>
-    </div>
     <div class="hero-inner">
       <h1>Garden Faery</h1>
       <p>Arcata &amp; surrounding areas &middot; $25/hr</p>
@@ -805,24 +716,6 @@
       });
     })();
 
-    // Generate glitter particles
-    (function() {
-      var field = document.getElementById('glitter-field');
-      var colors = ['glitter-gold', 'glitter-gold', 'glitter-gold', 'glitter-pink', 'glitter-lavender', 'glitter-white'];
-      var count = 35;
-      for (var i = 0; i < count; i++) {
-        var g = document.createElement('div');
-        g.className = 'glitter ' + colors[Math.floor(Math.random() * colors.length)];
-        g.style.left = (Math.random() * 100) + '%';
-        g.style.top = (Math.random() * 100) + '%';
-        g.style.animationDelay = (Math.random() * 6) + 's';
-        g.style.animationDuration = (2.5 + Math.random() * 3) + 's';
-        var size = 2 + Math.random() * 3;
-        g.style.width = size + 'px';
-        g.style.height = size + 'px';
-        field.appendChild(g);
-      }
-    })();
   </script>
 
 </body>
