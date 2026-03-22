@@ -255,9 +255,6 @@
       padding: 18px 20px;
       margin-bottom: 10px;
       border-left: 3px solid var(--fairy-pink);
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
       transition: transform 0.2s, box-shadow 0.2s;
     }
     .offering:nth-child(1) { transform: rotate(-0.5deg); }
@@ -274,18 +271,6 @@
       transform: translateY(-2px) rotate(0deg) !important;
       box-shadow: 0 8px 30px rgba(212,160,176,0.2);
     }
-    .offering-icon-img {
-      flex-shrink: 0;
-      width: 28px;
-      height: 28px;
-      margin-top: 2px;
-      object-fit: contain;
-      opacity: 0.5;
-      filter: drop-shadow(0 1px 2px rgba(196,149,106,0.3));
-    }
-    .offering:nth-child(2) .offering-icon-img { opacity: 0.4; }
-    .offering:nth-child(3) .offering-icon-img { opacity: 0.55; }
-    .offering:nth-child(4) .offering-icon-img { opacity: 0.45; }
     .offering-text {
       flex: 1;
     }
@@ -469,6 +454,19 @@
       transition: background 0.2s, transform 0.2s;
     }
     .contact-card a.email-link:hover { background: rgba(255,255,255,0.25); transform: scale(1.02); }
+    .email-row { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    .copy-btn {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #d4b8a0;
+      font-size: 13px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      font-family: 'Nunito', sans-serif;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,0.25); color: white; }
     .contact-card .details { margin-top: 14px; font-size: 13px; color: #c4a888; }
 
     /* Form */
@@ -529,9 +527,6 @@
       <div class="spark" style="left:40%;top:80%;animation-delay:0.8s;"></div>
     </div>
     <div class="hero-inner">
-      <div class="hero-icon">
-        <img src="faery-wings.png" alt="Garden Faery wings" style="max-height:120px; opacity:0.95; filter: drop-shadow(0 4px 12px rgba(212,168,67,0.4));">
-      </div>
       <h1>Garden Faery</h1>
       <p>a little magic for your outside space &middot; Arcata, CA</p>
     </div>
@@ -543,13 +538,12 @@
       <strong>Hi there, I'm Taya</strong> &mdash; your favorite garden faery, buzzing in to make your outside space more beautiful. I bring hands-on experience in regenerative farming, beekeeping, mushroom and micro-green care to every visit.
     </div>
 
-    <div class="divider"><div class="divider-line"></div><img src="faery-silhouette.png" alt="" style="height:50px; opacity:0.7; filter: drop-shadow(0 1px 3px rgba(196,149,106,0.3));"><div class="divider-line"></div></div>
+    <div class="divider"><div class="divider-line"></div><img src="faery-silhouette.png" alt="" style="height:100px; opacity:0.8; filter: drop-shadow(0 1px 3px rgba(196,149,106,0.3));"><div class="divider-line"></div></div>
 
     <div class="offerings">
       <div class="offerings-title">A Little of My Magic</div>
 
       <div class="offering glass">
-        <img class="offering-icon-img" src="faery-silhouette.png" alt="">
         <div class="offering-text">
           <strong>Custom raised beds &mdash; built, filled, and planted.</strong>
           <span>Cedar frames with hardware cloth lining, conjured to fit your space. Delivered with soil and ready for growing magic.</span>
@@ -557,7 +551,6 @@
       </div>
 
       <div class="offering glass">
-        <img class="offering-icon-img" src="faery-silhouette.png" alt="">
         <div class="offering-text">
           <strong>Garden tending and weeding.</strong>
           <span>Regular visits to keep your garden lush, happy, and blooming with life.</span>
@@ -565,7 +558,6 @@
       </div>
 
       <div class="offering glass">
-        <img class="offering-icon-img" src="faery-silhouette.png" alt="">
         <div class="offering-text">
           <strong>Honey bee sitting, swarm wrangling, and hive care.</strong>
           <span>Gentle beekeeper energy for your buzzy friends &mdash; swarm relocation, hive checks, and all things honeybee.</span>
@@ -573,7 +565,6 @@
       </div>
 
       <div class="offering glass">
-        <img class="offering-icon-img" src="faery-silhouette.png" alt="">
         <div class="offering-text">
           <strong>Out-of-town pet and plant sitting.</strong>
           <span>Your garden and critters, lovingly looked after while you're off on adventures.</span>
@@ -605,7 +596,7 @@
       </div>
     </div>
 
-    <div class="divider"><div class="divider-line"></div><img src="faery-silhouette.png" alt="" style="height:50px; opacity:0.7; filter: drop-shadow(0 1px 3px rgba(196,149,106,0.3));"><div class="divider-line"></div></div>
+    <div class="divider"><div class="divider-line"></div><img src="faery-silhouette.png" alt="" style="height:100px; opacity:0.8; filter: drop-shadow(0 1px 3px rgba(196,149,106,0.3));"><div class="divider-line"></div></div>
 
     <!-- Photos -->
     <div class="photo-section">
@@ -624,7 +615,10 @@
     <div class="contact-card">
       <h3>Let's Make Magic</h3>
       <div class="subtitle">Free estimates &middot; Arcata &amp; surrounding areas</div>
-      <a class="email-link" href="mailto:gardenfaeryy@gmail.com">gardenfaeryy@gmail.com</a>
+      <div class="email-row">
+        <a class="email-link" href="mailto:gardenfaeryy@gmail.com">gardenfaeryy@gmail.com</a>
+        <button class="copy-btn" onclick="copyEmail(this)">copy</button>
+      </div>
       <div class="details">Cash or check &middot; $25/hr for garden tending</div>
     </div>
 
@@ -699,6 +693,13 @@
         (msg ? msg + '\n\n' : '') + '(Sent from Garden Faery landing page)'
       );
       window.location.href = 'mailto:gardenfaeryy@gmail.com?subject=' + subject + '&body=' + body;
+    }
+
+    function copyEmail(btn) {
+      navigator.clipboard.writeText('gardenfaeryy@gmail.com').then(function() {
+        btn.textContent = 'copied!';
+        setTimeout(function() { btn.textContent = 'copy'; }, 2000);
+      });
     }
 
     function subscribeEmail(e) {
