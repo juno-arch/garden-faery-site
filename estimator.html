@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Raised Bed Estimator — Garden Faery</title>
+  <meta name="description" content="Get an instant estimate for a custom cedar raised bed. Enter your dimensions and see materials + labor cost breakdown. Garden Faery, Arcata, CA.">
+  <link rel="canonical" href="https://gardenfaery.love/estimator">
+  <link rel="icon" type="image/png" href="landing-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --text-primary: #4a1942;
+      --text-secondary: rgba(74, 25, 66, 0.6);
+      --font-heading: 'Elsie Swash Caps', serif;
+      --font-body: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --bg: #f8f4ed;
+      --accent-1: #c48bb0;
+      --accent-2: #a3b88c;
+      --highlight: #d4c27a;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: var(--font-heading);
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    /* Navigation */
+    .site-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 54px;
+      background: var(--bg);
+      border-bottom: 2px solid var(--accent-1);
+    }
+
+    .nav-logo {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--text-primary);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 6px;
+    }
+
+    .nav-links a {
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 6px 14px;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text-primary);
+    }
+
+    .nav-links a.active {
+      color: var(--text-primary);
+      border-bottom-color: var(--accent-1);
+    }
+
+    @media (max-width: 480px) {
+      .site-nav {
+        padding: 0 16px;
+      }
+
+      .nav-logo {
+        font-size: 18px;
+      }
+
+      .nav-links a {
+        font-size: 12px;
+        padding: 6px 8px;
+      }
+
+      .nav-links {
+        gap: 0;
+      }
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 20px 20px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent-1);
+      background: var(--text-primary);
+    }
+
+    footer a {
+      color: var(--accent-1);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Page content */
+    .page-content {
+      max-width: 580px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .page-title {
+      font-size: 36px;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .page-subtitle {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+    }
+
+    /* Estimator */
+    .estimator {
+      border-radius: 18px;
+      padding: 26px 24px;
+      background: rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      margin-bottom: 32px;
+    }
+
+    .est-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .est-row label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .est-row .est-field {
+      flex: 1;
+    }
+
+    .est-row input {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid rgba(74, 25, 66, 0.15);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 15px;
+      background: rgba(255, 255, 255, 0.6);
+      color: var(--text-primary);
+    }
+
+    .est-row input:focus {
+      outline: none;
+      border-color: var(--accent-1);
+      box-shadow: 0 0 0 3px rgba(196, 139, 176, 0.2);
+    }
+
+    .est-btn {
+      width: 100%;
+      padding: 13px;
+      background: var(--accent-1);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font-heading);
+      margin-top: 6px;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .est-btn:hover {
+      background: var(--highlight);
+      transform: scale(1.02);
+    }
+
+    .est-result {
+      display: none;
+      margin-top: 16px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid rgba(74, 25, 66, 0.1);
+    }
+
+    .est-result .est-total {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .est-result .est-breakdown {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+    }
+
+    .est-result .est-note {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 12px;
+      font-style: italic;
+      padding-top: 10px;
+      border-top: 1px solid rgba(74, 25, 66, 0.1);
+    }
+
+    /* CTA */
+    .cta-box {
+      text-align: center;
+      padding: 20px 20px 24px;
+    }
+
+    .cta-box p {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+
+    .cta-btn {
+      display: inline-block;
+      padding: 14px 36px;
+      background: var(--accent-1);
+      color: white;
+      text-decoration: none;
+      font-family: var(--font-body);
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: 10px;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .cta-btn:hover {
+      background: var(--highlight);
+      transform: scale(1.03);
+    }
+  </style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="index.html" class="nav-logo">Garden Faery</a>
+  <div class="nav-links">
+      <a href="index.html">Home</a>
+    <a href="services.html">Services</a>
+    <a href="estimator.html" class="active">Estimator</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="contact.html">Contact</a>
+  </div>
+</nav>
+
+<div class="page-content">
+  <h1 class="page-title">Raised Bed Estimator</h1>
+  <p class="page-subtitle">Pop in your dimensions and see the magic number. These are estimates — reach out for an exact quote!</p>
+
+  <div class="estimator">
+    <div class="est-row">
+      <div class="est-field">
+        <label>Length (ft)</label>
+        <input type="number" id="est-length" min="1" max="30" value="4" step="0.5">
+      </div>
+      <div class="est-field">
+        <label>Width (ft)</label>
+        <input type="number" id="est-width" min="1" max="12" value="4" step="0.5">
+      </div>
+    </div>
+    <button class="est-btn" onclick="calculateEstimate()">See My Estimate</button>
+    <div class="est-result" id="est-result">
+      <div class="est-total" id="est-total"></div>
+      <div class="est-breakdown" id="est-breakdown"></div>
+      <div class="est-note">*These are estimates only and not actual prices. Final cost may vary based on site conditions, soil delivery distance, and customization. Reach out for a free exact quote!</div>
+    </div>
+  </div>
+
+  <div class="cta-box" id="cta-box">
+    <p>Ready to get started? Send me your dimensions and I'll give you an exact quote.</p>
+    <a href="contact.html" class="cta-btn" id="cta-btn">Get in Touch</a>
+  </div>
+</div>
+
+<footer>
+    <a href="mailto:gardenfaeryy@gmail.com">gardenfaeryy@gmail.com</a> \&middot; Arcata, CA
+    <div class="social-links">
+      <a href="https://www.facebook.com/profile.php?id=61578540137419" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+      <a href="https://www.instagram.com/gardenfaery__/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+      <a href="https://nextdoor.com/profile/01fPxwm9JL8Y2BKt9/" target="_blank" rel="noopener" aria-label="Nextdoor"><svg viewBox="0 0 24 24"><path d="M12.006 0C5.38 0 0 5.38 0 12.006S5.38 24 12.006 24 24 18.62 24 12.006 18.62 0 12.006 0zm3.07 7.586c.378-.378.892-.59 1.424-.59.534 0 1.048.212 1.426.59.378.378.59.892.59 1.426v6.975a.82.82 0 01-.82.82h-1.19a.82.82 0 01-.82-.82V9.87a.608.608 0 00-1.037-.43l-2.534 2.534a.82.82 0 01-1.16 0L8.42 9.44a.608.608 0 00-1.037.43v6.117a.82.82 0 01-.82.82H5.374a.82.82 0 01-.82-.82V9.012c0-.534.212-1.048.59-1.426a2.016 2.016 0 012.85 0l4.012 4.012 3.07-4.012z"/></svg></a>
+    </div>
+  </footer>
+
+<script>
+  // Seasonal colors
+  (function applySeason() {
+    var month = new Date().getMonth();
+    var root = document.documentElement;
+    var palettes = {
+      spring: { bg: '#f8f4ed', a1: '#c48bb0', a2: '#a3b88c', hl: '#d4c27a' },
+      summer: { bg: '#faf6f1', a1: '#e8b828', a2: '#b5c99a', hl: '#7b2d6e' },
+      autumn: { bg: '#faf3ea', a1: '#d4943a', a2: '#a67c52', hl: '#7a3b4e' },
+      winter: { bg: '#f5f3f0', a1: '#8fb0a5', a2: '#506a6e', hl: '#c4b5a0' }
+    };
+    var p;
+    if (month >= 2 && month <= 4) p = palettes.spring;
+    else if (month >= 5 && month <= 7) p = palettes.summer;
+    else if (month >= 8 && month <= 10) p = palettes.autumn;
+    else p = palettes.winter;
+    root.style.setProperty('--bg', p.bg);
+    root.style.setProperty('--accent-1', p.a1);
+    root.style.setProperty('--accent-2', p.a2);
+    root.style.setProperty('--highlight', p.hl);
+  })();
+
+  // Estimator calculator
+  function calculateEstimate() {
+    var L = parseFloat(document.getElementById('est-length').value) || 4;
+    var W = parseFloat(document.getElementById('est-width').value) || 4;
+    var perim = 2 * (L + W);
+    var lumberFt = perim;
+    var lumberCost = lumberFt * 4.75;
+    var clothWidth = W <= 3 ? 3 : 4;
+    var clothRate = clothWidth === 3 ? 2.90 : 3.80;
+    var clothCost = L * clothRate;
+    var volumeCuFt = L * W * 1;
+    var soilCostPerCuFt = 60 / 27;
+    var soilCost = volumeCuFt * soilCostPerCuFt;
+    var screwsPerBed = 24;
+    var ozPerScrew = 0.3;
+    var costPerLb = 4.00;
+    var screwCost = (screwsPerBed * ozPerScrew / 16) * costPerLb;
+    var sqft = L * W;
+    var laborHours = 1 + Math.ceil(sqft / 16);
+    var laborCost = laborHours * 25;
+    var total = lumberCost + clothCost + soilCost + screwCost + laborCost;
+    document.getElementById('est-total').textContent = '~$' + total.toFixed(0) + ' estimated*';
+    document.getElementById('est-breakdown').innerHTML =
+      L + '\' x ' + W + '\' x 12" bed<br>' +
+      'Cedar lumber: ' + lumberFt + ' ft @ $4.75/ft = $' + lumberCost.toFixed(0) + '<br>' +
+      'Hardware cloth: ' + L + ' ft (' + clothWidth + 'ft roll) = $' + clothCost.toFixed(0) + '<br>' +
+      'Soil mix: ' + volumeCuFt.toFixed(0) + ' cu ft ($60/yard) = $' + soilCost.toFixed(0) + '<br>' +
+      'Screws: ' + screwsPerBed + ' x 3" @ $' + costPerLb.toFixed(2) + '/lb = $' + screwCost.toFixed(2) + '<br>' +
+      'Labor: ~' + laborHours + ' hrs @ $25/hr = $' + laborCost.toFixed(0);
+    document.getElementById('est-result').style.display = 'block';
+
+    // Update CTA to send estimate via email
+    var subject = encodeURIComponent('Raised Bed Estimate — ' + L + '\' x ' + W + '\'');
+    var body = encodeURIComponent(
+      'Hi Taya!\n\n' +
+      'I used the estimator on your site and I\'d love to get an exact quote.\n\n' +
+      'My estimate:\n' +
+      L + '\' x ' + W + '\' x 12" raised bed\n' +
+      'Cedar lumber: ' + lumberFt + ' ft = $' + lumberCost.toFixed(0) + '\n' +
+      'Hardware cloth: ' + L + ' ft (' + clothWidth + 'ft roll) = $' + clothCost.toFixed(0) + '\n' +
+      'Soil mix: ' + volumeCuFt.toFixed(0) + ' cu ft = $' + soilCost.toFixed(0) + '\n' +
+      'Labor: ~' + laborHours + ' hrs = $' + laborCost.toFixed(0) + '\n' +
+      'Estimated total: ~$' + total.toFixed(0) + '\n\n' +
+      '(Sent from Garden Faery estimator)'
+    );
+    var btn = document.getElementById('cta-btn');
+    btn.href = 'mailto:gardenfaeryy@gmail.com?subject=' + subject + '&body=' + body;
+    btn.textContent = 'Send My Estimate';
+  }
+</script>
+
+</body>
+</html>
