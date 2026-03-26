@@ -92,23 +92,14 @@
       border-bottom-color: var(--accent-1);
     }
 
-    @media (max-width: 480px) {
-      .site-nav {
-        padding: 0 16px;
-      }
-
-      .nav-logo {
-        font-size: 18px;
-      }
-
-      .nav-links a {
-        font-size: 12px;
-        padding: 6px 8px;
-      }
-
-      .nav-links {
-        gap: 0;
-      }
+    .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 4px; }
+    .hamburger svg { width: 26px; height: 26px; stroke: var(--text-primary); }
+    @media (max-width: 600px) {
+      .hamburger { display: block; }
+      .nav-links { display: none; position: absolute; top: 54px; left: 0; right: 0; flex-direction: column; background: var(--bg); border-bottom: 2px solid var(--accent-1); padding: 8px 0; gap: 0; }
+      .nav-links.open { display: flex; }
+      .nav-links a { padding: 12px 24px; font-size: 15px; border-bottom: none; }
+      .nav-links a.active { border-bottom: none; color: var(--text-primary); background: rgba(196,139,176,0.1); }
     }
 
     footer {
@@ -202,7 +193,7 @@
     .section-divider {
       height: 3px;
       border-radius: 2px;
-      background: linear-gradient(90deg, var(--accent-1), var(--highlight), var(--accent-1));
+      background: var(--accent-1);
       margin: 36px 0;
       opacity: 0.6;
     }
@@ -271,6 +262,7 @@
 <body>
   <nav class="site-nav">
     <a href="index.html" class="nav-logo">Garden Faery</a>
+    <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div class="nav-links">
       <a href="index.html">Home</a>
       <a href="services.html">Services</a>
@@ -300,16 +292,13 @@
     <div class="newsletter">
       <h2>Get the Dirt</h2>
       <p>Seasonal garden wisdom, project updates, and new offerings. No spam — just good green vibes.</p>
-      <form onsubmit="subscribeEmail(event)" style="display:flex; gap:8px; max-width:400px; margin:0 auto;">
-        <input type="email" id="sub-email" placeholder="your@email.com" required class="newsletter-input">
-        <button type="submit" class="newsletter-btn">Sign Up</button>
-      </form>
-      <div id="sub-thanks" style="display:none; color:var(--accent-1); font-size:14px; margin-top:10px; font-weight:500;">Thanks! Opening your email to confirm the signup.</div>
+      <p style="font-size:13px; color:var(--text-secondary); font-style:italic; margin-top:8px;">Newsletter coming soon — follow us on social in the meantime!</p>
     </div>
   </div>
 
   <footer>
-    <a href="mailto:gardenfaeryy@gmail.com">gardenfaeryy@gmail.com</a> \&middot; Arcata, CA
+    <a href="mailto:gardenfaeryy@gmail.com">gardenfaeryy@gmail.com</a> &middot; Arcata, CA
+    <div style="margin-top:6px;"><a href="https://gardenfaery.love" style="color:var(--accent-1); text-decoration:none; font-size:13px;">gardenfaery.love</a></div>
     <div class="social-links">
       <a href="https://www.facebook.com/profile.php?id=61578540137419" target="_blank" rel="noopener" aria-label="Facebook"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
       <a href="https://www.instagram.com/gardenfaery__/" target="_blank" rel="noopener" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
