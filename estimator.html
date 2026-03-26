@@ -3,8 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Raised Bed Estimator — Garden Faery</title>
+  <title>Raised Bed Estimator | Garden Faery</title>
   <meta name="description" content="Get an instant estimate for a custom cedar raised bed. Enter your dimensions and see materials + labor cost breakdown. Garden Faery, Arcata, CA.">
+  <meta property="og:title" content="Raised Bed Estimator | Garden Faery">
+  <meta property="og:description" content="Get a ballpark estimate for your custom raised bed. Pop in your dimensions and see the magic number.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gardenfaery.love/estimator">
+  <meta property="og:image" content="https://gardenfaery.love/farm.jpg">
   <link rel="canonical" href="https://gardenfaery.love/estimator">
   <link rel="icon" type="image/png" href="landing-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -288,7 +293,8 @@
 
 <div class="page-content">
   <h1 class="page-title">Raised Bed Estimator</h1>
-  <p class="page-subtitle">Pop in your dimensions and see the magic number. All beds are built at a standard 12&Prime; depth. These are estimates — reach out for an exact quote!</p>
+  <p class="page-subtitle">Pop in your dimensions and see the magic number. All beds are built at a standard 12&Prime; depth. These are estimates. Reach out for an exact quote!</p>
+  <p style="font-size:13px; color:var(--text-secondary); margin-top:8px;">Heads up: anything wider than 4 feet makes it harder to reach the center and work in day to day.</p>
 
   <div class="estimator">
     <div class="est-row">
@@ -310,8 +316,8 @@
   </div>
 
   <div class="cta-box" id="cta-box">
-    <p>Ready to get started? Send me your dimensions and I'll give you an exact quote.</p>
-    <a href="contact.html" class="cta-btn" id="cta-btn">Get in Touch</a>
+    <p>Like what you see? Let's set up a free consult so I can check out your space and put together a custom quote.</p>
+    <a href="contact.html" class="cta-btn" id="cta-btn">Set Up a Consult</a>
   </div>
 </div>
 
@@ -378,12 +384,12 @@
       'Labor: ~' + laborHours + ' hrs @ $25/hr = $' + laborCost.toFixed(0);
     document.getElementById('est-result').style.display = 'block';
 
-    // Update CTA to send estimate via email
-    var subject = encodeURIComponent('Raised Bed Estimate — ' + L + '\' x ' + W + '\'');
+    // Update CTA to send consult request via email
+    var subject = encodeURIComponent('Raised Bed Estimate: ' + L + '\' x ' + W + '\'');
     var body = encodeURIComponent(
       'Hi Taya!\n\n' +
-      'I used the estimator on your site and I\'d love to get an exact quote.\n\n' +
-      'My estimate:\n' +
+      'I used the estimator on your site and I\'d love to schedule a consult.\n\n' +
+      'My dimensions:\n' +
       L + '\' x ' + W + '\' x 12" raised bed\n' +
       'Cedar lumber: ' + lumberFt + ' ft = $' + lumberCost.toFixed(0) + '\n' +
       'Hardware cloth: ' + L + ' ft (' + clothWidth + 'ft roll) = $' + clothCost.toFixed(0) + '\n' +
@@ -394,7 +400,7 @@
     );
     var btn = document.getElementById('cta-btn');
     btn.href = 'mailto:gardenfaeryy@gmail.com?subject=' + subject + '&body=' + body;
-    btn.textContent = 'Send My Estimate';
+    btn.textContent = 'Set Up a Consult';
   }
 </script>
 

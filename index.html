@@ -4,22 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#4a1942">
-  <meta name="description" content="Garden Faery — a little magic for your outside space. Custom raised beds, garden tending, beekeeping, and pet sitting in Arcata, CA.">
-  <meta property="og:title" content="Garden Faery — A Little Magic for Your Outside Space">
+  <meta name="description" content="Garden Faery. A little magic for your outside space. Custom raised beds, garden tending, beekeeping, and pet sitting in Arcata, CA.">
+  <meta property="og:title" content="Garden Faery | A Little Magic for Your Outside Space">
   <meta property="og:description" content="Custom raised beds, garden care, beekeeping, and pet sitting in Arcata, CA. $25/hr garden tending, free estimates on raised beds.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://gardenfaery.love">
   <meta property="og:image" content="https://gardenfaery.love/farm.jpg">
-  <meta property="og:image:alt" content="Garden Faery — lush garden in Humboldt County">
+  <meta property="og:image:alt" content="Garden Faery, lush garden in Humboldt County">
   <meta property="og:locale" content="en_US">
   <meta property="og:site_name" content="Garden Faery">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Garden Faery — A Little Magic for Your Outside Space">
+  <meta name="twitter:title" content="Garden Faery | A Little Magic for Your Outside Space">
   <meta name="twitter:description" content="Custom raised beds, garden care, beekeeping, and pet sitting in Arcata, CA.">
   <meta name="twitter:image" content="https://gardenfaery.love/farm.jpg">
   <link rel="canonical" href="https://gardenfaery.love">
   <link rel="icon" type="image/png" href="landing-icon.png">
-  <title>Garden Faery &mdash; Arcata, CA</title>
+  <title>Garden Faery | Arcata, CA</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
@@ -41,7 +41,7 @@
       "@type": "OfferCatalog", "name": "Garden Services",
       "itemListElement": [
         { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Custom Raised Beds", "description": "Cedar raised beds with hardware cloth lining, built, filled, and planted" } },
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Garden Tending & Weeding", "description": "Regular garden visits — weeding, pruning, planting, and harvest" }, "price": "25", "priceCurrency": "USD" },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Garden Tending & Weeding", "description": "Regular garden visits: weeding, pruning, planting, and harvest" }, "price": "25", "priceCurrency": "USD" },
         { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Beekeeping & Pollinator Care", "description": "Honey bee sitting, swarm relocation, and hive care" } },
         { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Pet & Plant Sitting", "description": "Lovingly looking after your garden and pets while you travel" } }
       ]
@@ -142,7 +142,7 @@
   <div class="hero">
     <img src="hero-garden.jpg" alt="Rows of pink echinacea flowers at the Garden Faery farm" class="hero-image">
     <div class="hero-overlay">
-      <h1 id="hero-headline">Spring is Here &mdash;<br>Let's Build Something</h1>
+      <h1 id="hero-headline">Spring is Here!<br>Let's Build Something</h1>
       <p id="hero-subtitle">Custom raised beds, built and planted right in your yard. Ready to grow.</p>
       <a class="hero-cta" href="contact.html" id="hero-cta">Get a Free Estimate</a>
     </div>
@@ -150,7 +150,7 @@
 
   <div class="content">
     <div class="intro">
-      <strong>Hi, I&rsquo;m Taya</strong> &mdash; a garden faery with roots in mushroom and microgreen cultivation, regenerative permaculture, and beekeeping. I bring that knowledge straight to your backyard so you can enjoy a thriving, productive garden without lifting a finger. I show up regularly to tend what you love.
+      <strong>Hi, I&rsquo;m Taya</strong>, a garden faery with roots in mushroom and microgreen cultivation, regenerative permaculture, and beekeeping. I bring that knowledge straight to your backyard so you can enjoy a thriving, productive garden without lifting a finger. I show up regularly to tend what you love.
     </div>
   </div>
 
@@ -162,12 +162,16 @@
   </div>
 
   <div class="content">
-    <div class="faery-divider"><div class="faery-divider-line"></div><img src="faery-silhouette.png" alt="" style="height:100px; opacity:0.75; filter: drop-shadow(0 1px 3px rgba(74,25,66,0.2));"><div class="faery-divider-line"></div></div>
+    <div class="faery-divider"><div class="faery-divider-line"></div><img src="faery-silhouette.png" role="presentation" alt="" style="height:100px; opacity:0.75; filter: drop-shadow(0 1px 3px rgba(74,25,66,0.2));"><div class="faery-divider-line"></div></div>
 
     <div class="newsletter">
       <h2>Get the Dirt</h2>
-      <p>Seasonal garden wisdom, project updates, and new offerings. No spam &mdash; just good green vibes.</p>
-      <p style="font-size:13px; color:var(--text-secondary); font-style:italic; margin-top:8px;">Newsletter coming soon &mdash; follow us on social in the meantime!</p>
+      <p>Seasonal garden wisdom, project updates, and new offerings. No spam, just good green vibes.</p>
+      <div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; justify-content:center;">
+        <input type="email" id="nl-email" class="newsletter-input" placeholder="your@email.com" required>
+        <button onclick="subscribeNewsletter()" class="newsletter-btn">Sign Up</button>
+      </div>
+      <p id="nl-status" style="font-size:13px; color:var(--text-secondary); font-style:italic; margin-top:8px; display:none;"></p>
     </div>
   </div>
 
@@ -188,22 +192,22 @@
       var root = document.documentElement;
       var seasons = {
         spring: { bg: '#f8f4ed', a1: '#c48bb0', a2: '#a3b88c', hl: '#d4c27a',
-          headline: 'Spring is Here &mdash;<br>Let\u2019s Build Something',
+          headline: 'Spring is Here!<br>Let\u2019s Build Something',
           subtitle: 'Custom raised beds, built and planted right in your yard. Ready to grow.',
           cta: 'Get a Free Estimate',
           chips: ['Raised Beds', 'Garden Tending', 'Bee Services', 'Pet & Plant Sitting'] },
         summer: { bg: '#faf6f1', a1: '#e8b828', a2: '#b5c99a', hl: '#7b2d6e',
-          headline: 'Buzzing Season &mdash;<br>Bees, Blooms &amp; Magic',
+          headline: 'Buzzing Season!<br>Bees, Blooms &amp; Magic',
           subtitle: 'Garden tending, bee services, and keeping your summer garden thriving.',
           cta: 'Book a Visit',
           chips: ['Raised Beds', 'Garden Tending', 'Bee Services', 'Pet & Plant Sitting'] },
         autumn: { bg: '#faf3ea', a1: '#d4943a', a2: '#a67c52', hl: '#7a3b4e',
-          headline: 'Harvest Season &mdash;<br>Tend, Gather, Rest',
+          headline: 'Harvest Season.<br>Tend, Gather, Rest',
           subtitle: 'Fall cleanup, mushroom magic, and getting your beds ready for winter.',
           cta: 'Schedule Fall Care',
           chips: ['Fall Cleanup', 'Garden Tending', 'Bed Winterizing', 'Pet & Plant Sitting'] },
         winter: { bg: '#f5f3f0', a1: '#8fb0a5', a2: '#506a6e', hl: '#c4b5a0',
-          headline: 'Winter Rest &mdash;<br>We\u2019ve Got Your Critters',
+          headline: 'Winter Rest.<br>We\u2019ve Got Your Critters',
           subtitle: 'Traveling for the holidays? Your pets and plants are in good hands.',
           cta: 'Book Pet Sitting',
           chips: ['Garden Planning', 'Winter Pruning', 'Bed Prep', 'Pet & Plant Sitting'] }
@@ -226,14 +230,25 @@
       }
     })();
 
-    function subscribeEmail(e) {
-      e.preventDefault();
-      var email = document.getElementById('sub-email').value;
-      var subject = encodeURIComponent('Newsletter signup from ' + email);
-      var body = encodeURIComponent('Hi Taya!\n\nI\'d love to get on your mailing list.\n\nEmail: ' + email + '\n\n(Sent from Garden Faery landing page)');
-      document.getElementById('sub-thanks').style.display = 'block';
-      e.target.style.display = 'none';
-      window.location.href = 'mailto:gardenfaeryy@gmail.com?subject=' + subject + '&body=' + body;
+    // Newsletter signup
+    var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxtiXs-zCfNa9wbJ3ly9hIlFftGiDhoIOeVfSIWoPtzBLOUsrSbVyqxriOXY5VWV5xqQA/exec';
+    function subscribeNewsletter() {
+      var email = document.getElementById('nl-email').value;
+      if (!email) return;
+      var status = document.getElementById('nl-status');
+      status.style.display = 'block';
+      status.textContent = 'Signing you up...';
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'newsletter', email: email })
+      }).then(function() {
+        status.textContent = "You're in! Watch for garden magic in your inbox.";
+        document.getElementById('nl-email').value = '';
+      }).catch(function() {
+        status.textContent = 'Hmm, something went wrong. Try again?';
+      });
     }
   </script>
 </body>

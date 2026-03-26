@@ -4,12 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Get in touch with Garden Faery. Free estimates on raised beds, garden care inquiries, and more. Arcata, CA.">
+  <meta property="og:title" content="Contact | Garden Faery">
+  <meta property="og:description" content="Get in touch for garden services, raised bed estimates, or just to say hi. Arcata, CA.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gardenfaery.love/contact">
+  <meta property="og:image" content="https://gardenfaery.love/farm.jpg">
   <link rel="canonical" href="https://gardenfaery.love/contact">
   <link rel="icon" href="landing-icon.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-  <title>Contact — Garden Faery</title>
+  <title>Contact | Garden Faery</title>
   <style>
     * {
       margin: 0;
@@ -274,16 +279,16 @@
 
   <div class="page-content">
     <h1 class="page-title">Say Hi</h1>
-    <p class="page-subtitle">Questions, estimates, garden dreams — send me anything. I'll get back to you quick.</p>
+    <p class="page-subtitle">Questions, estimates, garden dreams? Send me anything. I'll get back to you quick.</p>
 
     <div class="form-section">
       <form onsubmit="sendMessage(event)">
         <input type="text" id="cf-name" placeholder="Your name" required>
         <input type="email" id="cf-email" placeholder="Your email" required>
         <input type="tel" id="cf-phone" placeholder="Phone number (optional)">
-        <textarea id="cf-message" placeholder="Tell me about your space! Bed size, yard dreams, questions — anything helps."></textarea>
+        <textarea id="cf-message" placeholder="Tell me about your space! Bed size, yard dreams, questions... anything helps."></textarea>
         <button type="submit" class="form-btn">Send a Flutter</button>
-        <div class="form-note">Opens your email app with a pre-filled message</div>
+        <div class="form-note"></div>
       </form>
     </div>
 
@@ -291,8 +296,12 @@
 
     <div class="newsletter">
       <h2>Get the Dirt</h2>
-      <p>Seasonal garden wisdom, project updates, and new offerings. No spam — just good green vibes.</p>
-      <p style="font-size:13px; color:var(--text-secondary); font-style:italic; margin-top:8px;">Newsletter coming soon — follow us on social in the meantime!</p>
+      <p>Seasonal garden wisdom, project updates, and new offerings. No spam, just good green vibes.</p>
+      <div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; justify-content:center;">
+        <input type="email" id="nl-email" class="newsletter-input" placeholder="your@email.com" required>
+        <button onclick="subscribeNewsletter()" class="newsletter-btn">Sign Up</button>
+      </div>
+      <p id="nl-status" style="font-size:13px; color:var(--text-secondary); font-style:italic; margin-top:8px; display:none;"></p>
     </div>
   </div>
 
@@ -329,33 +338,52 @@
     })();
 
     // Contact form
+    var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxtiXs-zCfNa9wbJ3ly9hIlFftGiDhoIOeVfSIWoPtzBLOUsrSbVyqxriOXY5VWV5xqQA/exec';
     function sendMessage(e) {
       e.preventDefault();
       var name = document.getElementById('cf-name').value;
       var email = document.getElementById('cf-email').value;
       var phone = document.getElementById('cf-phone').value;
       var msg = document.getElementById('cf-message').value;
-      var subject = encodeURIComponent('Garden Faery Inquiry from ' + name);
-      var body = encodeURIComponent(
-        'Hi Taya!\n\nName: ' + name + '\nEmail: ' + email + '\n' +
-        (phone ? 'Phone: ' + phone + '\n' : '') + '\n' +
-        (msg ? msg + '\n\n' : '') + '(Sent from Garden Faery landing page)'
-      );
-      window.location.href = 'mailto:gardenfaeryy@gmail.com?subject=' + subject + '&body=' + body;
+      var btn = document.querySelector('.form-btn');
+      var note = document.querySelector('.form-note');
+      btn.textContent = 'Sending...';
+      btn.disabled = true;
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'contact', name: name, email: email, phone: phone, message: msg })
+      }).then(function() {
+        btn.textContent = 'Flutter Sent!';
+        note.textContent = "Flutter sent! I'll get back to you quick.";
+        document.querySelector('.form-section form').reset();
+        setTimeout(function() { btn.textContent = 'Send a Flutter'; btn.disabled = false; note.textContent = ''; }, 4000);
+      }).catch(function() {
+        btn.textContent = 'Send a Flutter';
+        btn.disabled = false;
+        note.textContent = 'Something went sideways. Try again?';
+      });
     }
 
-    // Newsletter
-    function subscribeEmail(e) {
-      e.preventDefault();
-      var email = document.getElementById('sub-email').value;
-      var subject = encodeURIComponent('Newsletter signup from ' + email);
-      var body = encodeURIComponent(
-        'Hi Taya!\n\nI\'d love to get on your mailing list.\n\nEmail: ' + email +
-        '\n\n(Sent from Garden Faery landing page)'
-      );
-      document.getElementById('sub-thanks').style.display = 'block';
-      e.target.style.display = 'none';
-      window.location.href = 'mailto:gardenfaeryy@gmail.com?subject=' + subject + '&body=' + body;
+    // Newsletter signup
+    function subscribeNewsletter() {
+      var email = document.getElementById('nl-email').value;
+      if (!email) return;
+      var status = document.getElementById('nl-status');
+      status.style.display = 'block';
+      status.textContent = 'Signing you up...';
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'newsletter', email: email })
+      }).then(function() {
+        status.textContent = "You're in! Watch for garden magic in your inbox.";
+        document.getElementById('nl-email').value = '';
+      }).catch(function() {
+        status.textContent = 'Hmm, something went wrong. Try again?';
+      });
     }
   </script>
 </body>
