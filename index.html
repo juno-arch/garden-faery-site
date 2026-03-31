@@ -226,7 +226,7 @@
       document.getElementById('hero-headline').innerHTML = s.headline;
       document.getElementById('hero-subtitle').textContent = s.subtitle;
       document.getElementById('hero-cta').textContent = s.cta;
-      document.getElementById('hero-cta').href = 'https://calendar.app.google/CQd77uL1tqsj19cw9';
+      document.getElementById('hero-cta').href = 'book.html';
       for (var i = 0; i < s.chips.length; i++) {
         var chip = document.getElementById('chip-' + (i + 1));
         if (chip) chip.textContent = s.chips[i];
@@ -243,14 +243,18 @@
       status.textContent = 'Signing you up...';
       fetch(SCRIPT_URL, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({ type: 'newsletter', email: email })
-      }).then(function() {
+      }).then(function(r) {
+        if (!r.ok) throw new Error('Server error');
+        return r.json();
+      }).then(function(data) {
         status.textContent = "You're in! Watch for garden magic in your inbox.";
+        status.style.color = 'var(--accent-2)';
         document.getElementById('nl-email').value = '';
       }).catch(function() {
-        status.textContent = 'Hmm, something went wrong. Try again?';
+        status.textContent = 'Hmm, something went wrong. Try again or email gardenfaeryy@gmail.com.';
+        status.style.color = '#c0392b';
       });
     }
   </script>

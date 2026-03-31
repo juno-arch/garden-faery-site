@@ -362,18 +362,22 @@
       btn.disabled = true;
       fetch(SCRIPT_URL, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({ type: 'contact', name: name, email: email, phone: phone, message: msg })
-      }).then(function() {
+      }).then(function(r) {
+        if (!r.ok) throw new Error('Server error');
+        return r.json();
+      }).then(function(data) {
         btn.textContent = 'Flutter Sent!';
         note.textContent = "Flutter sent! I'll get back to you quick.";
+        note.style.color = 'var(--accent-2)';
         document.querySelector('.form-section form').reset();
-        setTimeout(function() { btn.textContent = 'Send a Flutter'; btn.disabled = false; note.textContent = ''; }, 4000);
+        setTimeout(function() { btn.textContent = 'Send a Flutter'; btn.disabled = false; note.textContent = ''; note.style.color = ''; }, 4000);
       }).catch(function() {
         btn.textContent = 'Send a Flutter';
         btn.disabled = false;
-        note.textContent = 'Something went sideways. Try again?';
+        note.textContent = 'Something went wrong. Try again or email me at gardenfaeryy@gmail.com.';
+        note.style.color = '#c0392b';
       });
     }
 
@@ -386,14 +390,18 @@
       status.textContent = 'Signing you up...';
       fetch(SCRIPT_URL, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({ type: 'newsletter', email: email })
-      }).then(function() {
+      }).then(function(r) {
+        if (!r.ok) throw new Error('Server error');
+        return r.json();
+      }).then(function(data) {
         status.textContent = "You're in! Watch for garden magic in your inbox.";
+        status.style.color = 'var(--accent-2)';
         document.getElementById('nl-email').value = '';
       }).catch(function() {
-        status.textContent = 'Hmm, something went wrong. Try again?';
+        status.textContent = 'Hmm, something went wrong. Try again or email gardenfaeryy@gmail.com.';
+        status.style.color = '#c0392b';
       });
     }
   </script>

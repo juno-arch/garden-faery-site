@@ -90,12 +90,12 @@ function getAvailability(data) {
         var events = cal.getEvents(slotStart, slotEnd);
 
         if (events.length === 0) {
-          var startStr = formatTime(slotStart);
-          var endStr = formatTime(slotEnd);
+          var startHHMM = padTime(slotStart);
+          var endHHMM = padTime(slotEnd);
           available.push({
-            start: startStr,
-            end: endStr,
-            label: formatTimeRange(startStr, endStr)
+            start: startHHMM,
+            end: endHHMM,
+            label: formatTimeRange(startHHMM, endHHMM)
           });
         }
 
@@ -225,6 +225,13 @@ function parseTime(dateStr, timeStr) {
   var parts = timeStr.split(':');
   var d = new Date(dateStr + 'T' + timeStr + ':00-07:00');
   return d;
+}
+
+// Helper: format a Date object as "HH:MM" (24-hour)
+function padTime(d) {
+  var h = d.getHours();
+  var m = d.getMinutes();
+  return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m;
 }
 
 // Helper: format a Date object as "h:mm am/pm"

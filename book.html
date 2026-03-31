@@ -511,10 +511,13 @@
 
     fetch(BOOKING_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(payload)
     })
-    .then(function(r) { return r.json(); })
+    .then(function(r) {
+      if (!r.ok) throw new Error('Server error');
+      return r.json();
+    })
     .then(function(data) {
       if (data.success) {
         var status = document.getElementById('book-status');
@@ -535,14 +538,12 @@
         btn.disabled = false;
       }
     })
-    .catch(function() {
-      // no-cors fallback: assume success since we can't read the response
+    .catch(function(err) {
       var status = document.getElementById('book-status');
-      status.textContent = state.type === 'consult'
-        ? "You're booked! I'll see you in the garden."
-        : "You're on the calendar! See you soon.";
-      status.className = 'book-status success';
-      btn.textContent = 'Booked!';
+      status.textContent = "Something went wrong. Try again or email me at gardenfaeryy@gmail.com.";
+      status.className = 'book-status error';
+      btn.textContent = 'Book It';
+      btn.disabled = false;
     });
   }
 
