@@ -126,6 +126,8 @@
     </div>
   </nav>
 
+  <h1 class="sr-only" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;">Garden Faery Photo Gallery</h1>
+
   <!-- Instagram-style Profile Header -->
   <div class="ig-header">
     <img src="gallery/farm.jpg" alt="Taya, the Garden Faery" class="ig-avatar">
@@ -241,7 +243,7 @@
         var img = document.createElement('img');
         img.src = photo.src;
         img.alt = photo.alt;
-        img.loading = 'lazy';
+        if (i > 5) img.loading = 'lazy';
         item.appendChild(img);
         var overlay = document.createElement('div');
         overlay.className = 'overlay';

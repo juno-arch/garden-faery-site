@@ -92,6 +92,20 @@
     .type-btn h3 { font-size: 16px; margin-bottom: 4px; }
     .type-btn p { font-size: 12px; color: var(--text-secondary); margin: 0; }
 
+    /* Duration selector */
+    .duration-section { margin-bottom: 24px; }
+    .duration-label { font-size: 14px; font-weight: 600; margin-bottom: 10px; color: var(--text-primary); }
+    .duration-options { display: flex; gap: 8px; flex-wrap: wrap; }
+    .dur-btn {
+      padding: 10px 18px; border: 2px solid rgba(74,25,66,0.15);
+      border-radius: 10px; background: rgba(255,255,255,0.5); cursor: pointer;
+      font-family: var(--font-body); font-size: 14px; font-weight: 600;
+      color: var(--text-primary); transition: all 0.2s;
+    }
+    .dur-btn:hover { border-color: var(--accent-1); }
+    .dur-btn.selected { border-color: var(--accent-1); background: rgba(196,139,176,0.12); }
+    .dur-btn .dur-cost { font-size: 11px; color: var(--text-secondary); display: block; margin-top: 2px; }
+
     /* Calendar */
     .calendar-section { margin-bottom: 24px; }
     .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
@@ -190,6 +204,18 @@
     </div>
   </div>
 
+  <!-- Step 1b: Choose duration (garden care only) -->
+  <div class="duration-section" id="duration-section" style="display:none;">
+    <div class="duration-label">How long do you need?</div>
+    <div class="duration-options">
+      <button class="dur-btn" onclick="selectDuration(60)">1 hour<span class="dur-cost">$25</span></button>
+      <button class="dur-btn" onclick="selectDuration(90)">1.5 hours<span class="dur-cost">$37</span></button>
+      <button class="dur-btn" onclick="selectDuration(120)">2 hours<span class="dur-cost">$50</span></button>
+      <button class="dur-btn" onclick="selectDuration(180)">3 hours<span class="dur-cost">$75</span></button>
+      <button class="dur-btn" onclick="selectDuration(240)">4 hours<span class="dur-cost">$100</span></button>
+    </div>
+  </div>
+
   <!-- Step 2: Pick a date -->
   <div class="calendar-section" id="calendar-section" style="display:none;">
     <div class="cal-header">
@@ -268,27 +294,60 @@
   };
 
   var CONSULT_DURATION = 30; // minutes
-  var state = { type: null, date: null, slot: null, weekStart: null };
+  var state = { type: null, date: null, slot: null, weekStart: null, duration: null };
 
   // Step 1: Select booking type
   function selectType(type) {
     state.type = type;
     state.date = null;
     state.slot = null;
+    state.duration = type === 'consult' ? CONSULT_DURATION : null;
     document.getElementById('type-consult').classList.toggle('selected', type === 'consult');
     document.getElementById('type-visit').classList.toggle('selected', type === 'visit');
-    document.getElementById('calendar-section').style.display = 'block';
     document.getElementById('slots-section').style.display = 'none';
     document.getElementById('booking-form').style.display = 'none';
     document.getElementById('book-status').textContent = '';
 
-    // Start calendar from this week
+    if (type === 'visit') {
+      // Show duration picker first, hide calendar until duration is chosen
+      document.getElementById('duration-section').style.display = 'block';
+      document.getElementById('calendar-section').style.display = 'none';
+      // Clear any previous duration selection
+      var durBtns = document.querySelectorAll('.dur-btn');
+      for (var i = 0; i < durBtns.length; i++) durBtns[i].classList.remove('selected');
+    } else {
+      // Consultation: skip duration, go straight to calendar
+      document.getElementById('duration-section').style.display = 'none';
+      document.getElementById('calendar-section').style.display = 'block';
+      var today = new Date();
+      var day = today.getDay();
+      state.weekStart = new Date(today);
+      state.weekStart.setDate(today.getDate() - day);
+      state.weekStart.setHours(0, 0, 0, 0);
+      renderCalendar();
+    }
+  }
+
+  // Step 1b: Select duration (garden care only)
+  function selectDuration(mins) {
+    state.duration = mins;
+    state.date = null;
+    state.slot = null;
+    var durBtns = document.querySelectorAll('.dur-btn');
+    for (var i = 0; i < durBtns.length; i++) {
+      durBtns[i].classList.toggle('selected', parseInt(durBtns[i].getAttribute('onclick').match(/\d+/)[0]) === mins);
+    }
+    // Now show calendar
+    document.getElementById('calendar-section').style.display = 'block';
+    document.getElementById('slots-section').style.display = 'none';
+    document.getElementById('booking-form').style.display = 'none';
     var today = new Date();
     var day = today.getDay();
     state.weekStart = new Date(today);
     state.weekStart.setDate(today.getDate() - day);
     state.weekStart.setHours(0, 0, 0, 0);
     renderCalendar();
+    document.getElementById('calendar-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   // Step 2: Render two-week calendar
@@ -369,7 +428,9 @@
     slotsGrid.innerHTML = '<div class="slots-loading">Checking availability...</div>';
 
     // Fetch availability from Apps Script
-    var url = BOOKING_URL + '?action=getAvailability&date=' + dateStr + '&type=' + state.type;
+    // For garden care visits, always fetch as consult (30-min slots) so we can combine them client-side
+    var fetchType = (state.type === 'visit') ? 'consult' : state.type;
+    var url = BOOKING_URL + '?action=getAvailability&date=' + dateStr + '&type=' + fetchType;
     fetch(url)
       .then(function(r) { return r.json(); })
       .then(function(data) {
@@ -378,21 +439,66 @@
           slotsGrid.innerHTML = '<div class="slots-empty">No open slots this day. Try another date!</div>';
           return;
         }
-        for (var i = 0; i < data.available.length; i++) {
-          var slot = data.available[i];
-          var btn = document.createElement('button');
-          btn.className = 'slot-btn';
-          btn.textContent = slot.label;
-          btn.setAttribute('data-start', slot.start);
-          btn.setAttribute('data-end', slot.end);
-          btn.onclick = function() { selectSlot(this); };
-          slotsGrid.appendChild(btn);
+        if (state.type === 'visit' && state.duration) {
+          // Combine 30-min slots into blocks matching the selected duration
+          var blocks = buildDurationBlocks(data.available, state.duration);
+          if (blocks.length === 0) {
+            slotsGrid.innerHTML = '<div class="slots-empty">No ' + (state.duration / 60) + '-hour blocks open this day. Try a shorter time or another date!</div>';
+            return;
+          }
+          for (var i = 0; i < blocks.length; i++) {
+            var block = blocks[i];
+            var btn = document.createElement('button');
+            btn.className = 'slot-btn';
+            btn.textContent = block.label;
+            btn.setAttribute('data-start', block.start);
+            btn.setAttribute('data-end', block.end);
+            btn.onclick = function() { selectSlot(this); };
+            slotsGrid.appendChild(btn);
+          }
+        } else {
+          for (var i = 0; i < data.available.length; i++) {
+            var slot = data.available[i];
+            var btn = document.createElement('button');
+            btn.className = 'slot-btn';
+            btn.textContent = slot.label;
+            btn.setAttribute('data-start', slot.start);
+            btn.setAttribute('data-end', slot.end);
+            btn.onclick = function() { selectSlot(this); };
+            slotsGrid.appendChild(btn);
+          }
         }
       })
       .catch(function() {
         // Fallback: show slots from local schedule without availability check
         showLocalSlots(dateStr);
       });
+  }
+
+  // Build duration blocks from consecutive 30-min slots
+  function buildDurationBlocks(slots, durationMin) {
+    var blocks = [];
+    var slotsNeeded = durationMin / 30;
+    for (var i = 0; i <= slots.length - slotsNeeded; i++) {
+      // Check if the next N slots are consecutive
+      var consecutive = true;
+      for (var j = 1; j < slotsNeeded; j++) {
+        if (slots[i + j].start !== slots[i + j - 1].end) {
+          consecutive = false;
+          break;
+        }
+      }
+      if (consecutive) {
+        var blockStart = slots[i].start;
+        var blockEnd = slots[i + slotsNeeded - 1].end;
+        blocks.push({
+          start: blockStart,
+          end: blockEnd,
+          label: formatTimeRange(blockStart, blockEnd)
+        });
+      }
+    }
+    return blocks;
   }
 
   // Fallback: show slots from local schedule
@@ -403,32 +509,21 @@
     var blocks = SCHEDULE[dow] || [];
 
     slotsGrid.innerHTML = '';
-    if (state.type === 'visit') {
-      for (var i = 0; i < blocks.length; i++) {
+    var slotDuration = state.duration || CONSULT_DURATION;
+    for (var i = 0; i < blocks.length; i++) {
+      var startMin = timeToMin(blocks[i].start);
+      var endMin = timeToMin(blocks[i].end);
+      while (startMin + slotDuration <= endMin) {
+        var s = minToTime(startMin);
+        var e = minToTime(startMin + slotDuration);
         var btn = document.createElement('button');
         btn.className = 'slot-btn';
-        btn.textContent = formatTimeRange(blocks[i].start, blocks[i].end);
-        btn.setAttribute('data-start', blocks[i].start);
-        btn.setAttribute('data-end', blocks[i].end);
+        btn.textContent = formatTimeRange(s, e);
+        btn.setAttribute('data-start', s);
+        btn.setAttribute('data-end', e);
         btn.onclick = function() { selectSlot(this); };
         slotsGrid.appendChild(btn);
-      }
-    } else {
-      for (var i = 0; i < blocks.length; i++) {
-        var startMin = timeToMin(blocks[i].start);
-        var endMin = timeToMin(blocks[i].end);
-        while (startMin + CONSULT_DURATION <= endMin) {
-          var s = minToTime(startMin);
-          var e = minToTime(startMin + CONSULT_DURATION);
-          var btn = document.createElement('button');
-          btn.className = 'slot-btn';
-          btn.textContent = formatTimeRange(s, e);
-          btn.setAttribute('data-start', s);
-          btn.setAttribute('data-end', e);
-          btn.onclick = function() { selectSlot(this); };
-          slotsGrid.appendChild(btn);
-          startMin += CONSULT_DURATION;
-        }
+        startMin += slotDuration;
       }
     }
 
