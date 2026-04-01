@@ -7,9 +7,16 @@
   <meta property="og:title" content="Contact | Garden Faery">
   <meta property="og:description" content="Book a free garden consultation or send a message. Garden care, raised beds, bees, and more. Arcata, CA.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://gardenfaery.love/contact">
+  <meta property="og:url" content="https://gardenfaery.love/contact.html">
   <meta property="og:image" content="https://gardenfaery.love/farm.jpg">
-  <link rel="canonical" href="https://gardenfaery.love/contact">
+  <meta property="og:image:alt" content="Garden Faery, lush garden in Humboldt County">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:site_name" content="Garden Faery">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Contact | Garden Faery">
+  <meta name="twitter:description" content="Send a message or book a free garden consultation. Garden Faery, Arcata, CA.">
+  <meta name="twitter:image" content="https://gardenfaery.love/farm.jpg">
+  <link rel="canonical" href="https://gardenfaery.love/contact.html">
   <link rel="icon" href="landing-icon.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -262,6 +269,7 @@
     .social-links a { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); transition: background 0.2s, transform 0.2s; }
     .social-links a:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
     .social-links svg { width: 18px !important; height: 18px !important; fill: var(--accent-1); display: block; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
   </style>
 </head>
 <body>
@@ -279,8 +287,8 @@
   </nav>
 
   <div class="page-content">
-    <h1 class="page-title">Let's Get Growing</h1>
-    <p class="page-subtitle">Pick a time that works for you. I'll come check out your space and we'll figure out what your garden needs.</p>
+    <h1 class="page-title">Send a Flutter</h1>
+    <p class="page-subtitle">Got questions? Want to chat about your garden? Drop me a message or book a time.</p>
 
     <div style="text-align:center; padding:20px; margin-bottom:24px; border-radius:14px; background:rgba(255,255,255,0.5); border:1px solid rgba(255,255,255,0.6);">
       <h2 style="font-family:var(--font-heading); font-size:22px; margin-bottom:8px;">Book a Time</h2>
@@ -293,9 +301,13 @@
 
     <div class="form-section">
       <form onsubmit="sendMessage(event)">
+        <label for="cf-name" class="sr-only">Your name</label>
         <input type="text" id="cf-name" placeholder="Your name" required>
+        <label for="cf-email" class="sr-only">Your email</label>
         <input type="email" id="cf-email" placeholder="Your email" required>
+        <label for="cf-phone" class="sr-only">Phone number</label>
         <input type="tel" id="cf-phone" placeholder="Phone number (optional)">
+        <label for="cf-message" class="sr-only">Your message</label>
         <textarea id="cf-message" placeholder="Tell me about your garden! What you're growing, what you need help with, questions... anything helps."></textarea>
         <button type="submit" class="form-btn">Send a Flutter</button>
         <div class="form-note"></div>
@@ -308,6 +320,7 @@
       <h2>Get the Dirt</h2>
       <p>Seasonal garden wisdom, project updates, and new offerings. No spam, just good green vibes.</p>
       <div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; justify-content:center;">
+        <label for="nl-email" class="sr-only">Email for newsletter</label>
         <input type="email" id="nl-email" class="newsletter-input" placeholder="your@email.com" required>
         <button onclick="subscribeNewsletter()" class="newsletter-btn">Sign Up</button>
       </div>
@@ -345,7 +358,6 @@
       root.style.setProperty('--accent-1', p.a1);
       root.style.setProperty('--accent-2', p.a2);
       root.style.setProperty('--highlight', p.hl);
-      root.style.setProperty('--text-color', '#4a1942');
     })();
 
     // Contact form (Web3Forms)

@@ -8,9 +8,16 @@
   <meta property="og:title" content="Book a Time | Garden Faery">
   <meta property="og:description" content="Pick a time that works for you. New clients book a free consult, returning clients grab a garden care slot.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://gardenfaery.love/book">
+  <meta property="og:url" content="https://gardenfaery.love/book.html">
   <meta property="og:image" content="https://gardenfaery.love/farm.jpg">
-  <link rel="canonical" href="https://gardenfaery.love/book">
+  <meta property="og:image:alt" content="Garden Faery, lush garden in Humboldt County">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:site_name" content="Garden Faery">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Book a Time | Garden Faery">
+  <meta name="twitter:description" content="Pick a time that works for you. New clients book a free consult, returning clients grab a garden care slot.">
+  <meta name="twitter:image" content="https://gardenfaery.love/farm.jpg">
+  <link rel="canonical" href="https://gardenfaery.love/book.html">
   <link rel="icon" type="image/png" href="landing-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -223,7 +230,7 @@
 
   <!-- Booking options -->
   <div class="booking-cards">
-    <div class="booking-card" id="card-morning" onclick="loadBooking('gardenfaery/garden-care-visit', 'Morning Garden Care', this)">
+    <div class="booking-card" id="card-morning" role="button" tabindex="0" onclick="loadBooking('gardenfaery/garden-care-visit', 'Morning Garden Care', this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
       <div class="card-icon">
         <svg viewBox="0 0 24 24"><path d="M12 22c4.97 0 9-4.03 9-9-4.97 0-9 4.03-9 9zM5.6 10.25c0 1.38 1.12 2.5 2.5 2.5.53 0 1.01-.16 1.42-.44l-.02.19c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5l-.02-.19c.4.28.89.44 1.42.44 1.38 0 2.5-1.12 2.5-2.5 0-1-.59-1.85-1.43-2.25.84-.4 1.43-1.25 1.43-2.25 0-1.38-1.12-2.5-2.5-2.5-.53 0-1.01.16-1.42.44l.02-.19C14.5 2.12 13.38 1 12 1S9.5 2.12 9.5 3.5l.02.19c-.4-.28-.89-.44-1.42-.44-1.38 0-2.5 1.12-2.5 2.5 0 1 .59 1.85 1.43 2.25-.84.4-1.43 1.25-1.43 2.25zM12 5.5c1.38 0 2.5 1.12 2.5 2.5s-1.12 2.5-2.5 2.5S9.5 9.38 9.5 8s1.12-2.5 2.5-2.5zM3 13c0 4.97 4.03 9 9 9-4.97 0-9-4.03-9-9z"/></svg>
       </div>
@@ -234,7 +241,7 @@
       <span class="card-badge paid">$25/hr</span>
     </div>
 
-    <div class="booking-card" id="card-afternoon" onclick="loadBooking('gardenfaery/afternoon-garden-care-2-30-4-30pm', 'Afternoon Garden Care', this)">
+    <div class="booking-card" id="card-afternoon" role="button" tabindex="0" onclick="loadBooking('gardenfaery/afternoon-garden-care-2-30-4-30pm', 'Afternoon Garden Care', this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
       <div class="card-icon">
         <svg viewBox="0 0 24 24"><path d="M12 22c4.97 0 9-4.03 9-9-4.97 0-9 4.03-9 9zM5.6 10.25c0 1.38 1.12 2.5 2.5 2.5.53 0 1.01-.16 1.42-.44l-.02.19c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5l-.02-.19c.4.28.89.44 1.42.44 1.38 0 2.5-1.12 2.5-2.5 0-1-.59-1.85-1.43-2.25.84-.4 1.43-1.25 1.43-2.25 0-1.38-1.12-2.5-2.5-2.5-.53 0-1.01.16-1.42.44l.02-.19C14.5 2.12 13.38 1 12 1S9.5 2.12 9.5 3.5l.02.19c-.4-.28-.89-.44-1.42-.44-1.38 0-2.5 1.12-2.5 2.5 0 1 .59 1.85 1.43 2.25-.84.4-1.43 1.25-1.43 2.25zM12 5.5c1.38 0 2.5 1.12 2.5 2.5s-1.12 2.5-2.5 2.5S9.5 9.38 9.5 8s1.12-2.5 2.5-2.5zM3 13c0 4.97 4.03 9 9 9-4.97 0-9-4.03-9-9z"/></svg>
       </div>
@@ -245,7 +252,7 @@
       <span class="card-badge paid">$25/hr</span>
     </div>
 
-    <div class="booking-card" id="card-consult" onclick="loadBooking('gardenfaery/free-garden-consultation', 'Free Consultation', this)">
+    <div class="booking-card" id="card-consult" role="button" tabindex="0" onclick="loadBooking('gardenfaery/free-garden-consultation', 'Free Consultation', this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
       <div class="card-icon">
         <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
       </div>
@@ -368,7 +375,6 @@
     root.style.setProperty('--accent-1', p.a1);
     root.style.setProperty('--accent-2', p.a2);
     root.style.setProperty('--highlight', p.hl);
-    root.style.setProperty('--text-color', '#4a1942');
 
     // Update card icon backgrounds to match season
     document.querySelectorAll('.card-icon').forEach(function(el) { el.style.background = p.a1; });
