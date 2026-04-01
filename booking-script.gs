@@ -5,6 +5,7 @@
 var CALENDAR_ID = 'gardenfaeryy@gmail.com';
 var SHEET_ID = '1Ii_JYwzMfUtCj_5kWUcwUB7cHFwqykYNgvGwIvsRsOw'; // Existing Garden Faery sheet
 var OWNER_EMAIL = 'gardenfaeryy@gmail.com';
+var PUBLIC_EMAIL = 'taya@gardenfaery.love'; // Public-facing email (Proton Mail)
 
 // Available time blocks per day of week (0=Sun, 1=Mon, ... 6=Sat)
 var SCHEDULE = {
@@ -198,7 +199,7 @@ function sendClientConfirmation(email, name, type, date, start, end, address) {
     subject: subject,
     body: body,
     name: 'Garden Faery',
-    replyTo: OWNER_EMAIL
+    replyTo: PUBLIC_EMAIL
   });
 }
 
@@ -282,7 +283,7 @@ function sendReminderEmail(email, name, type, date, start, end, address) {
     subject: subject,
     body: body,
     name: 'Garden Faery',
-    replyTo: OWNER_EMAIL
+    replyTo: PUBLIC_EMAIL
   });
 }
 
