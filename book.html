@@ -76,24 +76,99 @@
     .social-links svg { width: 18px !important; height: 18px !important; fill: var(--accent-1); display: block; }
 
     /* Page content */
-    .page-content { max-width: 580px; margin: 0 auto; padding: 40px 20px; }
+    .page-content { max-width: 620px; margin: 0 auto; padding: 40px 20px 20px; }
     .page-title { font-size: 36px; font-weight: 900; margin-bottom: 8px; }
-    .page-subtitle { font-size: 15px; color: var(--text-secondary); margin-bottom: 28px; }
+    .page-subtitle { font-size: 15px; color: var(--text-secondary); margin-bottom: 32px; line-height: 1.5; }
 
-    /* Type selector */
-    .type-selector { display: flex; gap: 10px; margin-bottom: 24px; }
-    .type-btn {
-      flex: 1; padding: 16px 12px; border: 2px solid rgba(74,25,66,0.15);
-      border-radius: 12px; background: rgba(255,255,255,0.5); cursor: pointer;
-      text-align: center; transition: all 0.2s; font-family: var(--font-body);
+    /* Booking cards */
+    .booking-cards { display: flex; flex-direction: column; gap: 16px; margin-bottom: 36px; }
+
+    .booking-card {
+      display: flex; align-items: center; gap: 20px;
+      padding: 24px; border: 2px solid rgba(74,25,66,0.12);
+      border-radius: 14px; background: rgba(255,255,255,0.5);
+      transition: all 0.25s; cursor: pointer;
     }
-    .type-btn { text-decoration: none; color: inherit; display: block; }
-    .type-btn:hover { border-color: var(--accent-1); background: rgba(196,139,176,0.08); }
-    .type-btn h3 { font-size: 16px; margin-bottom: 4px; }
-    .type-btn p { font-size: 12px; color: var(--text-secondary); margin: 0; }
+    .booking-card:hover { border-color: var(--accent-1); background: rgba(255,255,255,0.8); transform: translateY(-2px); }
 
-    /* Cal.com embed */
-    #cal-embed { margin-bottom: 24px; }
+    .card-icon {
+      flex-shrink: 0; width: 56px; height: 56px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; background: var(--accent-1); color: white;
+    }
+    .card-icon svg { width: 26px; height: 26px; fill: white; }
+
+    .card-text { flex: 1; }
+    .card-text h3 { font-size: 20px; margin-bottom: 4px; }
+    .card-text p { font-size: 14px; color: var(--text-secondary); margin: 0; }
+
+    .card-badge {
+      flex-shrink: 0; padding: 6px 14px;
+      border-radius: 20px; font-size: 12px; font-weight: 700;
+      background: var(--accent-2); color: white;
+      white-space: nowrap;
+    }
+    .card-badge.paid { background: var(--highlight); color: var(--text-primary); }
+
+    /* Details section */
+    .details-section { margin-bottom: 36px; }
+    .details-section h2 { font-size: 24px; margin-bottom: 14px; }
+
+    .detail-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    @media (max-width: 500px) { .detail-grid { grid-template-columns: 1fr; } }
+
+    .detail-item {
+      padding: 16px; border-radius: 10px;
+      background: rgba(255,255,255,0.45);
+      border: 1px solid rgba(74,25,66,0.08);
+    }
+    .detail-item .label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--accent-1); margin-bottom: 4px;
+    }
+    .detail-item .value { font-size: 14px; font-weight: 600; }
+
+    /* What to expect */
+    .expect-section { margin-bottom: 36px; }
+    .expect-section h2 { font-size: 24px; margin-bottom: 14px; }
+    .expect-list { list-style: none; padding: 0; }
+    .expect-list li {
+      padding: 10px 0; font-size: 14px;
+      border-bottom: 1px solid rgba(74,25,66,0.06);
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .expect-list li:last-child { border-bottom: none; }
+    .expect-list .step-num {
+      flex-shrink: 0; width: 26px; height: 26px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; background: var(--accent-1); color: white;
+      font-size: 12px; font-weight: 700; margin-top: 1px;
+    }
+
+    /* Divider */
+    .section-divider {
+      display: flex; align-items: center; justify-content: center;
+      margin: 32px 0;
+    }
+    .section-divider img { width: 40px; height: auto; opacity: 0.25; }
+
+    /* Bottom CTA */
+    .bottom-cta {
+      text-align: center; padding: 28px 20px;
+      background: rgba(255,255,255,0.4); border-radius: 14px;
+      margin-bottom: 36px;
+    }
+    .bottom-cta p { font-size: 14px; color: var(--text-secondary); margin-bottom: 12px; }
+    .bottom-cta a {
+      display: inline-block; padding: 10px 24px;
+      background: var(--text-primary); color: var(--bg);
+      font-family: var(--font-body); font-size: 14px; font-weight: 700;
+      border-radius: 8px; text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .bottom-cta a:hover { opacity: 0.85; }
   </style>
 </head>
 <body>
@@ -112,25 +187,85 @@
 </nav>
 
 <div class="page-content">
-  <h1 class="page-title">Book Your Time</h1>
-  <p class="page-subtitle">Pick what you need, pick a day, and you're on the calendar. Easy as that.</p>
+  <h1 class="page-title">Let's Get Growing</h1>
+  <p class="page-subtitle">Pick what fits and grab a time. I'll handle the rest.</p>
 
-  <!-- Booking type cards -->
-  <div class="type-selector">
-    <a class="type-btn" href="https://cal.com/gardenfaery/free-garden-consultation" target="_blank" rel="noopener" id="type-consult">
-      <h3>Free Consultation</h3>
-      <p>New here? 30 min visit to check out your space.</p>
-    </a>
-    <a class="type-btn" href="https://cal.com/gardenfaery/garden-care-visit" target="_blank" rel="noopener" id="type-visit">
-      <h3>Garden Care Visit</h3>
-      <p>Returning client? Book your garden time. $25/hr, cash only.</p>
-    </a>
+  <!-- Booking options -->
+  <div class="booking-cards">
+    <div class="booking-card" data-cal-link="gardenfaery/free-garden-consultation" data-cal-config='{"layout":"month_view"}'>
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      </div>
+      <div class="card-text">
+        <h3>Free Consultation</h3>
+        <p>New here? I'll come see your space and we'll talk about what your garden needs. 30 minutes, no pressure.</p>
+      </div>
+      <span class="card-badge">Free</span>
+    </div>
+
+    <div class="booking-card" data-cal-link="gardenfaery/garden-care-visit" data-cal-config='{"layout":"month_view"}'>
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22c4.97 0 9-4.03 9-9-4.97 0-9 4.03-9 9zM5.6 10.25c0 1.38 1.12 2.5 2.5 2.5.53 0 1.01-.16 1.42-.44l-.02.19c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5l-.02-.19c.4.28.89.44 1.42.44 1.38 0 2.5-1.12 2.5-2.5 0-1-.59-1.85-1.43-2.25.84-.4 1.43-1.25 1.43-2.25 0-1.38-1.12-2.5-2.5-2.5-.53 0-1.01.16-1.42.44l.02-.19C14.5 2.12 13.38 1 12 1S9.5 2.12 9.5 3.5l.02.19c-.4-.28-.89-.44-1.42-.44-1.38 0-2.5 1.12-2.5 2.5 0 1 .59 1.85 1.43 2.25-.84.4-1.43 1.25-1.43 2.25zM12 5.5c1.38 0 2.5 1.12 2.5 2.5s-1.12 2.5-2.5 2.5S9.5 9.38 9.5 8s1.12-2.5 2.5-2.5zM3 13c0 4.97 4.03 9 9 9-4.97 0-9-4.03-9-9z"/></svg>
+      </div>
+      <div class="card-text">
+        <h3>Garden Care Visit</h3>
+        <p>Returning client? Book your next garden session. Weeding, tending, planting, whatever your beds need.</p>
+      </div>
+      <span class="card-badge paid">$25/hr</span>
+    </div>
   </div>
 
-  <p style="text-align:center; font-size:13px; color:var(--text-secondary); margin-bottom:24px;">Pick one above, or browse all available times below.</p>
+  <!-- Details grid -->
+  <div class="details-section">
+    <h2>The Basics</h2>
+    <div class="detail-grid">
+      <div class="detail-item">
+        <div class="label">Days</div>
+        <div class="value">Tuesday through Friday</div>
+      </div>
+      <div class="detail-item">
+        <div class="label">Hours</div>
+        <div class="value">9am to 2pm, 2:30 to 4:30pm</div>
+      </div>
+      <div class="detail-item">
+        <div class="label">Area</div>
+        <div class="value">Arcata and surrounding areas</div>
+      </div>
+      <div class="detail-item">
+        <div class="label">Payment</div>
+        <div class="value">Cash only, paid after each visit</div>
+      </div>
+    </div>
+  </div>
 
-  <!-- Cal.com inline embed -->
-  <div id="cal-embed" style="min-height:500px; border-radius:12px; overflow:hidden;"></div>
+  <div class="section-divider">
+    <img src="garden-faery-logo-alt.png" alt="Garden Faery logo" loading="lazy">
+  </div>
+
+  <!-- What to expect -->
+  <div class="expect-section">
+    <h2>How It Works</h2>
+    <ul class="expect-list">
+      <li>
+        <span class="step-num">1</span>
+        <span>Pick a time that works for you. You'll get a confirmation right away.</span>
+      </li>
+      <li>
+        <span class="step-num">2</span>
+        <span>I'll show up at your garden ready to work. For new clients, this first visit is just a walkthrough so I can see what you're working with.</span>
+      </li>
+      <li>
+        <span class="step-num">3</span>
+        <span>After the consult, I'll follow up with a plan and we'll set up your regular visits if you want ongoing care.</span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Bottom CTA -->
+  <div class="bottom-cta">
+    <p>Not sure what you need yet? Send me a message and we'll figure it out together.</p>
+    <a href="contact.html">Send a Flutter</a>
+  </div>
 </div>
 
 <footer>
@@ -164,19 +299,26 @@
     root.style.setProperty('--accent-2', p.a2);
     root.style.setProperty('--highlight', p.hl);
     root.style.setProperty('--text-color', '#4a1942');
+
+    // Update card icon backgrounds to match season
+    document.querySelectorAll('.card-icon').forEach(function(el) { el.style.background = p.a1; });
+    document.querySelectorAll('.card-badge:not(.paid)').forEach(function(el) { el.style.background = p.a2; });
+    document.querySelectorAll('.card-badge.paid').forEach(function(el) { el.style.background = p.hl; });
+    document.querySelectorAll('.step-num').forEach(function(el) { el.style.background = p.a1; });
   })();
 
-  // Cal.com embed
+  // Cal.com popup embed (opens as overlay, no cal.com URL visible to visitor)
   (function() {
     var script = document.createElement('script');
     script.src = 'https://app.cal.com/embed/embed.js';
     script.async = true;
     script.onload = function() {
       Cal('init', { origin: 'https://cal.com' });
-      Cal('inline', {
-        calLink: 'gardenfaery',
-        elementOrSelector: '#cal-embed',
-        config: { layout: 'month_view' }
+      Cal('ui', {
+        cssVarsPerTheme: {
+          light: { 'cal-brand': '#4a1942' }
+        },
+        hideEventTypeDetails: false
       });
     };
     document.head.appendChild(script);
