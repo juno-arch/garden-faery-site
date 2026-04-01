@@ -136,7 +136,10 @@
       transition: background 0.2s;
     }
     .cal-inline-close:hover { background: rgba(74,25,66,0.08); }
-    #cal-inline-embed { min-height: 480px; }
+    #cal-inline-embed { min-height: 600px; }
+    #cal-inline-embed iframe {
+      width: 100%; height: 600px; border: none;
+    }
 
     /* Details section */
     .details-section { margin-bottom: 36px; }
@@ -220,26 +223,37 @@
 
   <!-- Booking options -->
   <div class="booking-cards">
+    <div class="booking-card" id="card-morning" onclick="loadBooking('gardenfaery/garden-care-visit', 'Morning Garden Care', this)">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22c4.97 0 9-4.03 9-9-4.97 0-9 4.03-9 9zM5.6 10.25c0 1.38 1.12 2.5 2.5 2.5.53 0 1.01-.16 1.42-.44l-.02.19c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5l-.02-.19c.4.28.89.44 1.42.44 1.38 0 2.5-1.12 2.5-2.5 0-1-.59-1.85-1.43-2.25.84-.4 1.43-1.25 1.43-2.25 0-1.38-1.12-2.5-2.5-2.5-.53 0-1.01.16-1.42.44l.02-.19C14.5 2.12 13.38 1 12 1S9.5 2.12 9.5 3.5l.02.19c-.4-.28-.89-.44-1.42-.44-1.38 0-2.5 1.12-2.5 2.5 0 1 .59 1.85 1.43 2.25-.84.4-1.43 1.25-1.43 2.25zM12 5.5c1.38 0 2.5 1.12 2.5 2.5s-1.12 2.5-2.5 2.5S9.5 9.38 9.5 8s1.12-2.5 2.5-2.5zM3 13c0 4.97 4.03 9 9 9-4.97 0-9-4.03-9-9z"/></svg>
+      </div>
+      <div class="card-text">
+        <h3>Morning Garden Care</h3>
+        <p>A full morning at your place. Weeding, planting, watering, seasonal care. 5 hours, 9am to 2pm.</p>
+      </div>
+      <span class="card-badge paid">$25/hr</span>
+    </div>
+
+    <div class="booking-card" id="card-afternoon" onclick="loadBooking('gardenfaery/afternoon-garden-care-2-30-4-30pm', 'Afternoon Garden Care', this)">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22c4.97 0 9-4.03 9-9-4.97 0-9 4.03-9 9zM5.6 10.25c0 1.38 1.12 2.5 2.5 2.5.53 0 1.01-.16 1.42-.44l-.02.19c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5l-.02-.19c.4.28.89.44 1.42.44 1.38 0 2.5-1.12 2.5-2.5 0-1-.59-1.85-1.43-2.25.84-.4 1.43-1.25 1.43-2.25 0-1.38-1.12-2.5-2.5-2.5-.53 0-1.01.16-1.42.44l.02-.19C14.5 2.12 13.38 1 12 1S9.5 2.12 9.5 3.5l.02.19c-.4-.28-.89-.44-1.42-.44-1.38 0-2.5 1.12-2.5 2.5 0 1 .59 1.85 1.43 2.25-.84.4-1.43 1.25-1.43 2.25zM12 5.5c1.38 0 2.5 1.12 2.5 2.5s-1.12 2.5-2.5 2.5S9.5 9.38 9.5 8s1.12-2.5 2.5-2.5zM3 13c0 4.97 4.03 9 9 9-4.97 0-9-4.03-9-9z"/></svg>
+      </div>
+      <div class="card-text">
+        <h3>Afternoon Garden Care</h3>
+        <p>A shorter afternoon session. Same great care, 2 hours. 2:30 to 4:30pm.</p>
+      </div>
+      <span class="card-badge paid">$25/hr</span>
+    </div>
+
     <div class="booking-card" id="card-consult" onclick="loadBooking('gardenfaery/free-garden-consultation', 'Free Consultation', this)">
       <div class="card-icon">
         <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
       </div>
       <div class="card-text">
         <h3>Free Consultation</h3>
-        <p>New here? I'll come see your space and we'll talk about what your garden needs. 30 minutes, no pressure.</p>
+        <p>New here? I'll come see your space and we'll talk about what your garden needs. 30 minutes, Wed-Fri at 5pm.</p>
       </div>
       <span class="card-badge">Free</span>
-    </div>
-
-    <div class="booking-card" id="card-visit" onclick="loadBooking('gardenfaery/garden-care-visit', 'Garden Care Visit', this)">
-      <div class="card-icon">
-        <svg viewBox="0 0 24 24"><path d="M12 22c4.97 0 9-4.03 9-9-4.97 0-9 4.03-9 9zM5.6 10.25c0 1.38 1.12 2.5 2.5 2.5.53 0 1.01-.16 1.42-.44l-.02.19c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5l-.02-.19c.4.28.89.44 1.42.44 1.38 0 2.5-1.12 2.5-2.5 0-1-.59-1.85-1.43-2.25.84-.4 1.43-1.25 1.43-2.25 0-1.38-1.12-2.5-2.5-2.5-.53 0-1.01.16-1.42.44l.02-.19C14.5 2.12 13.38 1 12 1S9.5 2.12 9.5 3.5l.02.19c-.4-.28-.89-.44-1.42-.44-1.38 0-2.5 1.12-2.5 2.5 0 1 .59 1.85 1.43 2.25-.84.4-1.43 1.25-1.43 2.25zM12 5.5c1.38 0 2.5 1.12 2.5 2.5s-1.12 2.5-2.5 2.5S9.5 9.38 9.5 8s1.12-2.5 2.5-2.5zM3 13c0 4.97 4.03 9 9 9-4.97 0-9-4.03-9-9z"/></svg>
-      </div>
-      <div class="card-text">
-        <h3>Garden Care Visit</h3>
-        <p>Returning client? Book your next garden session. Weeding, tending, planting, whatever your beds need.</p>
-      </div>
-      <span class="card-badge paid">$25/hr</span>
     </div>
   </div>
 
@@ -262,7 +276,7 @@
       </div>
       <div class="detail-item">
         <div class="label">Hours</div>
-        <div class="value">9am to 2pm, 2:30 to 4:30pm</div>
+        <div class="value">9am to 2pm, 2:30 to 4:30pm, consults at 5pm</div>
       </div>
       <div class="detail-item">
         <div class="label">Area</div>
@@ -363,41 +377,7 @@
     document.querySelectorAll('.step-num').forEach(function(el) { el.style.background = p.a1; });
   })();
 
-  // Cal.com embed loader
-  (function (C, A, L) {
-    var p = function (a, ar) { a.q.push(ar); };
-    var d = C.document;
-    C.Cal = C.Cal || function () {
-      var cal = C.Cal;
-      var ar = arguments;
-      if (!cal.loaded) {
-        cal.ns = {};
-        cal.q = cal.q || [];
-        d.head.appendChild(d.createElement("script")).src = A;
-        cal.loaded = true;
-      }
-      if (ar[0] === L) {
-        var api = function () { p(api, arguments); };
-        var namespace = ar[1];
-        api.q = api.q || [];
-        if (typeof namespace === "string") {
-          cal.ns[namespace] = cal.ns[namespace] || api;
-          p(cal.ns[namespace], ar);
-          p(cal, ["initNamespace", namespace]);
-        } else { p(cal, ar); }
-        return;
-      }
-      p(cal, ar);
-    };
-  })(window, "https://app.cal.com/embed/embed.js", "init");
-
-  Cal("init", { origin: "https://cal.com" });
-  Cal("ui", {
-    cssVarsPerTheme: { light: { "cal-brand": "#4a1942" } },
-    hideEventTypeDetails: true
-  });
-
-  // Inline booking: click a card, calendar appears below
+  // Inline booking: click a card, calendar loads as iframe below
   var currentLink = null;
 
   function loadBooking(calLink, title, cardEl) {
@@ -418,15 +398,14 @@
     // Update header
     headerTitle.textContent = title;
 
-    // Clear old embed and reload
+    // Load calendar as iframe (no SDK popup, stays on page)
     embed.innerHTML = '';
     currentLink = calLink;
-
-    Cal('inline', {
-      calLink: calLink,
-      elementOrSelector: '#cal-inline-embed',
-      config: { layout: 'month_view' }
-    });
+    var iframe = document.createElement('iframe');
+    iframe.src = 'https://cal.com/' + calLink + '?embed=true&layout=month_view&theme=light';
+    iframe.title = title + ' booking calendar';
+    iframe.loading = 'lazy';
+    embed.appendChild(iframe);
 
     // Show and scroll
     wrap.classList.add('visible');
