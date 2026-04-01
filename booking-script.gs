@@ -8,11 +8,10 @@ var OWNER_EMAIL = 'gardenfaeryy@gmail.com';
 
 // Available time blocks per day of week (0=Sun, 1=Mon, ... 6=Sat)
 var SCHEDULE = {
-  1: [{ start: '13:30', end: '16:00' }],                                    // Monday
-  2: [{ start: '09:00', end: '14:00' }],                                    // Tuesday
-  3: [{ start: '09:00', end: '14:00' }, { start: '14:30', end: '16:30' }],  // Wednesday
-  4: [{ start: '09:00', end: '14:00' }],                                    // Thursday
-  5: [{ start: '09:00', end: '14:00' }, { start: '14:30', end: '16:30' }]   // Friday
+  2: [{ start: '09:00', end: '14:00' }],  // Tuesday
+  3: [{ start: '09:00', end: '14:00' }],  // Wednesday
+  4: [{ start: '09:00', end: '14:00' }],  // Thursday
+  5: [{ start: '09:00', end: '14:00' }]   // Friday
 };
 
 // Consultation: 30 min slots within the same schedule windows
@@ -218,6 +217,95 @@ function sendOwnerNotification(name, email, phone, address, notes, type, date, s
     + (notes ? 'Notes: ' + notes + '\n' : '');
 
   MailApp.sendEmail(OWNER_EMAIL, subject, body);
+}
+
+// ─── Day-Before Reminder System ───
+
+// Run this daily via a time-driven trigger (set to ~8:00 AM)
+// Checks the Bookings sheet for appointments tomorrow and emails reminders to clients
+function sendDailyReminders() {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName('Bookings');
+  if (!sheet) return;
+
+  var now = new Date();
+  // Tomorrow's date in YYYY-MM-DD format (Pacific time)
+  var tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  var tomorrowStr = Utilities.formatDate(tomorrow, 'America/Los_Angeles', 'yyyy-MM-dd');
+
+  var data = sheet.getDataRange().getValues();
+  // Row 0 is header: [Timestamp, Type, Date, Start, End, Name, Email, Phone, Address, Notes]
+
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    var bookingDate = row[2]; // Date column (YYYY-MM-DD string)
+    var email = row[6];
+    var name = row[5];
+    var type = row[1];
+    var start = row[3];
+    var end = row[4];
+    var address = row[8];
+
+    // Normalize date comparison (handle both string and Date object from sheet)
+    var dateStr = bookingDate;
+    if (bookingDate instanceof Date) {
+      dateStr = Utilities.formatDate(bookingDate, 'America/Los_Angeles', 'yyyy-MM-dd');
+    }
+
+    if (dateStr === tomorrowStr && email) {
+      sendReminderEmail(email, name, type, dateStr, start, end, address);
+    }
+  }
+}
+
+// Send a day-before reminder email to the client
+function sendReminderEmail(email, name, type, date, start, end, address) {
+  var dateObj = new Date(date + 'T12:00:00-07:00');
+  var dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][dateObj.getDay()];
+  var monthName = ['January','February','March','April','May','June','July','August','September','October','November','December'][dateObj.getMonth()];
+  var niceDate = dayName + ', ' + monthName + ' ' + dateObj.getDate();
+  var timeRange = formatTimeRange(start, end);
+
+  var typeName = type === 'consult' ? 'garden consultation' : 'garden care visit';
+
+  var subject = 'Garden Faery - Reminder: See you tomorrow!';
+  var body = 'Hi ' + name + '!\n\n'
+    + 'Just a friendly reminder that your ' + typeName + " is tomorrow.\n\n"
+    + 'When: ' + niceDate + ', ' + timeRange + '\n'
+    + (address ? 'Where: ' + address + '\n' : '')
+    + '\nIf you need to reschedule, just reply to this email.\n\n'
+    + "See you in the garden!\n\n"
+    + "Taya\nGarden Faery\ngardenfaery.love";
+
+  MailApp.sendEmail({
+    to: email,
+    subject: subject,
+    body: body,
+    name: 'Garden Faery',
+    replyTo: OWNER_EMAIL
+  });
+}
+
+// Run this ONCE to set up the daily reminder trigger
+// Go to Apps Script editor > Run > setupReminderTrigger
+function setupReminderTrigger() {
+  // Delete any existing reminder triggers to avoid duplicates
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'sendDailyReminders') {
+      ScriptApp.deleteTrigger(triggers[i]);
+    }
+  }
+
+  // Create a new daily trigger at 8:00 AM Pacific
+  ScriptApp.newTrigger('sendDailyReminders')
+    .timeBased()
+    .atHour(8)
+    .everyDays(1)
+    .inTimezone('America/Los_Angeles')
+    .create();
+
+  Logger.log('Reminder trigger created: sendDailyReminders will run daily at ~8 AM Pacific');
 }
 
 // Helper: parse "HH:MM" into a Date object for a given date string
