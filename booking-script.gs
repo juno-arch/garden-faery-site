@@ -4,7 +4,7 @@
 
 var CALENDAR_ID = 'gardenfaeryy@gmail.com';
 var SHEET_ID = '1Ii_JYwzMfUtCj_5kWUcwUB7cHFwqykYNgvGwIvsRsOw'; // Existing Garden Faery sheet
-var OWNER_EMAIL = 'gardenfaeryy@gmail.com';
+var OWNER_EMAIL = 'taya@gardenfaery.love';
 var PUBLIC_EMAIL = 'taya@gardenfaery.love'; // Public-facing email (Proton Mail)
 
 // Available time blocks per day of week (0=Sun, 1=Mon, ... 6=Sat)

@@ -233,25 +233,28 @@
       }
     })();
 
-    // Newsletter signup
-    var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxtiXs-zCfNa9wbJ3ly9hIlFftGiDhoIOeVfSIWoPtzBLOUsrSbVyqxriOXY5VWV5xqQA/exec';
+    // Newsletter signup (Buttondown)
     function subscribeNewsletter() {
       var email = document.getElementById('nl-email').value;
       if (!email) return;
       var status = document.getElementById('nl-status');
       status.style.display = 'block';
       status.textContent = 'Signing you up...';
-      fetch(SCRIPT_URL, {
+      fetch('https://api.buttondown.com/v1/subscribers', {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ type: 'newsletter', email: email })
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Token f5562637-5256-4345-9c13-768b1f8004a0' },
+        body: JSON.stringify({ email: email })
       }).then(function(r) {
-        if (!r.ok) throw new Error('Server error');
-        return r.json();
-      }).then(function(data) {
-        status.textContent = "You're in! Watch for garden magic in your inbox.";
-        status.style.color = 'var(--accent-2)';
-        document.getElementById('nl-email').value = '';
+        if (r.status === 201 || r.status === 200) {
+          status.textContent = "You're in! Watch for garden magic in your inbox.";
+          status.style.color = 'var(--accent-2)';
+          document.getElementById('nl-email').value = '';
+        } else if (r.status === 400) {
+          status.textContent = "Looks like you're already on the list!";
+          status.style.color = 'var(--accent-2)';
+        } else {
+          throw new Error('Server error');
+        }
       }).catch(function() {
         status.textContent = 'Hmm, something went wrong. Try again or email taya@gardenfaery.love.';
         status.style.color = '#c0392b';

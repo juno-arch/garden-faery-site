@@ -87,90 +87,13 @@
       border-radius: 12px; background: rgba(255,255,255,0.5); cursor: pointer;
       text-align: center; transition: all 0.2s; font-family: var(--font-body);
     }
-    .type-btn:hover { border-color: var(--accent-1); }
-    .type-btn.selected { border-color: var(--accent-1); background: rgba(196,139,176,0.12); }
+    .type-btn { text-decoration: none; color: inherit; display: block; }
+    .type-btn:hover { border-color: var(--accent-1); background: rgba(196,139,176,0.08); }
     .type-btn h3 { font-size: 16px; margin-bottom: 4px; }
     .type-btn p { font-size: 12px; color: var(--text-secondary); margin: 0; }
 
-    /* Duration selector */
-    .duration-section { margin-bottom: 24px; }
-    .duration-label { font-size: 14px; font-weight: 600; margin-bottom: 10px; color: var(--text-primary); }
-    .duration-options { display: flex; gap: 8px; flex-wrap: wrap; }
-    .dur-btn {
-      padding: 10px 18px; border: 2px solid rgba(74,25,66,0.15);
-      border-radius: 10px; background: rgba(255,255,255,0.5); cursor: pointer;
-      font-family: var(--font-body); font-size: 14px; font-weight: 600;
-      color: var(--text-primary); transition: all 0.2s;
-    }
-    .dur-btn:hover { border-color: var(--accent-1); }
-    .dur-btn.selected { border-color: var(--accent-1); background: rgba(196,139,176,0.12); }
-    .dur-btn .dur-cost { font-size: 11px; color: var(--text-secondary); display: block; margin-top: 2px; }
-
-    /* Calendar */
-    .calendar-section { margin-bottom: 24px; }
-    .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .cal-header h3 { font-size: 18px; }
-    .cal-nav { background: none; border: 1px solid rgba(74,25,66,0.15); border-radius: 6px; padding: 4px 12px; cursor: pointer; font-family: var(--font-body); font-size: 13px; font-weight: 600; color: var(--text-primary); }
-    .cal-nav:hover { border-color: var(--accent-1); }
-
-    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
-    .cal-day-label { font-size: 11px; font-weight: 700; color: var(--text-secondary); padding: 6px 0; }
-    .cal-day {
-      padding: 10px 4px; border-radius: 8px; font-size: 14px; font-weight: 600;
-      cursor: default; color: rgba(74,25,66,0.3); background: transparent;
-      border: 2px solid transparent; transition: all 0.2s;
-    }
-    .cal-day.available { color: var(--text-primary); cursor: pointer; background: rgba(255,255,255,0.5); }
-    .cal-day.available:hover { border-color: var(--accent-1); }
-    .cal-day.selected { background: var(--accent-1); color: white; border-color: var(--accent-1); }
-    .cal-day.today { font-weight: 900; }
-
-    /* Slots */
-    .slots-section { margin-bottom: 24px; display: none; }
-    .slots-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
-    .slots-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-    .slot-btn {
-      padding: 10px 18px; border: 2px solid rgba(74,25,66,0.15);
-      border-radius: 10px; background: rgba(255,255,255,0.5); cursor: pointer;
-      font-family: var(--font-body); font-size: 14px; font-weight: 600;
-      color: var(--text-primary); transition: all 0.2s;
-    }
-    .slot-btn:hover { border-color: var(--accent-1); }
-    .slot-btn.selected { background: var(--accent-1); color: white; border-color: var(--accent-1); }
-    .slots-loading { font-size: 13px; color: var(--text-secondary); font-style: italic; }
-    .slots-empty { font-size: 13px; color: var(--text-secondary); }
-
-    /* Form */
-    .booking-form { display: none; }
-    .booking-form input, .booking-form textarea {
-      width: 100%; padding: 12px; margin-bottom: 10px;
-      border: 1px solid rgba(74,25,66,0.15); border-radius: 8px;
-      font-family: inherit; font-size: 15px;
-      background: rgba(255,255,255,0.6); color: var(--text-primary);
-    }
-    .booking-form input:focus, .booking-form textarea:focus {
-      outline: none; border-color: var(--accent-1);
-      box-shadow: 0 0 0 3px rgba(196,139,176,0.2);
-    }
-    .booking-form textarea { min-height: 80px; resize: vertical; }
-    .book-btn {
-      width: 100%; padding: 14px; background: var(--accent-1); color: white;
-      border: none; border-radius: 10px; font-size: 18px; font-weight: 600;
-      cursor: pointer; font-family: var(--font-heading); transition: background 0.2s, transform 0.2s;
-    }
-    .book-btn:hover { background: var(--highlight); transform: scale(1.02); }
-    .book-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-    .book-status { text-align: center; font-size: 14px; margin-top: 12px; color: var(--text-secondary); }
-    .book-status.success { color: var(--accent-2); font-weight: 700; }
-    .book-status.error { color: #c0392b; }
-
-    /* Summary */
-    .booking-summary {
-      background: rgba(255,255,255,0.5); border: 1px solid rgba(74,25,66,0.1);
-      border-radius: 12px; padding: 14px 18px; margin-bottom: 16px;
-      font-size: 14px; line-height: 1.7;
-    }
-    .booking-summary strong { color: var(--text-primary); }
+    /* Cal.com embed */
+    #cal-embed { margin-bottom: 24px; }
   </style>
 </head>
 <body>
@@ -192,58 +115,22 @@
   <h1 class="page-title">Book Your Time</h1>
   <p class="page-subtitle">Pick what you need, pick a day, and you're on the calendar. Easy as that.</p>
 
-  <!-- Step 1: Choose type -->
+  <!-- Booking type cards -->
   <div class="type-selector">
-    <div class="type-btn" onclick="selectType('consult')" id="type-consult">
+    <a class="type-btn" href="https://cal.com/gardenfaery/free-garden-consultation" target="_blank" rel="noopener" id="type-consult">
       <h3>Free Consultation</h3>
       <p>New here? 30 min visit to check out your space.</p>
-    </div>
-    <div class="type-btn" onclick="selectType('visit')" id="type-visit">
+    </a>
+    <a class="type-btn" href="https://cal.com/gardenfaery/garden-care-visit" target="_blank" rel="noopener" id="type-visit">
       <h3>Garden Care Visit</h3>
       <p>Returning client? Book your garden time. $25/hr, cash only.</p>
-    </div>
+    </a>
   </div>
 
-  <!-- Step 1b: Choose duration (garden care only) -->
-  <div class="duration-section" id="duration-section" style="display:none;">
-    <div class="duration-label">How long do you need?</div>
-    <div class="duration-options">
-      <button class="dur-btn" onclick="selectDuration(60)">1 hour<span class="dur-cost">$25</span></button>
-      <button class="dur-btn" onclick="selectDuration(90)">1.5 hours<span class="dur-cost">$37</span></button>
-      <button class="dur-btn" onclick="selectDuration(120)">2 hours<span class="dur-cost">$50</span></button>
-      <button class="dur-btn" onclick="selectDuration(180)">3 hours<span class="dur-cost">$75</span></button>
-      <button class="dur-btn" onclick="selectDuration(240)">4 hours<span class="dur-cost">$100</span></button>
-    </div>
-  </div>
+  <p style="text-align:center; font-size:13px; color:var(--text-secondary); margin-bottom:24px;">Pick one above, or browse all available times below.</p>
 
-  <!-- Step 2: Pick a date -->
-  <div class="calendar-section" id="calendar-section" style="display:none;">
-    <div class="cal-header">
-      <button class="cal-nav" onclick="changeWeek(-1)">&larr; Back</button>
-      <h3 id="cal-month-label"></h3>
-      <button class="cal-nav" onclick="changeWeek(1)">Next &rarr;</button>
-    </div>
-    <div class="cal-grid" id="cal-grid"></div>
-  </div>
-
-  <!-- Step 3: Pick a slot -->
-  <div class="slots-section" id="slots-section">
-    <div class="slots-title" id="slots-title">Available times</div>
-    <div class="slots-grid" id="slots-grid"></div>
-  </div>
-
-  <!-- Step 4: Fill in info + book -->
-  <div class="booking-form" id="booking-form">
-    <div class="booking-summary" id="booking-summary"></div>
-    <input type="text" id="b-name" placeholder="Your name" required>
-    <input type="email" id="b-email" placeholder="Email" required>
-    <input type="tel" id="b-phone" placeholder="Phone number">
-    <input type="text" id="b-address" placeholder="Your address (where I'm coming to)">
-    <textarea id="b-notes" placeholder="Anything I should know? Want this same time every week? Let me know here."></textarea>
-    <div id="pricing-note" style="display:none; font-size:13px; color:var(--text-secondary); margin-bottom:12px; padding:12px 14px; background:rgba(255,255,255,0.5); border-radius:8px; border:1px solid rgba(74,25,66,0.1);"><strong>Heads up:</strong> Garden care visits are $25/hr, cash only. When you book a block, you're committing to pay for the full time. Only book the hours you actually need work done. If you're not sure how long your yard takes, start smaller and we can always add time later.</div>
-    <button class="book-btn" id="book-btn" onclick="submitBooking()">Book It</button>
-    <div class="book-status" id="book-status"></div>
-  </div>
+  <!-- Cal.com inline embed -->
+  <div id="cal-embed" style="min-height:500px; border-radius:12px; overflow:hidden;"></div>
 </div>
 
 <footer>
@@ -279,407 +166,21 @@
     root.style.setProperty('--text-color', '#4a1942');
   })();
 
-  // =====================
-  // BOOKING SCRIPT URL - Replace after deploying Apps Script
-  // =====================
-  var BOOKING_URL = 'https://script.google.com/macros/s/AKfycbzZnPh5F9t6JMQuwCHY3sxmuYG9xTFHb5f7w94o633zh7K9jXr8yOYKbK0RN6aTtoyR/exec';
-
-  // Schedule (must match the Apps Script)
-  var SCHEDULE = {
-    1: [{ start: '13:30', end: '16:00' }],
-    2: [{ start: '09:00', end: '14:00' }],
-    3: [{ start: '09:00', end: '14:00' }, { start: '14:30', end: '16:30' }],
-    4: [{ start: '09:00', end: '14:00' }],
-    5: [{ start: '09:00', end: '14:00' }, { start: '14:30', end: '16:30' }]
-  };
-
-  var CONSULT_DURATION = 30; // minutes
-  var state = { type: null, date: null, slot: null, weekStart: null, duration: null };
-
-  // Step 1: Select booking type
-  function selectType(type) {
-    state.type = type;
-    state.date = null;
-    state.slot = null;
-    state.duration = type === 'consult' ? CONSULT_DURATION : null;
-    document.getElementById('type-consult').classList.toggle('selected', type === 'consult');
-    document.getElementById('type-visit').classList.toggle('selected', type === 'visit');
-    document.getElementById('slots-section').style.display = 'none';
-    document.getElementById('booking-form').style.display = 'none';
-    document.getElementById('book-status').textContent = '';
-
-    if (type === 'visit') {
-      // Show duration picker first, hide calendar until duration is chosen
-      document.getElementById('duration-section').style.display = 'block';
-      document.getElementById('calendar-section').style.display = 'none';
-      // Clear any previous duration selection
-      var durBtns = document.querySelectorAll('.dur-btn');
-      for (var i = 0; i < durBtns.length; i++) durBtns[i].classList.remove('selected');
-    } else {
-      // Consultation: skip duration, go straight to calendar
-      document.getElementById('duration-section').style.display = 'none';
-      document.getElementById('calendar-section').style.display = 'block';
-      var today = new Date();
-      var day = today.getDay();
-      state.weekStart = new Date(today);
-      state.weekStart.setDate(today.getDate() - day);
-      state.weekStart.setHours(0, 0, 0, 0);
-      renderCalendar();
-    }
-  }
-
-  // Step 1b: Select duration (garden care only)
-  function selectDuration(mins) {
-    state.duration = mins;
-    state.date = null;
-    state.slot = null;
-    var durBtns = document.querySelectorAll('.dur-btn');
-    for (var i = 0; i < durBtns.length; i++) {
-      durBtns[i].classList.toggle('selected', parseInt(durBtns[i].getAttribute('onclick').match(/\d+/)[0]) === mins);
-    }
-    // Now show calendar
-    document.getElementById('calendar-section').style.display = 'block';
-    document.getElementById('slots-section').style.display = 'none';
-    document.getElementById('booking-form').style.display = 'none';
-    var today = new Date();
-    var day = today.getDay();
-    state.weekStart = new Date(today);
-    state.weekStart.setDate(today.getDate() - day);
-    state.weekStart.setHours(0, 0, 0, 0);
-    renderCalendar();
-    document.getElementById('calendar-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-
-  // Step 2: Render two-week calendar
-  function renderCalendar() {
-    var grid = document.getElementById('cal-grid');
-    grid.innerHTML = '';
-    var labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    for (var i = 0; i < 7; i++) {
-      grid.innerHTML += '<div class="cal-day-label">' + labels[i] + '</div>';
-    }
-
-    var today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // Show 2 weeks
-    for (var d = 0; d < 14; d++) {
-      var date = new Date(state.weekStart);
-      date.setDate(state.weekStart.getDate() + d);
-      var dow = date.getDay();
-      var isPast = date < today;
-      var isToday = date.getTime() === today.getTime();
-      var hasSlots = SCHEDULE[dow] && !isPast;
-
-      var dateStr = formatDate(date);
-      var cls = 'cal-day';
-      if (hasSlots) cls += ' available';
-      if (isToday) cls += ' today';
-      if (state.date === dateStr) cls += ' selected';
-
-      var dayEl = '<div class="' + cls + '"';
-      if (hasSlots) dayEl += ' onclick="selectDate(\'' + dateStr + '\')"';
-      dayEl += '>' + date.getDate() + '</div>';
-      grid.innerHTML += dayEl;
-    }
-
-    // Update month label
-    var endDate = new Date(state.weekStart);
-    endDate.setDate(state.weekStart.getDate() + 13);
-    var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    var label = months[state.weekStart.getMonth()];
-    if (state.weekStart.getMonth() !== endDate.getMonth()) {
-      label += ' / ' + months[endDate.getMonth()];
-    }
-    label += ' ' + endDate.getFullYear();
-    document.getElementById('cal-month-label').textContent = label;
-  }
-
-  function changeWeek(dir) {
-    state.weekStart.setDate(state.weekStart.getDate() + (dir * 14));
-    var today = new Date();
-    today.setHours(0, 0, 0, 0);
-    var minStart = new Date(today);
-    minStart.setDate(today.getDate() - today.getDay());
-    if (state.weekStart < minStart) state.weekStart = minStart;
-    state.date = null;
-    state.slot = null;
-    document.getElementById('slots-section').style.display = 'none';
-    document.getElementById('booking-form').style.display = 'none';
-    renderCalendar();
-  }
-
-  // Step 3: Select date and load slots
-  function selectDate(dateStr) {
-    state.date = dateStr;
-    state.slot = null;
-    document.getElementById('booking-form').style.display = 'none';
-    renderCalendar(); // re-render to show selected state
-
-    var slotsSection = document.getElementById('slots-section');
-    var slotsGrid = document.getElementById('slots-grid');
-    slotsSection.style.display = 'block';
-
-    var date = new Date(dateStr + 'T12:00:00');
-    var dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    document.getElementById('slots-title').textContent = dayNames[date.getDay()] + ', ' + formatNiceDate(dateStr);
-
-    // Show loading
-    slotsGrid.innerHTML = '<div class="slots-loading">Checking availability...</div>';
-
-    // Fetch availability from Apps Script
-    // For garden care visits, always fetch as consult (30-min slots) so we can combine them client-side
-    var fetchType = (state.type === 'visit') ? 'consult' : state.type;
-    var url = BOOKING_URL + '?action=getAvailability&date=' + dateStr + '&type=' + fetchType;
-    fetch(url)
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        slotsGrid.innerHTML = '';
-        if (!data.available || data.available.length === 0) {
-          slotsGrid.innerHTML = '<div class="slots-empty">No open slots this day. Try another date!</div>';
-          return;
-        }
-        if (state.type === 'visit' && state.duration) {
-          // Combine 30-min slots into blocks matching the selected duration
-          var blocks = buildDurationBlocks(data.available, state.duration);
-          if (blocks.length === 0) {
-            slotsGrid.innerHTML = '<div class="slots-empty">No ' + (state.duration / 60) + '-hour blocks open this day. Try a shorter time or another date!</div>';
-            return;
-          }
-          for (var i = 0; i < blocks.length; i++) {
-            var block = blocks[i];
-            var btn = document.createElement('button');
-            btn.className = 'slot-btn';
-            btn.textContent = block.label;
-            btn.setAttribute('data-start', block.start);
-            btn.setAttribute('data-end', block.end);
-            btn.onclick = function() { selectSlot(this); };
-            slotsGrid.appendChild(btn);
-          }
-        } else {
-          for (var i = 0; i < data.available.length; i++) {
-            var slot = data.available[i];
-            var btn = document.createElement('button');
-            btn.className = 'slot-btn';
-            btn.textContent = slot.label;
-            btn.setAttribute('data-start', slot.start);
-            btn.setAttribute('data-end', slot.end);
-            btn.onclick = function() { selectSlot(this); };
-            slotsGrid.appendChild(btn);
-          }
-        }
-      })
-      .catch(function() {
-        // Fallback: show slots from local schedule without availability check
-        showLocalSlots(dateStr);
+  // Cal.com embed
+  (function() {
+    var script = document.createElement('script');
+    script.src = 'https://app.cal.com/embed/embed.js';
+    script.async = true;
+    script.onload = function() {
+      Cal('init', { origin: 'https://cal.com' });
+      Cal('inline', {
+        calLink: 'gardenfaery',
+        elementOrSelector: '#cal-embed',
+        config: { layout: 'month_view' }
       });
-  }
-
-  // Build duration blocks from consecutive 30-min slots
-  function buildDurationBlocks(slots, durationMin) {
-    var blocks = [];
-    var slotsNeeded = durationMin / 30;
-    for (var i = 0; i <= slots.length - slotsNeeded; i++) {
-      // Check if the next N slots are consecutive
-      var consecutive = true;
-      for (var j = 1; j < slotsNeeded; j++) {
-        if (slots[i + j].start !== slots[i + j - 1].end) {
-          consecutive = false;
-          break;
-        }
-      }
-      if (consecutive) {
-        var blockStart = slots[i].start;
-        var blockEnd = slots[i + slotsNeeded - 1].end;
-        blocks.push({
-          start: blockStart,
-          end: blockEnd,
-          label: formatTimeRange(blockStart, blockEnd)
-        });
-      }
-    }
-    return blocks;
-  }
-
-  // Fallback: show slots from local schedule
-  function showLocalSlots(dateStr) {
-    var slotsGrid = document.getElementById('slots-grid');
-    var date = new Date(dateStr + 'T12:00:00');
-    var dow = date.getDay();
-    var blocks = SCHEDULE[dow] || [];
-
-    slotsGrid.innerHTML = '';
-    var slotDuration = state.duration || CONSULT_DURATION;
-    for (var i = 0; i < blocks.length; i++) {
-      var startMin = timeToMin(blocks[i].start);
-      var endMin = timeToMin(blocks[i].end);
-      while (startMin + slotDuration <= endMin) {
-        var s = minToTime(startMin);
-        var e = minToTime(startMin + slotDuration);
-        var btn = document.createElement('button');
-        btn.className = 'slot-btn';
-        btn.textContent = formatTimeRange(s, e);
-        btn.setAttribute('data-start', s);
-        btn.setAttribute('data-end', e);
-        btn.onclick = function() { selectSlot(this); };
-        slotsGrid.appendChild(btn);
-        startMin += slotDuration;
-      }
-    }
-
-    if (slotsGrid.children.length === 0) {
-      slotsGrid.innerHTML = '<div class="slots-empty">No slots available this day.</div>';
-    }
-  }
-
-  // Step 4: Select a time slot
-  function selectSlot(el) {
-    var btns = document.querySelectorAll('.slot-btn');
-    for (var i = 0; i < btns.length; i++) btns[i].classList.remove('selected');
-    el.classList.add('selected');
-
-    state.slot = { start: el.getAttribute('data-start'), end: el.getAttribute('data-end'), label: el.textContent };
-
-    // Show form
-    var form = document.getElementById('booking-form');
-    form.style.display = 'block';
-    document.getElementById('pricing-note').style.display = state.type === 'visit' ? 'block' : 'none';
-
-    var typeName = state.type === 'consult' ? 'Free Consultation (30 min)' : 'Garden Care Visit';
-    var date = new Date(state.date + 'T12:00:00');
-    var dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-
-    var costLine = '';
-    if (state.type === 'visit') {
-      var startMin = timeToMin(state.slot.start);
-      var endMin = timeToMin(state.slot.end);
-      var hours = (endMin - startMin) / 60;
-      var cost = hours * 25;
-      costLine = '<br><strong>$' + cost.toFixed(0) + '</strong> (' + hours + ' hrs @ $25/hr, cash only)';
-    } else {
-      costLine = '<br>Free!';
-    }
-
-    document.getElementById('booking-summary').innerHTML =
-      '<strong>' + typeName + '</strong><br>' +
-      dayNames[date.getDay()] + ', ' + formatNiceDate(state.date) + '<br>' +
-      state.slot.label + costLine;
-
-    document.getElementById('book-status').textContent = '';
-    document.getElementById('book-btn').disabled = false;
-    document.getElementById('book-btn').textContent = 'Book It';
-
-    // Scroll form into view
-    form.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-
-  // Step 5: Submit booking
-  function submitBooking() {
-    var name = document.getElementById('b-name').value.trim();
-    var email = document.getElementById('b-email').value.trim();
-    var phone = document.getElementById('b-phone').value.trim();
-    var address = document.getElementById('b-address').value.trim();
-    var notes = document.getElementById('b-notes').value.trim();
-
-    if (!name || !email) {
-      document.getElementById('book-status').textContent = 'Name and email are required.';
-      document.getElementById('book-status').className = 'book-status error';
-      return;
-    }
-
-    var btn = document.getElementById('book-btn');
-    btn.textContent = 'Booking...';
-    btn.disabled = true;
-
-    var payload = {
-      action: 'book',
-      type: state.type,
-      date: state.date,
-      startTime: state.slot.start,
-      endTime: state.slot.end,
-      name: name,
-      email: email,
-      phone: phone,
-      address: address,
-      notes: notes
     };
-
-    fetch(BOOKING_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(payload)
-    })
-    .then(function(r) {
-      if (!r.ok) throw new Error('Server error');
-      return r.json();
-    })
-    .then(function(data) {
-      if (data.success) {
-        var status = document.getElementById('book-status');
-        status.textContent = data.message;
-        status.className = 'book-status success';
-        btn.textContent = 'Booked!';
-
-        // Reset form fields but keep the confirmation showing
-        document.getElementById('b-name').value = '';
-        document.getElementById('b-email').value = '';
-        document.getElementById('b-phone').value = '';
-        document.getElementById('b-address').value = '';
-        document.getElementById('b-notes').value = '';
-      } else {
-        document.getElementById('book-status').textContent = data.error || 'Something went wrong. Try again?';
-        document.getElementById('book-status').className = 'book-status error';
-        btn.textContent = 'Book It';
-        btn.disabled = false;
-      }
-    })
-    .catch(function(err) {
-      var status = document.getElementById('book-status');
-      status.textContent = "Something went wrong. Try again or email me at taya@gardenfaery.love.";
-      status.className = 'book-status error';
-      btn.textContent = 'Book It';
-      btn.disabled = false;
-    });
-  }
-
-  // Helpers
-  function formatDate(d) {
-    var y = d.getFullYear();
-    var m = d.getMonth() + 1;
-    var day = d.getDate();
-    return y + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
-  }
-
-  function formatNiceDate(dateStr) {
-    var d = new Date(dateStr + 'T12:00:00');
-    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return months[d.getMonth()] + ' ' + d.getDate();
-  }
-
-  function formatTimeLabel(t) {
-    var parts = t.split(':');
-    var h = parseInt(parts[0]);
-    var m = parts[1];
-    var ampm = h >= 12 ? 'pm' : 'am';
-    h = h % 12;
-    if (h === 0) h = 12;
-    return h + ':' + m + ' ' + ampm;
-  }
-
-  function formatTimeRange(s, e) {
-    return formatTimeLabel(s) + ' - ' + formatTimeLabel(e);
-  }
-
-  function timeToMin(t) {
-    var parts = t.split(':');
-    return parseInt(parts[0]) * 60 + parseInt(parts[1]);
-  }
-
-  function minToTime(m) {
-    var h = Math.floor(m / 60);
-    var min = m % 60;
-    return (h < 10 ? '0' : '') + h + ':' + (min < 10 ? '0' : '') + min;
-  }
+    document.head.appendChild(script);
+  })();
 </script>
 
 </body>
