@@ -402,7 +402,7 @@
     embed.innerHTML = '';
     currentLink = calLink;
     var iframe = document.createElement('iframe');
-    iframe.src = 'https://cal.com/' + calLink + '?embed=true&layout=month_view&theme=light';
+    iframe.src = 'https://cal.com/' + calLink + '?embed=true&embedType=inline&layout=month_view&theme=light&hideEventTypeDetails=true';
     iframe.title = title + ' booking calendar';
     iframe.loading = 'lazy';
     embed.appendChild(iframe);
