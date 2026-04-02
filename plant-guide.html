@@ -447,7 +447,7 @@
     .plant-scientific {
       font-size: 12px;
       font-style: italic;
-      color: rgba(74, 25, 66, 0.6);
+      color: rgba(74, 25, 66, 0.75);
       margin-bottom: 12px;
     }
 
@@ -1167,6 +1167,16 @@
       parent.innerHTML = '<div class="plant-image-fallback" style="background-color: ' + color + '20;"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="45" fill="' + color + '" opacity="0.15"/><path d="M50 20 Q60 35 55 50 Q65 60 50 75 Q35 60 45 50 Q40 35 50 20" fill="' + color + '" opacity="0.3"/></svg></div>';
     }
 
+    // Darker category colors for text on white (WCAG AA compliant)
+    const darkColors = {
+      '#d4c27a': '#8a7a28',
+      '#a3b88c': '#4e6838',
+      '#c48bb0': '#8b4570',
+      '#7a9e7e': '#3d6241',
+      '#d4a04a': '#8a6218',
+      '#5a7a6e': '#3a5a4e'
+    };
+
     // Initialize page
     function init() {
       const container = document.getElementById('plants-container');
@@ -1216,21 +1226,22 @@
             </div>
           `;
 
+          const darkColor = darkColors[cat.color] || cat.color;
           const contentHtml = `
             <div class="plant-content">
               <h3 class="plant-name">${plant.name}</h3>
               <p class="plant-scientific">${plant.scientific}</p>
               <div class="plant-sections">
                 <details class="plant-detail">
-                  <summary style="color: ${cat.color};">GROWTH</summary>
+                  <summary style="color: ${darkColor};">GROWTH</summary>
                   <p>${plant.growth}</p>
                 </details>
                 <details class="plant-detail">
-                  <summary style="color: ${cat.color};">CARE</summary>
+                  <summary style="color: ${darkColor};">CARE</summary>
                   <p>${plant.care}</p>
                 </details>
                 <details class="plant-detail">
-                  <summary style="color: ${cat.color};">PLANTING</summary>
+                  <summary style="color: ${darkColor};">PLANTING</summary>
                   <p>${plant.planting}</p>
                 </details>
               </div>
