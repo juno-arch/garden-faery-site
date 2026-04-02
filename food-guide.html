@@ -441,6 +441,123 @@
       border-radius: 3px;
     }
 
+    /* Succession Planting Calendar */
+    .succession-calendar {
+      margin-bottom: 28px;
+      background: rgba(74, 25, 66, 0.04);
+      border-radius: 12px;
+      padding: 20px;
+      border: 2px solid rgba(196, 139, 176, 0.2);
+    }
+
+    .succession-intro {
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      line-height: 1.5;
+      opacity: 0.8;
+    }
+
+    .succession-grid {
+      display: grid;
+      grid-template-columns: 110px repeat(12, 1fr) 120px;
+      gap: 2px;
+      font-size: 0.72rem;
+      overflow-x: auto;
+    }
+
+    .succ-header {
+      text-align: center;
+      font-weight: 700;
+      padding: 6px 2px;
+      background: var(--text-primary);
+      color: white;
+      border-radius: 4px;
+    }
+
+    .succ-header.label-col,
+    .succ-header.freq-col {
+      background: transparent;
+      color: var(--text-primary);
+      font-size: 0.65rem;
+    }
+
+    .succ-plant {
+      padding: 5px 8px;
+      font-weight: 600;
+      font-size: 0.78rem;
+      background: white;
+      border-radius: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .succ-cell {
+      text-align: center;
+      padding: 5px 2px;
+      border-radius: 4px;
+      background: white;
+      font-weight: 600;
+      font-size: 0.7rem;
+      color: transparent;
+    }
+
+    .succ-cell.sow {
+      background: var(--food-rose);
+      color: white;
+    }
+
+    .succ-freq {
+      padding: 5px 8px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: white;
+      border-radius: 4px;
+      color: var(--text-primary);
+      opacity: 0.7;
+      white-space: nowrap;
+    }
+
+    .succession-legend {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .succession-tip {
+      font-size: 0.75rem;
+      font-style: italic;
+      opacity: 0.6;
+    }
+
+    @media (max-width: 600px) {
+      .succession-grid {
+        grid-template-columns: 90px repeat(12, 1fr) 100px;
+        font-size: 0.6rem;
+      }
+      .succ-plant {
+        font-size: 0.68rem;
+        padding: 4px 6px;
+      }
+      .succ-freq {
+        font-size: 0.6rem;
+        padding: 4px 6px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .succession-grid {
+        grid-template-columns: 80px repeat(12, 1fr);
+      }
+      .succ-header.freq-col,
+      .succ-freq {
+        display: none;
+      }
+    }
+
     /* Plant Cards */
     .plants-grid {
       display: grid;
@@ -903,6 +1020,221 @@
         <div class="legend-item"><div class="legend-dot" style="background:#b5e4b5"></div> Direct Sow</div>
         <div class="legend-item"><div class="legend-dot" style="background:#b5d4e4"></div> Transplant</div>
         <div class="legend-item"><div class="legend-dot" style="background:#f4c2c2"></div> Harvest</div>
+      </div>
+    </div>
+
+    <!-- Succession Planting Calendar -->
+    <div class="succession-calendar">
+      <div class="calendar-title">Succession Planting Calendar</div>
+      <p class="succession-intro">Succession planting means sowing the same crop every 2-4 weeks so you harvest continuously instead of all at once. These are the best crops for succession planting in Humboldt County, with each colored block showing when to sow a new round.</p>
+
+      <div class="succession-grid">
+        <div class="succ-header label-col"></div>
+        <div class="succ-header">Jan</div><div class="succ-header">Feb</div>
+        <div class="succ-header">Mar</div><div class="succ-header">Apr</div>
+        <div class="succ-header">May</div><div class="succ-header">Jun</div>
+        <div class="succ-header">Jul</div><div class="succ-header">Aug</div>
+        <div class="succ-header">Sep</div><div class="succ-header">Oct</div>
+        <div class="succ-header">Nov</div><div class="succ-header">Dec</div>
+        <div class="succ-header freq-col">Frequency</div>
+
+        <!-- Lettuce -->
+        <div class="succ-plant">Lettuce</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell sow r1">1</div>
+        <div class="succ-cell sow r2">2</div>
+        <div class="succ-cell sow r3">3</div>
+        <div class="succ-cell sow r4">4</div>
+        <div class="succ-cell sow r5">5</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell sow r6">6</div>
+        <div class="succ-cell sow r7">7</div>
+        <div class="succ-cell sow r8">8</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-freq">Every 2 weeks</div>
+
+        <!-- Radish -->
+        <div class="succ-plant">Radish</div>
+        <div class="succ-cell sow r1">1</div>
+        <div class="succ-cell sow r2">2</div>
+        <div class="succ-cell sow r3">3</div>
+        <div class="succ-cell sow r4">4</div>
+        <div class="succ-cell sow r5">5</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell sow r6">6</div>
+        <div class="succ-cell sow r7">7</div>
+        <div class="succ-cell sow r8">8</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-freq">Every 2 weeks</div>
+
+        <!-- Spinach -->
+        <div class="succ-plant">Spinach</div>
+        <div class="succ-cell sow r1">1</div>
+        <div class="succ-cell sow r2">2</div>
+        <div class="succ-cell sow r3">3</div>
+        <div class="succ-cell sow r4">4</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell sow r5">5</div>
+        <div class="succ-cell sow r6">6</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-freq">Every 3 weeks</div>
+
+        <!-- Sugar Snap Peas -->
+        <div class="succ-plant">Sugar Snaps</div>
+        <div class="succ-cell sow r1">1</div>
+        <div class="succ-cell sow r2">2</div>
+        <div class="succ-cell sow r3">3</div>
+        <div class="succ-cell sow r4">4</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell sow r5">5</div>
+        <div class="succ-cell sow r6">6</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-freq">Every 3 weeks</div>
+
+        <!-- Beet -->
+        <div class="succ-plant">Beet</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell sow r1">1</div>
+        <div class="succ-cell sow r2">2</div>
+        <div class="succ-cell sow r3">3</div>
+        <div class="succ-cell sow r4">4</div>
+        <div class="succ-cell sow r5">5</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell sow r6">6</div>
+        <div class="succ-cell sow r7">7</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-freq">Every 3 weeks</div>
+
+        <!-- Carrot -->
+        <div class="succ-plant">Carrot</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell sow r1">1</div>
+        <div class="succ-cell sow r2">2</div>
+        <div class="succ-cell sow r3">3</div>
+        <div class="succ-cell sow r4">4</div>
+        <div class="succ-cell sow r5">5</div>
+        <div class="succ-cell sow r6">6</div>
+        <div class="succ-cell sow r7">7</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-freq">Every 3 weeks</div>
+
+        <!-- Chard -->
+        <div class="succ-plant">Chard</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell sow r1">1</div>
+        <div class="succ-cell sow r2">2</div>
+        <div class="succ-cell sow r3">3</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell sow r4">4</div>
+        <div class="succ-cell sow r5">5</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-freq">Every 4 weeks</div>
+
+        <!-- Beans -->
+        <div class="succ-plant">Pole Beans</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell sow r1">1</div>
+        <div class="succ-cell sow r2">2</div>
+        <div class="succ-cell sow r3">3</div>
+        <div class="succ-cell sow r4">4</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-freq">Every 3 weeks</div>
+
+        <!-- Zucchini -->
+        <div class="succ-plant">Zucchini</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell sow r1">1</div>
+        <div class="succ-cell sow r2">2</div>
+        <div class="succ-cell sow r3">3</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-freq">Every 4 weeks</div>
+
+        <!-- Cucumber -->
+        <div class="succ-plant">Cucumber</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell sow r1">1</div>
+        <div class="succ-cell sow r2">2</div>
+        <div class="succ-cell sow r3">3</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-freq">Every 3 weeks</div>
+
+        <!-- Broccoli -->
+        <div class="succ-plant">Broccoli</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell sow r1">1</div>
+        <div class="succ-cell sow r2">2</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell sow r3">3</div>
+        <div class="succ-cell sow r4">4</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-freq">Every 3 weeks</div>
+
+        <!-- Kale (succession) -->
+        <div class="succ-plant">Kale</div>
+        <div class="succ-cell sow r1">1</div>
+        <div class="succ-cell sow r2">2</div>
+        <div class="succ-cell sow r3">3</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell sow r4">4</div>
+        <div class="succ-cell sow r5">5</div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-cell"></div>
+        <div class="succ-freq">Every 4 weeks</div>
+
+      </div>
+
+      <div class="succession-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--food-rose)"></div> Sow a new round</div>
+        <span class="succession-tip">Numbers show which sowing round. Skip hot summer months for cool-season crops.</span>
       </div>
     </div>
 
