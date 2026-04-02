@@ -1139,12 +1139,10 @@
       }
     };
 
-    // Image fallback SVG
-    function getFallbackSVG(color) {
-      return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="50" cy="50" r="45" fill="${color}" opacity="0.15"/>
-        <path d="M50 20 Q60 35 55 50 Q65 60 50 75 Q35 60 45 50 Q40 35 50 20" fill="${color}" opacity="0.3"/>
-      </svg>`;
+    // Image fallback handler
+    function handleImgError(img, color) {
+      var parent = img.parentElement;
+      parent.innerHTML = '<div class="plant-image-fallback" style="background-color: ' + color + '20;"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="45" fill="' + color + '" opacity="0.15"/><path d="M50 20 Q60 35 55 50 Q65 60 50 75 Q35 60 45 50 Q40 35 50 20" fill="' + color + '" opacity="0.3"/></svg></div>';
     }
 
     // Initialize page
@@ -1192,7 +1190,7 @@
 
           const imageHtml = `
             <div class="plant-image">
-              <img src="plant-guide/${plant.slug}.jpg" alt="${plant.name}" onerror="this.parentElement.innerHTML = '<div class=\"plant-image-fallback\" style=\"background-color: ${cat.color}20;\">${getFallbackSVG('${cat.color}')}</div>'">
+              <img src="plant-guide/${plant.slug}.jpg" alt="${plant.name}" onerror="handleImgError(this, '${cat.color}')">
             </div>
           `;
 
