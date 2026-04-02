@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Garden Faery's complete plant guide for Humboldt County's coastal climate. 55 plants chosen for Zone 9b, including pollinators, native plants, food crops, herbs, flowers, and ornamentals.">
+  <meta property="og:title" content="Plant Guide | Garden Faery">
+  <meta property="og:description" content="55 plants chosen for Humboldt County's coastal climate. Complete growing guides for pollinators, natives, food, herbs, flowers, and ornamentals.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gardenfaery.love/plant-guide.html">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Plant Guide | Garden Faery">
+  <meta name="twitter:description" content="55 plants chosen for Humboldt County's coastal climate.">
+  <title>Plant Guide | Garden Faery</title>
+  <style>
+    :root {
+      --text-primary: #4a1942;
+      --bg: #f8f4ed;
+      --accent-1: #c48bb0;
+      --accent-2: #a3b88c;
+      --highlight: #d4c27a;
+      --font-heading: 'Elsie Swash Caps', serif;
+      --font-body: 'Nunito', sans-serif;
+      --shadow: 0 2px 8px rgba(74, 25, 66, 0.1);
+      --shadow-hover: 0 6px 16px rgba(74, 25, 66, 0.15);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+
+    /* Navigation */
+    .site-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 54px;
+      background: var(--bg);
+      border-bottom: 2px solid var(--accent-1);
+    }
+
+    .nav-logo {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--text-primary);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 6px;
+    }
+
+    .nav-links a {
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(74, 25, 66, 0.6);
+      text-decoration: none;
+      padding: 6px 14px;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text-primary);
+    }
+
+    .nav-links a.active {
+      color: var(--text-primary);
+      border-bottom-color: var(--accent-1);
+    }
+
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .hamburger svg {
+      width: 26px;
+      height: 26px;
+      stroke: var(--text-primary);
+    }
+
+    @media (max-width: 600px) {
+      .hamburger {
+        display: block;
+      }
+
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 54px;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        background: var(--bg);
+        border-bottom: 2px solid var(--accent-1);
+        padding: 8px 0;
+        gap: 0;
+      }
+
+      .nav-links.open {
+        display: flex;
+      }
+
+      .nav-links a {
+        padding: 12px 24px;
+        font-size: 15px;
+        border-bottom: none;
+      }
+
+      .nav-links a.active {
+        border-bottom: none;
+        color: var(--text-primary);
+        background: rgba(196, 139, 176, 0.1);
+      }
+    }
+
+    /* Hero Section */
+    .hero {
+      background: var(--text-primary);
+      color: white;
+      padding: 60px 24px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-family: var(--font-heading);
+      font-size: 48px;
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+
+    .hero .subtitle {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .hero .subtext {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+
+    @media (max-width: 600px) {
+      .hero {
+        padding: 40px 20px;
+      }
+
+      .hero h1 {
+        font-size: 36px;
+      }
+
+      .hero .subtitle {
+        font-size: 18px;
+      }
+    }
+
+    /* Top Actions */
+    .top-actions {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      padding: 24px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      border: 2px solid var(--text-primary);
+      color: var(--text-primary);
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-radius: 4px;
+    }
+
+    .btn:hover {
+      background: var(--text-primary);
+      color: white;
+    }
+
+    .btn-primary {
+      background: var(--highlight);
+      color: var(--text-primary);
+      border-color: var(--highlight);
+    }
+
+    .btn-primary:hover {
+      background: var(--text-primary);
+      color: white;
+    }
+
+    /* Filters */
+    .filter-section {
+      padding: 24px;
+      text-align: center;
+    }
+
+    .filter-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .filter-btn {
+      padding: 8px 16px;
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: rgba(74, 25, 66, 0.1);
+      color: var(--text-primary);
+    }
+
+    .filter-btn.active {
+      color: white;
+    }
+
+    .filter-btn[data-category="all"].active {
+      background: var(--text-primary);
+    }
+
+    .filter-btn[data-category="pollinator"].active {
+      background: #d4c27a;
+    }
+
+    .filter-btn[data-category="native"].active {
+      background: #a3b88c;
+    }
+
+    .filter-btn[data-category="food"].active {
+      background: #c48bb0;
+    }
+
+    .filter-btn[data-category="herbs"].active {
+      background: #7a9e7e;
+    }
+
+    .filter-btn[data-category="flowers"].active {
+      background: #d4a04a;
+    }
+
+    .filter-btn[data-category="ornamentals"].active {
+      background: #5a7a6e;
+    }
+
+    .filter-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .plant-count {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    /* Category Sections */
+    .category-section {
+      margin-bottom: 40px;
+      display: none;
+    }
+
+    .category-section.visible {
+      display: block;
+    }
+
+    .category-header {
+      padding: 16px 24px;
+      color: white;
+      font-weight: 700;
+      font-size: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .category-intro {
+      padding: 0 24px 20px;
+      font-size: 14px;
+      font-style: italic;
+      color: var(--text-primary);
+      max-width: 900px;
+      margin: 0 auto 12px;
+    }
+
+    .plant-count-badge {
+      background: rgba(255, 255, 255, 0.3);
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* Plant Cards Grid */
+    .plants-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      padding: 0 24px 40px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 900px) {
+      .plants-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        padding: 0 20px 40px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .plants-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 0 16px 40px;
+      }
+    }
+
+    /* Plant Card */
+    .plant-card {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: all 0.3s;
+    }
+
+    .plant-card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-4px);
+    }
+
+    .plant-image {
+      width: 100%;
+      height: 200px;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .plant-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .plant-image-fallback {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .plant-image-fallback svg {
+      width: 60px;
+      height: 60px;
+      opacity: 0.3;
+    }
+
+    .plant-content {
+      padding: 16px;
+    }
+
+    .plant-name {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 900;
+      margin-bottom: 4px;
+      color: var(--text-primary);
+    }
+
+    .plant-scientific {
+      font-size: 12px;
+      font-style: italic;
+      color: rgba(74, 25, 66, 0.6);
+      margin-bottom: 12px;
+    }
+
+    .plant-sections {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .plant-detail {
+      border-top: 1px solid rgba(74, 25, 66, 0.1);
+    }
+
+    .plant-detail summary {
+      padding: 8px 0;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .plant-detail summary:hover {
+      opacity: 0.8;
+    }
+
+    .plant-detail summary::marker {
+      color: var(--text-primary);
+    }
+
+    .plant-detail p {
+      padding: 8px 0 8px 20px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(74, 25, 66, 0.85);
+    }
+
+    /* CTA Section */
+    .cta-section {
+      background: var(--text-primary);
+      color: white;
+      padding: 40px 24px;
+      text-align: center;
+      margin: 40px 0;
+    }
+
+    .cta-section h2 {
+      font-family: var(--font-heading);
+      font-size: 32px;
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+
+    .cta-section p {
+      font-size: 16px;
+      margin-bottom: 24px;
+    }
+
+    .cta-btn {
+      display: inline-block;
+      padding: 14px 32px;
+      background: var(--highlight);
+      color: var(--text-primary);
+      text-decoration: none;
+      font-weight: 700;
+      border-radius: 4px;
+      transition: all 0.2s;
+      font-family: var(--font-body);
+      font-size: 15px;
+    }
+
+    .cta-btn:hover {
+      background: white;
+      transform: translateY(-2px);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 20px 20px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent-1);
+      background: var(--text-primary);
+    }
+
+    footer a {
+      color: var(--accent-1);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    .social-links {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .social-links a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .social-links a:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
+    }
+
+    .social-links svg {
+      width: 18px;
+      height: 18px;
+      fill: var(--accent-1);
+    }
+
+    /* Seasonal color override (from site system) */
+    .seasonal-color {
+      --highlight: #d4c27a;
+    }
+
+    .seasonal-color.spring {
+      --highlight: #d4a04a;
+    }
+
+    .seasonal-color.summer {
+      --highlight: #c48bb0;
+    }
+
+    .seasonal-color.fall {
+      --highlight: #d4a04a;
+    }
+
+    .seasonal-color.winter {
+      --highlight: #a3b88c;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="site-nav">
+    <a href="index.html" class="nav-logo">Garden Faery</a>
+    <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="services.html">Services</a>
+      <a href="estimator.html">Bed Builder</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="plant-guide.html" class="active">Plant Guide</a>
+      <a href="book.html">Book</a>
+      <a href="contact.html">Contact</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <h1>Garden Plant Guide</h1>
+    <p class="subtitle">Humboldt County Edition</p>
+    <p class="subtext">Zone 9b | Coastal Fog Belt | Arcata, CA</p>
+  </section>
+
+  <!-- Top Actions -->
+  <div class="top-actions">
+    <a href="garden-plant-guide.pdf" class="btn">Download PDF</a>
+  </div>
+
+  <!-- Filters & Plant Count -->
+  <section class="filter-section">
+    <div class="filter-buttons">
+      <button class="filter-btn active" data-category="all">All</button>
+      <button class="filter-btn" data-category="pollinator">Pollinator</button>
+      <button class="filter-btn" data-category="native">Native</button>
+      <button class="filter-btn" data-category="food">Food</button>
+      <button class="filter-btn" data-category="herbs">Herbs</button>
+      <button class="filter-btn" data-category="flowers">Flowers</button>
+      <button class="filter-btn" data-category="ornamentals">Ornamentals</button>
+    </div>
+    <p class="plant-count">55 plants chosen for Humboldt County's coastal climate</p>
+  </section>
+
+  <!-- Plants Container -->
+  <div id="plants-container"></div>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <h2>Ready to Transform Your Garden?</h2>
+    <p>Book a free consultation with Taya to design your perfect coastal garden.</p>
+    <a href="book.html" class="cta-btn">Book a Free Consultation</a>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <a href="mailto:taya@gardenfaery.love">taya@gardenfaery.love</a> &middot; Arcata, CA
+    <div style="margin-top:6px;">
+      <a href="https://gardenfaery.love" style="color:var(--accent-1); text-decoration:none; font-size:13px;">gardenfaery.love</a>
+    </div>
+    <div class="social-links">
+      <a href="https://www.facebook.com/profile.php?id=61578540137419" target="_blank" rel="noopener" aria-label="Facebook">
+        <svg viewBox="0 0 24 24">
+          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+        </svg>
+      </a>
+      <a href="https://www.instagram.com/gardenfaery__/" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+        </svg>
+      </a>
+      <a href="https://nextdoor.com/profile/01fPxwm9JL8Y2BKt9/" target="_blank" rel="noopener" aria-label="Nextdoor">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2L2 10h3v10h5v-6h4v6h5V10h3L12 2z"/>
+        </svg>
+      </a>
+    </div>
+  </footer>
+
+  <script>
+    // Plant data
+    const plants = {
+      pollinator: {
+        color: '#d4c27a',
+        intro: 'Humboldt County is home to hundreds of native bee species, monarch butterflies, and Anna\'s hummingbirds. These plants keep them happy and your garden buzzing with life. Plant in clusters of three or more for the biggest pollinator impact.',
+        plants: [
+          {
+            name: 'California Poppy',
+            scientific: 'Eschscholzia californica',
+            slug: 'california-poppy',
+            growth: 'Annual/short-lived perennial, 12-18" tall. Self-seeds freely. Blooms March through October in Humboldt\'s mild climate. Goes dormant in summer heat but thrives in coastal cool.',
+            care: 'Almost zero maintenance. No fertilizer needed. Deadhead spent blooms to extend flowering or let them go to seed for next year\'s crop. Drought tolerant once established.',
+            planting: 'Direct sow seeds in fall or early spring. Scatter on bare soil and press in lightly. Needs full sun and well-drained soil. Does not transplant well. Thin to 6" apart.'
+          },
+          {
+            name: 'Lavender',
+            scientific: 'Lavandula angustifolia',
+            slug: 'lavender',
+            growth: 'Woody perennial, 2-3\' tall and wide. Blooms June through August. English lavender does best in Humboldt\'s cool summers. Attracts bees, butterflies, and beneficial wasps.',
+            care: 'Low maintenance. Prune back by one-third after flowering. Avoid overwatering; Humboldt\'s rain is usually enough. Amend heavy clay soil with sand or gravel for drainage.',
+            planting: 'Plant starts in spring after last frost. Full sun, 18-24" apart. Raised beds or slopes work best for drainage. Mulch with gravel, not bark (bark holds too much moisture).'
+          },
+          {
+            name: 'Bee Balm',
+            scientific: 'Monarda didyma',
+            slug: 'bee-balm',
+            growth: 'Herbaceous perennial, 2-4\' tall. Spreads by runners. Showy red, pink, or purple flower heads bloom July through September. Hummingbird magnet.',
+            care: 'Moderate maintenance. Divide clumps every 2-3 years to control spread. Good air circulation prevents powdery mildew. Cut back to ground in late fall.',
+            planting: 'Plant divisions or starts in spring. Part sun to full sun, 18-24" apart. Prefers moist, rich soil. Humboldt\'s fog and moisture suits it perfectly.'
+          },
+          {
+            name: 'Yarrow',
+            scientific: 'Achillea millefolium',
+            slug: 'yarrow',
+            growth: 'Herbaceous perennial, 2-3\' tall. Native to Humboldt County. Flat-topped flower clusters in white, pink, or yellow bloom June through September. Tough and adaptive.',
+            care: 'Very low maintenance. Drought tolerant once established. Deadhead for tidiness or leave seed heads for winter interest. Divide every 3-4 years.',
+            planting: 'Plant starts or divide existing clumps in spring or fall. Full sun, 12-18" apart. Tolerates poor soil, clay, and coastal wind. An excellent starter plant.'
+          },
+          {
+            name: 'Phacelia',
+            scientific: 'Phacelia tanacetifolia',
+            slug: 'phacelia',
+            growth: 'Annual, 1-3\' tall. Coiled purple-blue flower spikes bloom spring through summer. One of the top bee plants in the world. Attracts beneficial insects that eat aphids.',
+            care: 'No maintenance needed. Let it flower, set seed, and die back naturally. Can be cut down as green mulch (great cover crop). Self-sows if you let it.',
+            planting: 'Direct sow in early spring or fall. Full sun to part shade, scatter seed and rake in lightly. Grows in almost any soil. Great between raised beds or along paths.'
+          },
+          {
+            name: 'Buckwheat',
+            scientific: 'Eriogonum grande var. rubescens',
+            slug: 'buckwheat',
+            growth: 'Perennial, 1-2\' tall mounding habit. Native coastal buckwheat with clusters of pink to rose flowers. Blooms summer through fall. Critical food for native bees and butterflies.',
+            care: 'Very low maintenance. No fertilizer, minimal water once established. Cut back old flower stalks in late winter. Evergreen foliage stays attractive year-round.',
+            planting: 'Plant starts in fall or spring. Full sun, well-drained soil. Space 18" apart. Perfect for dry slopes, rock gardens, and borders. Does well in sandy or clay soil.'
+          },
+          {
+            name: 'Ceanothus',
+            scientific: 'Ceanothus thyrsiflorus',
+            slug: 'ceanothus',
+            growth: 'Evergreen shrub, 4-8\' tall. Native to coastal Northern CA. Masses of blue to purple flowers in spring are a bee frenzy. Fast growing, lives 10-15 years.',
+            care: 'Low maintenance once established. No summer water needed. Light pruning after flowering to shape. Do not fertilize. Fixes nitrogen in the soil.',
+            planting: 'Plant from nursery containers in fall. Full sun, well-drained soil. Space 4-6\' apart. Do not amend soil. Native plants prefer our naturally acidic Humboldt dirt.'
+          },
+          {
+            name: 'Cleveland Sage',
+            scientific: 'Salvia clevelandii',
+            slug: 'cleveland-sage',
+            growth: 'Evergreen perennial, 3-5\' tall. Fragrant grey-green foliage. Whorls of violet-blue flowers from May to August. Hummingbirds and bees can\'t resist it.',
+            care: 'Low maintenance. Drought tolerant. Prune lightly after flowering. Can get leggy in shade; give it full sun. Deer resistant.',
+            planting: 'Plant starts in spring. Full sun, 3\' apart. Needs well-drained soil; amend clay with gravel. Good on slopes and in raised beds. Thrives in Humboldt\'s mild winters.'
+          },
+          {
+            name: 'Goldenrod',
+            scientific: 'Solidago californica',
+            slug: 'goldenrod',
+            growth: 'Herbaceous perennial, 2-4\' tall. Native to coastal CA. Golden plumes bloom August through October, feeding migrating butterflies and native bees. Does NOT cause allergies (that\'s ragweed).',
+            care: 'Low maintenance. Cut back to ground in late winter. Can spread by rhizomes; divide every few years or plant in contained areas. Tolerates clay and poor soil.',
+            planting: 'Plant starts or divisions in spring or fall. Full sun to light shade, 18" apart. Moist to average soil. Great in meadow plantings or back of borders.'
+          }
+        ]
+      },
+      native: {
+        color: '#a3b88c',
+        intro: 'These plants evolved in our coastal fog belt and acidic soils. They support native wildlife, need less water, and thrive with minimal fuss. Humboldt is one of the most biodiverse regions in the state, and native plants are the backbone of that ecosystem.',
+        plants: [
+          {
+            name: 'Sword Fern',
+            scientific: 'Polystichum munitum',
+            slug: 'sword-fern',
+            growth: 'Evergreen fern, 2-4\' tall with arching fronds. The signature understory plant of coastal redwood forests. Lush, year-round green. Clump-forming, long-lived.',
+            care: 'Almost zero maintenance. Remove dead fronds in spring. No fertilizer needed. Tolerates deep shade and dry shade once established. Slug resistant.',
+            planting: 'Plant from nursery pots in fall or winter. Shade to part shade. Space 2-3\' apart. Prefers moist, acidic soil (our natural Humboldt soil is perfect). Excellent under trees.'
+          },
+          {
+            name: 'Evergreen Huckleberry',
+            scientific: 'Vaccinium ovatum',
+            slug: 'evergreen-huckleberry',
+            growth: 'Evergreen shrub, 4-8\' tall. Glossy dark green leaves, tiny pink bell flowers in spring, edible blue-black berries in fall. Slow growing but incredibly long-lived.',
+            care: 'Low maintenance. No pruning needed unless shaping. No fertilizer. Naturally pest and disease free in Humboldt. Berries attract birds.',
+            planting: 'Plant from nursery containers in fall. Part shade to full shade. Space 3-4\' apart. Acidic soil (ours naturally). Excellent hedge, foundation planting, or woodland garden.'
+          },
+          {
+            name: 'Red Flowering Currant',
+            scientific: 'Ribes sanguineum',
+            slug: 'red-flowering-currant',
+            growth: 'Deciduous shrub, 6-10\' tall. Drooping clusters of deep pink to red flowers in early spring (February to April). One of the first food sources for hummingbirds.',
+            care: 'Low maintenance. Prune after flowering to shape. Tolerates dry summer conditions. Loses leaves in fall, but the bare structure has nice form. Deer resistant.',
+            planting: 'Plant bare-root or container in fall/winter. Full sun to part shade. Space 4-6\' apart. Any well-drained soil. Great as specimen shrub or informal hedge.'
+          },
+          {
+            name: 'Douglas Iris',
+            scientific: 'Iris douglasiana',
+            slug: 'douglas-iris',
+            growth: 'Evergreen perennial, 1-2\' tall. Native to coastal Humboldt. Blue-purple, lavender, or cream flowers in April and May. Tough, grass-like foliage year-round.',
+            care: 'Almost zero maintenance. Remove spent flower stalks. Divide crowded clumps every 4-5 years. No summer water needed. Deer and gopher resistant.',
+            planting: 'Plant divisions or starts in fall. Full sun to part shade. Space 12-18" apart. Well-drained soil. Perfect for slopes, borders, and under oaks. Tolerates clay.'
+          },
+          {
+            name: 'Western Columbine',
+            scientific: 'Aquilegia formosa',
+            slug: 'western-columbine',
+            growth: 'Herbaceous perennial, 2-3\' tall. Red and yellow nodding flowers from May to July. Native hummingbird pollinated. Delicate, airy habit. Self-sows gently.',
+            care: 'Low maintenance. Let seed heads drop for new plants. Cut back spent foliage in fall. Watch for aphids in spring (hose them off). Short-lived but replacements self-sow.',
+            planting: 'Plant starts in fall or spring. Part shade preferred (too much sun in dry sites burns leaves). Space 12" apart. Moist, humus-rich soil. Gorgeous in woodland gardens.'
+          },
+          {
+            name: 'Salal',
+            scientific: 'Gaultheria shallon',
+            slug: 'salal',
+            growth: 'Evergreen shrub, 2-5\' tall. Leathery dark green leaves, pink urn-shaped flowers, edible purple berries. Spreads by underground runners to form dense colonies.',
+            care: 'Almost zero maintenance. No fertilizer, no pruning unless controlling spread. Drought tolerant in shade. Can be aggressive, so give it room or plant in contained areas.',
+            planting: 'Plant from nursery containers in fall. Shade to part shade (full sun okay near coast). Space 3\' apart. Acidic soil. Excellent groundcover under trees, native hedge.'
+          },
+          {
+            name: 'Beach Strawberry',
+            scientific: 'Fragaria chiloensis',
+            slug: 'beach-strawberry',
+            growth: 'Evergreen groundcover, 4-8" tall, spreading by runners. Glossy dark green trifoliate leaves, white flowers in spring, small edible red fruit. Parent species of the garden strawberry.',
+            care: 'Low maintenance. Mow or trim edges annually to contain spread. No fertilizer. Tolerates salt spray and wind. Fills in nicely as a living mulch.',
+            planting: 'Plant starts 12" apart in fall or spring. Full sun to part shade. Well-drained to sandy soil. Excellent lawn substitute, path edging, or slope stabilizer.'
+          },
+          {
+            name: 'Coyote Brush',
+            scientific: 'Baccharis pilularis',
+            slug: 'coyote-brush',
+            growth: 'Evergreen shrub, 3-8\' tall (prostrate forms available at 1-2\'). Fast growing, tough as nails. Tiny white fluffy seeds in fall. Pioneer species on disturbed land.',
+            care: 'Very low maintenance. Prune to shape annually if desired. No water, no fertilizer. Tolerates wind, salt spray, clay, sand, and drought. Fire resistant.',
+            planting: 'Plant from containers in fall. Full sun. Space 3-6\' apart depending on form. Any soil. Great for erosion control, windbreaks, and habitat restoration.'
+          },
+          {
+            name: 'Pacific Wax Myrtle',
+            scientific: 'Morella californica',
+            slug: 'pacific-wax-myrtle',
+            growth: 'Evergreen tree/large shrub, 10-25\' tall. Aromatic dark green leaves. Small waxy berries attract birds. Fast growing, makes an excellent privacy screen.',
+            care: 'Low maintenance. Prune to shape or let grow naturally. Fixes nitrogen. No fertilizer. Tolerates wet soil, wind, and salt spray. Deer resistant.',
+            planting: 'Plant from containers in fall or winter. Full sun to part shade. Space 6-10\' apart for screen. Moist to well-drained soil. Native to Humboldt\'s coast.'
+          }
+        ]
+      },
+      food: {
+        color: '#c48bb0',
+        intro: 'Our cool, foggy summers are perfect for lettuce, kale, and root vegetables that bolt in warmer climates. Heat-lovers like tomatoes need a warm microclimate or hoop house. The long growing season (Feb starts for cool crops, harvests into November) means two to three crops per bed if you plan it right.',
+        plants: [
+          {
+            name: 'Blueberry',
+            scientific: 'Vaccinium corymbosum',
+            slug: 'blueberry',
+            growth: 'Deciduous shrub, 4-6\' tall. Produces pints of berries per bush in July and August. Beautiful fall color. Lives 20+ years. Plant at least two varieties for cross-pollination.',
+            care: 'Moderate maintenance. Mulch heavily with bark or pine needles (they love acid). Prune old canes in winter. Protect fruit from birds with netting. Feed with acid-loving fertilizer in spring.',
+            planting: 'Plant bare-root in winter or containers in spring. Full sun (at least 6 hours). Space 4-5\' apart. Acidic soil pH 4.5-5.5 (Humboldt soil is naturally acidic, perfect). Raised beds work great.'
+          },
+          {
+            name: 'Kale',
+            scientific: 'Brassica oleracea var. sabellica',
+            slug: 'kale',
+            growth: 'Biennial grown as annual, 1-3\' tall. Humboldt\'s #1 cool-weather crop. Lacinato, Red Russian, and curly types all thrive. Gets sweeter after frost. Can produce for over a year.',
+            care: 'Low maintenance. Side-dress with compost mid-season. Watch for cabbage worms (pick off by hand or use BT). Harvest outer leaves and the plant keeps producing from the center.',
+            planting: 'Direct sow or transplant starts Feb through August. Full sun to part shade. Space 18" apart. Rich, moist soil. Succession plant every 3-4 weeks for continuous harvest.'
+          },
+          {
+            name: 'Lettuce',
+            scientific: 'Lactuca sativa',
+            slug: 'lettuce',
+            growth: 'Annual, 6-12" tall. Grows almost year-round in Humboldt\'s cool climate. Loose-leaf types are the most forgiving. Will bolt in rare hot spells but otherwise just keeps going.',
+            care: 'Low maintenance. Keep soil consistently moist. Slugs are the main enemy (beer traps, copper tape, or hand-pick at night). Feed lightly with fish emulsion every few weeks.',
+            planting: 'Direct sow or transplant every 2-3 weeks, Feb through October. Part shade in summer helps prevent bolting. Space 8-12" apart. Rich, moist soil. Perfect for succession planting.'
+          },
+          {
+            name: 'Sugar Snap Peas',
+            scientific: 'Pisum sativum var. macrocarpon',
+            slug: 'sugar-snap-peas',
+            growth: 'Annual vine, 4-6\' tall (needs trellis). Sweet, crunchy pods you eat whole. Produces heavily in spring and fall. Fixes nitrogen in soil, improving it for the next crop.',
+            care: 'Low maintenance. Provide a trellis or strings to climb. No fertilizer needed (they make their own nitrogen). Watch for powdery mildew in late season. Harvest daily when producing.',
+            planting: 'Direct sow in February (peas are cold-hardy). Full sun. Space 2-3" apart along a trellis. Moist, well-drained soil. Plant a fall crop in August for a second harvest.'
+          },
+          {
+            name: 'Garlic',
+            scientific: 'Allium sativum',
+            slug: 'garlic',
+            growth: 'Bulb, 18-24" tall. Plant in fall, harvest the following summer. Softneck types store well. Hardneck types produce edible scapes in spring. Humboldt\'s cool winters are ideal for garlic.',
+            care: 'Low maintenance. Mulch heavily after planting. No watering from fall through spring (rain does it). Stop watering 2 weeks before harvest when lower leaves brown. Cure for 2-3 weeks.',
+            planting: 'Plant individual cloves 2" deep, pointed end up, in October or November. Full sun. Space 6" apart, rows 12" apart. Rich, well-drained soil. Excellent in raised beds.'
+          },
+          {
+            name: 'Potatoes',
+            scientific: 'Solanum tuberosum',
+            slug: 'potatoes',
+            growth: 'Annual, 2-3\' tall. Produces 5-10 lbs per plant. Early varieties (Yukon Gold, Red Pontiac) do best in Humboldt. Ready in about 90 days. Easy to grow in beds, bags, or ground.',
+            care: 'Moderate maintenance. Hill up soil around stems as they grow (keeps tubers covered and prevents greening). Watch for potato beetles. Water evenly. Stop watering when plants yellow.',
+            planting: 'Plant seed potatoes (cut pieces with 2+ eyes) in March or April. Full sun. Space 12" apart in rows or scatter in a bed. Rich, loose soil. Can also grow in grow bags or straw.'
+          },
+          {
+            name: 'Tomatoes',
+            scientific: 'Solanum lycopersicum',
+            slug: 'tomatoes',
+            growth: 'Annual, 3-6\' tall. Humboldt\'s challenge crop! Fog-tolerant varieties like Stupice, Glacier, and Sungold do best. Cherry and early types ripen more reliably than big slicers.',
+            care: 'High maintenance for Humboldt. Needs the warmest spot you have (south-facing wall, hoop house). Prune suckers for indeterminate types. Support with cages or stakes. Late blight is a risk.',
+            planting: 'Start indoors in March, transplant after last frost (May). Full sun, warmest microclimate. Space 24-36" apart. Rich soil with compost. Raised beds warm up faster. Consider wall-o-waters.'
+          },
+          {
+            name: 'Zucchini',
+            scientific: 'Cucurbita pepo',
+            slug: 'zucchini',
+            growth: 'Annual, 2-3\' tall bushing plant that spreads 3-4\' wide. Prolific producer, June through October. One plant can feed a family (seriously). Dark green types do best in cool climates.',
+            care: 'Low maintenance. Harvest regularly at 6-8" to keep production going. Watch for powdery mildew. Hand-pollinate in foggy weather when bees are scarce. Compost feed mid-season.',
+            planting: 'Direct sow after last frost in May. Full sun, warmest spot. Space 3\' apart. Rich, moist soil. Mound planting improves drainage and soil warmth.'
+          },
+          {
+            name: 'Broccoli',
+            scientific: 'Brassica oleracea var. italica',
+            slug: 'broccoli',
+            growth: 'Annual/biennial, 2-3\' tall. Thrives in Humboldt\'s cool climate. Main head harvests in 60-80 days, then produces side shoots for weeks. Fall plantings are often the best.',
+            care: 'Moderate maintenance. Consistent water is key for good head formation. Watch for cabbage worms and aphids. Side-dress with compost when heads start forming.',
+            planting: 'Transplant starts in March for spring crop, July for fall crop. Full sun. Space 18" apart. Rich, moist soil with good drainage. Floating row cover keeps pests off.'
+          }
+        ]
+      },
+      herbs: {
+        color: '#7a9e7e',
+        intro: 'Most culinary herbs love Humboldt\'s mild climate. Mediterranean types (rosemary, thyme, oregano) need the best-drained spot you have. Moisture lovers (mint, chives, parsley) thrive almost everywhere here. A small herb bed near your kitchen door means fresh flavor is always steps away.',
+        plants: [
+          {
+            name: 'Rosemary',
+            scientific: 'Salvia rosmarinus',
+            slug: 'rosemary',
+            growth: 'Evergreen shrub, 3-5\' tall. Woody, aromatic, with blue flowers that bees love. Can live for decades. Upright and trailing varieties available. Year-round harvest.',
+            care: 'Very low maintenance. Needs good drainage above all else (the #1 killer is wet roots). No fertilizer. Prune to shape after flowering. Deer and pest resistant.',
+            planting: 'Plant starts in spring. Full sun, warmest spot. Space 2-3\' apart. Sandy or gravelly soil. Raised beds, pots, or slopes work best. Avoid heavy clay unless amended.'
+          },
+          {
+            name: 'Thyme',
+            scientific: 'Thymus vulgaris',
+            slug: 'thyme',
+            growth: 'Evergreen perennial, 6-12" tall. Tiny aromatic leaves, small pink or white flowers. Many varieties: English, lemon, creeping. Groundcover types fill between stepping stones.',
+            care: 'Very low maintenance. Trim after flowering to keep compact. Replace plants every 3-4 years when they get woody. No fertilizer. Good drainage is essential.',
+            planting: 'Plant starts in spring. Full sun. Space 9-12" apart. Well-drained, lean soil (less water = less flavor). Great in containers, raised beds, rock gardens, and herb spirals.'
+          },
+          {
+            name: 'Basil',
+            scientific: 'Ocimum basilicum',
+            slug: 'basil',
+            growth: 'Annual, 1-2\' tall. Needs Humboldt\'s warmest microclimate. Genovese is classic; Thai and African Blue are more cold-tolerant. Pinch flowers to keep leaves coming.',
+            care: 'Moderate maintenance. Pinch growing tips regularly to encourage bushy growth. Bring indoors or cover on cold nights. Water consistently but don\'t overwater. Harvest often.',
+            planting: 'Start indoors in April, transplant after all frost danger (late May). Full sun, sheltered warm spot. Space 12" apart. Rich, moist soil. Excellent in pots near a sunny wall.'
+          },
+          {
+            name: 'Mint',
+            scientific: 'Mentha spp.',
+            slug: 'mint',
+            growth: 'Herbaceous perennial, 1-2\' tall. Spreads aggressively by runners. Spearmint, peppermint, chocolate mint, and many more. Thrives in Humboldt\'s moist climate. Nearly indestructible.',
+            care: 'Low maintenance but needs containing! Plant in pots or bottomless buckets sunk in the ground. Cut back to ground in late fall. Divide when overcrowded.',
+            planting: 'Plant starts anytime spring through fall. Part shade to full sun. Space 18" apart (in a contained area). Rich, moist soil. Humboldt\'s moisture is mint\'s dream.'
+          },
+          {
+            name: 'Oregano',
+            scientific: 'Origanum vulgare',
+            slug: 'oregano',
+            growth: 'Herbaceous perennial, 1-2\' tall. Greek oregano has the best flavor. Spreading habit, pink flowers attract bees. Stronger flavor when grown in leaner soil.',
+            care: 'Low maintenance. Cut back by half in midsummer to encourage fresh growth. Divide every 3 years. Dries beautifully. Good drainage important.',
+            planting: 'Plant starts in spring. Full sun. Space 12-18" apart. Well-drained, lean soil (less water = more flavor). Good in containers, raised beds, and herb spirals.'
+          },
+          {
+            name: 'Cilantro / Coriander',
+            scientific: 'Coriandrum sativum',
+            slug: 'cilantro',
+            growth: 'Annual, 1-2\' tall. Cilantro is the leaf, coriander is the seed. Humboldt\'s cool climate means it\'s slow to bolt, which is ideal. Succession plant for continuous harvest.',
+            care: 'Low maintenance. Bolts in heat but Humboldt\'s fog keeps it leafy longer. Let some plants flower for coriander seed and to attract beneficial insects. Self-sows.',
+            planting: 'Direct sow every 3 weeks, March through September. Part shade in summer. Scatter seed and cover lightly, thin to 4-6" apart. Moist, rich soil.'
+          },
+          {
+            name: 'Parsley',
+            scientific: 'Petroselinum crispum',
+            slug: 'parsley',
+            growth: 'Biennial grown as annual, 1-2\' tall. Italian flat-leaf has the best flavor; curly is prettier for garnish. Grows almost year-round in Humboldt. Swallowtail butterfly host plant.',
+            care: 'Low maintenance. Slow to germinate (be patient, 2-3 weeks). Harvest outer stems. Cut flower stalks in second year unless you want seeds. Feed with compost mid-season.',
+            planting: 'Start indoors in March or direct sow in April. Full sun to part shade. Space 8-10" apart. Rich, moist soil. Great in pots, borders, and tucked into garden beds.'
+          },
+          {
+            name: 'Chives',
+            scientific: 'Allium schoenoprasum',
+            slug: 'chives',
+            growth: 'Herbaceous perennial, 12-18" tall. Mild onion flavor. Pretty purple pom-pom flowers in spring are edible and attract pollinators. Clump-forming, easy, long-lived.',
+            care: 'Very low maintenance. Divide clumps every 3-4 years. Deadhead flowers unless you want self-sowing. Cut back to ground in late fall. Pest and disease free.',
+            planting: 'Plant starts or divide existing clumps in spring or fall. Full sun to part shade. Space 8-12" apart. Any decent garden soil. Excellent border plant and companion for roses.'
+          },
+          {
+            name: 'Dill',
+            scientific: 'Anethum graveolens',
+            slug: 'dill',
+            growth: 'Annual, 2-4\' tall. Feathery foliage, yellow umbrella flower heads. Essential for pickles, fish, and dressings. Host plant for swallowtail butterflies.',
+            care: 'Low maintenance. Tall varieties may need staking in wind. Self-sows freely (welcome it or deadhead). Harvest leaves anytime; seeds when brown. Attracts beneficial wasps.',
+            planting: 'Direct sow in spring after last frost. Full sun. Thin to 12" apart. Average, well-drained soil. Plant near the back of beds (it\'s tall). Succession plant for continuous leaves.'
+          },
+          {
+            name: 'Lemon Balm',
+            scientific: 'Melissa officinalis',
+            slug: 'lemon-balm',
+            growth: 'Herbaceous perennial, 1-2\' tall. Lemon-scented leaves, tiny white flowers. Makes wonderful tea. Can spread aggressively like mint. Attracts bees (Melissa means "bee").',
+            care: 'Low maintenance but contain it like mint. Cut back hard after flowering to prevent self-seeding. Divide every 2-3 years. Nearly pest-free.',
+            planting: 'Plant starts in spring. Full sun to part shade. Space 18" apart (in contained area). Any soil. Great in pots, tea gardens, and along paths where you\'ll brush against it.'
+          }
+        ]
+      },
+      flowers: {
+        color: '#d4a04a',
+        intro: 'Humboldt\'s cool summers are a flower grower\'s paradise. Dahlias, sweet peas, and cosmos reach their peak here while wilting in hotter climates. Many of these are also excellent cut flowers, so you can bring the garden indoors. Plant a mix of heights and bloom times for color from spring through first frost.',
+        plants: [
+          {
+            name: 'Dahlia',
+            scientific: 'Dahlia spp.',
+            slug: 'dahlia',
+            growth: 'Tuberous perennial, 1-5\' tall. Humboldt\'s cool summers = dahlia heaven. Dinner-plate, ball, cactus, and pompon forms. Endless colors. Blooms July through November (first frost).',
+            care: 'Moderate maintenance. Stake tall varieties. Pinch main stem at 12" for bushier growth. Deadhead for more blooms. Dig tubers after first frost and store dry over winter.',
+            planting: 'Plant tubers 4-6" deep after last frost (May). Full sun. Space 18-24" apart. Rich, well-drained soil. Feed monthly with balanced fertilizer. Raised beds work beautifully.'
+          },
+          {
+            name: 'Zinnia',
+            scientific: 'Zinnia elegans',
+            slug: 'zinnia',
+            growth: 'Annual, 1-4\' tall. Bold, cheerful blooms in every color except blue. Butterflies love them. Cut-and-come-again: the more you pick, the more they bloom. Summer through frost.',
+            care: 'Low maintenance. Deadhead or cut for bouquets regularly. Watch for powdery mildew (space plants for airflow). No staking needed for shorter varieties.',
+            planting: 'Direct sow after last frost (May) or start indoors in April. Full sun. Space 8-18" apart depending on variety. Rich, well-drained soil. Succession plant every 2-3 weeks.'
+          },
+          {
+            name: 'Calendula',
+            scientific: 'Calendula officinalis',
+            slug: 'calendula',
+            growth: 'Annual, 12-24" tall. Cheerful orange and yellow daisy-like blooms. Edible petals! Medicinal salve plant. Blooms spring through fall in Humboldt\'s cool climate. Self-sows.',
+            care: 'Very low maintenance. Deadhead for more blooms or let self-sow. Pull plants when they get ratty. Rarely bothered by pests. Aphids sometimes appear but ladybugs handle them.',
+            planting: 'Direct sow in early spring or fall. Full sun to part shade. Space 10-12" apart. Average soil. Scatter in veggie beds as a companion plant (attracts beneficials, repels pests).'
+          },
+          {
+            name: 'Sweet Pea',
+            scientific: 'Lathyrus odoratus',
+            slug: 'sweet-pea',
+            growth: 'Annual vine, 5-8\' tall. Intoxicating fragrance. Humboldt = sweet pea paradise (they hate heat). Blooms April through July. Old-fashioned varieties have the best scent.',
+            care: 'Moderate maintenance. Provide netting or strings to climb. Pick flowers daily to keep them coming. Pinch first growth tips for more stems. Water consistently at the base.',
+            planting: 'Sow seeds in February (nick seed coat with a file first). Full sun. Space 4-6" apart along support. Rich, deeply dug soil with compost. Cool, moist roots are the key.'
+          },
+          {
+            name: 'Sunflower',
+            scientific: 'Helianthus annuus',
+            slug: 'sunflower',
+            growth: 'Annual, 3-12\' tall. Single giant heads or branching bouquet types. Cheerful, easy, and kids love them. Seeds feed birds in fall. Blooms July through September.',
+            care: 'Very low maintenance. Stake giant varieties in wind. Water deeply once established. No fertilizer needed in good soil. Watch for slugs on seedlings.',
+            planting: 'Direct sow after last frost (May). Full sun. Space 12-24" apart. Average to rich soil. Succession plant for continuous blooms. Protect seedlings from slugs.'
+          },
+          {
+            name: 'Cosmos',
+            scientific: 'Cosmos bipinnatus',
+            slug: 'cosmos',
+            growth: 'Annual, 3-6\' tall. Feathery foliage, airy daisy flowers in pink, white, and crimson. Blooms from midsummer until frost. Butterflies adore them. Looks beautiful planted in masses.',
+            care: 'Very low maintenance. Deadhead to extend blooming. May need staking in windy spots. Do not over-fertilize (too much nitrogen = all leaves, no flowers). Self-sows.',
+            planting: 'Direct sow after last frost (May). Full sun. Thin to 18" apart. Lean to average soil (poor soil = more flowers). Scatter seeds in a drift for the most natural look.'
+          },
+          {
+            name: 'Nasturtium',
+            scientific: 'Tropaeolum majus',
+            slug: 'nasturtium',
+            growth: 'Annual, 1\' tall (bush) or 6-8\' (climbing). Fully edible: flowers, leaves, and seed pods taste peppery. Bright orange, red, and yellow. Deters aphids in the veggie garden.',
+            care: 'Almost zero maintenance. Actually does better in poor soil. Aphids love them (use as a trap crop away from veggies, or just let ladybugs handle it). Self-sows in mild winters.',
+            planting: 'Direct sow after frost (seeds are large, easy for kids). Full sun to part shade. Space 10-12" apart. Poor to average soil. Great in containers, hanging baskets, and veggie beds.'
+          },
+          {
+            name: 'Foxglove',
+            scientific: 'Digitalis purpurea',
+            slug: 'foxglove',
+            growth: 'Biennial, 3-5\' tall. Dramatic spires of spotted bell-shaped flowers. Hummingbird magnet. Naturalizes in Humboldt\'s moist climate. Blooms in second year, then self-sows.',
+            care: 'Low maintenance. Stake flower spires in windy areas. Let seed heads scatter for next year\'s plants. All parts are toxic if eaten, so keep away from nibbling children or pets.',
+            planting: 'Plant starts in fall for blooms the following spring. Part shade to full sun. Space 18" apart. Rich, moist soil. Ideal in woodland edges, cottage gardens, and along fences.'
+          },
+          {
+            name: 'Delphinium',
+            scientific: 'Delphinium elatum',
+            slug: 'delphinium',
+            growth: 'Herbaceous perennial, 3-6\' tall. Tall spires of blue, purple, pink, or white. Humboldt\'s cool summers keep them going when other regions struggle. Stunning back-of-border plant.',
+            care: 'Moderate maintenance. Stake tall spires. Cut back after first bloom for a second flush. Slugs attack young growth (protect with copper tape or iron phosphate bait). Feed in spring.',
+            planting: 'Plant starts in spring. Full sun to light afternoon shade. Space 18-24" apart. Rich, moist, well-drained soil. Protect from wind. Deep watering encourages strong roots.'
+          }
+        ]
+      },
+      ornamentals: {
+        color: '#5a7a6e',
+        intro: 'These plants form the bones of your garden. Rhododendrons and hydrangeas thrive in our acidic soil. Japanese maples love our filtered coastal light. These are the long-lived plants that give your garden its character, framing the flowers and food beds with texture and form.',
+        plants: [
+          {
+            name: 'Japanese Maple',
+            scientific: 'Acer palmatum',
+            slug: 'japanese-maple',
+            growth: 'Deciduous tree, 8-25\' tall. Graceful, layered branching. Hundreds of cultivars with red, green, purple, or variegated leaves. Spectacular fall color. Slow growing, long-lived.',
+            care: 'Low maintenance. Prune only to remove dead wood or shape (late winter). Protect from hot afternoon sun and drying wind. Mulch root zone. Water deeply in dry spells.',
+            planting: 'Plant container stock in fall or spring. Part shade (morning sun, afternoon shade ideal). Space 8-15\' apart depending on variety. Rich, well-drained acidic soil. Protect from deer.'
+          },
+          {
+            name: 'Hydrangea',
+            scientific: 'Hydrangea macrophylla',
+            slug: 'hydrangea',
+            growth: 'Deciduous shrub, 4-6\' tall. Big, showy flower heads in blue, pink, or white. Blue in acidic soil (that\'s us!). Blooms summer through fall. Gorgeous dried flowers.',
+            care: 'Moderate maintenance. Prune old flower heads in spring (don\'t prune in fall, buds are already set). Consistent moisture is key. Feed with acid fertilizer for deeper blue.',
+            planting: 'Plant in fall or spring. Part shade (morning sun is fine). Space 4-5\' apart. Rich, moist, acidic soil. Humboldt\'s natural conditions are ideal. Great along north-facing walls.'
+          },
+          {
+            name: 'Rhododendron',
+            scientific: 'Rhododendron spp.',
+            slug: 'rhododendron',
+            growth: 'Evergreen shrub, 3-12\' tall. Humboldt County\'s signature ornamental. Huge flower trusses in spring. Hundreds of cultivars for every size and color. Our acidic soil is rhody heaven.',
+            care: 'Low maintenance. Shallow roots need mulch, not cultivation. No heavy pruning (light shaping only). Deadhead spent flowers by snapping off, careful not to damage new buds behind.',
+            planting: 'Plant from nursery containers in fall. Part shade to filtered sun. Space 4-8\' apart. Acidic, humus-rich, well-drained soil (amend clay with bark). Never plant too deep.'
+          },
+          {
+            name: 'Fuchsia',
+            scientific: 'Fuchsia spp.',
+            slug: 'fuchsia',
+            growth: 'Semi-evergreen shrub, 2-6\' tall. Dangling two-toned flowers in red, pink, purple, and white. Hummingbird magnets. Humboldt\'s cool, foggy summers are fuchsia paradise.',
+            care: 'Moderate maintenance. Pinch tips for bushier growth. Protect from hard frost (they\'re semi-tender). Feed regularly during growing season. Watch for fuchsia gall mite.',
+            planting: 'Plant starts in spring after frost. Part shade to shade. Space 2-4\' apart. Rich, moist soil. Excellent in hanging baskets, containers, and shade borders.'
+          },
+          {
+            name: 'Heuchera (Coral Bells)',
+            scientific: 'Heuchera spp.',
+            slug: 'heuchera',
+            growth: 'Evergreen perennial, 12-18" tall. Grown primarily for colorful foliage in burgundy, lime, peach, silver, and purple. Tiny bell flowers on wiry stems attract hummingbirds.',
+            care: 'Low maintenance. Remove old leaves and spent flower stalks. Divide every 3-4 years when crowns get woody and push up out of soil. Crown rot can occur in wet sites.',
+            planting: 'Plant starts in spring or fall. Part shade to full shade. Space 12-18" apart. Well-drained, humus-rich soil. Excellent in containers, borders, and woodland gardens.'
+          },
+          {
+            name: 'Ornamental Grasses',
+            scientific: 'Miscanthus / Stipa / Carex',
+            slug: 'ornamental-grasses',
+            growth: 'Evergreen to deciduous perennial, 1-6\' tall. Movement, texture, and winter interest. Try: Blue Oat Grass, Maiden Grass, Pacific Coast Sedge (native!). Graceful in wind.',
+            care: 'Low maintenance. Cut back deciduous types to 6" in late winter before new growth. Divide every 3-5 years. No fertilizer needed. Pest and disease free.',
+            planting: 'Plant from containers in spring or fall. Full sun to part shade (varies by species). Space 2-4\' apart. Average to well-drained soil. Great as accents, screens, and border plants.'
+          },
+          {
+            name: 'Hosta',
+            scientific: 'Hosta spp.',
+            slug: 'hosta',
+            growth: 'Herbaceous perennial, 6"-4\' tall. King of the shade garden. Huge variety in leaf size, shape, and color (blue, gold, green, variegated). Fragrant flowers on some varieties.',
+            care: 'Low to moderate maintenance. Slugs are the main challenge in Humboldt\'s moist climate. Use iron phosphate bait, copper barriers, or beer traps. Goes dormant in winter.',
+            planting: 'Plant divisions or containers in spring. Full shade to part shade. Space 12-36" apart depending on mature size. Rich, moist soil. Excellent under trees, along north walls, in containers.'
+          },
+          {
+            name: 'Camellia',
+            scientific: 'Camellia japonica / sasanqua',
+            slug: 'camellia',
+            growth: 'Evergreen shrub, 6-15\' tall. Rose-like flowers in winter and early spring when little else blooms. Glossy dark green leaves year-round. Long-lived (50+ years).',
+            care: 'Low maintenance. No heavy pruning (shape lightly after flowering). Mulch root zone. Feed with acid fertilizer in spring. Watch for camellia petal blight in wet years.',
+            planting: 'Plant from containers in fall. Part shade (sasanqua types tolerate more sun). Space 5-8\' apart. Acidic, well-drained soil. Perfect for woodland gardens, hedges, and espalier.'
+          },
+          {
+            name: 'Pieris (Lily of the Valley Shrub)',
+            scientific: 'Pieris japonica',
+            slug: 'pieris',
+            growth: 'Evergreen shrub, 4-8\' tall. Drooping chains of bell-shaped white or pink flowers in late winter. New growth emerges bright red. Year-round interest. Pairs beautifully with rhododendrons.',
+            care: 'Low maintenance. Light pruning after flowering to shape. Mulch well. Feed with acid fertilizer. Watch for lace bugs in dry conditions. Deer resistant.',
+            planting: 'Plant from containers in fall or spring. Part shade. Space 4-6\' apart. Acidic, well-drained, humus-rich soil. Excellent foundation planting, woodland garden, or mixed border.'
+          }
+        ]
+      }
+    };
+
+    // Image fallback SVG
+    function getFallbackSVG(color) {
+      return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="45" fill="${color}" opacity="0.15"/>
+        <path d="M50 20 Q60 35 55 50 Q65 60 50 75 Q35 60 45 50 Q40 35 50 20" fill="${color}" opacity="0.3"/>
+      </svg>`;
+    }
+
+    // Initialize page
+    function init() {
+      const container = document.getElementById('plants-container');
+      const filterButtons = document.querySelectorAll('.filter-btn');
+      let currentFilter = 'all';
+
+      function renderPlants(category) {
+        container.innerHTML = '';
+
+        if (category === 'all') {
+          Object.keys(plants).forEach(cat => renderCategory(cat));
+        } else {
+          renderCategory(category);
+        }
+      }
+
+      function renderCategory(category) {
+        const cat = plants[category];
+        const section = document.createElement('div');
+        section.className = 'category-section visible';
+        section.dataset.category = category;
+
+        const header = document.createElement('div');
+        header.className = 'category-header';
+        header.style.backgroundColor = cat.color;
+        header.innerHTML = `
+          <span>${category.charAt(0).toUpperCase() + category.slice(1)}</span>
+          <span class="plant-count-badge">${cat.plants.length} plants</span>
+        `;
+        section.appendChild(header);
+
+        const intro = document.createElement('div');
+        intro.className = 'category-intro';
+        intro.textContent = cat.intro;
+        section.appendChild(intro);
+
+        const grid = document.createElement('div');
+        grid.className = 'plants-grid';
+
+        cat.plants.forEach(plant => {
+          const card = document.createElement('div');
+          card.className = 'plant-card';
+
+          const imageHtml = `
+            <div class="plant-image">
+              <img src="plant-guide/${plant.slug}.jpg" alt="${plant.name}" onerror="this.parentElement.innerHTML = '<div class=\"plant-image-fallback\" style=\"background-color: ${cat.color}20;\">${getFallbackSVG('${cat.color}')}</div>'">
+            </div>
+          `;
+
+          const contentHtml = `
+            <div class="plant-content">
+              <h3 class="plant-name">${plant.name}</h3>
+              <p class="plant-scientific">${plant.scientific}</p>
+              <div class="plant-sections">
+                <details class="plant-detail">
+                  <summary style="color: ${cat.color};">GROWTH</summary>
+                  <p>${plant.growth}</p>
+                </details>
+                <details class="plant-detail">
+                  <summary style="color: ${cat.color};">CARE</summary>
+                  <p>${plant.care}</p>
+                </details>
+                <details class="plant-detail">
+                  <summary style="color: ${cat.color};">PLANTING</summary>
+                  <p>${plant.planting}</p>
+                </details>
+              </div>
+            </div>
+          `;
+
+          card.innerHTML = imageHtml + contentHtml;
+          grid.appendChild(card);
+        });
+
+        section.appendChild(grid);
+        container.appendChild(section);
+      }
+
+      // Filter button handlers
+      filterButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentFilter = btn.dataset.category;
+          renderPlants(currentFilter);
+          document.documentElement.scrollTop = 0;
+        });
+      });
+
+      // Initial render
+      renderPlants('all');
+    }
+
+    // Seasonal color system
+    function updateSeasonalColor() {
+      const today = new Date();
+      const month = today.getMonth();
+      let season = 'winter';
+
+      if (month >= 2 && month <= 4) season = 'spring';
+      else if (month >= 5 && month <= 7) season = 'summer';
+      else if (month >= 8 && month <= 10) season = 'fall';
+
+      document.documentElement.classList.add('seasonal-color', season);
+
+      const colorMap = {
+        spring: '#d4a04a',
+        summer: '#c48bb0',
+        fall: '#d4a04a',
+        winter: '#a3b88c'
+      };
+
+      document.documentElement.style.setProperty('--highlight', colorMap[season]);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      init();
+      updateSeasonalColor();
+    });
+  </script>
+
+</body>
+</html>
