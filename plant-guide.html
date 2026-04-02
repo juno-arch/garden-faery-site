@@ -8,6 +8,8 @@
   <meta property="og:description" content="55 plants chosen for Humboldt County's coastal climate. Complete growing guides for pollinators, natives, food, herbs, flowers, and ornamentals.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://gardenfaery.love/plant-guide.html">
+  <meta property="og:image" content="https://gardenfaery.love/farm.jpg">
+  <meta property="og:image:alt" content="Garden Faery plant guide for Humboldt County">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Plant Guide | Garden Faery">
   <meta name="twitter:description" content="55 plants chosen for Humboldt County's coastal climate.">
@@ -250,12 +252,13 @@
     }
 
     .filter-btn {
-      padding: 8px 16px;
+      padding: 10px 18px;
+      min-height: 44px;
       font-family: var(--font-body);
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
       border: none;
-      border-radius: 20px;
+      border-radius: 22px;
       cursor: pointer;
       transition: all 0.2s;
       background: rgba(74, 25, 66, 0.1);
@@ -318,7 +321,7 @@
 
     .category-header {
       padding: 16px 24px;
-      color: white;
+      color: var(--text-primary);
       font-weight: 700;
       font-size: 16px;
       font-family: var(--font-body);
@@ -326,6 +329,9 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
+      border-radius: 6px;
+      margin-left: 24px;
+      margin-right: 24px;
     }
 
     .category-intro {
@@ -338,7 +344,7 @@
     }
 
     .plant-count-badge {
-      background: rgba(255, 255, 255, 0.3);
+      background: rgba(74, 25, 66, 0.12);
       padding: 4px 8px;
       border-radius: 12px;
       font-size: 13px;
@@ -1175,7 +1181,7 @@
 
         const header = document.createElement('div');
         header.className = 'category-header';
-        header.style.backgroundColor = cat.color;
+        header.style.backgroundColor = cat.color + '30';
         header.innerHTML = `
           <h2 style="font-size:inherit;font-weight:inherit;font-family:inherit;margin:0;">${category.charAt(0).toUpperCase() + category.slice(1)}</h2>
           <span class="plant-count-badge">${cat.plants.length} plants</span>
