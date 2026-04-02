@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Food Growing Guide for Humboldt County's coastal climate. Complete growing guides for vegetables, fruits, and staple crops in Zone 9b.">
+  <meta property="og:title" content="Food Growing Guide | Garden Faery">
+  <meta property="og:description" content="Complete food growing guide for Humboldt County's coastal climate. Vegetables, fruits, berries, and staple crops for Zone 9b.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gardenfaery.love/food-guide.html">
+  <meta property="og:image" content="https://gardenfaery.love/farm.jpg">
+  <meta property="og:image:alt" content="Food growing guide for Humboldt County">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Food Growing Guide | Garden Faery">
+  <meta name="twitter:description" content="Complete food growing guide for Humboldt County.">
+  <link rel="canonical" href="https://gardenfaery.love/food-guide.html">
+  <link rel="icon" href="favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <title>Food Growing Guide | Garden Faery</title>
+  <style>
+    :root {
+      --text-primary: #4a1942;
+      --bg: #f8f4ed;
+      --accent-1: #c48bb0;
+      --accent-2: #a3b88c;
+      --highlight: #d4c27a;
+      --food-rose: #c48bb0;
+      --food-rose-light: #f3e3ed;
+      --perennial-green: #6b8f5e;
+      --annual-amber: #c9873a;
+      --semi-blue: #7a92a5;
+      --font-heading: 'Elsie Swash Caps', serif;
+      --font-body: 'Nunito', sans-serif;
+      --shadow: 0 2px 8px rgba(74, 25, 66, 0.1);
+      --shadow-hover: 0 6px 16px rgba(74, 25, 66, 0.15);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+
+    /* Navigation */
+    .site-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 54px;
+      background: var(--bg);
+      border-bottom: 2px solid var(--accent-1);
+    }
+
+    .nav-logo {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--text-primary);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 6px;
+    }
+
+    .nav-links a {
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(74, 25, 66, 0.6);
+      text-decoration: none;
+      padding: 6px 14px;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text-primary);
+    }
+
+    .nav-links a.active {
+      color: var(--text-primary);
+      border-bottom-color: var(--accent-1);
+    }
+
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .hamburger svg {
+      width: 26px;
+      height: 26px;
+      stroke: var(--text-primary);
+    }
+
+    @media (max-width: 600px) {
+      .hamburger {
+        display: block;
+      }
+
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 54px;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        background: var(--bg);
+        border-bottom: 2px solid var(--accent-1);
+        padding: 8px 0;
+        gap: 0;
+      }
+
+      .nav-links.open {
+        display: flex;
+      }
+
+      .nav-links a {
+        padding: 12px 24px;
+        font-size: 15px;
+        border-bottom: none;
+      }
+
+      .nav-links a.active {
+        border-bottom: none;
+        color: var(--text-primary);
+        background: rgba(196, 139, 176, 0.1);
+      }
+    }
+
+    /* Hero Section */
+    .hero {
+      background: var(--text-primary);
+      color: white;
+      padding: 60px 24px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-family: var(--font-heading);
+      font-size: 48px;
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+
+    .hero .subtitle {
+      font-size: 18px;
+      font-weight: 400;
+      margin-bottom: 8px;
+      max-width: 640px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    @media (max-width: 600px) {
+      .hero {
+        padding: 40px 20px;
+      }
+
+      .hero h1 {
+        font-size: 36px;
+      }
+
+      .hero .subtitle {
+        font-size: 16px;
+      }
+    }
+
+    /* Back Link */
+    .back-link-section {
+      padding: 20px 24px;
+      background: var(--bg);
+      border-bottom: 1px solid rgba(196, 139, 176, 0.2);
+    }
+
+    .back-link {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .back-link a {
+      color: var(--accent-1);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+
+    .back-link a:hover {
+      color: var(--text-primary);
+    }
+
+    /* Tab Navigation */
+    .tab-nav {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      padding: 20px 24px 0;
+      flex-wrap: wrap;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .tab-btn {
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 10px 20px;
+      border: 2px solid var(--food-rose);
+      border-bottom: none;
+      border-radius: 10px 10px 0 0;
+      background: transparent;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      background: var(--food-rose-light);
+    }
+
+    .tab-btn.active {
+      background: white;
+      border-color: var(--food-rose);
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+
+    .tab-btn:focus-visible {
+      outline: 2px solid var(--text-primary);
+      outline-offset: 2px;
+    }
+
+    /* Tab Content Container */
+    .tab-content {
+      background: white;
+      border: 2px solid var(--food-rose);
+      border-radius: 0 12px 12px 12px;
+      margin: 0 24px 30px;
+      padding: 24px;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Lifecycle Filter Pills */
+    .lifecycle-filters {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .lifecycle-label {
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-right: 4px;
+    }
+
+    .lifecycle-pill {
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 2px solid;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: transparent;
+    }
+
+    .lifecycle-pill:focus-visible {
+      outline: 2px solid var(--text-primary);
+      outline-offset: 2px;
+    }
+
+    .lifecycle-pill[data-type="perennial"] {
+      border-color: var(--perennial-green);
+      color: var(--perennial-green);
+    }
+
+    .lifecycle-pill[data-type="perennial"].active {
+      background: var(--perennial-green);
+      color: white;
+    }
+
+    .lifecycle-pill[data-type="annual"] {
+      border-color: var(--annual-amber);
+      color: var(--annual-amber);
+    }
+
+    .lifecycle-pill[data-type="annual"].active {
+      background: var(--annual-amber);
+      color: white;
+    }
+
+    .lifecycle-pill[data-type="semi"] {
+      border-color: var(--semi-blue);
+      color: var(--semi-blue);
+    }
+
+    .lifecycle-pill[data-type="semi"].active {
+      background: var(--semi-blue);
+      color: white;
+    }
+
+    .lifecycle-pill[data-type="all"] {
+      border-color: var(--text-primary);
+      color: var(--text-primary);
+    }
+
+    .lifecycle-pill[data-type="all"].active {
+      background: var(--text-primary);
+      color: white;
+    }
+
+    /* Planting Calendar */
+    .planting-calendar {
+      margin-bottom: 28px;
+      background: var(--food-rose-light);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .calendar-title {
+      font-family: var(--font-heading);
+      font-size: 1.3rem;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: 140px repeat(12, 1fr);
+      gap: 2px;
+      font-size: 0.75rem;
+      overflow-x: auto;
+    }
+
+    .calendar-header {
+      text-align: center;
+      font-weight: 700;
+      padding: 6px 2px;
+      background: var(--food-rose);
+      color: white;
+      border-radius: 4px;
+    }
+
+    .calendar-plant-name {
+      padding: 6px 8px;
+      font-weight: 600;
+      background: white;
+      border-radius: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .calendar-cell {
+      text-align: center;
+      padding: 6px 2px;
+      border-radius: 4px;
+      background: white;
+    }
+
+    .calendar-cell.start-indoors {
+      background: #ffe4b5;
+    }
+
+    .calendar-cell.direct-sow {
+      background: #b5e4b5;
+    }
+
+    .calendar-cell.transplant {
+      background: #b5d4e4;
+    }
+
+    .calendar-cell.harvest {
+      background: #f4c2c2;
+    }
+
+    .calendar-legend {
+      display: flex;
+      gap: 16px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .legend-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+    }
+
+    /* Plant Cards */
+    .plants-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .food-card {
+      border: 2px solid #e8d5e0;
+      border-radius: 12px;
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: white;
+      position: relative;
+    }
+
+    .food-card:hover {
+      border-color: var(--food-rose);
+      box-shadow: 0 2px 12px rgba(74, 25, 66, 0.08);
+    }
+
+    .food-card:focus-within {
+      border-color: var(--text-primary);
+      box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--text-primary);
+    }
+
+    .plant-image {
+      width: 100%;
+      height: 200px;
+      background: #f0e4ec;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-bottom: 1px solid #e8d5e0;
+    }
+
+    .plant-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .plant-image-fallback {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f0e4ec;
+    }
+
+    .card-content {
+      padding: 20px;
+    }
+
+    .card-titles h3 {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      line-height: 1.2;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .card-titles .scientific {
+      font-style: italic;
+      font-size: 0.82rem;
+      color: #7a5a72;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .lifecycle-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 2px 10px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+
+    .lifecycle-badge.perennial {
+      background: #e8f5e0;
+      color: var(--perennial-green);
+    }
+
+    .lifecycle-badge.annual {
+      background: #fef3e2;
+      color: var(--annual-amber);
+    }
+
+    .lifecycle-badge.semi {
+      background: #e8eff5;
+      color: var(--semi-blue);
+    }
+
+    .card-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 12px 0;
+      font-size: 0.82rem;
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .meta-icon {
+      font-size: 1rem;
+      width: 20px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .detail-sections {
+      border-top: 1px solid #f0e4ec;
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+
+    .detail-toggle {
+      font-family: var(--font-body);
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      padding: 8px 0;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f5eaf0;
+      transition: color 0.2s;
+    }
+
+    .detail-toggle:last-of-type {
+      border-bottom: none;
+    }
+
+    .detail-toggle:hover {
+      color: var(--food-rose);
+    }
+
+    .detail-toggle:focus-visible {
+      outline: 2px solid var(--text-primary);
+      outline-offset: 2px;
+    }
+
+    .detail-toggle .arrow {
+      transition: transform 0.2s;
+      font-size: 0.7rem;
+    }
+
+    .detail-toggle.open .arrow {
+      transform: rotate(90deg);
+    }
+
+    .detail-body {
+      display: none;
+      padding: 8px 0 12px;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: #5a3052;
+    }
+
+    .detail-body.open {
+      display: block;
+    }
+
+    .starting-guide {
+      background: #f9f3f7;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 8px;
+    }
+
+    .starting-guide h4 {
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--food-rose);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .starting-steps {
+      font-size: 0.82rem;
+      color: #5a3052;
+      line-height: 1.7;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 20px 20px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent-1);
+      background: var(--text-primary);
+    }
+
+    footer a {
+      color: var(--accent-1);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    .social-links {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .social-links a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .social-links a:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
+    }
+
+    .social-links a:focus-visible {
+      outline: 2px solid white;
+      outline-offset: 2px;
+    }
+
+    .social-links svg {
+      width: 18px;
+      height: 18px;
+      fill: var(--accent-1);
+    }
+
+    /* Seasonal color override */
+    .seasonal-color {
+      --highlight: #d4c27a;
+    }
+
+    .seasonal-color.spring {
+      --highlight: #d4a04a;
+    }
+
+    .seasonal-color.summer {
+      --highlight: #c48bb0;
+    }
+
+    .seasonal-color.fall {
+      --highlight: #d4a04a;
+    }
+
+    .seasonal-color.winter {
+      --highlight: #a3b88c;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .calendar-grid {
+        grid-template-columns: 100px repeat(12, 1fr);
+        font-size: 0.7rem;
+      }
+
+      .card-meta {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .tab-content {
+        margin: 0 10px 20px;
+        padding: 16px;
+      }
+
+      .plants-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .calendar-grid {
+        font-size: 0.65rem;
+        grid-template-columns: 80px repeat(12, 1fr);
+      }
+
+      .tab-nav {
+        padding: 16px 10px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="site-nav">
+    <a href="index.html" class="nav-logo">Garden Faery</a>
+    <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="services.html">Services</a>
+      <a href="estimator.html">Bed Builder</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="plant-guide.html" class="active">Plant Guide</a>
+      <a href="book.html">Book</a>
+      <a href="contact.html">Contact</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <h1>Grow Your Own Food</h1>
+    <p class="subtitle">Everything you need to grow food in Humboldt County's coastal fog belt. Cool summers, mild winters, and year-round growing potential make this one of the best food-growing climates on the West Coast.</p>
+  </section>
+
+  <!-- Back Link -->
+  <div class="back-link-section">
+    <div class="back-link">
+      <a href="plant-guide.html">← Back to Full Plant Guide</a>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('all', event)">All Food Plants <span style="opacity:.6">(30)</span></button>
+    <button class="tab-btn" onclick="switchTab('vegetables', event)">Vegetables <span style="opacity:.6">(14)</span></button>
+    <button class="tab-btn" onclick="switchTab('fruits', event)">Fruits &amp; Berries <span style="opacity:.6">(8)</span></button>
+    <button class="tab-btn" onclick="switchTab('staples', event)">Root Crops &amp; Staples <span style="opacity:.6">(8)</span></button>
+  </div>
+
+  <div class="tab-content">
+
+    <!-- Lifecycle Filters -->
+    <div class="lifecycle-filters">
+      <span class="lifecycle-label">Show:</span>
+      <button class="lifecycle-pill active" data-type="all" onclick="filterLifecycle('all', this)">All</button>
+      <button class="lifecycle-pill" data-type="perennial" onclick="filterLifecycle('perennial', this)">Perennial</button>
+      <button class="lifecycle-pill" data-type="annual" onclick="filterLifecycle('annual', this)">Annual</button>
+      <button class="lifecycle-pill" data-type="semi" onclick="filterLifecycle('semi', this)">Semi-Perennial</button>
+    </div>
+
+    <!-- Planting Calendar -->
+    <div class="planting-calendar">
+      <div class="calendar-title">When to Plant in Humboldt County</div>
+      <div class="calendar-grid">
+        <div class="calendar-header" style="background:transparent"></div>
+        <div class="calendar-header">J</div><div class="calendar-header">F</div>
+        <div class="calendar-header">M</div><div class="calendar-header">A</div>
+        <div class="calendar-header">M</div><div class="calendar-header">J</div>
+        <div class="calendar-header">J</div><div class="calendar-header">A</div>
+        <div class="calendar-header">S</div><div class="calendar-header">O</div>
+        <div class="calendar-header">N</div><div class="calendar-header">D</div>
+
+        <!-- Tomatoes -->
+        <div class="calendar-plant-name">Tomatoes</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell start-indoors">S</div>
+        <div class="calendar-cell start-indoors">S</div>
+        <div class="calendar-cell start-indoors">S</div>
+        <div class="calendar-cell transplant">T</div>
+        <div class="calendar-cell transplant">T</div>
+        <div class="calendar-cell harvest">H</div>
+        <div class="calendar-cell harvest">H</div>
+        <div class="calendar-cell harvest">H</div>
+        <div class="calendar-cell harvest">H</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+
+        <!-- Kale -->
+        <div class="calendar-plant-name">Kale</div>
+        <div class="calendar-cell direct-sow">D</div>
+        <div class="calendar-cell direct-sow">D</div>
+        <div class="calendar-cell direct-sow">D</div>
+        <div class="calendar-cell direct-sow">D</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell direct-sow">D</div>
+        <div class="calendar-cell direct-sow">D</div>
+        <div class="calendar-cell harvest">H</div>
+        <div class="calendar-cell harvest">H</div>
+        <div class="calendar-cell harvest">H</div>
+
+        <!-- Garlic -->
+        <div class="calendar-plant-name">Garlic</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell harvest">H</div>
+        <div class="calendar-cell harvest">H</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell direct-sow">D</div>
+        <div class="calendar-cell direct-sow">D</div>
+        <div class="calendar-cell"></div>
+
+        <!-- Blueberry -->
+        <div class="calendar-plant-name">Blueberry</div>
+        <div class="calendar-cell transplant">T</div>
+        <div class="calendar-cell transplant">T</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell harvest">H</div>
+        <div class="calendar-cell harvest">H</div>
+        <div class="calendar-cell harvest">H</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell transplant">T</div>
+        <div class="calendar-cell transplant">T</div>
+
+        <!-- Lettuce -->
+        <div class="calendar-plant-name">Lettuce</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell start-indoors">S</div>
+        <div class="calendar-cell direct-sow">D</div>
+        <div class="calendar-cell direct-sow">D</div>
+        <div class="calendar-cell direct-sow">D</div>
+        <div class="calendar-cell direct-sow">D</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell direct-sow">D</div>
+        <div class="calendar-cell direct-sow">D</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+
+        <!-- Strawberry -->
+        <div class="calendar-plant-name">Strawberry</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell transplant">T</div>
+        <div class="calendar-cell transplant">T</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell harvest">H</div>
+        <div class="calendar-cell harvest">H</div>
+        <div class="calendar-cell harvest">H</div>
+        <div class="calendar-cell harvest">H</div>
+        <div class="calendar-cell harvest">H</div>
+        <div class="calendar-cell harvest">H</div>
+        <div class="calendar-cell transplant">T</div>
+        <div class="calendar-cell"></div>
+      </div>
+      <div class="calendar-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#ffe4b5"></div> Start Indoors</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#b5e4b5"></div> Direct Sow</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#b5d4e4"></div> Transplant</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f4c2c2"></div> Harvest</div>
+      </div>
+    </div>
+
+    <!-- Plant Cards Grid -->
+    <div class="plants-grid" id="plants-grid">
+      <!-- Cards will be rendered by JavaScript -->
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <a href="mailto:taya@gardenfaery.love">taya@gardenfaery.love</a> &middot; Arcata, CA
+    <div style="margin-top:6px;">
+      <a href="https://gardenfaery.love" style="color:var(--accent-1); text-decoration:none; font-size:13px;">gardenfaery.love</a>
+    </div>
+    <div class="social-links">
+      <a href="https://www.facebook.com/profile.php?id=61578540137419" target="_blank" rel="noopener" aria-label="Facebook">
+        <svg viewBox="0 0 24 24">
+          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+        </svg>
+      </a>
+      <a href="https://www.instagram.com/gardenfaery__/" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+        </svg>
+      </a>
+      <a href="https://nextdoor.com/profile/01fPxwm9JL8Y2BKt9/" target="_blank" rel="noopener" aria-label="Nextdoor">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2L2 10h3v10h5v-6h4v6h5V10h3L12 2z"/>
+        </svg>
+      </a>
+    </div>
+  </footer>
+
+  <script>
+    // Image fallback handler
+    function handleImgError(img, color) {
+      var parent = img.parentElement;
+      parent.innerHTML = '<div class="plant-image-fallback" style="background-color:' + color + '20;"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="45" fill="' + color + '" opacity="0.15"/><path d="M50 20 Q60 35 55 50 Q65 60 50 75 Q35 60 45 50 Q40 35 50 20" fill="' + color + '" opacity="0.3"/></svg></div>';
+    }
+
+    const plants = [
+      {
+        name: 'Blueberry',
+        scientific: 'Vaccinium corymbosum',
+        slug: 'blueberry',
+        sub: 'fruits',
+        lifecycle: 'perennial',
+        sun: 'Full sun to part shade',
+        water: 'Regular watering',
+        harvest: 'Harvest: Jun to Aug',
+        planting: 'Plant: Jan/Feb or Nov/Dec',
+        how: 'Buy bare-root plants in January or February from a local nursery. Plant 4-5 feet apart in acidic soil (pH 4.5 to 5.5). Humboldt\'s naturally acidic soil is ideal. Mix in peat moss or sulfur if your soil is above pH 5.5. Mulch heavily with bark or pine needles. First-year plants: pinch off all flowers to build root strength. Expect full harvests starting year 3.',
+        tips: 'Rabbiteye and highbush varieties do best here. Needs acidic soil (Humboldt delivers). Plant two varieties for cross-pollination and bigger harvests. Net plants when berries color up; birds love them. Can produce for 20+ years with basic care.',
+        humboldt: 'Our acidic soil and cool summers are perfect for blueberries. They actually prefer our foggy conditions over hot inland valleys. Late-season varieties like Elliott extend your harvest into September. A 5-foot hedge of mixed varieties can produce 15+ pounds per year once established.'
+      },
+      {
+        name: 'Strawberry',
+        scientific: 'Fragaria x ananassa',
+        slug: 'strawberry',
+        sub: 'fruits',
+        lifecycle: 'perennial',
+        sun: 'Full sun',
+        water: 'Regular watering',
+        harvest: 'Harvest: May to Oct',
+        planting: 'Plant: Mar/Apr or Sep',
+        how: 'Buy bare-root crowns in early spring or potted starts in spring/fall. Plant 12 to 18 inches apart in raised beds or mounded rows. The crown (where roots meet leaves) should sit at soil level, not buried. Pinch off all flowers the first 6 weeks to build root strength. Day-neutral varieties like Albion and Seascape produce fruit from spring through fall without needing specific day length.',
+        tips: 'Day-neutral varieties outperform June-bearers in Humboldt because they fruit all season. Mulch with straw to keep fruit clean and soil cool. Replace plants every 3 to 4 years as productivity declines. Runners can be rooted for free new plants.',
+        humboldt: 'The Humboldt coast is ideal strawberry territory. Our cool summers prevent heat stress and extend the fruiting season well into fall. Slugs are the main pest: use iron phosphate bait and keep beds well-mulched. Botrytis (gray mold) can be an issue in foggy spells, so space plants for airflow and pick fruit promptly.'
+      },
+      {
+        name: 'Raspberry',
+        scientific: 'Rubus idaeus',
+        slug: 'raspberry',
+        sub: 'fruits',
+        lifecycle: 'perennial',
+        sun: 'Full sun to part shade',
+        water: 'Regular watering',
+        harvest: 'Harvest: Jun to Aug',
+        planting: 'Plant bare-root: Nov-Mar',
+        how: 'Plant bare-root canes in winter, 2 feet apart in rows or clusters. Space rows 4-5 feet apart for air circulation. Dig planting holes 12 inches deep and wide. Amend soil with compost. Set crown 1-2 inches below soil surface. Mulch heavily with straw or bark. First year is establishment only; prune canes to 12 inches after planting.',
+        tips: 'Black Raspberry and Red Raspberry varieties both thrive in Humboldt. Heritage and Autumn Bliss produce in year one. Cut old canes to the ground after harvest. Summer-bearing varieties fruit on 2-year-old wood; fall-bearers on new growth. Tie new canes to trellises or wires for easy picking.',
+        humboldt: 'Raspberries love our cool, moist climate. Our humidity and mild winters are perfect. Cane disease is minimal in coastal fog. Space for good airflow to prevent fungal issues. A mature patch can produce 1-2 pounds per cane per year. Once established, they spread via underground runners; manage spreading or enjoy the natural expansion.'
+      },
+      {
+        name: 'Apple',
+        scientific: 'Malus domestica',
+        slug: 'apple',
+        sub: 'fruits',
+        lifecycle: 'perennial',
+        sun: 'Full sun',
+        water: 'Moderate watering',
+        harvest: 'Harvest: Sep to Nov',
+        planting: 'Plant bare-root: Dec-Feb',
+        how: 'Plant bare-root whips or 2-year-old trees in winter. Space 15-20 feet apart (dwarf rootstocks 8-10 feet). Dig a hole slightly wider than the root ball. Set the graft union (bump at base) 2 inches above soil. Backfill with amended soil. Water deeply. Stake if necessary. Prune lightly the first year to establish shape. Thin fruit to one per 6 inches in late spring.',
+        tips: 'Plant two different varieties for cross-pollination. Honeycrisp, Gala, Pink Lady, and Granny Smith all do well. Dwarf varieties produce faster (3-4 years) than full-size. Thin excessive fruit in June for larger, better fruit. Prune in winter for structure and light penetration.',
+        humboldt: 'Cool coastal valleys are excellent apple country. Our summer fog reduces the heat stress that other regions face. Disease pressure is low; codling moth is manageable with pheromone traps. Early ripening varieties finish before late-season rains. Fireblight can be an issue; prune it out aggressively with sterilized tools.'
+      },
+      {
+        name: 'Fig',
+        scientific: 'Ficus carica',
+        slug: 'fig',
+        sub: 'fruits',
+        lifecycle: 'perennial',
+        sun: 'Full sun',
+        water: 'Moderate watering',
+        harvest: 'Harvest: Aug to Oct',
+        planting: 'Plant: Mar to May',
+        how: 'Plant in spring from bare-root or potted trees. Full sun location is critical for fruit production. Space 8-12 feet apart. Figs tolerate poor soil; don\'t over-fertilize or you get leaves without fruit. Amend very sandy soil with compost. Water during fruit development; reduce watering once figs are full-sized. Prune in early spring to remove deadwood and shape.',
+        tips: 'Chicago Hardy, Brown Turkey, and Desert Gold survive Humboldt winters outdoors. Violette and LSU Purple produce two crops per year (spring and fall). Fruit ripens when soft and drips slightly from the stem. Pick daily during peak season. Some growers wrap young trees to protect from winter frost.',
+        humboldt: 'Figs are surprisingly cold-hardy in Humboldt and do very well. Plant in a warm, sheltered south-facing spot for best production. Humboldt's long growing season means both spring and fall crops in good years. Prune trees hard in late winter to encourage a strong main crop. Mulch heavily in fall to protect roots from occasional cold snaps.'
+      },
+      {
+        name: 'Pear',
+        scientific: 'Pyrus communis',
+        slug: 'pear',
+        sub: 'fruits',
+        lifecycle: 'perennial',
+        sun: 'Full sun',
+        water: 'Moderate watering',
+        harvest: 'Harvest: Sep to Oct',
+        planting: 'Plant bare-root: Dec-Feb',
+        how: 'Plant bare-root trees in winter, 15-20 feet apart (dwarf 8-10 feet). Set graft union 2 inches above soil. Stake for wind protection. Prune to a central leader or open-center form. Thin fruit in June to one per 6 inches for larger pears. Pears ripen off the tree; pick when mature (slight color change) and store 1-2 weeks to develop flavor.',
+        tips: 'Plant at least two varieties for cross-pollination (bloom timing must overlap). Bartlett, Comice, and Bosc are excellent choices. Fire blight is a concern; prune out infected wood below the discolored area. Thin as aggressively as apples for large fruit.',
+        humboldt: 'Pears prefer cooler climates and excel in coastal Humboldt. Our fog and mild winters reduce heat-related stress. Early-season varieties like Bartlett mature before wet fall weather. Fire blight is the main challenge; remove blighted wood promptly and sterilize between cuts. A well-spaced mature tree produces 50+ pounds annually.'
+      },
+      {
+        name: 'Currant',
+        scientific: 'Ribes spp.',
+        slug: 'currant',
+        sub: 'fruits',
+        lifecycle: 'perennial',
+        sun: 'Full sun to part shade',
+        water: 'Regular watering',
+        harvest: 'Harvest: Jun to Jul',
+        planting: 'Plant bare-root: Nov-Mar',
+        how: 'Plant bare-root canes in winter, 3-4 feet apart. Dig planting hole with soil amended compost. Set crown at soil level. Mulch heavily. First year: remove flower buds to establish roots. Second year: prune the oldest third of canes to ground level. Currants are long-lived shrubs that produce for 20+ years.',
+        tips: 'Red and black currants both thrive in Humboldt. Black currants are more disease-prone; grow them where air circulation is excellent. Prune annually to maintain productivity. Leave canes 3-4 years old; remove anything older. Birds love the berries; net if needed.',
+        humboldt: 'Currants are perfectly suited to Humboldt's cool, moist climate. They tolerate shade and fog beautifully. Plant near shrubs for wind protection. Once established, they require minimal input. A single mature plant yields 5-8 pounds per year. Black currants are banned in some regions due to white pine blister rust; check local regulations.'
+      },
+      {
+        name: 'Grapes',
+        scientific: 'Vitis spp.',
+        slug: 'grapes',
+        sub: 'fruits',
+        lifecycle: 'perennial',
+        sun: 'Full sun',
+        water: 'Moderate watering',
+        harvest: 'Harvest: Sep to Oct',
+        planting: 'Plant bare-root: Nov-Mar',
+        how: 'Plant bare-root vines in winter, 6-8 feet apart along a south-facing fence or trellis. Dig planting hole wide and deep enough for roots. Backfill with amended soil. Provide sturdy support structure (arbor, trellis, or fence). First year: prune to one strong cane, pinch off flower clusters. Second year: establish framework (2-4 main cords). Water during fruit development; reduce as harvest approaches. Prune hard in winter to remove old wood.',
+        tips: 'Concord and other cold-hardy table grapes suit Humboldt. Wine grapes need warmer, drier climates than we have. Choose disease-resistant varieties for our humid climate. Train as a cordon or head system depending on your preference. Thin fruit clusters in June for larger, sweeter grapes. Harvest when fully colored and taste-test for ripeness.',
+        humboldt: 'Grapes produce well in Humboldt\'s mild climate, especially if planted on a warm, south-facing fence. Our cool season extends ripening, concentrating sugars. Powdery mildew and downy mildew are challenges in our fog; choose resistant varieties and ensure excellent airflow. A mature vine produces 20-50 pounds of fruit per season. Pruning is critical for vigor and productivity.'
+      },
+      {
+        name: 'Kale',
+        scientific: 'Brassica oleracea var. sabellica',
+        slug: 'kale',
+        sub: 'vegetables',
+        lifecycle: 'semi',
+        sun: 'Full sun to part shade',
+        water: 'Moderate watering',
+        harvest: 'Harvest: Year-round',
+        planting: 'Direct sow: Jan to Apr',
+        how: 'Direct sow seeds 1/4 inch deep, 12 to 18 inches apart, in early spring or late summer/fall. Seeds germinate in 5 to 10 days in cool soil. Thin seedlings to 18 inches. Can also start indoors 4 to 6 weeks early and transplant. Fall-planted kale often overwinters in Humboldt, producing leaves through winter and early spring before bolting in its second year.',
+        tips: 'Lacinato (Dinosaur), Red Russian, and Winterbor are top varieties for Humboldt. Harvest outer leaves first, letting the center keep growing. Frost actually improves the flavor by converting starches to sugars. A single kale plant can produce for 12+ months in our mild climate.',
+        humboldt: 'Kale is arguably the perfect Humboldt crop. It thrives in cool weather, tolerates fog, and our mild winters mean you can harvest nearly year-round. In our climate, kale often acts as a short-lived perennial, lasting 18+ months before bolting. Aphids can build up in spring, so blast them with water early or attract ladybugs.'
+      },
+      {
+        name: 'Lettuce',
+        scientific: 'Lactuca sativa',
+        slug: 'lettuce',
+        sub: 'vegetables',
+        lifecycle: 'annual',
+        sun: 'Part shade (summer)',
+        water: 'Regular watering',
+        harvest: 'Harvest: Feb-Oct',
+        planting: 'Direct sow: Feb-Oct',
+        how: 'Direct sow or transplant every 2-3 weeks for continuous harvest. Scatter seeds or transplant 8-12 inches apart. Soil temperature below 70F germinates best. In hot spells (rare in Humboldt), use shade cloth. Keep soil consistently moist. Harvest outer leaves or cut entire head at soil level. Loose-leaf types are more forgiving than heads.',
+        tips: 'Varieties: Buttercrunch, Red Sails, Oak Leaf, and Lolla Rossa thrive year-round. Mix varieties in succession plantings. In summer, use shade cloth to extend season. Slugs are the main pest; use beer traps or hand-pick nightly. Fish emulsion every 2-3 weeks keeps production strong.',
+        humboldt: 'Lettuce is perfect for our cool coastal climate. We can grow it almost year-round with minimal protection. Our fog and mild temperatures mean no bolting stress in summer. Succession plant every 3 weeks for continuous harvest. A single bed provides fresh salad greens for a family all season.'
+      },
+      {
+        name: 'Tomatoes',
+        scientific: 'Solanum lycopersicum',
+        slug: 'tomatoes',
+        sub: 'vegetables',
+        lifecycle: 'annual',
+        sun: 'Full sun (warmest spot)',
+        water: 'Regular, deep watering',
+        harvest: 'Harvest: Jul to Oct',
+        planting: 'Start indoors: Feb/Mar',
+        how: 'Start seeds indoors 6 to 8 weeks before last frost (mid-February in Humboldt). Use a heat mat; tomato seeds need 70 to 80F to germinate. Pot up seedlings once they have true leaves. Harden off for one week before transplanting outdoors after frost danger (late April to May). Plant deep, burying the stem up to the top leaves. Stake or cage at planting time.',
+        tips: 'Choose fog-tolerant and early-ripening varieties: Stupice, Early Girl, Sungold, Black Cherry, and Glacier all perform well on the coast. Determinates ripen faster. Our cool nights slow ripening, so start early and use black plastic mulch to warm the soil.',
+        humboldt: 'Humboldt\'s cool foggy summers are challenging for tomatoes, but not impossible. Planting against a south-facing wall or in a hoop house makes a huge difference. Cherry and small-fruited varieties ripen faster and more reliably than beefsteaks. Late blight is the main enemy: avoid overhead watering, prune for airflow, and remove any spotted leaves immediately.'
+      },
+      {
+        name: 'Sugar Snap Peas',
+        scientific: 'Pisum sativum var. macrocarpon',
+        slug: 'sugar-snap-peas',
+        sub: 'vegetables',
+        lifecycle: 'annual',
+        sun: 'Full sun',
+        water: 'Regular watering',
+        harvest: 'Harvest: Apr-Jun, Sep-Oct',
+        planting: 'Direct sow: Feb, Aug',
+        how: 'Direct sow seeds 2-3 inches apart along a trellis or string support. Seeds are cold-hardy; plant in February for spring harvest and August for fall crop. Space rows 6 inches from trellis. Peas germinate in 7-10 days in cool soil. Thin to 3-4 inches once sprouted. Provide tall support (5-6 feet). Water regularly until harvest.',
+        tips: 'Sugar Snap and Snow Pea varieties both excel in our climate. Harvest every 2-3 days for peak sweetness and tenderness. Pick while pods are snappy and full. Leave pod on vine and just pinch off; vines are fragile. Plant succession crops 3 weeks apart for continuous harvest.',
+        humboldt: 'Peas are Humboldt\'s easiest spring crop. Cool weather ensures sweet pods and no bolting stress. Our long spring (February-June) allows extended harvest. Powdery mildew can appear in late season; ensure good airflow. Fix nitrogen in the soil; follow peas with a heavy-feeding crop like tomatoes or squash.'
+      },
+      {
+        name: 'Garlic',
+        scientific: 'Allium sativum',
+        slug: 'garlic',
+        sub: 'staples',
+        lifecycle: 'annual',
+        sun: 'Full sun',
+        water: 'Moderate watering',
+        harvest: 'Harvest: Jun to Jul',
+        planting: 'Plant cloves: Oct/Nov',
+        how: 'Plant individual cloves in October or November, pointed end up, 2 inches deep and 6 inches apart. Use locally sourced seed garlic if possible (grocery store garlic is often treated). Mulch heavily with straw after planting. Shoots will emerge before winter and grow slowly through the cool months. Stop watering when leaves begin to yellow in late spring. Harvest when the bottom 3 to 4 leaves have dried.',
+        tips: 'Softneck varieties store longer. Hardneck varieties produce scapes (edible flower stems) and often have stronger flavor. Both do well in Humboldt. Cure harvested bulbs for 2 to 3 weeks in a dry, shady spot. Save the biggest cloves for replanting next fall.',
+        humboldt: 'Garlic loves Humboldt\'s wet winters and dry summers, which match its natural growth cycle perfectly. Our mild winters mean garlic establishes strong roots before spring. Local varieties from Humboldt farmers markets are already adapted to our conditions and will outperform anything from a catalog.'
+      },
+      {
+        name: 'Artichoke',
+        scientific: 'Cynara cardunculus var. scolymus',
+        slug: 'artichoke',
+        sub: 'vegetables',
+        lifecycle: 'perennial',
+        sun: 'Full sun',
+        water: 'Regular watering',
+        harvest: 'Harvest: Apr-Jun',
+        planting: 'Plant divisions: Feb-Mar',
+        how: 'Start from dormant root divisions or crowns in February/March. Space 3-4 feet apart in rich, well-drained soil amended with compost. Provide drip irrigation; artichokes need consistent moisture during bud formation. First year: remove flower buds to establish the root system. Cut buds when they are tight and firm, at 2-3 inches diameter.',
+        tips: 'Green Globe and Purple of Sicily are excellent varieties. Plants produce for 5-8 years. Cut the main central bud first; side shoots will follow. Harvest every 2-3 days during season. In spring, cut back old stems to ground and feed with compost and balanced fertilizer.',
+        humboldt: 'Artichokes thrive in Humboldt's cool, long growing season. Our mild winters eliminate frost damage. Plants produce prolifically from April through June. The secondary buds (side shoots) are tender and often preferred to the main bud. Cut the entire stem with bud; it re-sprouts immediately. Once established, they are nearly maintenance-free.'
+      },
+      {
+        name: 'Chard',
+        scientific: 'Beta vulgaris subsp. cicla',
+        slug: 'chard',
+        sub: 'vegetables',
+        lifecycle: 'annual',
+        sun: 'Full sun to part shade',
+        water: 'Regular watering',
+        harvest: 'Harvest: Year-round',
+        planting: 'Direct sow: Feb-Sep',
+        how: 'Direct sow seeds 1/2 inch deep, 6 inches apart. Thin to 12 inches. Soil should be rich and moist. Germination takes 7-10 days. Can also transplant starts. Harvest outer leaves when 6 inches long; the plant keeps producing from the center. Mild Humboldt winters mean year-round harvest with minimal protection.',
+        tips: 'Bright Lights, Fordhook Giant, and Rhubarb Chard offer flavor and visual interest. Chard is more heat-tolerant than lettuce; great for summer picking. Harvest regularly to prevent bolting. One plant feeds a family; succession plant every 3 weeks.',
+        humboldt: 'Chard is nearly as reliable as kale in Humboldt. It grows year-round, provides consistent harvests, and actually improves through winter. Frost sweetens the leaves. Once established, chard is pest-free and drought-tolerant. Plant in spring and again in mid-summer for fall/winter production.'
+      },
+      {
+        name: 'Beet',
+        scientific: 'Beta vulgaris',
+        slug: 'beet',
+        sub: 'staples',
+        lifecycle: 'annual',
+        sun: 'Full sun to part shade',
+        water: 'Regular watering',
+        harvest: 'Harvest: Apr-Oct',
+        planting: 'Direct sow: Feb-Aug',
+        how: 'Direct sow seeds (clusters) 1/2 inch deep, 2 inches apart. Thin to 3-4 inches apart. Soil should be loose and free of rocks (misshapen roots). Keep consistently moist; irregular watering causes tough, woody roots. Harvest beets when 2-3 inches across (tender) by gently pulling. Beet greens are also edible; harvest outer leaves without damaging the root.',
+        tips: 'Detroit Dark Red, Golden, and Chioggia provide flavor variety. Direct sowing is easiest. Beets germinate slowly (10-14 days); soak seeds overnight to speed germination. Mulch to retain moisture. Succession plant every 3 weeks for continuous harvest.',
+        humboldt: 'Beets thrive in Humboldt\'s cool summers. Our long season means spring through fall crops. Avoid hot spells (rare) that produce woody roots; stick to cool-season timing. Harvest in fall for storage; beets keep 2-3 months in cool, humid conditions. Beet greens provide a bonus harvest.'
+      },
+      {
+        name: 'Carrot',
+        scientific: 'Daucus carota subsp. sativus',
+        slug: 'carrot',
+        sub: 'staples',
+        lifecycle: 'annual',
+        sun: 'Full sun',
+        water: 'Regular watering',
+        harvest: 'Harvest: May-Oct',
+        planting: 'Direct sow: Feb-Jul',
+        how: 'Direct sow seeds 1/4 inch deep in loose, stone-free soil. Scatter seed thinly or seed tape. Keep soil moist until germination (14-21 days). Thin seedlings to 2-3 inches apart as they grow. Carrots need loose soil to develop straight roots; amend with sand and compost if needed. Harvest when shoulders are 1/2 inch diameter; smaller carrots are sweeter.',
+        tips: 'Nantes and Chantenay varieties suit Humboldt. Shorter varieties (Thumbelina, Paris Market) work in containers. Mulch between rows to prevent green shoulders. Carrot fly is the main pest; use row covers or succession plantings to avoid peak populations.',
+        humboldt: 'Our cool, long season is ideal for carrots. Spring sowings (February-March) produce sweet roots in May-June. Fall sowings (June-July) mature in October for storage. Carrots keep well through winter in cool conditions. Avoid hot inland heat and late-season rains that cause splitting. Multi-colored varieties add visual appeal.'
+      },
+      {
+        name: 'Onion',
+        scientific: 'Allium cepa',
+        slug: 'onion',
+        sub: 'staples',
+        lifecycle: 'annual',
+        sun: 'Full sun',
+        water: 'Regular watering (spring)',
+        harvest: 'Harvest: Jun-Jul',
+        planting: 'Plant sets: Feb-Mar',
+        how: 'Plant onion sets (baby bulbs) or transplants in spring. Sets are easiest for beginners. Plant 4-6 inches apart, 1 inch deep. Onions need good drainage and full sun. Fertilize monthly with balanced or slightly nitrogen-rich fertilizer until June. Stop watering when tops yellow in early summer. Harvest when tops fall over and dry. Cure in warm, airy location for 2-3 weeks before storage.',
+        tips: 'Long-day varieties like Walla Walla suit Humboldt\'s latitude. Yellow, red, and white varieties all thrive. Succession plantings supply sweet spring onions. Sets are more reliable than seed in our climate. Store cured bulbs in cool, dry place.',
+        humboldt: 'Onions love Humboldt\'s long spring and early summer. Our cool season and fog prevent heat stress that creates harsh flavors in other regions. Walla Walla and Candy varieties thrive here. Set out transplants in February for June harvest. Spring onions (pulled early) are tender and sweet.'
+      },
+      {
+        name: 'Spinach',
+        scientific: 'Spinacia oleracea',
+        slug: 'spinach',
+        sub: 'vegetables',
+        lifecycle: 'annual',
+        sun: 'Full sun to part shade',
+        water: 'Regular watering',
+        harvest: 'Harvest: Mar-May, Sep-Oct',
+        planting: 'Direct sow: Jan-Mar, Aug',
+        how: 'Direct sow seeds 1/2 inch deep, 1 inch apart. Thin to 3-4 inches apart. Soil should be rich and moist. Spinach is cold-hardy and actually germinates better in cool soil (ideal range 50-70F). Harvest outer leaves or cut entire plant at soil level. Spring spinach bolts quickly; fall spinach is easier and has milder flavor.',
+        tips: 'Bloomsdale and Space varieties bolt less easily. Spinach is best in spring and fall, worst in summer heat. Slugs love it in spring; protect young plants. Harvest within 4-6 weeks of direct sowing before bolting.',
+        humboldt: 'Spinach thrives in Humboldt\'s cool springs and falls. Our short, cool summers mean minimal bolting stress. Fall/winter spinach (August-September sowing) produces into winter. Spinach is more productive in spring than lettuce in our region. Combine with other greens for color and texture variety.'
+      },
+      {
+        name: 'Cabbage',
+        scientific: 'Brassica oleracea var. capitata',
+        slug: 'cabbage',
+        sub: 'vegetables',
+        lifecycle: 'annual',
+        sun: 'Full sun',
+        water: 'Regular watering',
+        harvest: 'Harvest: Apr-Jun, Oct-Dec',
+        planting: 'Transplant starts: Feb, Jul',
+        how: 'Start seeds indoors 4-6 weeks before transplanting. Or buy starts from nursery. Plant 12-18 inches apart in rich soil. Consistent moisture prevents cracking. Fertilize monthly with balanced fertilizer. Harvest heads when firm and heavy by cutting at soil level with a sharp knife. Many varieties re-sprout mini-heads after the main head is cut.',
+        tips: 'Early varieties: Early Jersey Wakefield, Stonehead. Late storage varieties: Dakota Carnival, Winter Density. Red, Napa, and Savoy cabbages offer variety. Cabbage worms are the main pest; use row covers or BT spray. Succession plantings give spring and fall harvests.',
+        humboldt: 'Cabbage loves our cool season. Plant in February for April-June harvest, and July for fall/winter harvest. Our mild winters mean winter cabbages produce into December. Storage varieties keep 2-3 months in cool conditions. Once-established plants are nearly pest-free in Humboldt\'s cool climate.'
+      },
+      {
+        name: 'Cauliflower',
+        scientific: 'Brassica oleracea var. botrytis',
+        slug: 'cauliflower',
+        sub: 'vegetables',
+        lifecycle: 'annual',
+        sun: 'Full sun',
+        water: 'Regular, consistent watering',
+        harvest: 'Harvest: May-Jun, Oct-Nov',
+        planting: 'Transplant starts: Feb, Jul',
+        how: 'Cauliflower is more temperamental than cabbage. Start seeds indoors 4-6 weeks early or buy starts. Plant 18-24 inches apart in rich soil. Consistent moisture is critical; irregular watering causes loose, discolored curds. Fertilize monthly. Once the main curd forms, tie outer leaves loosely around it (blanching) to keep it white and tender. Harvest when curds are still tight and compact.',
+        tips: 'Snowball and Igloo are reliable early varieties. Romanesco Broccoli (lime-green spiral florets) is more heat-tolerant. Fall/winter varieties are easier and more successful in Humboldt. Cabbage worms are main pest; use row covers when young.',
+        humboldt: 'Cauliflower prefers cool weather and does better in fall (July transplants) than spring in Humboldt. Our consistent fog prevents the bolting and loosening that heat causes. Fall crops mature October-November and keep better. Romanesco Broccoli is almost foolproof in Humboldt.'
+      },
+      {
+        name: 'Pumpkin',
+        scientific: 'Cucurbita pepo',
+        slug: 'pumpkin',
+        sub: 'vegetables',
+        lifecycle: 'annual',
+        sun: 'Full sun',
+        water: 'Regular watering',
+        harvest: 'Harvest: Sep-Oct',
+        planting: 'Direct sow or transplant: May',
+        how: 'Direct sow 5-6 seeds 1 inch deep after frost danger (late May). Space seeds 3-4 feet apart or in hills. Thin to one plant per hill. Or start indoors and transplant after frost. Provide rich soil amended with compost. Water regularly during growth and flowering. Reduce water as fruit matures (late August onward) to concentrate sugars. Harvest when fully colored and stem is brown.',
+        tips: 'Sugar Pumpkin (pie pumpkins) and Howden (carving) both thrive. Vining types sprawl; provide space. Bush types are more compact. Mulch to prevent fruit sitting in wet soil. Rotate location yearly to prevent disease buildup.',
+        humboldt: 'Pumpkins do well in Humboldt if started early (late May transplants or direct sowing). Our cool summers slow ripening; plant early-to-mid-season varieties that mature by October. Black rot and mildew can appear in wet falls; ensure good airflow. Harvest before heavy November rains. Store in cool, dry place.'
+      },
+      {
+        name: 'Cucumber',
+        scientific: 'Cucumis sativus',
+        slug: 'cucumber',
+        sub: 'vegetables',
+        lifecycle: 'annual',
+        sun: 'Full sun',
+        water: 'Regular watering',
+        harvest: 'Harvest: Jul-Sep',
+        planting: 'Direct sow or transplant: May',
+        how: 'Direct sow seeds 3/4 inch deep, 6-12 inches apart after frost (late May). Or start indoors 3-4 weeks early and transplant. Space plants 12 inches apart for trellised varieties or 18-24 inches for sprawling types. Provide vertical support (trellis or stakes) for productivity and disease reduction. Water consistently; irregular water causes bitter or stunted fruit. Harvest frequently (every 2-3 days) to encourage more production.',
+        tips: 'Armenian cucumber and burpless varieties are more heat-tolerant. Pickling and slicing varieties both thrive. Provide shade cloth on hottest days (rare in Humboldt). Trellising saves space and improves airflow.',
+        humboldt: 'Humboldt\'s cool summer requires starting transplants indoors in April/May (not direct sowing late seed). Late transplants rarely produce before frost. Plant early and provide a warm, protected location. Downy mildew is a challenge in fog; choose resistant varieties and ensure excellent airflow. Pick cucumbers small (before they get seedy) for best flavor.'
+      },
+      {
+        name: 'Pole Beans',
+        scientific: 'Phaseolus vulgaris',
+        slug: 'pole-beans',
+        sub: 'vegetables',
+        lifecycle: 'annual',
+        sun: 'Full sun',
+        water: 'Regular watering',
+        harvest: 'Harvest: Jul-Oct',
+        planting: 'Direct sow: May-Jun',
+        how: 'Direct sow seeds 1 inch deep, 3-4 inches apart along a trellis, after frost danger (late May). Space rows 18 inches apart. Provide tall support (6-8 feet) before planting. Beans prefer warm soil; wait until soil is 60F. Once vines are established, water regularly and pick frequently (every 2-3 days). Nitrogen-fixing; no fertilizer needed.',
+        tips: 'Scarlet Runner, Kentucky Wonder, and Yard Long varieties all thrive. Mix varieties for extended harvests and visual interest. Leaf-footed bugs and spider mites occasionally appear; hose off or use insecticidal soap. Keep vines off the ground.',
+        humboldt: 'Start transplants indoors in April/May (not direct sowing; our season is too short for direct sown beans). Late May transplants produce prolifically from July through October. Runner beans are more reliable than other types. Succession plant every 2 weeks for continuous harvest. One 6-foot trellis feeds a family.'
+      },
+      {
+        name: 'Rhubarb',
+        scientific: 'Rheum rhabarbarum',
+        slug: 'rhubarb',
+        sub: 'staples',
+        lifecycle: 'perennial',
+        sun: 'Full sun to part shade',
+        water: 'Regular watering',
+        harvest: 'Harvest: Apr to Jun',
+        planting: 'Plant crowns: Feb/Mar',
+        how: 'Plant bare-root crowns or divisions in late winter to early spring, with the buds 1 to 2 inches below soil surface. Space 3 to 4 feet apart. Rhubarb is a heavy feeder, so amend with compost generously. Do not harvest any stalks the first year, and only lightly the second. From year 3 onward, harvest by pulling (not cutting) stalks when they are thick and firm. Never eat the leaves: they are toxic.',
+        tips: 'Victoria and Crimson Cherry are reliable varieties for our area. Remove flower stalks as they appear. Divide crowns every 5 to 6 years to keep them productive. Side-dress with compost in fall. A single mature plant can produce 5 to 10 pounds of stalks per season.',
+        humboldt: 'Rhubarb is a Humboldt garden classic. Our cool, moist climate provides the winter chill it needs to produce vigorous spring stalks. It is essentially permanent once planted, producing for 15+ years with minimal care. Plant it once and enjoy it for decades.'
+      },
+      {
+        name: 'Radish',
+        scientific: 'Raphanus sativus',
+        slug: 'radish',
+        sub: 'staples',
+        lifecycle: 'annual',
+        sun: 'Full sun to part shade',
+        water: 'Regular watering',
+        harvest: 'Harvest: Mar-Apr, Aug-Sep',
+        planting: 'Direct sow: Jan-Sep',
+        how: 'Direct sow seeds 1/2 inch deep, 1 inch apart, in loose soil. Thin to 2-3 inches apart as needed. Fast-growing; most radishes ready in 25-30 days. Spring radishes bolt quickly; fall radishes are slower and sweeter. Winter radishes (daikon) take 60-70 days but store longer. Keep soil consistently moist for tender, crisp roots. Harvest as soon as shoulders reach 1/2 inch diameter.',
+        tips: 'Cherry Belle (round red) and French Breakfast (oblong red/white) are quick spring varieties. Daikon and Watermelon radishes are slower but more interesting. Succession plant every 2-3 weeks for continuous harvest. Radish is a companion crop to slow-germinating vegetables.',
+        humboldt: 'Radishes thrive in Humboldt\'s cool seasons. Spring (January-March) and fall (August-September) sowings produce best. Winter/daikon radishes excel in fall; harvest before heavy rains. Radish greens are edible and nutritious. One small bed provides fresh radishes year-round with succession planting.'
+      },
+      {
+        name: 'Leek',
+        scientific: 'Allium ampeloprasum',
+        slug: 'leek',
+        sub: 'staples',
+        lifecycle: 'annual',
+        sun: 'Full sun to part shade',
+        water: 'Regular watering',
+        harvest: 'Harvest: Oct-Mar',
+        planting: 'Start indoors: Jan-Feb',
+        how: 'Start seeds indoors in January-February. Leek seeds germinate slowly (10-14 days). Transplant starts to garden in April-May when they are pencil-thick. Space 4-6 inches apart in rich soil. Hill soil around stems as they grow (blanching) to create white tender hearts. Fertilize monthly. Harvest after frost for sweetest flavor. Can stay in ground through winter.',
+        tips: 'Titan, Varna, and Musselburgh are cold-hardy varieties. Leeks improve with frost. Harvest by loosening with a fork and pulling gently. Multiple harvests from one planting are possible if you leave a bit of root.',
+        humboldt: 'Leeks are perfect for Humboldt. Our long, cool season gives them plenty of time to develop. Frost actually sweetens them. Plant in spring, harvest October through March. They tolerate our wet winter weather. Once planted, they require minimal care. Succession plant every 2 weeks (April through June) for continuous harvest through winter.'
+      },
+      {
+        name: 'Potatoes',
+        scientific: 'Solanum tuberosum',
+        slug: 'potatoes',
+        sub: 'staples',
+        lifecycle: 'annual',
+        sun: 'Full sun',
+        water: 'Regular watering',
+        harvest: 'Harvest: Jun-Aug',
+        planting: 'Plant seed potatoes: Feb-Mar',
+        how: 'Plant seed potatoes (cut pieces or whole small tubers, 1-2 inches) 4 inches deep, 10-12 inches apart in rows. Space rows 2-3 feet apart. Wait until soil temperature is above 50F (late February-March in Humboldt). Amend with compost; potatoes love organic matter. Mound soil around emerging plants (hilling) when they are 6 inches tall. Repeat hilling monthly. Water deeply and consistently.',
+        tips: 'Yukon Gold, Fingerling, and Red Pontiacs all thrive in Humboldt. Choose disease-resistant varieties; late blight is a risk. Grow in containers or raised beds for better control. Early varieties mature in 60-70 days; maincrop in 90+ days. Stop watering when tops yellow and die back; let potatoes cure in soil for 2 weeks before harvesting.',
+        humboldt: 'Potatoes love Humboldt\'s cool season and consistent moisture. Plant in February for June harvest (early varieties) or March for July-August (maincrop). Late blight (a fungal disease) is a challenge in foggy, wet seasons; choose resistant varieties and remove any diseased plants immediately. Mulching with straw keeps harvests clean and prevents greening from sun exposure.'
+      },
+      {
+        name: 'Zucchini',
+        scientific: 'Cucurbita pepo',
+        slug: 'zucchini',
+        sub: 'vegetables',
+        lifecycle: 'annual',
+        sun: 'Full sun',
+        water: 'Regular watering',
+        harvest: 'Harvest: Jul-Oct',
+        planting: 'Direct sow or transplant: May',
+        how: 'Direct sow seeds 1 inch deep, in hills or rows, after frost danger (late May). Space hills 3-4 feet apart or thin seedlings to 24 inches in rows. Or start 3-4 seeds indoors and transplant strongest seedling after frost. Provide rich, well-draining soil amended with compost. Water at the base to avoid powdery mildew. Pick when 6-8 inches long for tender fruit; mature zucchini are tough and seedy.',
+        tips: 'Dark Green and Golden varieties both thrive. Plant succession crops every 2-3 weeks until June for continuous harvest. Zucchini are prolific; 2-3 plants feed a family. Watch for powdery mildew in late summer; select resistant varieties or use sulfur spray. Harvest every 2-3 days to maintain production.',
+        humboldt: 'Zucchini requires a long, warm growing season. Start transplants indoors in April and transplant after frost danger (late May). Late direct sowing rarely produces before frost. Choose early-maturing varieties. Powdery mildew is common in Humboldt\'s cool, foggy falls; ensure excellent airflow and choose resistant varieties. Once established, zucchini produces prolifically.'
+      },
+      {
+        name: 'Broccoli',
+        scientific: 'Brassica oleracea var. italica',
+        slug: 'broccoli',
+        sub: 'vegetables',
+        lifecycle: 'annual',
+        sun: 'Full sun',
+        water: 'Regular watering',
+        harvest: 'Harvest: May-Jun, Oct-Nov',
+        planting: 'Transplant starts: Feb, Jul',
+        how: 'Start seeds indoors 5-6 weeks before transplanting, or buy starts from nursery. Plant 18-24 inches apart in rich, moist soil. Broccoli is a heavy feeder; amend generously with compost. Fertilize monthly with balanced or slightly nitrogen-rich fertilizer. Harvest the central head when buds are tight (before flowering). Side shoots will continue producing smaller heads.',
+        tips: 'Calabrese, Romanesco (lime-green spiral), and sprouting broccoli all do well. Spring transplants (February) produce in May-June; fall transplants (July) produce in October-November. Fall crops are more reliable in Humboldt\'s fog. Cabbage worms are the main pest; use row covers when young or pick by hand. Harvest central head before tiny flowers open.',
+        humboldt: 'Broccoli thrives in Humboldt\'s cool season and tolerates fog well. Plant in February for spring harvest or July for fall harvest. Fall plantings are more successful because fewer pests are active. Romanesco Broccoli is especially well-suited to our coastal climate and is nearly foolproof. Expect the main head plus multiple side shoots per plant.'
+      }
+    ];
+
+    // Render plants by category
+    function renderPlants() {
+      const grid = document.getElementById('plants-grid');
+      grid.innerHTML = '';
+
+      plants.forEach(plant => {
+        const card = document.createElement('div');
+        card.className = 'food-card';
+        card.setAttribute('data-lifecycle', plant.lifecycle);
+        card.setAttribute('data-sub', plant.sub);
+
+        const lifecycleClass = plant.lifecycle === 'semi' ? 'semi' : plant.lifecycle;
+        const lifecycleLabel = plant.lifecycle.charAt(0).toUpperCase() + plant.lifecycle.slice(1);
+
+        card.innerHTML = `
+          <div class="plant-image">
+            <img src="plant-guide/${plant.slug}.jpg" alt="${plant.name}" loading="lazy" onerror="handleImgError(this, '#c48bb0')">
+          </div>
+          <div class="card-content">
+            <div class="card-titles">
+              <h3>${plant.name}</h3>
+              <span class="scientific">${plant.scientific}</span>
+            </div>
+            <span class="lifecycle-badge ${lifecycleClass}">${lifecycleLabel}</span>
+            <div class="card-meta">
+              <div class="meta-item"><span class="meta-icon">&#9728;</span> ${plant.sun}</div>
+              <div class="meta-item"><span class="meta-icon">&#128167;</span> ${plant.water}</div>
+              <div class="meta-item"><span class="meta-icon">&#128207;</span> ${plant.harvest}</div>
+              <div class="meta-item"><span class="meta-icon">&#128197;</span> ${plant.planting}</div>
+            </div>
+            <div class="detail-sections">
+              <button class="detail-toggle" onclick="toggleDetail(this)">How to Start <span class="arrow">&#9654;</span></button>
+              <div class="detail-body">
+                <div class="starting-guide">
+                  <h4>Starting Guide</h4>
+                  <div class="starting-steps">${plant.how}</div>
+                </div>
+              </div>
+              <button class="detail-toggle" onclick="toggleDetail(this)">Growing Tips <span class="arrow">&#9654;</span></button>
+              <div class="detail-body">${plant.tips}</div>
+              <button class="detail-toggle" onclick="toggleDetail(this)">Humboldt Notes <span class="arrow">&#9654;</span></button>
+              <div class="detail-body">${plant.humboldt}</div>
+            </div>
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+    }
+
+    // Toggle detail sections
+    function toggleDetail(btn) {
+      const body = btn.nextElementSibling;
+      btn.classList.toggle('open');
+      body.classList.toggle('open');
+    }
+
+    // Filter by lifecycle
+    function filterLifecycle(type, btn) {
+      const pills = document.querySelectorAll('.lifecycle-pill');
+      pills.forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+
+      const cards = document.querySelectorAll('.food-card');
+      cards.forEach(card => {
+        if (type === 'all' || card.getAttribute('data-lifecycle') === type) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // Switch tabs
+    function switchTab(sub, event) {
+      const btns = document.querySelectorAll('.tab-btn');
+      btns.forEach(b => b.classList.remove('active'));
+      event.target.closest('.tab-btn').classList.add('active');
+
+      const cards = document.querySelectorAll('.food-card');
+      cards.forEach(card => {
+        if (sub === 'all' || card.getAttribute('data-sub') === sub) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // Seasonal color system
+    function updateSeasonalColor() {
+      const today = new Date();
+      const month = today.getMonth();
+      let season = 'winter';
+
+      if (month >= 2 && month <= 4) season = 'spring';
+      else if (month >= 5 && month <= 7) season = 'summer';
+      else if (month >= 8 && month <= 10) season = 'fall';
+
+      document.documentElement.classList.add('seasonal-color', season);
+
+      const colorMap = {
+        spring: '#d4a04a',
+        summer: '#c48bb0',
+        fall: '#d4a04a',
+        winter: '#a3b88c'
+      };
+
+      document.documentElement.style.setProperty('--highlight', colorMap[season]);
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      renderPlants();
+      updateSeasonalColor();
+    });
+  </script>
+
+</body>
+</html>

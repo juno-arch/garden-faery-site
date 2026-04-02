@@ -353,6 +353,25 @@
       margin: 0 auto 12px;
     }
 
+    .food-guide-link {
+      display: inline-block;
+      margin: 0 24px 20px;
+      padding: 10px 22px;
+      background: #c48bb030;
+      color: #8b4570;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .food-guide-link:hover {
+      background: #c48bb050;
+      transform: translateX(4px);
+    }
+
     .plant-count-badge {
       background: rgba(74, 25, 66, 0.12);
       padding: 4px 8px;
@@ -2166,6 +2185,14 @@
         intro.className = 'category-intro';
         intro.textContent = cat.intro;
         section.appendChild(intro);
+
+        if (category === 'food') {
+          const guideLink = document.createElement('a');
+          guideLink.href = 'food-guide.html';
+          guideLink.className = 'food-guide-link';
+          guideLink.innerHTML = 'View the full Food Growing Guide &rarr;';
+          section.appendChild(guideLink);
+        }
 
         const grid = document.createElement('div');
         grid.className = 'plants-grid';
