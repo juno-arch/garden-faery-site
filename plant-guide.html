@@ -11,6 +11,11 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Plant Guide | Garden Faery">
   <meta name="twitter:description" content="55 plants chosen for Humboldt County's coastal climate.">
+  <link rel="canonical" href="https://gardenfaery.love/plant-guide.html">
+  <link rel="icon" href="favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <title>Plant Guide | Garden Faery</title>
   <style>
     :root {
@@ -316,6 +321,7 @@
       color: white;
       font-weight: 700;
       font-size: 16px;
+      font-family: var(--font-body);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -611,14 +617,14 @@
 
   <!-- Filters & Plant Count -->
   <section class="filter-section">
-    <div class="filter-buttons">
-      <button class="filter-btn active" data-category="all">All</button>
-      <button class="filter-btn" data-category="pollinator">Pollinator</button>
-      <button class="filter-btn" data-category="native">Native</button>
-      <button class="filter-btn" data-category="food">Food</button>
-      <button class="filter-btn" data-category="herbs">Herbs</button>
-      <button class="filter-btn" data-category="flowers">Flowers</button>
-      <button class="filter-btn" data-category="ornamentals">Ornamentals</button>
+    <div class="filter-buttons" role="group" aria-label="Filter plants by category">
+      <button class="filter-btn active" data-category="all" aria-pressed="true">All</button>
+      <button class="filter-btn" data-category="pollinator" aria-pressed="false">Pollinator</button>
+      <button class="filter-btn" data-category="native" aria-pressed="false">Native</button>
+      <button class="filter-btn" data-category="food" aria-pressed="false">Food</button>
+      <button class="filter-btn" data-category="herbs" aria-pressed="false">Herbs</button>
+      <button class="filter-btn" data-category="flowers" aria-pressed="false">Flowers</button>
+      <button class="filter-btn" data-category="ornamentals" aria-pressed="false">Ornamentals</button>
     </div>
     <p class="plant-count">55 plants chosen for Humboldt County's coastal climate</p>
   </section>
@@ -1171,7 +1177,7 @@
         header.className = 'category-header';
         header.style.backgroundColor = cat.color;
         header.innerHTML = `
-          <span>${category.charAt(0).toUpperCase() + category.slice(1)}</span>
+          <h2 style="font-size:inherit;font-weight:inherit;font-family:inherit;margin:0;">${category.charAt(0).toUpperCase() + category.slice(1)}</h2>
           <span class="plant-count-badge">${cat.plants.length} plants</span>
         `;
         section.appendChild(header);
@@ -1190,7 +1196,7 @@
 
           const imageHtml = `
             <div class="plant-image">
-              <img src="plant-guide/${plant.slug}.jpg" alt="${plant.name}" onerror="handleImgError(this, '${cat.color}')">
+              <img src="plant-guide/${plant.slug}.jpg" alt="${plant.name}" loading="lazy" onerror="handleImgError(this, '${cat.color}')">
             </div>
           `;
 
@@ -1226,8 +1232,12 @@
       // Filter button handlers
       filterButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-          filterButtons.forEach(b => b.classList.remove('active'));
+          filterButtons.forEach(b => {
+            b.classList.remove('active');
+            b.setAttribute('aria-pressed', 'false');
+          });
           btn.classList.add('active');
+          btn.setAttribute('aria-pressed', 'true');
           currentFilter = btn.dataset.category;
           renderPlants(currentFilter);
           document.documentElement.scrollTop = 0;
