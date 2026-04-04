@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Garden Faery's complete plant guide for Humboldt County's coastal climate. 146 plants chosen for Zone 9b, including pollinators, native plants, herbs, flowers, and ornamentals. Food plants have their own Market Garden guide.">
+  <meta name="description" content="Garden Faery's complete plant guide for Humboldt County's coastal climate. 166 plants chosen for Zone 9b, including pollinators, native plants, herbs, flowers, and ornamentals. Food plants have their own Market Garden guide.">
   <meta property="og:title" content="Plant Guide | Garden Faery">
-  <meta property="og:description" content="146 plants chosen for Humboldt County's coastal climate. Complete growing guides for pollinators, natives, herbs, flowers, and ornamentals.">
+  <meta property="og:description" content="166 plants chosen for Humboldt County's coastal climate. Complete growing guides for pollinators, natives, herbs, flowers, and ornamentals.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://gardenfaery.love/plant-guide.html">
   <meta property="og:image" content="https://gardenfaery.love/farm.jpg">
   <meta property="og:image:alt" content="Garden Faery plant guide for Humboldt County">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Plant Guide | Garden Faery">
-  <meta name="twitter:description" content="146 plants chosen for Humboldt County's coastal climate.">
+  <meta name="twitter:description" content="166 plants chosen for Humboldt County's coastal climate.">
   <link rel="canonical" href="https://gardenfaery.love/plant-guide.html">
   <link rel="icon" href="favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -293,6 +293,10 @@
       background: #5a7a6e;
     }
 
+    .filter-btn[data-category="trees"].active {
+      background: #7a6e5a;
+    }
+
     .filter-btn:hover {
       transform: translateY(-2px);
       box-shadow: var(--shadow);
@@ -399,7 +403,7 @@
 
     .plant-image {
       width: 100%;
-      height: 200px;
+      height: 300px;
       background: var(--bg);
       display: flex;
       align-items: center;
@@ -637,8 +641,9 @@
       <button class="filter-btn" data-category="herbs" aria-pressed="false">Herbs</button>
       <button class="filter-btn" data-category="flowers" aria-pressed="false">Flowers</button>
       <button class="filter-btn" data-category="ornamentals" aria-pressed="false">Ornamentals</button>
+      <button class="filter-btn" data-category="trees" aria-pressed="false">Trees</button>
     </div>
-    <p class="plant-count">146 plants chosen for Humboldt County's coastal climate</p>
+    <p class="plant-count">166 plants chosen for Humboldt County's coastal climate</p>
   </section>
 
   <!-- Plants Container -->
@@ -1871,6 +1876,171 @@
     care: 'Almost zero maintenance. No pruning needed for dwarf varieties. No fertilizer. Drought tolerant once established. Deer proof. The easiest year-round color plant in the landscape.',
     planting: 'Plant in fall or spring. Full sun (best color) to part shade, 2-3\' apart. Any well-drained soil. \'Firepower\', \'Obsession\', and \'Blush Pink\' are excellent dwarf varieties. Perfect for borders, mass plantings, and containers.'
   }]
+      },
+      trees: {
+        color: '#7a6e5a',
+        intro: 'Trees are the long game. Plant one today and it feeds, shades, or shelters your garden for decades. Humboldt County\'s mild winters, cool summers, and acidic soil are ideal for fruit trees, flowering pollinator magnets, and native woodland species. A well-chosen tree transforms a garden.',
+        plants: [
+  {
+    name: 'Apple',
+    scientific: 'Malus domestica',
+    slug: 'apple',
+    growth: 'Deciduous fruit tree, 15-25\' tall (8-12\' on dwarf rootstock). Blooms white to pink in spring. Produces fruit September through November. Lives 50+ years. Most varieties need a pollination partner.',
+    care: 'Moderate maintenance. Prune in winter for structure and airflow. Thin fruit in June to one per cluster for bigger apples. Spray dormant oil in winter for pest prevention. Fertilize in early spring.',
+    planting: 'Plant bare-root in winter (December through February). Full sun, 15-20\' apart (8-10\' for dwarf). Well-drained soil. Honeycrisp, Gala, Pink Lady, Gravenstein, and Liberty do well in Humboldt.'
+  },
+  {
+    name: 'Pear',
+    scientific: 'Pyrus communis',
+    slug: 'pear',
+    growth: 'Deciduous fruit tree, 15-30\' tall. Elegant upright form with white spring blossoms. Produces fruit August through October. Extremely long-lived, some trees produce for 100+ years.',
+    care: 'Low to moderate maintenance. Less pruning needed than apples. Thin fruit to two per cluster. Watch for fireblight (prune infected branches 12" below damage with sterilized tools). Fertilize lightly in spring.',
+    planting: 'Plant bare-root in winter. Full sun, 15-20\' apart. Tolerates heavier soil than apples. Bartlett, Bosc, and Comice are classic choices. Asian pears (Hosui, Shinseiki) also thrive here.'
+  },
+  {
+    name: 'Fig',
+    scientific: 'Ficus carica',
+    slug: 'fig',
+    growth: 'Deciduous fruit tree, 10-15\' tall. Spreading habit with large tropical-looking leaves. Can produce two crops per year (early summer breba crop and main fall crop). Surprisingly cold-hardy.',
+    care: 'Low maintenance. Prune in late winter to shape and remove deadwood. No spray program needed. Minimal fertilizer. Water during fruit development. Mulch heavily in fall to protect roots from cold.',
+    planting: 'Plant in spring (March through May). Full sun in a warm, sheltered south-facing spot. Space 8-12\' apart. Chicago Hardy, Brown Turkey, and Desert King are reliable in Humboldt.'
+  },
+  {
+    name: 'Plum',
+    scientific: 'Prunus domestica',
+    slug: 'plum',
+    growth: 'Deciduous fruit tree, 15-20\' tall. Beautiful white blossoms in early spring. Heavy fruit production July through September. European plums are self-fertile; Japanese plums need a partner.',
+    care: 'Moderate maintenance. Prune in summer (after harvest) to reduce disease risk. Thin fruit when marble-sized. Watch for brown rot in wet springs. Dormant spray with copper in winter.',
+    planting: 'Plant bare-root in winter. Full sun, 15-18\' apart. Well-drained soil. Italian Prune, Stanley, and Santa Rosa are proven performers in coastal Humboldt.'
+  },
+  {
+    name: 'Cherry',
+    scientific: 'Prunus avium',
+    slug: 'cherry',
+    growth: 'Deciduous fruit tree, 15-30\' tall (10-15\' on dwarf rootstock). Stunning white to pink spring blossoms. Fruit ripens June through July. Sweet cherries need low-chill hours, which Humboldt provides perfectly.',
+    care: 'Moderate maintenance. Prune in summer to reduce bacterial canker risk. Net trees when fruit colors to protect from birds. Minimal spray needed in Humboldt\'s climate. Rain splitting can be an issue; choose resistant varieties.',
+    planting: 'Plant bare-root in winter. Full sun, 15-20\' apart (10\' for dwarf). Well-drained soil. Lapins (self-fertile), Stella, and Rainier do well. Avoid heavy clay.'
+  },
+  {
+    name: 'Persimmon',
+    scientific: 'Diospyros kaki',
+    slug: 'persimmon',
+    growth: 'Deciduous fruit tree, 15-25\' tall. Gorgeous orange fruit hangs on bare branches in fall like ornaments. Brilliant orange-red fall foliage. Self-fertile varieties available. Lives 50+ years.',
+    care: 'Very low maintenance. Minimal pruning needed. No serious pest or disease issues in Humboldt. No spray program. Light fertilizer in spring. One of the easiest fruit trees to grow.',
+    planting: 'Plant in spring or fall. Full sun, 15-20\' apart. Tolerates most soils. Fuyu (eat crisp like an apple) and Hachiya (eat soft when ripe) are the two main types. Fuyu is easier for beginners.'
+  },
+  {
+    name: 'Pacific Madrone',
+    scientific: 'Arbutus menziesii',
+    slug: 'pacific-madrone',
+    growth: 'Evergreen native tree, 30-80\' tall. Stunning smooth red-orange bark that peels in sheets. Clusters of white urn-shaped flowers in spring attract pollinators. Red berries feed birds in fall.',
+    care: 'Very low maintenance once established. Do not prune or fertilize. Sensitive to root disturbance and overwatering. Let leaf litter accumulate. Does not transplant well; plant young.',
+    planting: 'Plant small nursery stock in fall. Full sun to light shade, well-drained soil. Do not amend soil or irrigate after establishment. Native to our coastal slopes. Give it space, 20-30\' from structures.'
+  },
+  {
+    name: 'Oregon White Oak',
+    scientific: 'Quercus garryana',
+    slug: 'oregon-white-oak',
+    growth: 'Deciduous native tree, 40-80\' tall. Massive spreading canopy. Deeply lobed leaves. Produces acorns that feed wildlife. Incredibly long-lived (300+ years). The signature oak of the Pacific Northwest.',
+    care: 'Almost zero maintenance once established. Do not irrigate mature trees in summer (they are adapted to dry summers). Protect root zone from compaction. Never fill or grade around existing oaks.',
+    planting: 'Plant acorns directly in fall or small nursery stock. Full sun, 30-40\' apart. Well-drained soil. Slow growing but worth the wait. Critical habitat tree for birds, insects, and mammals.'
+  },
+  {
+    name: 'Western Redbud',
+    scientific: 'Cercis occidentalis',
+    slug: 'western-redbud',
+    growth: 'Deciduous native tree, 10-20\' tall. Covered in brilliant magenta-pink flowers in early spring before leaves emerge. Heart-shaped leaves turn yellow in fall. Flowers are edible and attract bees.',
+    care: 'Very low maintenance. Drought tolerant once established. No fertilizer needed. Minimal pruning. No serious pests or diseases. One of the easiest and showiest native trees.',
+    planting: 'Plant in fall. Full sun to part shade, 10-15\' apart. Well-drained soil. Tolerates poor soil. Beautiful as a specimen tree, along driveways, or at garden edges where spring color is needed.'
+  },
+  {
+    name: 'Pacific Dogwood',
+    scientific: 'Cornus nuttallii',
+    slug: 'pacific-dogwood',
+    growth: 'Deciduous native tree, 20-40\' tall. Spectacular white flower bracts in spring (sometimes again in fall). Red berries attract birds. Gorgeous red-purple fall foliage. The showpiece of Pacific Northwest forests.',
+    care: 'Low maintenance. Prefers cool, moist conditions (Humboldt is ideal). No fertilizer needed. Prune only dead or crossing branches. Keep roots cool with mulch. Can be susceptible to anthracnose in stressed trees.',
+    planting: 'Plant in fall or spring. Part shade to full sun (with moisture), 15-20\' apart. Moist, acidic, well-drained soil with organic matter. Perfect for woodland garden edges and understory plantings.'
+  },
+  {
+    name: 'Cascara',
+    scientific: 'Frangula purshiana',
+    slug: 'cascara',
+    growth: 'Deciduous native tree, 15-30\' tall. Smooth gray bark. Clusters of small greenish-white flowers in spring attract bees. Dark purple berries feed birds in late summer. Yellow fall color.',
+    care: 'Very low maintenance. No pruning or fertilizer needed. Naturally pest-free. Tolerates wet soil. Can be grown as a multi-stemmed large shrub or trained as a single-trunk tree.',
+    planting: 'Plant in fall or spring. Part shade to full sun, 10-15\' apart. Moist soil preferred but adapts to drier conditions once established. Native to Humboldt\'s forests. Great for naturalized plantings.'
+  },
+  {
+    name: 'Shore Pine',
+    scientific: 'Pinus contorta var. contorta',
+    slug: 'shore-pine',
+    growth: 'Evergreen native tree, 20-40\' tall. Rugged, windswept form near the coast. Dense green needles year-round. Provides essential winter shelter for birds. Fast growing for a conifer.',
+    care: 'Almost zero maintenance. Extremely wind and salt tolerant. No fertilizer needed. No pruning required unless shaping. Drought tolerant once established. One of the toughest coastal trees.',
+    planting: 'Plant in fall or spring. Full sun, 15-20\' apart. Any soil including sandy and poor. Perfect for windbreaks, privacy screens, and coastal gardens. Our native coastal pine.'
+  },
+  {
+    name: 'Red Alder',
+    scientific: 'Alnus rubra',
+    slug: 'red-alder',
+    growth: 'Deciduous native tree, 40-60\' tall. Fast growing pioneer species. Fixes nitrogen in the soil, improving it for surrounding plants. Catkins appear in early spring. Smooth gray-white bark.',
+    care: 'Zero maintenance. Fixes its own nitrogen. No fertilizer ever. Self-prunes lower branches. Short-lived (60-80 years) but fast growing and ecologically invaluable. Leaves decompose quickly and enrich soil.',
+    planting: 'Plant seedlings in fall. Full sun to part shade, 15-20\' apart. Moist to wet soil. Perfect for riparian areas, rain gardens, and disturbed sites. Improves soil for trees planted after it.'
+  },
+  {
+    name: 'Crabapple',
+    scientific: 'Malus floribunda',
+    slug: 'crabapple',
+    growth: 'Deciduous tree, 15-25\' tall. Covered in fragrant pink-white blossoms in spring, one of the best pollinator trees. Small fruit persists into winter, feeding birds. Good fall color.',
+    care: 'Low maintenance. Prune in winter for shape. Disease-resistant varieties need no spray. Small fruit is messy on pavement but perfect in garden settings. Fertilize lightly in spring.',
+    planting: 'Plant bare-root in winter or container stock in spring/fall. Full sun, 15-20\' apart. Any reasonable soil. Prairifire, Donald Wyman, and Sugar Tyme are disease-resistant varieties with great flowers.'
+  },
+  {
+    name: 'Pacific Wax Myrtle',
+    scientific: 'Morella californica',
+    slug: 'pacific-wax-myrtle',
+    growth: 'Evergreen native tree/large shrub, 10-30\' tall. Dense aromatic foliage year-round. Inconspicuous flowers attract native bees. Waxy purple berries feed overwintering birds. Fixes nitrogen.',
+    care: 'Very low maintenance. Tolerates salt spray, wind, and poor soil. No fertilizer (nitrogen fixer). Can be pruned as a hedge or left as a natural screen. No serious pests.',
+    planting: 'Plant in fall or spring. Full sun to part shade, 8-12\' apart for screening. Any soil including sandy and wet. Our native coastal evergreen. Perfect for windbreaks, hedges, and wildlife habitat.'
+  },
+  {
+    name: 'Linden',
+    scientific: 'Tilia cordata',
+    slug: 'linden',
+    growth: 'Deciduous tree, 40-60\' tall. Pyramidal form with dense, heart-shaped leaves. Incredibly fragrant yellow flowers in midsummer are one of the top bee trees on earth. Makes excellent honey.',
+    care: 'Low maintenance. Prune in winter for clearance. No serious pests in Humboldt. Tolerates heavy pruning if needed. Aphids can cause honeydew drip; plant away from parking areas.',
+    planting: 'Plant bare-root in winter or container in spring. Full sun to part shade, 25-30\' apart. Any reasonable soil. Greenspire is the most popular cultivar. A classic street and shade tree that feeds bees.'
+  },
+  {
+    name: 'Oregon Ash',
+    scientific: 'Fraxinus latifolia',
+    slug: 'oregon-ash',
+    growth: 'Deciduous native tree, 40-60\' tall. Compound leaves turn yellow in fall. Fast growing shade tree. Provides habitat for native insects and birds. One of the few native ashes on the West Coast.',
+    care: 'Very low maintenance. Tolerates seasonal flooding. No fertilizer needed. Prune for structure when young. Self-prunes lower branches with age.',
+    planting: 'Plant in fall. Full sun, 25-30\' apart. Moist to wet soil preferred. Native to Humboldt\'s riparian areas. Excellent for rain gardens, low areas, and along streams.'
+  },
+  {
+    name: 'Chestnut',
+    scientific: 'Castanea sativa',
+    slug: 'chestnut',
+    growth: 'Deciduous nut tree, 40-60\' tall. Spreading canopy with long serrated leaves. Catkin flowers in early summer attract pollinators. Produces edible chestnuts in spiny burrs in October. Long-lived.',
+    care: 'Low maintenance once established. No spray program needed. Prune in winter for structure. Harvest nuts when burrs split open and fall. Needs a pollination partner for nut production.',
+    planting: 'Plant in fall or winter. Full sun, 25-30\' apart. Well-drained acidic soil (Humboldt\'s soil is perfect). Colossal and Nevada are good varieties. A beautiful shade tree that also feeds you.'
+  },
+  {
+    name: 'Hazelnut',
+    scientific: 'Corylus avellana',
+    slug: 'hazelnut',
+    growth: 'Deciduous nut tree/large shrub, 12-20\' tall. Multi-stemmed with attractive catkins in late winter. Produces hazelnuts in fall. Excellent wildlife tree. Can be grown as a hedge or specimen.',
+    care: 'Low maintenance. Sucker freely from the base; remove unwanted shoots or let them form a thicket. No spray program. Harvest nuts when husks turn brown. Squirrels are the main competitor.',
+    planting: 'Plant bare-root in winter. Full sun to part shade, 12-15\' apart. Any well-drained soil. Barcelona, Yamhill, and Jefferson are productive varieties. Pacific Northwest is prime hazelnut country.'
+  },
+  {
+    name: 'Bigleaf Maple',
+    scientific: 'Acer macrophyllum',
+    slug: 'bigleaf-maple',
+    growth: 'Deciduous native tree, 50-80\' tall. Enormous leaves (up to 12" across) turn brilliant gold in fall. Supports more epiphytic moss and fern growth than any other native tree. Important bee tree.',
+    care: 'Zero maintenance. Self-sufficient once established. Drops large leaves in fall (great mulch). Provides deep shade. May develop moss-covered branches that give it a magical, old-growth character.',
+    planting: 'Plant in fall. Full sun to part shade, 30-40\' apart. Moist soil. Only for larger properties; this is a big tree. Stunning as a specimen in a meadow or along a property boundary.'
+  }]
       }
     };
 
@@ -1886,7 +2056,8 @@
       '#a3b88c': '#4e6838',
       '#7a9e7e': '#3d6241',
       '#d4a04a': '#8a6218',
-      '#5a7a6e': '#3a5a4e'
+      '#5a7a6e': '#3a5a4e',
+      '#7a6e5a': '#5a4e3a'
     };
 
     // Initialize page
