@@ -87,6 +87,13 @@
     .page-title { font-size: 36px; font-weight: 900; margin-bottom: 8px; }
     .page-subtitle { font-size: 15px; color: var(--text-secondary); margin-bottom: 32px; line-height: 1.5; }
 
+    .rate-note {
+      font-size: 14px; font-weight: 700; color: var(--accent-1);
+      margin-bottom: 20px; padding: 10px 16px;
+      background: rgba(196,139,176,0.1); border-radius: 8px;
+      text-align: center;
+    }
+
     /* Booking cards */
     .booking-cards { display: flex; flex-direction: column; gap: 16px; margin-bottom: 36px; }
 
@@ -229,6 +236,7 @@
 <div class="page-content">
   <h1 class="page-title">Let's Get Growing</h1>
   <p class="page-subtitle">Pick what fits and grab a time. I'll handle the rest.</p>
+  <p class="rate-note">All garden care visits are $25/hr, cash after each visit.</p>
 
   <!-- Booking options -->
   <div class="booking-cards">
@@ -240,7 +248,7 @@
         <h3>Morning Garden Care</h3>
         <p>A full morning at your place. Weeding, planting, watering, seasonal care. 5 hours, 9am to 2pm.</p>
       </div>
-      <span class="card-badge paid">$25/hr</span>
+      <span class="card-badge paid">$125</span>
     </div>
 
     <div class="booking-card" id="card-afternoon" role="button" tabindex="0" onclick="loadBooking('gardenfaery/afternoon-garden-care-2-30-4-30pm', 'Afternoon Garden Care', this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
@@ -251,7 +259,7 @@
         <h3>Afternoon Garden Care</h3>
         <p>A shorter afternoon session. Same great care, 2 hours. 2:30 to 4:30pm.</p>
       </div>
-      <span class="card-badge paid">$25/hr</span>
+      <span class="card-badge paid">$50</span>
     </div>
 
     <div class="booking-card" id="card-consult" role="button" tabindex="0" onclick="loadBooking('gardenfaery/free-garden-consultation', 'Free Consultation', this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
