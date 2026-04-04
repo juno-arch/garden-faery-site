@@ -487,45 +487,144 @@
       color: rgba(74, 25, 66, 0.85);
     }
 
-    /* Glossary */
-    .glossary-section {
-      max-width: 900px;
-      margin: 40px auto;
+    /* Plant Directory */
+    .directory-section {
+      max-width: 1100px;
+      margin: 50px auto 30px;
       padding: 0 24px;
     }
 
-    .glossary-title {
+    .directory-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .directory-title {
       font-family: var(--font-heading);
       font-size: 28px;
       font-weight: 900;
-      margin-bottom: 16px;
       color: var(--text-primary);
+      margin: 0;
     }
 
-    .glossary-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 12px;
+    .directory-search {
+      position: relative;
+      flex: 0 1 320px;
     }
 
-    .glossary-item {
-      padding: 14px 16px;
-      background: rgba(255,255,255,0.5);
-      border: 1px solid rgba(74,25,66,0.08);
-      border-radius: 10px;
-    }
-
-    .glossary-term {
-      font-weight: 700;
+    .directory-search input {
+      width: 100%;
+      padding: 10px 16px 10px 40px;
+      border: 1.5px solid rgba(74,25,66,0.15);
+      border-radius: 24px;
+      font-family: var(--font-body);
       font-size: 14px;
       color: var(--text-primary);
-      margin-bottom: 4px;
+      background: rgba(255,255,255,0.7);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      box-sizing: border-box;
     }
 
-    .glossary-def {
+    .directory-search input:focus {
+      border-color: var(--text-primary);
+      box-shadow: 0 0 0 3px rgba(74,25,66,0.08);
+    }
+
+    .directory-search input::placeholder {
+      color: rgba(74,25,66,0.4);
+    }
+
+    .directory-search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      color: rgba(74,25,66,0.35);
+      pointer-events: none;
+    }
+
+    .directory-count {
       font-size: 13px;
-      color: rgba(74,25,66,0.75);
-      line-height: 1.5;
+      color: rgba(74,25,66,0.5);
+      margin-bottom: 16px;
+    }
+
+    .directory-category {
+      margin-bottom: 20px;
+    }
+
+    .directory-category-name {
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      padding: 8px 14px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      display: inline-block;
+    }
+
+    .directory-plants {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 16px;
+      padding-left: 4px;
+    }
+
+    .directory-plant-link {
+      font-size: 13.5px;
+      color: var(--text-primary);
+      text-decoration: none;
+      padding: 3px 0;
+      cursor: pointer;
+      transition: color 0.15s;
+      line-height: 1.6;
+    }
+
+    .directory-plant-link:hover {
+      color: #7a3d70;
+      text-decoration: underline;
+    }
+
+    .directory-plant-link .scientific-hint {
+      font-style: italic;
+      color: rgba(74,25,66,0.4);
+      font-size: 12px;
+      margin-left: 4px;
+    }
+
+    .directory-no-results {
+      text-align: center;
+      padding: 24px;
+      color: rgba(74,25,66,0.5);
+      font-size: 14px;
+    }
+
+    @media (max-width: 600px) {
+      .directory-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .directory-search {
+        flex: 1 1 100%;
+        width: 100%;
+      }
+    }
+
+    .plant-card-highlight {
+      animation: highlightPulse 1.5s ease-out;
+    }
+
+    @keyframes highlightPulse {
+      0% { box-shadow: 0 0 0 4px rgba(74,25,66,0.35); }
+      100% { box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
     }
 
     /* CTA Section */
@@ -690,107 +789,17 @@
   <!-- Plants Container -->
   <div id="plants-container"></div>
 
-  <!-- Glossary -->
-  <section class="glossary-section">
-    <h2 class="glossary-title">Garden Glossary</h2>
-    <div class="glossary-grid">
-      <div class="glossary-item">
-        <div class="glossary-term">Amended Soil</div>
-        <div class="glossary-def">Soil mixed with compost, peat, or other organic material to improve drainage, nutrients, or structure.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Annual</div>
-        <div class="glossary-def">A plant that completes its life cycle in one growing season. It germinates, flowers, sets seed, and dies within a year.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Bare-Root</div>
-        <div class="glossary-def">A plant sold without soil around its roots, usually dormant in winter. Cheaper than potted plants and establishes quickly.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Bolting</div>
-        <div class="glossary-def">When a plant flowers and sets seed prematurely, usually triggered by heat or long days. Common in lettuce, spinach, and cilantro.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Companion Planting</div>
-        <div class="glossary-def">Growing plants together that benefit each other, like tomatoes with basil, or beans with corn.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Deadheading</div>
-        <div class="glossary-def">Removing spent flowers to encourage more blooms and prevent the plant from putting energy into seeds.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Direct Sow</div>
-        <div class="glossary-def">Planting seeds directly into the garden bed where they will grow, rather than starting indoors and transplanting.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Dormant Oil</div>
-        <div class="glossary-def">A horticultural oil sprayed on fruit trees in winter to smother overwintering pest eggs and prevent disease.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Drip Line</div>
-        <div class="glossary-def">The imaginary circle on the ground directly below the outer edge of a tree's canopy, where rain drips off the leaves. Most feeder roots are here.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Established</div>
-        <div class="glossary-def">A plant whose root system has grown enough to sustain itself without regular watering. Usually takes 1-2 growing seasons.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Fog Belt</div>
-        <div class="glossary-def">The coastal strip where marine fog regularly rolls in, keeping temperatures cool and humidity high. Most of Humboldt County is fog belt.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Full Sun</div>
-        <div class="glossary-def">At least 6 hours of direct sunlight per day. In Humboldt, a south-facing spot with no shade is your best full-sun location.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Hardening Off</div>
-        <div class="glossary-def">Gradually exposing indoor-grown seedlings to outdoor conditions over 7-10 days before transplanting them into the garden.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Hoop House</div>
-        <div class="glossary-def">A simple greenhouse made of hoops covered in plastic. Essential in Humboldt for growing heat-loving crops like tomatoes and peppers.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Microclimate</div>
-        <div class="glossary-def">A small area with different conditions than its surroundings. A south-facing wall, sheltered patio, or hilltop each create their own microclimate.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Mulch</div>
-        <div class="glossary-def">Material (bark, straw, leaves) layered on soil to retain moisture, suppress weeds, and regulate temperature. Use 2-4 inches.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Native Plant</div>
-        <div class="glossary-def">A plant that evolved naturally in a region. Native plants support local pollinators and wildlife and need less water once established.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Nitrogen Fixer</div>
-        <div class="glossary-def">A plant (like clover, beans, or alder) that converts atmospheric nitrogen into soil nutrients through bacteria in its roots.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Part Shade</div>
-        <div class="glossary-def">3-6 hours of direct sunlight per day, or filtered/dappled light all day. Many Humboldt gardens are naturally part shade.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Perennial</div>
-        <div class="glossary-def">A plant that lives for more than two years. It may die back in winter but returns from the roots each spring.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Pollinator</div>
-        <div class="glossary-def">An animal (bee, butterfly, hummingbird) that moves pollen between flowers, enabling plants to produce fruit and seeds.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Row Cover</div>
-        <div class="glossary-def">Lightweight fabric draped over plants to protect from frost, pests, or wind while letting water and light through.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Succession Planting</div>
-        <div class="glossary-def">Sowing the same crop every 2-4 weeks for a continuous harvest instead of one large crop that ripens all at once.</div>
-      </div>
-      <div class="glossary-item">
-        <div class="glossary-term">Zone 9b</div>
-        <div class="glossary-def">USDA hardiness zone for most of coastal Humboldt. Minimum winter temperature 25-30 degrees F. Mild enough for many subtropical plants.</div>
+  <!-- Plant Directory -->
+  <section class="directory-section" id="plant-directory">
+    <div class="directory-header">
+      <h2 class="directory-title">Plant Directory</h2>
+      <div class="directory-search">
+        <svg class="directory-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="directory-search-input" placeholder="Search plants by name..." autocomplete="off">
       </div>
     </div>
+    <div class="directory-count" id="directory-count"></div>
+    <div id="directory-list"></div>
   </section>
 
   <!-- CTA Section -->
@@ -2966,6 +2975,7 @@
         cat.plants.forEach(plant => {
           const card = document.createElement('div');
           card.className = 'plant-card';
+          card.id = 'plant-' + plant.slug;
 
           const imageHtml = `
             <div class="plant-image">
@@ -3020,6 +3030,109 @@
 
       // Initial render
       renderPlants('all');
+
+      // Build Plant Directory
+      buildDirectory();
+
+      function buildDirectory() {
+        const directoryList = document.getElementById('directory-list');
+        const directoryCount = document.getElementById('directory-count');
+        const searchInput = document.getElementById('directory-search-input');
+
+        const categoryLabels = {
+          pollinator: { label: 'Pollinator', color: '#d4c27a' },
+          native: { label: 'Native', color: '#a3b88c' },
+          herbs: { label: 'Herbs', color: '#7a9e7e' },
+          flowers: { label: 'Flowers', color: '#d4a04a' },
+          ornamentals: { label: 'Ornamentals', color: '#5a7a6e' },
+          trees: { label: 'Trees', color: '#7a6e5a' }
+        };
+
+        // Build full plant list with category info
+        const allPlants = [];
+        Object.keys(plants).forEach(cat => {
+          plants[cat].plants.forEach(p => {
+            allPlants.push({ ...p, category: cat });
+          });
+        });
+
+        function renderDirectory(query) {
+          directoryList.innerHTML = '';
+          const q = (query || '').toLowerCase().trim();
+
+          let totalShown = 0;
+
+          Object.keys(categoryLabels).forEach(catKey => {
+            const catInfo = categoryLabels[catKey];
+            const catPlants = allPlants
+              .filter(p => p.category === catKey)
+              .filter(p => !q || p.name.toLowerCase().includes(q) || p.scientific.toLowerCase().includes(q))
+              .sort((a, b) => a.name.localeCompare(b.name));
+
+            if (catPlants.length === 0) return;
+            totalShown += catPlants.length;
+
+            const catDiv = document.createElement('div');
+            catDiv.className = 'directory-category';
+
+            const catName = document.createElement('div');
+            catName.className = 'directory-category-name';
+            catName.style.backgroundColor = catInfo.color + '25';
+            catName.style.color = darkColors[catInfo.color] || catInfo.color;
+            catName.textContent = catInfo.label + ' (' + catPlants.length + ')';
+            catDiv.appendChild(catName);
+
+            const plantsDiv = document.createElement('div');
+            plantsDiv.className = 'directory-plants';
+
+            catPlants.forEach(p => {
+              const link = document.createElement('a');
+              link.className = 'directory-plant-link';
+              link.href = '#plant-' + p.slug;
+              link.innerHTML = p.name + '<span class="scientific-hint">' + p.scientific.split(' ').slice(0,2).join(' ') + '</span>';
+              link.addEventListener('click', function(e) {
+                e.preventDefault();
+                // Reset filter to all so the plant is visible
+                filterButtons.forEach(b => {
+                  b.classList.remove('active');
+                  b.setAttribute('aria-pressed', 'false');
+                });
+                document.querySelector('.filter-btn[data-category="all"]').classList.add('active');
+                document.querySelector('.filter-btn[data-category="all"]').setAttribute('aria-pressed', 'true');
+                if (currentFilter !== 'all') {
+                  currentFilter = 'all';
+                  renderPlants('all');
+                  buildDirectory();
+                }
+                setTimeout(function() {
+                  const target = document.getElementById('plant-' + p.slug);
+                  if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    target.classList.add('plant-card-highlight');
+                    setTimeout(() => target.classList.remove('plant-card-highlight'), 1600);
+                  }
+                }, 50);
+              });
+              plantsDiv.appendChild(link);
+            });
+
+            catDiv.appendChild(plantsDiv);
+            directoryList.appendChild(catDiv);
+          });
+
+          if (totalShown === 0) {
+            directoryList.innerHTML = '<div class="directory-no-results">No plants found matching "' + q + '"</div>';
+          }
+
+          directoryCount.textContent = q ? totalShown + ' of ' + allPlants.length + ' plants' : allPlants.length + ' plants in directory';
+        }
+
+        searchInput.addEventListener('input', function() {
+          renderDirectory(this.value);
+        });
+
+        renderDirectory('');
+      }
     }
 
     // Seasonal color system
