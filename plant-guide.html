@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Garden Faery's complete plant guide for Humboldt County's coastal climate. 166 plants chosen for Zone 9b, including pollinators, native plants, herbs, flowers, and ornamentals. Food plants have their own Market Garden guide.">
+  <meta name="description" content="Garden Faery's complete plant guide for Humboldt County's coastal climate. 256 plants chosen for Zone 9b, including pollinators, native plants, herbs, flowers, and ornamentals. Food plants have their own Market Garden guide.">
   <meta property="og:title" content="Plant Guide | Garden Faery">
-  <meta property="og:description" content="166 plants chosen for Humboldt County's coastal climate. Complete growing guides for pollinators, natives, herbs, flowers, and ornamentals.">
+  <meta property="og:description" content="256 plants chosen for Humboldt County's coastal climate. Complete growing guides for pollinators, natives, herbs, flowers, and ornamentals.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://gardenfaery.love/plant-guide.html">
   <meta property="og:image" content="https://gardenfaery.love/farm.jpg">
   <meta property="og:image:alt" content="Garden Faery plant guide for Humboldt County">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Plant Guide | Garden Faery">
-  <meta name="twitter:description" content="166 plants chosen for Humboldt County's coastal climate.">
+  <meta name="twitter:description" content="256 plants chosen for Humboldt County's coastal climate.">
   <link rel="canonical" href="https://gardenfaery.love/plant-guide.html">
   <link rel="icon" href="favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -487,6 +487,47 @@
       color: rgba(74, 25, 66, 0.85);
     }
 
+    /* Glossary */
+    .glossary-section {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 24px;
+    }
+
+    .glossary-title {
+      font-family: var(--font-heading);
+      font-size: 28px;
+      font-weight: 900;
+      margin-bottom: 16px;
+      color: var(--text-primary);
+    }
+
+    .glossary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+    }
+
+    .glossary-item {
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.5);
+      border: 1px solid rgba(74,25,66,0.08);
+      border-radius: 10px;
+    }
+
+    .glossary-term {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .glossary-def {
+      font-size: 13px;
+      color: rgba(74,25,66,0.75);
+      line-height: 1.5;
+    }
+
     /* CTA Section */
     .cta-section {
       background: var(--text-primary);
@@ -643,11 +684,114 @@
       <button class="filter-btn" data-category="ornamentals" aria-pressed="false">Ornamentals</button>
       <button class="filter-btn" data-category="trees" aria-pressed="false">Trees</button>
     </div>
-    <p class="plant-count">166 plants chosen for Humboldt County's coastal climate</p>
+    <p class="plant-count">256 plants chosen for Humboldt County's coastal climate</p>
   </section>
 
   <!-- Plants Container -->
   <div id="plants-container"></div>
+
+  <!-- Glossary -->
+  <section class="glossary-section">
+    <h2 class="glossary-title">Garden Glossary</h2>
+    <div class="glossary-grid">
+      <div class="glossary-item">
+        <div class="glossary-term">Amended Soil</div>
+        <div class="glossary-def">Soil mixed with compost, peat, or other organic material to improve drainage, nutrients, or structure.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Annual</div>
+        <div class="glossary-def">A plant that completes its life cycle in one growing season. It germinates, flowers, sets seed, and dies within a year.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Bare-Root</div>
+        <div class="glossary-def">A plant sold without soil around its roots, usually dormant in winter. Cheaper than potted plants and establishes quickly.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Bolting</div>
+        <div class="glossary-def">When a plant flowers and sets seed prematurely, usually triggered by heat or long days. Common in lettuce, spinach, and cilantro.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Companion Planting</div>
+        <div class="glossary-def">Growing plants together that benefit each other, like tomatoes with basil, or beans with corn.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Deadheading</div>
+        <div class="glossary-def">Removing spent flowers to encourage more blooms and prevent the plant from putting energy into seeds.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Direct Sow</div>
+        <div class="glossary-def">Planting seeds directly into the garden bed where they will grow, rather than starting indoors and transplanting.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Dormant Oil</div>
+        <div class="glossary-def">A horticultural oil sprayed on fruit trees in winter to smother overwintering pest eggs and prevent disease.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Drip Line</div>
+        <div class="glossary-def">The imaginary circle on the ground directly below the outer edge of a tree's canopy, where rain drips off the leaves. Most feeder roots are here.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Established</div>
+        <div class="glossary-def">A plant whose root system has grown enough to sustain itself without regular watering. Usually takes 1-2 growing seasons.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Fog Belt</div>
+        <div class="glossary-def">The coastal strip where marine fog regularly rolls in, keeping temperatures cool and humidity high. Most of Humboldt County is fog belt.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Full Sun</div>
+        <div class="glossary-def">At least 6 hours of direct sunlight per day. In Humboldt, a south-facing spot with no shade is your best full-sun location.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Hardening Off</div>
+        <div class="glossary-def">Gradually exposing indoor-grown seedlings to outdoor conditions over 7-10 days before transplanting them into the garden.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Hoop House</div>
+        <div class="glossary-def">A simple greenhouse made of hoops covered in plastic. Essential in Humboldt for growing heat-loving crops like tomatoes and peppers.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Microclimate</div>
+        <div class="glossary-def">A small area with different conditions than its surroundings. A south-facing wall, sheltered patio, or hilltop each create their own microclimate.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Mulch</div>
+        <div class="glossary-def">Material (bark, straw, leaves) layered on soil to retain moisture, suppress weeds, and regulate temperature. Use 2-4 inches.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Native Plant</div>
+        <div class="glossary-def">A plant that evolved naturally in a region. Native plants support local pollinators and wildlife and need less water once established.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Nitrogen Fixer</div>
+        <div class="glossary-def">A plant (like clover, beans, or alder) that converts atmospheric nitrogen into soil nutrients through bacteria in its roots.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Part Shade</div>
+        <div class="glossary-def">3-6 hours of direct sunlight per day, or filtered/dappled light all day. Many Humboldt gardens are naturally part shade.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Perennial</div>
+        <div class="glossary-def">A plant that lives for more than two years. It may die back in winter but returns from the roots each spring.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Pollinator</div>
+        <div class="glossary-def">An animal (bee, butterfly, hummingbird) that moves pollen between flowers, enabling plants to produce fruit and seeds.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Row Cover</div>
+        <div class="glossary-def">Lightweight fabric draped over plants to protect from frost, pests, or wind while letting water and light through.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Succession Planting</div>
+        <div class="glossary-def">Sowing the same crop every 2-4 weeks for a continuous harvest instead of one large crop that ripens all at once.</div>
+      </div>
+      <div class="glossary-item">
+        <div class="glossary-term">Zone 9b</div>
+        <div class="glossary-def">USDA hardiness zone for most of coastal Humboldt. Minimum winter temperature 25-30 degrees F. Mild enough for many subtropical plants.</div>
+      </div>
+    </div>
+  </section>
 
   <!-- CTA Section -->
   <section class="cta-section">
@@ -919,6 +1063,126 @@
     growth: 'Short-lived perennial (often biennial), 2-3\' tall. Cheerful golden-yellow daisy flowers with dark brown centers bloom June through October. Attracts butterflies, bees, and goldfinches (who eat the seeds).',
     care: 'Low maintenance. Deadhead for extended bloom or leave seed heads for birds. Self-sows readily. May get powdery mildew in damp conditions; good spacing helps. Cut back in late fall.',
     planting: 'Plant starts in spring or direct sow seeds. Full sun, 12-18" apart. Tolerates a range of soils including clay. Adapts well to Humboldt\'s conditions. Great for meadow plantings and cottage gardens.'
+  },
+{
+    name: 'Elegant Clary',
+    scientific: 'Salvia viridis',
+    slug: 'elegant-clary',
+    growth: 'Annual herb reaching 12-18 inches tall with showy purple, blue, or pink bracts. Attracts bees and hoverflies throughout summer and into fall.',
+    care: 'Water regularly during dry spells. Deadhead spent flowers to encourage continuous blooming. Low maintenance and drought-tolerant once established.',
+    planting: 'Direct sow seeds in spring after last frost (April in Humboldt). Thrives in well-drained soil and full sun to part shade. Loves coastal fog conditions and cool nights.'
+  },
+  {
+    name: 'Teasel',
+    scientific: 'Dipsacus fullonum',
+    slug: 'teasel',
+    growth: 'Biennial reaching 4-6 feet with spiky purple flowers on conical heads. Flowers attract bees and goldfinches love the seeds.',
+    care: 'Drought-tolerant once established. Requires well-drained soil. May self-seed but easily managed.',
+    planting: 'Sow seeds in fall for spring germination. Prefers full sun but tolerates part shade. Excellent for Humboldt\'s coastal margins and naturalized areas.'
+  },
+  {
+    name: 'Buckbrush',
+    scientific: 'Ceanothus cuneatus',
+    slug: 'buckbrush',
+    growth: 'Native deciduous shrub reaching 4-8 feet with small white flowers in dense clusters. Important pollen source for native bees.',
+    care: 'Very drought-tolerant once established. Prefers well-drained, sandy or gravelly soil. No supplemental water needed in Humboldt.',
+    planting: 'Plant in winter dormancy. Full sun to light shade. Excellent for hillsides and erosion control on the Humboldt coast.'
+  },
+  {
+    name: 'Gilia',
+    scientific: 'Gilia tricolor',
+    slug: 'gilia',
+    growth: 'Annual wildflower reaching 8-24 inches with delicate pink, purple, and yellow flowers. Attracts hummingbirds and native bees.',
+    care: 'Water moderately. Prefers well-drained soil. Dies back naturally in summer heat.',
+    planting: 'Direct sow in fall or early spring. Full sun. Thrives in Humboldt\'s cool coastal conditions. Reseeds readily in suitable locations.'
+  },
+  {
+    name: 'Desert Marigold',
+    scientific: 'Baileya multiradiata',
+    slug: 'desert-marigold',
+    growth: 'Perennial reaching 12-18 inches with bright yellow flowers blooming spring through frost. Prolific bloomer that feeds bees and butterflies.',
+    care: 'Drought-tolerant once established. Requires excellent drainage. Deadhead to prolong blooming.',
+    planting: 'Plant in spring. Prefers full sun and well-drained soil. Tolerates Humboldt\'s cool fog and coastal conditions better than most desert plants.'
+  },
+  {
+    name: 'Sneezeweed',
+    scientific: 'Helenium autumnale',
+    slug: 'sneezeweed',
+    growth: 'Perennial reaching 2-4 feet with yellow, orange, or red daisy-like flowers. Late-season pollinator magnet blooming July through October.',
+    care: 'Moderate water needs. Pinch back in early summer to encourage bushier growth. Cut back after frost.',
+    planting: 'Plant in spring. Full sun to part shade. Enjoys Humboldt\'s consistent moisture and cool temperatures. Thrives in moist, well-drained soil.'
+  },
+  {
+    name: 'Alpenrose',
+    scientific: 'Rhododendron ferrugineum',
+    slug: 'alpenrose',
+    growth: 'Compact evergreen shrub reaching 1-2 feet with bright pink flowers. Attracts bees and hummingbirds in late spring.',
+    care: 'Moderate water. Prefers acidic, well-drained soil with organic matter. Tolerates shade.',
+    planting: 'Plant in fall or early spring. Part shade to dappled sun. Excellent for Humboldt\'s acidic soils and cool climate.'
+  },
+  {
+    name: 'Shasta Daisy (early cultivar)',
+    scientific: 'Leucanthemum \'Becky\'',
+    slug: 'shasta-daisy-becky',
+    growth: 'Perennial reaching 18-24 inches with pure white flowers with yellow centers. Reliable summer bloomer attracting native bees.',
+    care: 'Moderate water needs. Benefits from deadheading. Cut back after blooming.',
+    planting: 'Plant in spring or fall. Full sun to part shade. Tolerates Humboldt\'s coastal moisture and fog. Space 12-18 inches apart.'
+  },
+  {
+    name: 'Flossflower',
+    scientific: 'Ageratum houstonianum',
+    slug: 'flossflower',
+    growth: 'Annual reaching 12-18 inches with fluffy blue, purple, or white flowers. Attracts butterflies and small bees throughout growing season.',
+    care: 'Regular water during dry spells. Deadhead for continuous bloom. Remove faded flowers.',
+    planting: 'Start seeds indoors in February or direct sow after frost danger passes (April). Full sun to part shade. Thrives in Humboldt\'s cool summers.'
+  },
+  {
+    name: 'Gaura',
+    scientific: 'Gaura lindheimeri \'Siskiyou Pink\'',
+    slug: 'gaura-siskiyou-pink',
+    growth: 'Perennial reaching 18-24 inches with delicate pink flowers on airy stems. Attracts butterflies and hummingbirds.',
+    care: 'Moderate water. Thrives with good drainage. Airy structure means it takes the coastal winds well.',
+    planting: 'Plant in spring. Full sun. Excellent for Humboldt\'s well-drained soils and coastal conditions. Blooms summer through fall.'
+  },
+  {
+    name: 'Scarlet Pimpernel',
+    scientific: 'Anagallis arvensis subsp. arvensis',
+    slug: 'scarlet-pimpernel',
+    growth: 'Annual groundcover reaching 8-12 inches with small bright red-orange flowers. Bees enjoy the nectar.',
+    care: 'Water moderately. Prefers well-drained soil. Low maintenance.',
+    planting: 'Direct sow in spring. Full sun to part shade. Naturalized in coastal areas of Humboldt. Reseeds readily.'
+  },
+  {
+    name: 'Culinary Thyme (creeping)',
+    scientific: 'Thymus praecox subsp. arcticus',
+    slug: 'creeping-thyme',
+    growth: 'Groundcover perennial reaching 3-6 inches with purple, pink, or white flowers. Excellent nectar source for bees.',
+    care: 'Drought-tolerant once established. Requires well-drained soil. Occasional trim to maintain shape.',
+    planting: 'Plant in spring. Full sun. Perfect for Humboldt\'s coastal rock gardens and well-drained areas. Flowers June-August.'
+  },
+  {
+    name: 'Winecups',
+    scientific: 'Callirhoe involucrata',
+    slug: 'winecups',
+    growth: 'Trailing perennial with deep magenta cup-shaped flowers. Native to prairie regions; attracts native bees.',
+    care: 'Drought-tolerant once established. Needs excellent drainage. Minimal water needed.',
+    planting: 'Plant in spring. Full sun. Works well on Humboldt\'s drier slopes and well-drained banks.'
+  },
+  {
+    name: 'Eastern Coneflower',
+    scientific: 'Echinacea laevigata',
+    slug: 'eastern-coneflower',
+    growth: 'Perennial reaching 2-3 feet with purple-pink flowers and orange center cone. Attracts bees, butterflies, and finches.',
+    care: 'Moderate water. Well-drained soil. Deadhead to extend bloom. Cut back in fall.',
+    planting: 'Plant in spring or fall. Full sun to part shade. Tolerates Humboldt\'s cool coastal climate. Blooms June-September.'
+  },
+  {
+    name: 'Golden Corydalis',
+    scientific: 'Corydalis lutea',
+    slug: 'golden-corydalis',
+    growth: 'Short-lived perennial reaching 12-15 inches with delicate yellow flowers. Attracts native bees and hoverflies.',
+    care: 'Moderate water. Self-seeds prolifically in cool, moist climates.',
+    planting: 'Plant in fall or spring. Part shade to dappled sun. Excellent for Humboldt\'s cool, foggy gardens. Seeds readily in paths and crevices.'
   }]
       },
       native: {
@@ -1156,6 +1420,126 @@
     growth: 'Deciduous shrub, 6-10\' tall. Native to Northern California stream banks. Unusual fragrant wine-red flowers 2" across bloom April through August. All parts of the plant are aromatic when crushed. Bright yellow fall color.',
     care: 'Low maintenance. Prune to shape after flowering if desired. Suckers from the base; remove unwanted shoots or let it form a thicket. No fertilizer. Consistent moisture preferred.',
     planting: 'Plant in fall or spring. Part shade to full sun (with moisture), 4-6\' apart. Moist, rich soil. Beautiful along streams, in rain gardens, and as a fragrant specimen near patios where you can enjoy the spicy scent.'
+  },
+{
+    name: 'Coast Silk-Tassel',
+    scientific: 'Garrya elliptica',
+    slug: 'coast-silk-tassel',
+    growth: 'Evergreen shrub reaching 6-8 feet with drooping catkins of greenish-yellow flowers. Native to coastal California.',
+    care: 'Moderate water when establishing. Drought-tolerant once mature. Prune after flowering.',
+    planting: 'Plant in fall or early spring. Full sun to part shade. Excellent for Humboldt coastal gardens. Tolerates wind and poor soils.'
+  },
+  {
+    name: 'Redwood Sorrel',
+    scientific: 'Oxalis oregana',
+    slug: 'redwood-sorrel',
+    growth: 'Native groundcover reaching 4-8 inches with shamrock-shaped leaves and pink flowers. Important understory plant.',
+    care: 'Moderate to high moisture. Thrives in shade. Spreads slowly by rhizomes.',
+    planting: 'Plant in fall. Shade to part shade. Perfect for Humboldt\'s redwood understories. Loves consistent moisture.'
+  },
+  {
+    name: 'Redwood Ivy',
+    scientific: 'Parthenocissus pentata',
+    slug: 'redwood-ivy',
+    growth: 'Native deciduous vine reaching 20+ feet with five-leaflet leaves and dark blue berries. Climbs by adhesive discs.',
+    care: 'Moderate water. Adapts to various light conditions. Prune as needed.',
+    planting: 'Plant in fall or early spring. Shade to part shade. Excellent for covering fences and structures in Humboldt\'s cool climate.'
+  },
+  {
+    name: 'Hairy Honeysuckle',
+    scientific: 'Lonicera hispidula',
+    slug: 'hairy-honeysuckle',
+    growth: 'Native deciduous to semi-evergreen twining vine reaching 6-10 feet with red tubular flowers and orange berries.',
+    care: 'Moderate water. Full sun to part shade. Prune after flowering.',
+    planting: 'Plant in fall or early spring. Humboldt native. Attracts hummingbirds and birds. Good for trellis or fence.'
+  },
+  {
+    name: 'Fragrant Sumac',
+    scientific: 'Rhus aromatica',
+    slug: 'fragrant-sumac',
+    growth: 'Native deciduous shrub reaching 3-5 feet with aromatic three-leaflet leaves, small yellow flowers, and red berries.',
+    care: 'Drought-tolerant once established. Full sun to part shade. Minimal supplemental water.',
+    planting: 'Plant in fall or early spring. Adaptable to various soils. Good for coastal margins and naturalized areas of Humboldt.'
+  },
+  {
+    name: 'Creeping Currant',
+    scientific: 'Ribes viburnifolium',
+    slug: 'creeping-currant',
+    growth: 'Native evergreen groundcover reaching 3-5 feet with shiny leaves and small red flowers. Important for pollinators.',
+    care: 'Drought-tolerant once established. Part shade to full sun. Minimal care needed.',
+    planting: 'Plant in fall. Excellent for Humboldt\'s coastal bluffs and slopes. Tolerates wind and poor soils.'
+  },
+  {
+    name: 'Poison Oak (native)',
+    scientific: 'Toxicodendron pubescens',
+    slug: 'poison-oak',
+    growth: 'Native deciduous shrub reaching 3-6 feet with three-leaflet leaves, small flowers, and white berries. Important wildlife food.',
+    care: 'Drought-tolerant once established. Full sun to part shade. No supplemental water needed.',
+    planting: 'Plant in fall from native nursery stock. Humboldt coastal native. Handle with gloves during planting.'
+  },
+  {
+    name: 'Redwood Manzanita',
+    scientific: 'Arctostaphylos nummularia',
+    slug: 'redwood-manzanita',
+    growth: 'Native evergreen groundcover reaching 1-2 feet with silvery foliage, pink flowers, and red berries. Important wildlife food.',
+    care: 'Drought-tolerant once established. Excellent drainage required. No supplemental water.',
+    planting: 'Plant in fall from native nursery. Full sun. Good for rocky slopes and coastal bluffs of Humboldt.'
+  },
+  {
+    name: 'Harlequin Flower',
+    scientific: 'Sparaxis tricolor',
+    slug: 'harlequin-flower',
+    growth: 'Native bulb reaching 12-18 inches with multicolored star flowers in spring. Attracts native bees.',
+    care: 'Moderate water during growing season. Dormant in summer. Well-drained soil.',
+    planting: 'Plant bulbs in fall. Full sun to part shade. Suits Humboldt\'s cool, foggy springs. Dies back in summer heat.'
+  },
+  {
+    name: 'Soaproot',
+    scientific: 'Chlorogalum pomeridianum',
+    slug: 'soaproot',
+    growth: 'Native perennial reaching 3-4 feet with tall spike of delicate white flowers. Traditional plant used by native peoples.',
+    care: 'Drought-tolerant once established. Full sun. No supplemental water in Humboldt.',
+    planting: 'Plant in fall from native nursery. Well-drained soil. Good for naturalized areas and coastal slopes.'
+  },
+  {
+    name: 'Naked Buckwheat',
+    scientific: 'Eriogonum nudum',
+    slug: 'naked-buckwheat',
+    growth: 'Native perennial reaching 1-2 feet with delicate pink or white flower clusters on tall stems. Pollinator favorite.',
+    care: 'Drought-tolerant once established. Excellent drainage required. No supplemental water.',
+    planting: 'Plant in fall from native nursery. Full sun. Good for Humboldt\'s coastal rocks and sandy areas.'
+  },
+  {
+    name: 'Toyon',
+    scientific: 'Heteromeles arbutifolia',
+    slug: 'toyon',
+    growth: 'Native evergreen shrub reaching 6-10 feet with white flowers and bright red berries. Important for birds and wildlife.',
+    care: 'Drought-tolerant once established. Full sun to part shade. No supplemental water in mature stands.',
+    planting: 'Plant in fall. Good for Humboldt\'s well-drained coastal areas. Berries persist through winter.'
+  },
+  {
+    name: 'California Blackberry',
+    scientific: 'Rubus ursinus',
+    slug: 'california-blackberry',
+    growth: 'Native trailing perennial with delicate pink flowers and edible black berries. Important wildlife food and bee plant.',
+    care: 'Moderate moisture needs. Part shade to full sun. Spreads by runners.',
+    planting: 'Plant in fall or early spring. Humboldt native. Good for wild areas. Can be aggressive in gardens.'
+  },
+  {
+    name: 'Sierra Gooseberry',
+    scientific: 'Ribes roezlii',
+    slug: 'sierra-gooseberry',
+    growth: 'Native deciduous shrub reaching 3-4 feet with spiny stems, magenta flowers, and edible berries. Wildlife food.',
+    care: 'Moderate moisture. Part shade preferred. Prune after fruiting.',
+    planting: 'Plant in fall from native nursery. Thrives in Humboldt\'s cool, moist conditions. Good for naturalized areas.'
+  },
+  {
+    name: 'Little Bishop Pine',
+    scientific: 'Pinus muricata',
+    slug: 'bishop-pine',
+    growth: 'Native conifer tree reaching 40-80 feet with dense foliage and distinctive knobby cones. Coastal adaptation.',
+    care: 'Moderate water when young. Drought-tolerant at maturity. Needs good drainage.',
+    planting: 'Plant in fall or early spring from native nursery. Full sun. Excellent for coastal reforestation in Humboldt County.'
   }]
       },
       herbs: {
@@ -1401,6 +1785,126 @@
     growth: 'Annual (sometimes biennial in Humboldt), 2-4\' tall. Strongly aromatic leaves essential in Mexican black bean dishes and quesadillas. Pungent, acquired taste. Self-sows readily.',
     care: 'Almost zero maintenance. Grows like a weed (because it basically is one). Harvest young leaves for cooking. Self-sows prolifically; manage seedlings or it will take over. No fertilizer.',
     planting: 'Direct sow seeds in spring (barely cover; needs light). Full sun, 12" apart. Any soil, including poor or dry. Thrives on neglect. One or two plants are plenty for cooking use. Pull extras ruthlessly.'
+  },
+{
+    name: 'Creeping Thyme',
+    scientific: 'Thymus serpyllum',
+    slug: 'creeping-thyme-fine-leaf',
+    growth: 'Groundcover perennial reaching 3-6 inches with tiny aromatic leaves and small purple, pink, or white flowers.',
+    care: 'Drought-tolerant once established. Requires excellent drainage. Occasional trim.',
+    planting: 'Plant in spring. Full sun. Perfect for Humboldt\'s coastal rock gardens. Flowers June-August.'
+  },
+  {
+    name: 'German Chamomile',
+    scientific: 'Matricaria chamomilla',
+    slug: 'german-chamomile',
+    growth: 'Annual reaching 12-24 inches with feathery foliage and daisy-like flowers. Excellent for tea.',
+    care: 'Moderate water. Self-seeds readily. No supplemental feeding needed.',
+    planting: 'Direct sow seeds in spring or fall. Full sun to part shade. Thrives in Humboldt\'s cool climate. Reseeds annually.'
+  },
+  {
+    name: 'Japanese Mint',
+    scientific: 'Mentha japonica',
+    slug: 'japanese-mint',
+    growth: 'Perennial reaching 12-18 inches with aromatic leaves and purple flowers. Milder flavor than common mint.',
+    care: 'Moderate water. Spreads by rhizomes. Contain in pots or dedicated areas.',
+    planting: 'Plant in spring. Part shade to full sun. Excellent for Humboldt\'s moist conditions. Very hardy.'
+  },
+  {
+    name: 'Catmint Herb',
+    scientific: 'Nepeta cataria',
+    slug: 'catmint-herb',
+    growth: 'Perennial reaching 2-3 feet with soft leaves and small lavender flowers. Cats love it; attracts butterflies.',
+    care: 'Drought-tolerant once established. Full sun. Cut back annually.',
+    planting: 'Plant in spring or fall. Full sun to part shade. Tolerates Humboldt\'s coastal conditions. Attracts cats and pollinators.'
+  },
+  {
+    name: 'French Sorrel',
+    scientific: 'Rumex scutatus',
+    slug: 'french-sorrel',
+    growth: 'Perennial reaching 12-18 inches with heart-shaped leaves and tall flower spikes. Tangy culinary flavor.',
+    care: 'Moderate water. Well-drained soil. Deadhead to prevent excessive self-seeding.',
+    planting: 'Plant in spring. Full sun to part shade. Excellent for Humboldt\'s cool season. Harvest leaves regularly.'
+  },
+  {
+    name: 'Winter Savory',
+    scientific: 'Satureja montana',
+    slug: 'winter-savory',
+    growth: 'Evergreen perennial reaching 12-18 inches with narrow leaves and small white or purple flowers.',
+    care: 'Drought-tolerant once established. Requires excellent drainage. Occasional trim.',
+    planting: 'Plant in spring. Full sun to part shade. Excellent for Humboldt\'s coastal herb gardens. Evergreen year-round.'
+  },
+  {
+    name: 'Borage Herb',
+    scientific: 'Borago officinalis',
+    slug: 'borage-herb',
+    growth: 'Annual reaching 12-24 inches with fuzzy stems, blue star-shaped flowers, and cucumber-scented leaves.',
+    care: 'Moderate water. Self-seeds readily. No special care needed.',
+    planting: 'Direct sow seeds in spring. Full sun to part shade. Thrives in Humboldt\'s cool season. Attracts pollinators.'
+  },
+  {
+    name: 'Sweet Cicely',
+    scientific: 'Myrrhis odorata',
+    slug: 'sweet-cicely',
+    growth: 'Perennial reaching 18-24 inches with feathery foliage, small white flowers, and anise-scented seeds.',
+    care: 'Moderate moisture. Part shade preferred. Dies back in winter.',
+    planting: 'Plant in fall or early spring. Part shade to dappled sun. Excellent for Humboldt\'s moist, cool conditions.'
+  },
+  {
+    name: 'Corsican Mint',
+    scientific: 'Mentha requienii',
+    slug: 'corsican-mint',
+    growth: 'Groundcover perennial reaching 1-2 inches with tiny aromatic leaves and small purple flowers. Intense flavor.',
+    care: 'Moderate moisture. Part shade to full sun. Spreads slowly. Can be contained.',
+    planting: 'Plant in spring. Part shade. Excellent for Humboldt\'s cool, moist conditions. Plant in containers to control spread.'
+  },
+  {
+    name: 'Wood Sorrel',
+    scientific: 'Oxalis stricta',
+    slug: 'wood-sorrel',
+    growth: 'Perennial reaching 6-12 inches with shamrock leaves and small yellow flowers. Tangy, clover-like flavor.',
+    care: 'Moderate moisture. Part shade. Spreads by runners and seeds.',
+    planting: 'Plant in spring or fall. Part shade to full sun. Excellent for Humboldt\'s shaded areas. Edible leaves and seeds.'
+  },
+  {
+    name: 'Grounded Ivy',
+    scientific: 'Glechoma hederacea',
+    slug: 'ground-ivy',
+    growth: 'Groundcover perennial reaching 4-8 inches with round leaves and small purple flowers. Traditional medicinal herb.',
+    care: 'Moderate moisture. Spreads by runners. Shade to part shade.',
+    planting: 'Plant in spring. Part shade to full sun. Excellent for Humboldt\'s moist areas. Can be aggressive.'
+  },
+  {
+    name: 'Meadowsweet',
+    scientific: 'Filipendula ulmaria',
+    slug: 'meadowsweet',
+    growth: 'Perennial reaching 2-3 feet with pinnate leaves and creamy white flower plumes. Fragrant, historical herb.',
+    care: 'Moderate to high moisture. Part shade tolerated. Cut back after flowering.',
+    planting: 'Plant in fall or spring. Thrives in Humboldt\'s moist conditions. Excellent for boggy or wet areas.'
+  },
+  {
+    name: 'Valerian',
+    scientific: 'Valeriana officinalis',
+    slug: 'valerian',
+    growth: 'Perennial reaching 2-3 feet with pinnate leaves and pink or white flower clusters. Root used medicinally.',
+    care: 'Moderate moisture. Full sun to part shade. Cut back after flowering.',
+    planting: 'Plant in fall or early spring. Excellent for Humboldt\'s cool, moist conditions. Harvest roots in second year.'
+  },
+  {
+    name: 'Mugwort',
+    scientific: 'Artemisia vulgaris',
+    slug: 'mugwort',
+    growth: 'Perennial reaching 3-4 feet with silvery-green foliage and small yellow-green flowers. Traditional herb.',
+    care: 'Drought-tolerant once established. Full sun. May need containment.',
+    planting: 'Plant in spring or fall. Full sun to part shade. Excellent for Humboldt\'s coastal areas. Can spread vigorously.'
+  },
+  {
+    name: 'Lemon Thyme',
+    scientific: 'Thymus citriodorus',
+    slug: 'lemon-thyme',
+    growth: 'Evergreen perennial reaching 12-18 inches with lemon-scented leaves and small pink or purple flowers.',
+    care: 'Drought-tolerant once established. Requires excellent drainage. Occasional trim.',
+    planting: 'Plant in spring. Full sun to part shade. Perfect for Humboldt\'s coastal herb gardens. Flowers May-September.'
   }]
       },
       flowers: {
@@ -1638,6 +2142,126 @@
     growth: 'Herbaceous perennial, 18-36" tall. Feathery plumes of tiny flowers in pink, red, white, purple, and peach bloom June through August. Ferny, divided foliage. One of the best plants for adding color to shade gardens.',
     care: 'Low maintenance. Consistent moisture is key (doesn\'t tolerate drought). Leave spent plumes for winter texture or cut back in fall. Divide every 3-4 years. Mulch to retain moisture. Slug resistant.',
     planting: 'Plant starts in spring or fall. Part shade to full shade, 18" apart. Rich, moist soil with plenty of organic matter. Humboldt\'s damp, shady conditions are ideal. Pairs beautifully with ferns and hostas.'
+  },
+{
+    name: 'Bistro Pink',
+    scientific: 'Dianthus chinensis \'Bib\'',
+    slug: 'bistro-pink',
+    growth: 'Perennial or annual reaching 6-12 inches with carnation-like pink flowers and fragrance. Low, mounding habit.',
+    care: 'Moderate water. Deadhead for continuous bloom. Well-drained soil.',
+    planting: 'Plant in spring or fall. Full sun. Excellent for Humboldt\'s cool coastal gardens. Long bloom season.'
+  },
+  {
+    name: 'Musk Mallow',
+    scientific: 'Abelmoschus moschatus',
+    slug: 'musk-mallow',
+    growth: 'Annual reaching 18-24 inches with large pale yellow flowers and deeply lobed leaves. Musk-scented flowers.',
+    care: 'Moderate water. Needs warmth but tolerates Humboldt\'s cool summers. Well-drained soil.',
+    planting: 'Start seeds indoors in March. Plant out after frost danger. Full sun. Blooms July-October.'
+  },
+  {
+    name: 'Sweet Scabious',
+    scientific: 'Scabiosa atropurpurea',
+    slug: 'sweet-scabious',
+    growth: 'Annual reaching 24-36 inches with deep purple pincushion-like flowers and fragrance. Cut flower favorite.',
+    care: 'Moderate water. Deadhead regularly. Good drainage.',
+    planting: 'Direct sow in spring or start indoors. Full sun to part shade. Thrives in Humboldt\'s cool climate.'
+  },
+  {
+    name: 'Crown Imperial',
+    scientific: 'Fritillaria imperialis',
+    slug: 'crown-imperial',
+    growth: 'Bulb reaching 3-4 feet with distinctive orange or yellow bell-shaped flowers in crown formation. Spring bloomer.',
+    care: 'Moderate water during growing season. Excellent drainage. Dies back in summer.',
+    planting: 'Plant bulbs in fall (September-November). Full sun to part shade. Excellent for Humboldt\'s cool springs.'
+  },
+  {
+    name: 'Statice',
+    scientific: 'Limonium sinuatum',
+    slug: 'statice',
+    growth: 'Annual reaching 18-24 inches with papery purple, pink, white, or yellow flowers. Excellent for dried arrangements.',
+    care: 'Moderate water. Well-drained soil. Drought-tolerant once established.',
+    planting: 'Start seeds indoors in March. Plant out after frost. Full sun. Flowers July-October in Humboldt.'
+  },
+  {
+    name: 'Iceland Poppy',
+    scientific: 'Papaver nudicaule',
+    slug: 'iceland-poppy',
+    growth: 'Biennial or annual reaching 12-18 inches with silky petaled flowers in orange, yellow, white, or red. Cut flowers.',
+    care: 'Moderate water. Well-drained soil. Prefers cool conditions.',
+    planting: 'Direct sow seeds in fall or early spring. Full sun to part shade. Excellent for Humboldt\'s cool climate. Spring bloomer.'
+  },
+  {
+    name: 'English Daisy',
+    scientific: 'Bellis perennis',
+    slug: 'english-daisy',
+    growth: 'Perennial reaching 6-12 inches with pompom-like pink, red, or white flowers. Charming edging plant.',
+    care: 'Moderate moisture. Part shade to full sun. Cut back after blooming.',
+    planting: 'Plant in fall or early spring. Excellent for Humboldt\'s cool, moist conditions. Blooms winter through spring.'
+  },
+  {
+    name: 'Godetia',
+    scientific: 'Godetia grandiflora',
+    slug: 'godetia',
+    growth: 'Annual reaching 12-24 inches with silky pink, purple, red, or white flowers. Native to California coast.',
+    care: 'Moderate water. Cool-loving. Well-drained soil.',
+    planting: 'Direct sow seeds in early spring. Full sun to part shade. Loves Humboldt\'s cool coastal climate. Blooms summer.'
+  },
+  {
+    name: 'Torenia',
+    scientific: 'Torenia fournieri',
+    slug: 'torenia',
+    growth: 'Annual reaching 12-18 inches with delicate orchid-like purple and yellow flowers. Shade-loving summer flower.',
+    care: 'Moderate moisture. Thrives in shade. Benefits from high humidity.',
+    planting: 'Start seeds indoors in March. Plant in part shade. Excellent for Humboldt\'s shaded coastal gardens. Blooms June-October.'
+  },
+  {
+    name: 'Love-in-a-Mist',
+    scientific: 'Nigella damascena',
+    slug: 'love-in-a-mist',
+    growth: 'Annual reaching 18-24 inches with delicate blue, pink, or white flowers surrounded by feathery foliage. Self-seeds.',
+    care: 'Moderate water. Well-drained soil. Minimal care needed.',
+    planting: 'Direct sow in spring or fall. Full sun to part shade. Thrives in Humboldt\'s cool climate. Reseeds readily.'
+  },
+  {
+    name: 'Mallow Flower',
+    scientific: 'Lavatera trimestris',
+    slug: 'mallow-flower',
+    growth: 'Annual reaching 2-3 feet with large pink, white, or rose mallow-like flowers. Vigorous grower.',
+    care: 'Moderate water. Well-drained soil. Tolerates coastal wind.',
+    planting: 'Direct sow seeds in spring. Full sun. Excellent for Humboldt\'s coastal gardens. Blooms July-September.'
+  },
+  {
+    name: 'Browallia',
+    scientific: 'Browallia speciosa',
+    slug: 'browallia',
+    growth: 'Annual reaching 12-18 inches with delicate blue, purple, or white flowers. Shade and container plant.',
+    care: 'Moderate moisture. Thrives in part shade. Benefits from humidity.',
+    planting: 'Start seeds indoors in March. Plant in part shade. Excellent for Humboldt\'s shaded gardens and containers. Blooms June-frost.'
+  },
+  {
+    name: 'Forget-Me-Not',
+    scientific: 'Myosotis sylvatica',
+    slug: 'forget-me-not',
+    growth: 'Perennial or biennial reaching 6-12 inches with tiny blue, pink, or white flowers. Spring bloomer.',
+    care: 'Moderate moisture. Part shade to full sun. Self-seeds readily.',
+    planting: 'Sow seeds in fall for spring blooms. Excellent for Humboldt\'s cool conditions. Naturalizes in gardens.'
+  },
+  {
+    name: 'Corn Cockle',
+    scientific: 'Agrostemma githago',
+    slug: 'corn-cockle',
+    growth: 'Annual reaching 18-24 inches with bright pink or purple flowers with white centers. Old-fashioned charm.',
+    care: 'Moderate water. Well-drained soil. Self-seeds.',
+    planting: 'Direct sow seeds in spring or fall. Full sun to part shade. Excellent for Humboldt\'s cool climate.'
+  },
+  {
+    name: 'Bluebell',
+    scientific: 'Hyacinthoides non-scripta',
+    slug: 'bluebell',
+    growth: 'Bulb reaching 12-18 inches with bell-shaped blue flowers on graceful arching stems. Spring bloomer.',
+    care: 'Moderate moisture during growing season. Part shade preferred. Dormant in summer.',
+    planting: 'Plant bulbs in fall (September-November). Part shade to dappled sun. Excellent for Humboldt\'s cool springs. Naturalizes well.'
   }]
       },
       ornamentals: {
@@ -1875,6 +2499,126 @@
     growth: 'Evergreen shrub, 18-24" tall and wide (dwarf varieties). Compact mound of lacy foliage that turns vivid red in fall and winter. Not actually bamboo. Year-round color without year-round maintenance.',
     care: 'Almost zero maintenance. No pruning needed for dwarf varieties. No fertilizer. Drought tolerant once established. Deer proof. The easiest year-round color plant in the landscape.',
     planting: 'Plant in fall or spring. Full sun (best color) to part shade, 2-3\' apart. Any well-drained soil. \'Firepower\', \'Obsession\', and \'Blush Pink\' are excellent dwarf varieties. Perfect for borders, mass plantings, and containers.'
+  },
+{
+    name: 'Coast Redwood Fern',
+    scientific: 'Polystichum setiferum',
+    slug: 'coast-redwood-fern',
+    growth: 'Evergreen fern reaching 2-3 feet with soft, feathery fronds. Delicate woodland texture.',
+    care: 'Moderate to high moisture. Shade preferred. Mulch in dry areas.',
+    planting: 'Plant in fall or early spring. Shade to part shade. Excellent for Humboldt\'s forest understory plantings.'
+  },
+  {
+    name: 'Sweetfern',
+    scientific: 'Comptonia peregrina',
+    slug: 'sweetfern',
+    growth: 'Deciduous shrub reaching 2-4 feet with finely cut aromatic foliage and small catkins. Native to eastern regions.',
+    care: 'Moderate moisture. Well-drained, acidic soil. Minimal care.',
+    planting: 'Plant in fall or early spring. Full sun to part shade. Excellent for Humboldt\'s acidic soils. Fragrant foliage.'
+  },
+  {
+    name: 'Hinoki False Cypress',
+    scientific: 'Chamaecyparis obtusa \'Boulevard\'',
+    slug: 'hinoki-false-cypress',
+    growth: 'Evergreen conifer reaching 4-6 feet with silvery-blue threadlike foliage. Dense, pyramidal form.',
+    care: 'Moderate moisture. Good drainage. Tolerates Humboldt\'s coastal fog.',
+    planting: 'Plant in fall or early spring. Full sun to part shade. Excellent for Humboldt\'s maritime climate.'
+  },
+  {
+    name: 'Hetz\'s Winterberry',
+    scientific: 'Ilex verticillata \'Winter Red\'',
+    slug: 'hetzel-winterberry',
+    growth: 'Deciduous shrub reaching 4-6 feet with bright red berries persisting into winter. Bold winter interest.',
+    care: 'Moderate to high moisture. Part shade tolerated. Needs cross-pollination for best fruit.',
+    planting: 'Plant in fall or early spring. Full sun to part shade. Excellent for Humboldt\'s moist areas. Male pollinator needed.'
+  },
+  {
+    name: 'Copper Beech',
+    scientific: 'Fagus sylvatica \'Atropunicea\'',
+    slug: 'copper-beech',
+    growth: 'Deciduous tree reaching 30-40 feet with deep purple-bronze foliage. Elegant form.',
+    care: 'Moderate moisture. Well-drained soil. Prune lightly to shape.',
+    planting: 'Plant in fall or early spring. Full sun to part shade. Excellent for Humboldt\'s cool climate as a specimen tree.'
+  },
+  {
+    name: 'Corkscrew Hazel',
+    scientific: 'Corylus avellana \'Contorta\'',
+    slug: 'corkscrew-hazel',
+    growth: 'Deciduous shrub reaching 6-8 feet with dramatically twisted branches. Catkins in early spring.',
+    care: 'Moderate moisture. Full sun to part shade. Minimal pruning needed.',
+    planting: 'Plant in fall or early spring. Excellent for Humboldt\'s winter interest. Twisted branches spectacular when bare.'
+  },
+  {
+    name: 'Hosta Variegata',
+    scientific: 'Hosta \'Patriot\'',
+    slug: 'hosta-patriot',
+    growth: 'Perennial reaching 18-24 inches with bold variegated blue-green leaves edged in white. Shade plant.',
+    care: 'Moderate to high moisture. Shade preferred. Dies back in winter.',
+    planting: 'Plant in spring or fall. Shade to part shade. Excellent for Humboldt\'s moist, shaded gardens. Slugs can be an issue.'
+  },
+  {
+    name: 'Autumn Fern',
+    scientific: 'Dryopteris erythrosora',
+    slug: 'autumn-fern',
+    growth: 'Evergreen fern reaching 18-24 inches with coppery-red new growth turning green. Fine texture.',
+    care: 'Moderate to high moisture. Part shade to shade. Protect from harsh sun.',
+    planting: 'Plant in fall or spring. Part shade to shade. Excellent for Humboldt\'s moist coastal gardens.'
+  },
+  {
+    name: 'Golden Privet',
+    scientific: 'Ligustrum sinense \'Sunshine\'',
+    slug: 'golden-privet',
+    growth: 'Semi-evergreen shrub reaching 4-6 feet with bright yellow-green foliage. Airy, fine texture.',
+    care: 'Moderate moisture. Full sun to part shade. Tolerates pruning well.',
+    planting: 'Plant in fall or early spring. Full sun to part shade. Excellent for Humboldt\'s coastal gardens. Adds bright color.'
+  },
+  {
+    name: 'Japanese Painted Fern',
+    scientific: 'Athyrium niponicum \'Pictum\'',
+    slug: 'japanese-painted-fern',
+    growth: 'Deciduous fern reaching 12-18 inches with silvery-blue fronds with burgundy stems. Delicate beauty.',
+    care: 'Moderate to high moisture. Part shade required. Dies back in winter.',
+    planting: 'Plant in fall or early spring. Part shade to shade. Excellent for Humboldt\'s moist, shaded areas.'
+  },
+  {
+    name: 'Variegated Liriope',
+    scientific: 'Liriope muscari \'Variegata\'',
+    slug: 'variegated-liriope',
+    growth: 'Evergreen perennial reaching 12-18 inches with white-striped leaves and purple flower spikes. Late season bloom.',
+    care: 'Moderate moisture. Full sun to part shade. Tolerates poor soil.',
+    planting: 'Plant in spring or fall. Full sun to part shade. Excellent for Humboldt\'s coastal gardens. Blooms August-October.'
+  },
+  {
+    name: 'Sweetbox',
+    scientific: 'Sarcococca ruscifolia',
+    slug: 'sweetbox',
+    growth: 'Evergreen shrub reaching 3-4 feet with glossy leaves and fragrant white flowers. Winter bloomer.',
+    care: 'Moderate moisture. Part shade to shade. Minimal pruning needed.',
+    planting: 'Plant in fall or early spring. Part shade to shade. Excellent for Humboldt\'s shaded gardens. Fragrant winter flowers.'
+  },
+  {
+    name: 'Ghost Bramble',
+    scientific: 'Rubus cockburnianus',
+    slug: 'ghost-bramble',
+    growth: 'Deciduous shrub reaching 4-6 feet with white-dusted canes and feathery leaves. Winter interest.',
+    care: 'Moderate moisture. Full sun to part shade. Prune after flowering.',
+    planting: 'Plant in fall or early spring. Full sun to part shade. Excellent for Humboldt\'s winter interest displays.'
+  },
+  {
+    name: 'Coral Bark Maple',
+    scientific: 'Acer palmatum \'Sango kaku\'',
+    slug: 'coral-bark-maple',
+    growth: 'Deciduous tree reaching 15-20 feet with red bark and delicate palmate foliage. Bright fall color.',
+    care: 'Moderate moisture. Part shade preferred. Prune lightly to shape.',
+    planting: 'Plant in fall or early spring. Part shade to dappled sun. Excellent for Humboldt\'s cool climate gardens.'
+  },
+  {
+    name: 'Golden Duranta',
+    scientific: 'Duranta erecta \'Golden Edge\'',
+    slug: 'golden-duranta',
+    growth: 'Evergreen shrub reaching 4-6 feet with golden-edged leaves and purple flowers. Tropical flair.',
+    care: 'Moderate moisture. Full sun. Prune to shape. Bring in during frost risk.',
+    planting: 'Plant in spring. Full sun. Excellent for Humboldt\'s mild coastal areas. Protect during hard freezes.'
   }]
       },
       trees: {
@@ -2040,6 +2784,126 @@
     growth: 'Deciduous native tree, 50-80\' tall. Enormous leaves (up to 12" across) turn brilliant gold in fall. Supports more epiphytic moss and fern growth than any other native tree. Important bee tree.',
     care: 'Zero maintenance. Self-sufficient once established. Drops large leaves in fall (great mulch). Provides deep shade. May develop moss-covered branches that give it a magical, old-growth character.',
     planting: 'Plant in fall. Full sun to part shade, 30-40\' apart. Moist soil. Only for larger properties; this is a big tree. Stunning as a specimen in a meadow or along a property boundary.'
+  },
+{
+    name: 'European Hornbeam',
+    scientific: 'Carpinus betulus',
+    slug: 'european-hornbeam',
+    growth: 'Deciduous tree reaching 40-60 feet with smooth gray bark, simple leaves, and catkins. Moderate growth rate.',
+    care: 'Moderate moisture. Well-drained soil. Tolerates wind and salt spray.',
+    planting: 'Plant in fall or early spring. Full sun to part shade. Excellent for Humboldt\'s coastal conditions. Tolerates exposure.'
+  },
+  {
+    name: 'Coast Live Oak',
+    scientific: 'Quercus agrifolia',
+    slug: 'coast-live-oak',
+    growth: 'Evergreen tree reaching 40-60 feet with glossy leaves and rugged trunk. Native to California coast.',
+    care: 'Drought-tolerant once established. Well-drained soil. No supplemental water.',
+    planting: 'Plant in fall from native nursery. Full sun. Excellent for Humboldt\'s coastal neighborhoods. Iconic California native.'
+  },
+  {
+    name: 'Scarlet Oak',
+    scientific: 'Quercus coccinea',
+    slug: 'scarlet-oak',
+    growth: 'Deciduous tree reaching 60-80 feet with deeply lobed leaves and brilliant red fall color. Moderate growth.',
+    care: 'Moderate moisture. Well-drained soil. Prune young to establish form.',
+    planting: 'Plant in fall or early spring. Full sun. Excellent for Humboldt\'s cool climate. Stunning fall foliage.'
+  },
+  {
+    name: 'Paper Birch',
+    scientific: 'Betula papyrifera',
+    slug: 'paper-birch',
+    growth: 'Deciduous tree reaching 50-70 feet with distinctive white papery bark and yellow fall color. Graceful form.',
+    care: 'Moderate moisture. Well-drained soil. Tolerates cool, moist conditions.',
+    planting: 'Plant in fall or early spring. Full sun. Excellent for Humboldt\'s cool climate. Beautiful year-round bark.'
+  },
+  {
+    name: 'Golden Larch',
+    scientific: 'Pseudolarix amabilis',
+    slug: 'golden-larch',
+    growth: 'Deciduous conifer reaching 40-50 feet with golden fall color and loose habit. Rare and distinctive.',
+    care: 'Moderate moisture. Well-drained, slightly acidic soil. Prune lightly.',
+    planting: 'Plant in fall or early spring. Full sun to part shade. Excellent specimen for Humboldt\'s cool climate.'
+  },
+  {
+    name: 'Japanese Zelkova',
+    scientific: 'Zelkova serrata',
+    slug: 'japanese-zelkova',
+    growth: 'Deciduous tree reaching 50-80 feet with vase-like form, elm-like leaves, and orange-red fall color.',
+    care: 'Moderate moisture. Well-drained soil. Tolerates wind and coastal conditions.',
+    planting: 'Plant in fall or early spring. Full sun. Excellent for Humboldt\'s coastal gardens. Strong form and beauty.'
+  },
+  {
+    name: 'Katsura Tree',
+    scientific: 'Cercidiphyllum japonicum',
+    slug: 'katsura-tree',
+    growth: 'Deciduous tree reaching 40-60 feet with heart-shaped leaves, apricot fall color, and graceful branching.',
+    care: 'Moderate to high moisture. Part shade to full sun. Prune lightly for form.',
+    planting: 'Plant in fall or early spring. Part shade to full sun. Excellent for Humboldt\'s moist conditions. Fragrant fall foliage.'
+  },
+  {
+    name: 'Whitebark Pine',
+    scientific: 'Pinus albicaulis',
+    slug: 'whitebark-pine',
+    growth: 'Evergreen conifer reaching 40-50 feet with white bark and dense compact form. Native to higher elevations.',
+    care: 'Moderate moisture. Excellent drainage. Tolerates wind.',
+    planting: 'Plant in fall or early spring from native nursery. Full sun. Good for Humboldt\'s exposed coastal areas.'
+  },
+  {
+    name: 'Crape Myrtle',
+    scientific: 'Lagerstroemia indica',
+    slug: 'crape-myrtle',
+    growth: 'Deciduous tree reaching 20-30 feet with exfoliating bark, crinkled flowers, and colorful fall foliage.',
+    care: 'Moderate moisture. Full sun. Needs minimal care. Long blooming season.',
+    planting: 'Plant in spring. Full sun. Good for Humboldt\'s warmest, most protected coastal areas. Blooms July-September.'
+  },
+  {
+    name: 'Tulip Tree',
+    scientific: 'Liriodendron tulipifera',
+    slug: 'tulip-tree',
+    growth: 'Deciduous tree reaching 80-120 feet with distinctive yellow-green tulip-shaped flowers and straight trunk.',
+    care: 'Moderate to high moisture. Well-drained soil. Prune to develop form.',
+    planting: 'Plant in fall or early spring. Full sun. Excellent for Humboldt\'s cool, moist climate. Majestic specimen tree.'
+  },
+  {
+    name: 'Serbian Spruce',
+    scientific: 'Picea omorika',
+    slug: 'serbian-spruce',
+    growth: 'Evergreen conifer reaching 40-60 feet with narrow columnar form and gracefully drooping branches.',
+    care: 'Moderate moisture. Well-drained, slightly acidic soil. Minimal pruning.',
+    planting: 'Plant in fall or early spring. Full sun to part shade. Excellent for Humboldt\'s cool climate as a tall accent.'
+  },
+  {
+    name: 'Sweetbay Magnolia',
+    scientific: 'Magnolia virginiana',
+    slug: 'sweetbay-magnolia',
+    growth: 'Semi-evergreen tree reaching 40-60 feet with white fragrant flowers and red seed pods. Multi-season interest.',
+    care: 'Moderate to high moisture. Part shade to full sun. Prune lightly.',
+    planting: 'Plant in fall or early spring. Part shade to full sun. Excellent for Humboldt\'s moist areas. Fragrant spring flowers.'
+  },
+  {
+    name: 'Deodar Cedar',
+    scientific: 'Cedrus deodara',
+    slug: 'deodar-cedar',
+    growth: 'Evergreen conifer reaching 40-60 feet with silvery-blue needles and gracefully weeping form. Moderate growth.',
+    care: 'Moderate moisture. Well-drained soil. Tolerates coastal conditions.',
+    planting: 'Plant in fall or early spring. Full sun. Excellent for Humboldt\'s coastal areas. Needs room to spread.'
+  },
+  {
+    name: 'Eastern Red Cedar',
+    scientific: 'Juniperus virginiana',
+    slug: 'eastern-red-cedar',
+    growth: 'Evergreen tree reaching 40-50 feet with fine-textured foliage and columnar to pyramidal form.',
+    care: 'Drought-tolerant once established. Well-drained soil. Minimal care needed.',
+    planting: 'Plant in fall or early spring. Full sun. Good for Humboldt\'s well-drained slopes. Tolerates wind and poor soil.'
+  },
+  {
+    name: 'American Beech',
+    scientific: 'Fagus grandifolia',
+    slug: 'american-beech',
+    growth: 'Deciduous tree reaching 50-70 feet with smooth silvery bark, fine-textured leaves, and golden fall color.',
+    care: 'Moderate to high moisture. Well-drained soil. Prune lightly to develop form.',
+    planting: 'Plant in fall or early spring. Part shade to full sun. Excellent for Humboldt\'s cool, moist climate.'
   }]
       }
     };
