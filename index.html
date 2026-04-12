@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#4a1942">
-  <meta name="description" content="Garden Faery. Your local gardener in Arcata and Humboldt County, CA. Garden care, creative raised beds, bee swarm relocation, and pet sitting. Book a visit today.">
-  <meta property="og:title" content="Garden Faery | Gardener in Arcata & Humboldt County, CA">
-  <meta property="og:description" content="Your local gardener in Arcata and Humboldt County. Garden care, creative raised beds, beekeeping, and pet sitting. Book a visit today.">
+  <meta name="description" content="Garden Faery. Ongoing garden care, custom raised beds, beekeeping, and pet sitting in Arcata, CA. Your garden, tended with care.">
+  <meta property="og:title" content="Garden Faery | Your Garden, Tended with Care">
+  <meta property="og:description" content="Ongoing garden care, custom raised beds, beekeeping, and pet sitting in Arcata, CA. Book a free consultation today.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://gardenfaery.love">
   <meta property="og:image" content="https://gardenfaery.love/farm.jpg">
@@ -14,39 +14,34 @@
   <meta property="og:locale" content="en_US">
   <meta property="og:site_name" content="Garden Faery">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Garden Faery | Gardener in Arcata & Humboldt County, CA">
-  <meta name="twitter:description" content="Your local gardener in Arcata and Humboldt County. Garden care, creative raised beds, beekeeping, and pet sitting.">
+  <meta name="twitter:title" content="Garden Faery | Your Garden, Tended with Care">
+  <meta name="twitter:description" content="Ongoing garden care, custom raised beds, beekeeping, and pet sitting in Arcata, CA.">
   <meta name="twitter:image" content="https://gardenfaery.love/farm.jpg">
   <link rel="canonical" href="https://gardenfaery.love">
   <link rel="icon" type="image/png" href="landing-icon.png">
-  <title>Garden Faery | Gardener in Arcata & Humboldt County, CA</title>
+  <title>Garden Faery | Arcata, CA</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "name": "Garden Faery",
-    "description": "Local gardener in Arcata and Humboldt County, CA. Garden care, creative raised beds, bee swarm relocation, and pet & plant sitting.",
+    "description": "Custom raised beds, garden tending, beekeeping, and pet & plant sitting in Arcata, CA.",
     "url": "https://gardenfaery.love",
     "email": "taya@gardenfaery.love",
     "image": "https://gardenfaery.love/farm.jpg",
     "address": { "@type": "PostalAddress", "addressLocality": "Arcata", "addressRegion": "CA", "addressCountry": "US" },
     "geo": { "@type": "GeoCoordinates", "latitude": 40.8665, "longitude": -124.0828 },
-    "areaServed": [
-      { "@type": "Place", "name": "Humboldt County, CA" },
-      { "@type": "City", "name": "Arcata, CA" },
-      { "@type": "City", "name": "McKinleyville, CA" },
-      { "@type": "City", "name": "Eureka, CA" }
-    ],
+    "areaServed": { "@type": "Place", "name": "Humboldt County, CA" },
     "priceRange": "$25/hr",
     "founder": { "@type": "Person", "name": "Taya" },
     "hasOfferCatalog": {
       "@type": "OfferCatalog", "name": "Garden Services",
       "itemListElement": [
         { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Garden Tending & Weeding", "description": "Regular garden visits: weeding, pruning, planting, and harvest" }, "price": "25", "priceCurrency": "USD" },
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Creative Raised Beds", "description": "Raised beds from cedar, willow, salvaged materials and more, built, filled, and planted" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Custom Raised Beds", "description": "Cedar raised beds with hardware cloth lining, built, filled, and planted" } },
         { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Beekeeping & Pollinator Care", "description": "Honey bee sitting, swarm relocation, and hive care" } },
         { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Pet & Plant Sitting", "description": "Lovingly looking after your garden and pets while you travel" } }
       ]
@@ -58,7 +53,7 @@
     :root {
       --text-primary: #4a1942;
       --text-secondary: rgba(74, 25, 66, 0.6);
-      --font-heading: 'Lora', serif;
+      --font-heading: 'Elsie Swash Caps', serif;
       --font-body: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --bg: #f8f4ed; --accent-1: #c48bb0; --accent-2: #a3b88c; --highlight: #d4c27a;
     }
@@ -68,7 +63,7 @@
 
     /* Nav */
     .site-nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 54px; background: var(--bg); border-bottom: 2px solid var(--accent-1); }
-    .nav-logo { font-family: 'Elsie Swash Caps', serif; font-size: 22px; font-weight: 900; color: var(--text-primary); text-decoration: none; white-space: nowrap; }
+    .nav-logo { font-family: var(--font-heading); font-size: 22px; font-weight: 900; color: var(--text-primary); text-decoration: none; white-space: nowrap; }
     .nav-links { display: flex; gap: 6px; }
     .nav-links a { font-family: var(--font-body); font-size: 14px; font-weight: 600; color: var(--text-secondary); text-decoration: none; padding: 6px 14px; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; }
     .nav-links a:hover { color: var(--text-primary); }
@@ -84,14 +79,14 @@
     }
 
     /* Hero */
-    .hero { text-align: center; padding: 0; position: relative; overflow: hidden; }
-    .hero-image { width: 100%; height: 340px; object-fit: cover; object-position: center 40%; display: block; }
-    .hero-overlay { position: absolute; top: 0; bottom: 0; left: 0; right: 0; padding: 40px 20px 36px; background: rgba(74,25,66,0.75); display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
+    .hero { text-align: center; padding: 0; position: relative; overflow: hidden; height: 340px; }
+    .hero-video { position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; transform: translate(-50%, -50%); object-fit: cover; z-index: 0; }
+    .hero-overlay { position: absolute; top: 0; bottom: 0; left: 0; right: 0; padding: 40px 20px 36px; background: rgba(74,25,66,0.65); display: flex; flex-direction: column; justify-content: flex-end; align-items: center; z-index: 1; }
     .hero h1 { font-size: 32px; font-weight: 900; letter-spacing: 0.5px; margin-bottom: 8px; line-height: 1.15; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
     .hero p { font-size: 15px; color: rgba(255,255,255,0.9); max-width: 420px; margin: 0 auto 18px; text-shadow: 0 1px 4px rgba(0,0,0,0.3); }
     .hero-cta { display: inline-block; padding: 12px 32px; background: var(--accent-1); color: white; text-decoration: none; font-family: var(--font-body); font-size: 15px; font-weight: 700; border-radius: 10px; transition: background 0.2s, transform 0.2s; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
     .hero-cta:hover { background: var(--highlight); transform: scale(1.03); }
-    @media (min-width: 600px) { .hero h1 { font-size: 42px; } .hero-image { height: 420px; } .hero-overlay { padding: 50px 20px 44px; } }
+    @media (min-width: 600px) { .hero { height: 420px; } .hero h1 { font-size: 42px; } .hero-overlay { padding: 50px 20px 44px; } }
 
     /* Service Chips */
     .service-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 520px; margin: 0 auto; padding: 0 20px 40px; }
@@ -128,7 +123,6 @@
     .social-links a { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); transition: background 0.2s, transform 0.2s; }
     .social-links a:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
     .social-links svg { width: 18px; height: 18px; fill: var(--accent-1); }
-    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
   </style>
 </head>
 <body>
@@ -138,29 +132,28 @@
     <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div class="nav-links">
       <a href="index.html" class="active">Home</a>
-      <a href="about.html">About</a>
       <a href="services.html">Services</a>
       <a href="estimator.html">Bed Builder</a>
       <a href="gallery.html">Gallery</a>
-      <a href="plant-guide.html">Plant Guide</a>
-      <a href="food-guide.html">Market Garden</a>
-      <a href="book.html">Book</a>
       <a href="contact.html">Contact</a>
     </div>
   </nav>
 
   <div class="hero">
-    <img src="hero-garden-new.jpg" alt="Vibrant pink dianthus flower field at Garden Faery" class="hero-image">
+    <video class="hero-video" autoplay muted loop playsinline poster="hero-garden-new.jpg">
+      <source src="hero-video.mp4" type="video/mp4">
+      <!-- Fallback: if no video support, the poster image shows -->
+    </video>
     <div class="hero-overlay">
       <h1 id="hero-headline">Your Garden,<br>Tended with Care</h1>
       <p id="hero-subtitle">Ongoing garden care for folks who love to grow. I show up so your garden keeps thriving.</p>
-      <a class="hero-cta" href="book.html" id="hero-cta">Book Garden Care</a>
+      <a class="hero-cta" href="https://calendar.app.google/CQd77uL1tqsj19cw9" target="_blank" id="hero-cta">Book a Free Consult</a>
     </div>
   </div>
 
   <div class="content">
     <div class="intro">
-      <strong>Hi, I&rsquo;m Taya</strong>, your local garden faery. I show up weekly to weed, prune, plant, and keep your garden happy so you don&rsquo;t have to. With roots in permaculture, beekeeping, and microgreen cultivation, I bring that wisdom to your garden. Let me tend what you love.
+      <strong>Hi, I&rsquo;m Taya</strong>, your local garden faery. I show up weekly to weed, prune, plant, and keep your garden happy so you don&rsquo;t have to. With roots in permaculture, beekeeping, and microgreen cultivation, I bring real know-how straight to your backyard. Let me tend what you love.
     </div>
   </div>
 
@@ -172,13 +165,12 @@
   </div>
 
   <div class="content">
-    <div class="faery-divider"><div class="faery-divider-line"></div><img src="garden-faery-logo-alt.png" alt="Garden Faery logo, fairy kneeling with shovel" style="height:100px; opacity:0.75; filter: drop-shadow(0 1px 3px rgba(74,25,66,0.2));"><div class="faery-divider-line"></div></div>
+    <div class="faery-divider"><div class="faery-divider-line"></div><img src="garden-faery-logo.png" alt="Garden Faery logo, fairy kneeling with shovel" style="height:100px; opacity:0.75; filter: drop-shadow(0 1px 3px rgba(74,25,66,0.2));"><div class="faery-divider-line"></div></div>
 
     <div class="newsletter">
       <h2>Get the Dirt</h2>
       <p>Seasonal garden wisdom, project updates, and new offerings. No spam, just good green vibes.</p>
       <div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; justify-content:center;">
-        <label for="nl-email" class="sr-only">Email for newsletter</label>
         <input type="email" id="nl-email" class="newsletter-input" placeholder="your@email.com" required>
         <button onclick="subscribeNewsletter()" class="newsletter-btn">Sign Up</button>
       </div>
@@ -205,22 +197,22 @@
         spring: { bg: '#f8f4ed', a1: '#c48bb0', a2: '#a3b88c', hl: '#d4c27a',
           headline: 'Your Garden,<br>Tended with Care',
           subtitle: 'Ongoing garden care for folks who love to grow. I show up so your garden keeps thriving.',
-          cta: 'Book Garden Care',
+          cta: 'Book a Free Consult',
           chips: ['Garden Tending', 'Raised Beds', 'Bee Services', 'Pet & Plant Sitting'] },
         summer: { bg: '#faf6f1', a1: '#e8b828', a2: '#b5c99a', hl: '#7b2d6e',
           headline: 'Let\u2019s Keep It<br>Growing All Summer',
           subtitle: 'Regular garden visits to keep your beds happy, your bees buzzing, and your harvest rolling in.',
-          cta: 'Book Garden Care',
+          cta: 'Book a Free Consult',
           chips: ['Garden Tending', 'Raised Beds', 'Bee Services', 'Pet & Plant Sitting'] },
         autumn: { bg: '#faf3ea', a1: '#d4943a', a2: '#a67c52', hl: '#7a3b4e',
           headline: 'Harvest Season.<br>Tend, Gather, Rest',
           subtitle: 'Fall cleanup, garden prep, and getting your space ready for the quiet months.',
-          cta: 'Book Garden Care',
+          cta: 'Book a Free Consult',
           chips: ['Garden Tending', 'Fall Cleanup', 'Bed Prep', 'Pet & Plant Sitting'] },
         winter: { bg: '#f5f3f0', a1: '#8fb0a5', a2: '#506a6e', hl: '#c4b5a0',
           headline: 'Winter Rest.<br>We\u2019ve Got Your Critters',
           subtitle: 'Traveling for the holidays? Your pets and plants are in good hands.',
-          cta: 'Book Garden Care',
+          cta: 'Book a Free Consult',
           chips: ['Garden Planning', 'Winter Pruning', 'Raised Beds', 'Pet & Plant Sitting'] }
       };
       var s;
@@ -232,41 +224,35 @@
       root.style.setProperty('--accent-1', s.a1);
       root.style.setProperty('--accent-2', s.a2);
       root.style.setProperty('--highlight', s.hl);
+      root.style.setProperty('--text-color', '#4a1942');
       document.getElementById('hero-headline').innerHTML = s.headline;
       document.getElementById('hero-subtitle').textContent = s.subtitle;
       document.getElementById('hero-cta').textContent = s.cta;
-      document.getElementById('hero-cta').href = 'book.html';
+      document.getElementById('hero-cta').href = 'https://calendar.app.google/CQd77uL1tqsj19cw9';
       for (var i = 0; i < s.chips.length; i++) {
         var chip = document.getElementById('chip-' + (i + 1));
         if (chip) chip.textContent = s.chips[i];
       }
     })();
 
-    // Newsletter signup (Buttondown)
+    // Newsletter signup
+    var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxtiXs-zCfNa9wbJ3ly9hIlFftGiDhoIOeVfSIWoPtzBLOUsrSbVyqxriOXY5VWV5xqQA/exec';
     function subscribeNewsletter() {
       var email = document.getElementById('nl-email').value;
       if (!email) return;
       var status = document.getElementById('nl-status');
       status.style.display = 'block';
       status.textContent = 'Signing you up...';
-      fetch('https://api.buttondown.com/v1/subscribers', {
+      fetch(SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Token f5562637-5256-4345-9c13-768b1f8004a0' },
-        body: JSON.stringify({ email: email })
-      }).then(function(r) {
-        if (r.status === 201 || r.status === 200) {
-          status.textContent = "You're in! Watch for garden magic in your inbox.";
-          status.style.color = 'var(--accent-2)';
-          document.getElementById('nl-email').value = '';
-        } else if (r.status === 400) {
-          status.textContent = "Looks like you're already on the list!";
-          status.style.color = 'var(--accent-2)';
-        } else {
-          throw new Error('Server error');
-        }
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'newsletter', email: email })
+      }).then(function() {
+        status.textContent = "You're in! Watch for garden magic in your inbox.";
+        document.getElementById('nl-email').value = '';
       }).catch(function() {
-        status.textContent = 'Hmm, something went wrong. Try again or email taya@gardenfaery.love.';
-        status.style.color = '#c0392b';
+        status.textContent = 'Hmm, something went wrong. Try again?';
       });
     }
   </script>
