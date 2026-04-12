@@ -175,23 +175,6 @@
     }
     .detail-item .value { font-size: 14px; font-weight: 600; }
 
-    /* What to expect */
-    .expect-section { margin-bottom: 36px; }
-    .expect-section h2 { font-size: 24px; margin-bottom: 14px; }
-    .expect-list { list-style: none; padding: 0; }
-    .expect-list li {
-      padding: 10px 0; font-size: 14px;
-      border-bottom: 1px solid rgba(74,25,66,0.06);
-      display: flex; align-items: flex-start; gap: 10px;
-    }
-    .expect-list li:last-child { border-bottom: none; }
-    .expect-list .step-num {
-      flex-shrink: 0; width: 26px; height: 26px;
-      display: flex; align-items: center; justify-content: center;
-      border-radius: 50%; background: var(--accent-1); color: white;
-      font-size: 12px; font-weight: 700; margin-top: 1px;
-    }
-
     /* Divider */
     .section-divider {
       display: flex; align-items: center; justify-content: center;
@@ -348,7 +331,6 @@
     document.querySelectorAll('.card-icon').forEach(function(el) { el.style.background = p.a1; });
     document.querySelectorAll('.card-badge:not(.paid)').forEach(function(el) { el.style.background = p.a2; });
     document.querySelectorAll('.card-badge.paid').forEach(function(el) { el.style.background = p.hl; });
-    document.querySelectorAll('.step-num').forEach(function(el) { el.style.background = p.a1; });
   })();
 
   // Inline booking: click a card, calendar loads as iframe below
