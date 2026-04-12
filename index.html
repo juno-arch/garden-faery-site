@@ -157,7 +157,7 @@
     <div class="hero-overlay">
       <h1 id="hero-headline">Your Garden,<br>Tended with Care</h1>
       <p id="hero-subtitle">Ongoing garden care for folks who love to grow. I show up so your garden keeps thriving.</p>
-      <a class="hero-cta" href="https://calendar.app.google/CQd77uL1tqsj19cw9" target="_blank" id="hero-cta">Book</a>
+      <a class="hero-cta" href="book.html" id="hero-cta">Book</a>
     </div>
   </div>
 
@@ -239,7 +239,7 @@
       document.getElementById('hero-headline').innerHTML = s.headline;
       document.getElementById('hero-subtitle').textContent = s.subtitle;
       document.getElementById('hero-cta').textContent = s.cta;
-      document.getElementById('hero-cta').href = 'https://calendar.app.google/CQd77uL1tqsj19cw9';
+      document.getElementById('hero-cta').href = 'book.html';
       for (var i = 0; i < s.chips.length; i++) {
         var chip = document.getElementById('chip-' + (i + 1));
         if (chip) chip.textContent = s.chips[i];
