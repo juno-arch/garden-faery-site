@@ -825,7 +825,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
       <h2 style="font-size: 1.2rem; margin-bottom: 4px;">Manage Your Booking</h2>
       <p style="font-size: 0.9rem; color: var(--gray-600); margin-bottom: 16px;">Enter the phone number you booked with to pull up your visits.</p>
       <div class="form-group">
-        <label>Phone number</label>
+        <label for="manage-phone">Phone number</label>
         <input type="tel" id="manage-phone" placeholder="(707) 555-1234">
       </div>
       <button class="btn btn-primary" onclick="lookupBookings()">Find My Bookings</button>
@@ -860,23 +860,23 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
     </div>
     <div class="card">
       <div class="form-group">
-        <label>Your name <span class="required">*</span></label>
+        <label for="f-name">Your name <span class="required">*</span></label>
         <input type="text" id="f-name" placeholder="First and last name" required>
       </div>
       <div class="form-group">
-        <label>Email <span class="required">*</span></label>
+        <label for="f-email">Email <span class="required">*</span></label>
         <input type="email" id="f-email" placeholder="you@email.com" required>
       </div>
       <div class="form-group">
-        <label>Phone <span class="required">*</span></label>
+        <label for="f-phone">Phone <span class="required">*</span></label>
         <input type="tel" id="f-phone" placeholder="(707) 555-1234" required>
       </div>
       <div class="form-group">
-        <label>Address <span class="required">*</span></label>
+        <label for="f-address">Address <span class="required">*</span></label>
         <input type="text" id="f-address" placeholder="Where should I come?">
       </div>
       <div class="form-group">
-        <label>Garden notes</label>
+        <label for="f-notes">Garden notes</label>
         <textarea id="f-notes" placeholder="Anything I should know? Dogs, gate codes, what you'd like help with..."></textarea>
       </div>
     </div>
