@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Newsletter Draft | Garden Faery Admin</title>
+  <link rel="icon" type="image/png" href="icon-admin.png">
+  <link rel="apple-touch-icon" href="icon-admin.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;700;900&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --plum: #4a1942;
+      --text-secondary: rgba(74, 25, 66, 0.78);
+      --cream: #f8f4ed;
+      --petal-pink: #c48bb0;
+      --spring-sage: #a3b88c;
+      --pollen-gold: #d4c27a;
+      --gray-200: #e8e3d9;
+      --gray-400: #b8ada0;
+    }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--cream);
+      color: var(--plum);
+      line-height: 1.55;
+      padding: 0 20px 60px;
+    }
+    h1, h2, h3 { font-family: 'Lora', serif; }
+
+    .page-head {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 28px 0 16px;
+      border-bottom: 2px solid var(--petal-pink);
+    }
+    .page-head h1 { font-size: 28px; font-weight: 900; }
+    .page-head p { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+    .admin-badge {
+      display: inline-block;
+      background: rgba(74, 25, 66, 0.08);
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 10px;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 24px;
+      max-width: 880px;
+      margin: 24px auto 0;
+    }
+    @media (max-width: 760px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    .controls {
+      background: white;
+      border-radius: 12px;
+      padding: 18px 18px 22px;
+      box-shadow: 0 2px 10px rgba(74, 25, 66, 0.07);
+      align-self: start;
+    }
+    .controls h2 { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+    .month-picker {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 4px;
+      margin-bottom: 16px;
+    }
+    .month-btn {
+      padding: 8px 4px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1.5px solid rgba(74, 25, 66, 0.1);
+      background: white;
+      color: var(--plum);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .month-btn:hover { border-color: var(--plum); }
+    .month-btn.active {
+      background: var(--plum);
+      border-color: var(--plum);
+      color: white;
+    }
+    .month-btn.is-today {
+      box-shadow: 0 0 0 2px var(--pollen-gold);
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 4px;
+    }
+    .field input, .field textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1.5px solid rgba(74, 25, 66, 0.15);
+      border-radius: 7px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 13px;
+      color: var(--plum);
+      background: var(--cream);
+    }
+    .field input:focus, .field textarea:focus {
+      outline: none;
+      border-color: var(--petal-pink);
+    }
+    .field textarea { min-height: 70px; resize: vertical; }
+
+    .copy-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .copy-btn {
+      flex: 1;
+      min-width: 80px;
+      padding: 9px;
+      border: 2px solid var(--plum);
+      background: white;
+      color: var(--plum);
+      border-radius: 7px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .copy-btn:hover { background: var(--plum); color: white; }
+    .copy-btn.primary {
+      background: var(--pollen-gold);
+      border-color: var(--pollen-gold);
+    }
+    .copy-btn.primary:hover { background: var(--plum); border-color: var(--plum); color: white; }
+    .copy-feedback {
+      font-size: 11.5px;
+      color: var(--spring-sage);
+      font-weight: 700;
+      margin-top: 6px;
+      min-height: 14px;
+    }
+
+    .preview-wrap {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(74, 25, 66, 0.07);
+      overflow: hidden;
+    }
+    .preview-tab-bar {
+      display: flex;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .preview-tab {
+      flex: 1;
+      padding: 11px;
+      border: none;
+      background: white;
+      color: var(--text-secondary);
+      font-family: 'Nunito', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    .preview-tab.active {
+      color: var(--plum);
+      border-bottom-color: var(--petal-pink);
+    }
+    .preview-body {
+      padding: 24px 28px;
+      min-height: 400px;
+    }
+    .preview-body pre {
+      font-family: 'Menlo', 'Consolas', monospace;
+      font-size: 12.5px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      background: var(--cream);
+      padding: 16px;
+      border-radius: 8px;
+      color: var(--plum);
+    }
+    .preview-body.html h2 { font-size: 22px; font-weight: 700; margin: 22px 0 10px; color: var(--plum); }
+    .preview-body.html h3 { font-size: 16px; font-weight: 700; margin: 16px 0 6px; color: var(--plum); }
+    .preview-body.html p { font-size: 14px; margin-bottom: 12px; color: var(--plum); }
+    .preview-body.html ul { margin: 6px 0 14px 20px; font-size: 14px; }
+    .preview-body.html li { margin-bottom: 4px; }
+    .preview-body.html .tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 3px 9px;
+      border-radius: 10px;
+      margin-right: 4px;
+    }
+    .preview-body.html a { color: var(--petal-pink); }
+    .preview-body.html .subject {
+      font-family: 'Menlo', monospace;
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: var(--cream);
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    .preview-body.html .subject strong { color: var(--plum); font-family: 'Nunito'; }
+
+    .hint {
+      background: rgba(163, 184, 140, 0.12);
+      border-left: 3px solid var(--spring-sage);
+      padding: 12px 14px;
+      border-radius: 0 8px 8px 0;
+      font-size: 13px;
+      color: var(--plum);
+      margin: 18px 0 0;
+    }
+    .hint strong { color: var(--spring-sage); }
+
+    .back {
+      display: inline-block;
+      font-size: 13px;
+      color: var(--petal-pink);
+      text-decoration: none;
+      margin-top: 20px;
+    }
+    .back:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header class="page-head">
+    <div style="max-width:880px;margin:0 auto;">
+      <h1>Newsletter Draft <span class="admin-badge">Admin</span></h1>
+      <p>Generates a monthly Buttondown-ready draft from your Market Garden data. Pick a month, tweak the intro, copy in the format you want.</p>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="controls">
+      <h2>Month</h2>
+      <div class="month-picker" id="month-picker"></div>
+
+      <h2 style="margin-top:18px;">Customize</h2>
+      <div class="field">
+        <label for="greeting">Opening</label>
+        <textarea id="greeting" placeholder="Set the tone for the month..."></textarea>
+      </div>
+      <div class="field">
+        <label for="focus">Focus of the month</label>
+        <textarea id="focus" placeholder="One garden task to prioritize..."></textarea>
+      </div>
+      <div class="field">
+        <label for="signoff">Signoff</label>
+        <input id="signoff" type="text" value="Happy growing, Taya">
+      </div>
+
+      <div class="copy-row">
+        <button class="copy-btn primary" id="copy-html">Copy HTML</button>
+        <button class="copy-btn" id="copy-md">Copy Markdown</button>
+        <button class="copy-btn" id="copy-txt">Copy Plain</button>
+      </div>
+      <div class="copy-feedback" id="copy-feedback"></div>
+
+      <div class="hint">
+        <strong>Tip:</strong> Paste HTML into Buttondown's "Rich text" editor, or Markdown into its Markdown mode.
+      </div>
+
+      <a class="back" href="index.html">&larr; Back to site</a>
+    </aside>
+
+    <div class="preview-wrap">
+      <div class="preview-tab-bar">
+        <button class="preview-tab active" data-tab="html">Preview</button>
+        <button class="preview-tab" data-tab="md">Markdown</button>
+        <button class="preview-tab" data-tab="txt">Plain Text</button>
+      </div>
+      <div class="preview-body html" id="preview"></div>
+    </div>
+  </div>
+
+  <script>
+  const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // Compact subset of food-guide.html plant data (name, slug, harvest, planting).
+  // Update here if food-guide.html adds crops.
+  const CROPS = [
+    { name: 'Blueberry',       slug: 'blueberry',       harvest: 'Jun to Aug', planting: 'Jan/Feb or Nov/Dec' },
+    { name: 'Strawberry',      slug: 'strawberry',      harvest: 'May to Oct', planting: 'Mar/Apr or Sep' },
+    { name: 'Raspberry',       slug: 'raspberry',       harvest: 'Jun to Aug', planting: 'Nov-Mar' },
+    { name: 'Apple',           slug: 'apple',           harvest: 'Sep to Nov', planting: 'Dec-Feb' },
+    { name: 'Fig',             slug: 'fig',             harvest: 'Aug to Oct', planting: 'Mar to May' },
+    { name: 'Pear',            slug: 'pear',            harvest: 'Sep to Oct', planting: 'Dec-Feb' },
+    { name: 'Currant',         slug: 'currant',         harvest: 'Jun to Jul', planting: 'Nov-Mar' },
+    { name: 'Grapes',          slug: 'grapes',          harvest: 'Sep to Oct', planting: 'Nov-Mar' },
+    { name: 'Kale',            slug: 'kale',            harvest: 'Oct to Mar or year-round', planting: 'Jan to Apr, Aug/Sep' },
+    { name: 'Lettuce',         slug: 'lettuce',         harvest: 'Mar to Jun, Aug to Oct', planting: 'Feb, Mar to Jun, Aug/Sep' },
+    { name: 'Spinach',         slug: 'spinach',         harvest: 'Mar to May, Oct/Nov', planting: 'Feb to Apr, Sep/Oct' },
+    { name: 'Chard',           slug: 'chard',           harvest: 'Jun to Nov', planting: 'Mar to May, Jul/Aug' },
+    { name: 'Sugar Snap Peas', slug: 'sugar-snap-peas', harvest: 'Apr to Jun, Oct', planting: 'Feb to Apr, Aug/Sep' },
+    { name: 'Broccoli',        slug: 'broccoli',        harvest: 'May to Jul, Oct/Nov', planting: 'Feb/Mar, Jul/Aug' },
+    { name: 'Cabbage',         slug: 'cabbage',         harvest: 'Apr to Jun, Sep to Nov', planting: 'Jan to Mar, Jul/Aug' },
+    { name: 'Cucumber',        slug: 'cucumber',        harvest: 'Jul to Sep', planting: 'May/Jun' },
+    { name: 'Tomatoes',        slug: 'tomatoes',        harvest: 'Jul to Oct', planting: 'Feb/Mar indoors, Apr/May out' },
+    { name: 'Summer Squash',   slug: 'summer-squash',   harvest: 'Jul to Sep', planting: 'May/Jun' },
+    { name: 'Winter Squash',   slug: 'winter-squash',   harvest: 'Sep to Nov', planting: 'May/Jun' },
+    { name: 'Beans',           slug: 'beans',           harvest: 'Jul to Oct', planting: 'May/Jun' },
+    { name: 'Corn',            slug: 'corn',            harvest: 'Aug to Oct', planting: 'May/Jun' },
+    { name: 'Artichoke',       slug: 'artichoke',       harvest: 'Apr to Jun', planting: 'Feb/Mar or Oct' },
+    { name: 'Rhubarb',         slug: 'rhubarb',         harvest: 'Apr to Jun', planting: 'Feb to Apr, Oct/Nov' },
+    { name: 'Garlic',          slug: 'garlic',          harvest: 'Jun/Jul',    planting: 'Oct/Nov' },
+    { name: 'Onion',           slug: 'onion',           harvest: 'Jul to Sep', planting: 'Jan to Mar' },
+    { name: 'Carrot',          slug: 'carrot',          harvest: 'May to Nov', planting: 'Feb to Jul' },
+    { name: 'Beet',            slug: 'beet',            harvest: 'May to Nov', planting: 'Feb to Jul' },
+    { name: 'Radish',          slug: 'radish',          harvest: 'Apr to Nov', planting: 'Jan to Jul, Sep/Oct' },
+    { name: 'Turnip',          slug: 'turnip',          harvest: 'May to Jul, Oct/Nov', planting: 'Feb to Apr, Aug/Sep' },
+    { name: 'Potato',          slug: 'potato',          harvest: 'Jul to Oct', planting: 'Feb to Apr' }
+  ];
+
+  // Seasonal focus & spotlight per month (0 = Jan)
+  const MONTH_CONTENT = [
+    { // Jan
+      greeting: "Hello from the Humboldt coast. Winter rains are keeping the garden drinking, and indoors we're eyeing catalogs and warming up seed-starting gear. This month is about planning and planting bare-root.",
+      focus: "Bare-root season. Nurseries have blueberries, raspberries, and fruit trees at their lowest prices. Plant them now while they're dormant — they'll establish strong roots before spring pushes new growth.",
+      spotlight: { name: 'Blueberry', slug: 'blueberry', note: "Humboldt's naturally acidic soil is perfect for them. Plant two varieties near each other for cross-pollination." }
+    },
+    { // Feb
+      greeting: "The light is starting to return. Days are still short, but there's a quickening in the garden — hellebores, early primroses, and tulip tips pushing through. Seed starting begins in earnest.",
+      focus: "Start tomato and pepper seeds indoors mid-month. You'll want 6-8 weeks before transplanting out. A heat mat is the difference between okay germination and great germination.",
+      spotlight: { name: 'Sugar Snap Peas', slug: 'sugar-snap-peas', note: "Direct sow now. They love cool weather and our damp soil — the earliest crop to really thrive." }
+    },
+    { // Mar
+      greeting: "March is the hinge month. Daffodils, calendula, California poppy — everything shakes off winter. Time to turn compost into beds and wake things up.",
+      focus: "Prep beds for the season. Fold in compost, top-dress with worm castings, and get trellises in place before peas and favas demand them.",
+      spotlight: { name: 'California Poppy', slug: 'california-poppy', note: "Scatter seed now and they'll self-sow forever. They ask almost nothing and give bees everything.", external: 'plant-guide.html' }
+    },
+    { // Apr
+      greeting: "Tomato starts are hardening off, and there's that unmistakable green smell after the April rains. The garden is waking into full production.",
+      focus: "Get tomato starts into the warmest spot you have — a south-facing wall, a hoop house, a sheltered corner. Our cool coast means every degree of extra warmth matters.",
+      spotlight: { name: 'Lavender', slug: 'lavender', note: "If you're planting ornamentals this month, lavender is a pollinator magnet and loves our mild Humboldt climate. Plant now for summer bees.", external: 'plant-guide.html' }
+    },
+    { // May
+      greeting: "Last-frost date is behind us (mostly — we know Humboldt surprises). Summer crops are going in the ground. This is planting month.",
+      focus: "Direct-sow beans, cucumbers, squash, and corn. Heat-lovers like tomatoes and peppers transplant out now. Succession-sow lettuce for continuous harvest.",
+      spotlight: { name: 'Bee Balm', slug: 'bee-balm', note: "Perfect time to plant for mid-summer blooms. Hummingbirds find it instantly.", external: 'plant-guide.html' }
+    },
+    { // Jun
+      greeting: "Long days and garlic scapes — June in the coastal garden. The first strawberries, sugar snaps, and artichokes are on the table. Everything is growing.",
+      focus: "Pinch tomato suckers, stake what's toppling, and start thinking about succession crops. A fresh sowing of lettuce and chard now gives you autumn greens.",
+      spotlight: { name: 'Strawberry', slug: 'strawberry', note: "Peak season. Day-neutral varieties will keep fruiting well into fall. Mulch with straw to keep berries clean." }
+    },
+    { // Jul
+      greeting: "Garlic harvest month — the papery curls of scapes already clipped and the heads coming out full. The garden is generous in a way that only happens in July.",
+      focus: "Pull garlic when the lower leaves yellow but a few green ones remain. Cure in a shaded, airy spot for 2-3 weeks before storing. Save the best heads to replant in October.",
+      spotlight: { name: 'Garlic', slug: 'garlic', note: "Humboldt-grown garlic stores for months. Hardneck varieties offer scapes in spring; softneck braids better for hanging." }
+    },
+    { // Aug
+      greeting: "Fog, warm soil, ripe tomatoes. August on the coast is a gift — cool mornings that ease into warm afternoons. The garden is as lush as it gets.",
+      focus: "Keep picking. Regular harvest of beans, zucchini, and cukes keeps production going. This is also fall-planting prep month: order brassica starts for September.",
+      spotlight: { name: 'Tomatoes', slug: 'tomatoes', note: "Stupice, Early Girl, and Sungold perform best on the coast. If yours are slow, plant near a south-facing wall next year." }
+    },
+    { // Sep
+      greeting: "The tilt toward fall. Tomatoes still coming in, but brassicas, chard, and kale are getting the cooler nights they prefer. The garden gets a second wind.",
+      focus: "Plant cool-season crops now: kale, cabbage, broccoli, cauliflower, and salad greens. They'll establish before the rains and produce all winter.",
+      spotlight: { name: 'Kale', slug: 'kale', note: "Plant now for winter harvest. Lacinato holds up best in frost; Red Russian is tender and sweet." }
+    },
+    { // Oct
+      greeting: "Rain returns, leaves turn, and the last of the summer crop is coming in before the first real cold snap. Time to put the garden to bed thoughtfully.",
+      focus: "Plant garlic before the ground gets too wet. Clean up summer beds, sheet-mulch what you're not planting, and sow a cover crop in bare spots.",
+      spotlight: { name: 'Phacelia', slug: 'phacelia', note: "Scatter phacelia seed as a cover crop now. It improves soil, attracts early-spring bees, and dies back cleanly come summer.", external: 'plant-guide.html' }
+    },
+    { // Nov
+      greeting: "Short days, long nights, quiet garden. The soil is drinking deeply. Time for pruning, bare-root planning, and resting the tools.",
+      focus: "Prune deciduous fruit trees once they're fully dormant (late in the month). Take cuttings of currants and blueberries while you're at it.",
+      spotlight: { name: 'Comfrey', slug: 'comfrey', note: "Cut back comfrey one last time and mulch with the leaves — it's like slow-release fertilizer for your perennials.", external: 'plant-guide.html' }
+    },
+    { // Dec
+      greeting: "Dark days, rest and planning. Winter solstice is just ahead. The garden needs very little from us now, and that's the gift.",
+      focus: "Order seeds for next year. Walk the garden and note what worked, what didn't. Write it down while it's fresh. February will come fast.",
+      spotlight: { name: 'Ceanothus', slug: 'ceanothus', note: "If you're dreaming of spring, plan for ceanothus. Native California lilac blooms in cascades of blue right when the bees wake up.", external: 'plant-guide.html' }
+    }
+  ];
+
+  // ---- Month parsing (shared with food-guide) ----
+  function parseMonthRanges(text) {
+    if (!text) return [];
+    const months = new Set();
+    const cleaned = text.toLowerCase();
+    const rangeRe = /(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)(?:\w*)?\s*(?:to|-|–|through)\s*(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/g;
+    let m;
+    while ((m = rangeRe.exec(cleaned)) !== null) {
+      const from = MONTH_SHORT.findIndex(x => x.toLowerCase() === m[1]);
+      const to = MONTH_SHORT.findIndex(x => x.toLowerCase() === m[2]);
+      if (from < 0 || to < 0) continue;
+      let i = from;
+      months.add(i);
+      while (i !== to) { i = (i + 1) % 12; months.add(i); if (months.size > 24) break; }
+    }
+    const textWithoutRanges = cleaned.replace(rangeRe, '');
+    const singleRe = /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)(?!\w)/g;
+    while ((m = singleRe.exec(textWithoutRanges)) !== null) {
+      const idx = MONTH_SHORT.findIndex(x => x.toLowerCase() === m[1]);
+      if (idx >= 0) months.add(idx);
+    }
+    return Array.from(months).sort((a, b) => a - b);
+  }
+
+  CROPS.forEach(c => {
+    c.plantMonths = parseMonthRanges(c.planting);
+    c.harvestMonths = parseMonthRanges(c.harvest);
+  });
+
+  // ---- State ----
+  let currentMonth = new Date().getMonth();
+  let currentTab = 'html';
+  let customGreeting = null;
+  let customFocus = null;
+
+  // ---- Render ----
+  function plantsFor(month) {
+    return CROPS.filter(c => c.plantMonths.includes(month));
+  }
+  function harvestFor(month) {
+    return CROPS.filter(c => c.harvestMonths.includes(month));
+  }
+
+  function getGreeting() {
+    return customGreeting !== null ? customGreeting : MONTH_CONTENT[currentMonth].greeting;
+  }
+  function getFocus() {
+    return customFocus !== null ? customFocus : MONTH_CONTENT[currentMonth].focus;
+  }
+  function getSignoff() {
+    return document.getElementById('signoff').value || 'Happy growing, Taya';
+  }
+
+  function renderMonthPicker() {
+    const el = document.getElementById('month-picker');
+    const today = new Date().getMonth();
+    el.innerHTML = MONTH_NAMES.map((name, i) =>
+      '<button class="month-btn' +
+      (i === currentMonth ? ' active' : '') +
+      (i === today ? ' is-today' : '') +
+      '" data-month="' + i + '">' + MONTH_SHORT[i] + '</button>'
+    ).join('');
+    el.querySelectorAll('.month-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentMonth = parseInt(btn.dataset.month, 10);
+        customGreeting = null;
+        customFocus = null;
+        document.getElementById('greeting').value = '';
+        document.getElementById('focus').value = '';
+        renderMonthPicker();
+        renderPreview();
+      });
+    });
+  }
+
+  function subject() {
+    return 'Garden Faery: What to do in ' + MONTH_NAMES[currentMonth];
+  }
+
+  function buildHtml() {
+    const content = MONTH_CONTENT[currentMonth];
+    const plant = plantsFor(currentMonth);
+    const harvest = harvestFor(currentMonth);
+    const spot = content.spotlight;
+    const spotHref = spot.external ? spot.external + '?plant=' + spot.slug : 'food-guide.html?plant=' + spot.slug;
+
+    let html = '';
+    html += '<p>' + escapeHtml(getGreeting()) + '</p>';
+
+    if (plant.length > 0) {
+      html += '<h2>Plant now</h2>';
+      html += '<p>Here\'s what I\'m planting this month:</p><ul>';
+      plant.forEach(c => {
+        html += '<li><strong>' + escapeHtml(c.name) + '</strong> \u2014 ' + escapeHtml(c.planting) + '</li>';
+      });
+      html += '</ul>';
+    }
+
+    if (harvest.length > 0) {
+      html += '<h2>Harvest now</h2><p>On the table this month:</p><ul>';
+      harvest.forEach(c => {
+        html += '<li><strong>' + escapeHtml(c.name) + '</strong> \u2014 ' + escapeHtml(c.harvest) + '</li>';
+      });
+      html += '</ul>';
+    }
+
+    html += '<h2>Focus of the month</h2><p>' + escapeHtml(getFocus()) + '</p>';
+
+    html += '<h2>Plant spotlight: ' + escapeHtml(spot.name) + '</h2>';
+    html += '<p>' + escapeHtml(spot.note) + '</p>';
+    html += '<p><a href="https://gardenfaery.love/' + spotHref + '">Read more about ' + escapeHtml(spot.name) + ' \u2192</a></p>';
+
+    html += '<h2>Need a hand?</h2>';
+    html += '<p>I\'m booking garden visits now. <a href="https://gardenfaery.love/book.html">Grab a time on the calendar</a> or hit reply if you\'d rather chat first.</p>';
+
+    html += '<p style="margin-top:28px">' + escapeHtml(getSignoff()) + '<br><em>The Garden Faery</em></p>';
+
+    return html;
+  }
+
+  function buildMarkdown() {
+    const content = MONTH_CONTENT[currentMonth];
+    const plant = plantsFor(currentMonth);
+    const harvest = harvestFor(currentMonth);
+    const spot = content.spotlight;
+    const spotHref = spot.external ? spot.external + '?plant=' + spot.slug : 'food-guide.html?plant=' + spot.slug;
+
+    let md = '';
+    md += getGreeting() + '\n\n';
+
+    if (plant.length > 0) {
+      md += '## Plant now\n\nHere\'s what I\'m planting this month:\n\n';
+      plant.forEach(c => { md += '- **' + c.name + '** — ' + c.planting + '\n'; });
+      md += '\n';
+    }
+
+    if (harvest.length > 0) {
+      md += '## Harvest now\n\nOn the table this month:\n\n';
+      harvest.forEach(c => { md += '- **' + c.name + '** — ' + c.harvest + '\n'; });
+      md += '\n';
+    }
+
+    md += '## Focus of the month\n\n' + getFocus() + '\n\n';
+    md += '## Plant spotlight: ' + spot.name + '\n\n' + spot.note + '\n\n';
+    md += '[Read more about ' + spot.name + ' →](https://gardenfaery.love/' + spotHref + ')\n\n';
+    md += '## Need a hand?\n\nI\'m booking garden visits now. [Grab a time on the calendar](https://gardenfaery.love/book.html) or hit reply if you\'d rather chat first.\n\n';
+    md += getSignoff() + '\n*The Garden Faery*\n';
+    return md;
+  }
+
+  function buildPlain() {
+    const content = MONTH_CONTENT[currentMonth];
+    const plant = plantsFor(currentMonth);
+    const harvest = harvestFor(currentMonth);
+    const spot = content.spotlight;
+
+    let t = '';
+    t += getGreeting() + '\n\n';
+
+    if (plant.length > 0) {
+      t += 'PLANT NOW\n\nHere\'s what I\'m planting this month:\n';
+      plant.forEach(c => { t += '  - ' + c.name + ' (' + c.planting + ')\n'; });
+      t += '\n';
+    }
+    if (harvest.length > 0) {
+      t += 'HARVEST NOW\n\nOn the table this month:\n';
+      harvest.forEach(c => { t += '  - ' + c.name + ' (' + c.harvest + ')\n'; });
+      t += '\n';
+    }
+    t += 'FOCUS OF THE MONTH\n\n' + getFocus() + '\n\n';
+    t += 'PLANT SPOTLIGHT: ' + spot.name + '\n\n' + spot.note + '\n\n';
+    t += 'NEED A HAND?\n\nI\'m booking garden visits. Reply to this email or visit gardenfaery.love/book.html\n\n';
+    t += getSignoff() + '\nThe Garden Faery';
+    return t;
+  }
+
+  function renderPreview() {
+    const preview = document.getElementById('preview');
+    if (currentTab === 'html') {
+      preview.className = 'preview-body html';
+      preview.innerHTML =
+        '<div class="subject"><strong>Subject:</strong> ' + escapeHtml(subject()) + '</div>' +
+        buildHtml();
+    } else if (currentTab === 'md') {
+      preview.className = 'preview-body';
+      preview.innerHTML = '<pre>Subject: ' + escapeHtml(subject()) + '\n\n' + escapeHtml(buildMarkdown()) + '</pre>';
+    } else {
+      preview.className = 'preview-body';
+      preview.innerHTML = '<pre>Subject: ' + escapeHtml(subject()) + '\n\n' + escapeHtml(buildPlain()) + '</pre>';
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function showFeedback(msg, good) {
+    const el = document.getElementById('copy-feedback');
+    el.textContent = msg;
+    el.style.color = good ? 'var(--spring-sage)' : '#b8622e';
+    setTimeout(() => { if (el.textContent === msg) el.textContent = ''; }, 2200);
+  }
+
+  function copyToClipboard(text, label) {
+    navigator.clipboard.writeText(text).then(() => {
+      showFeedback('Copied ' + label + '!', true);
+    }).catch(() => {
+      showFeedback('Copy failed. Select and copy manually.', false);
+    });
+  }
+
+  // ---- Wire up ----
+  document.addEventListener('DOMContentLoaded', () => {
+    renderMonthPicker();
+    renderPreview();
+
+    document.querySelectorAll('.preview-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        currentTab = tab.dataset.tab;
+        document.querySelectorAll('.preview-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        renderPreview();
+      });
+    });
+
+    document.getElementById('greeting').addEventListener('input', e => {
+      customGreeting = e.target.value || null;
+      renderPreview();
+    });
+    document.getElementById('focus').addEventListener('input', e => {
+      customFocus = e.target.value || null;
+      renderPreview();
+    });
+    document.getElementById('signoff').addEventListener('input', renderPreview);
+
+    document.getElementById('copy-html').addEventListener('click', () => {
+      const html = '<p>Subject: ' + escapeHtml(subject()) + '</p>' + buildHtml();
+      copyToClipboard(html, 'HTML');
+    });
+    document.getElementById('copy-md').addEventListener('click', () => {
+      copyToClipboard('Subject: ' + subject() + '\n\n' + buildMarkdown(), 'Markdown');
+    });
+    document.getElementById('copy-txt').addEventListener('click', () => {
+      copyToClipboard('Subject: ' + subject() + '\n\n' + buildPlain(), 'plain text');
+    });
+  });
+  </script>
+</body>
+</html>
