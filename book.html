@@ -1078,7 +1078,7 @@ document.querySelectorAll('.event-type-btn').forEach(btn => {
     document.querySelectorAll('.event-type-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
 
-    // Morning: show booking-type picker (one vs recurring). Other events auto-advance.
+    // Morning/afternoon: show booking-type picker (one vs recurring). Other events auto-advance.
     const btSection = document.getElementById('booking-type-section');
     const rSetup = document.getElementById('recurring-setup');
     const contRow = document.getElementById('step-0-continue');
@@ -1087,7 +1087,7 @@ document.querySelectorAll('.event-type-btn').forEach(btn => {
     document.getElementById('bt-once').classList.remove('selected');
     document.getElementById('bt-recurring').classList.remove('selected');
 
-    if (selectedEvent === 'morning') {
+    if (selectedEvent === 'morning' || selectedEvent === 'afternoon') {
       btSection.style.display = 'block';
       refreshData(); // prefetch for taken-weekday computation
     } else {
