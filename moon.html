@@ -116,19 +116,19 @@ input[type=date], input[type=password], input[type=text] {
   <!-- Current cycle stats -->
   <div class="card">
     <h3>Current cycle</h3>
-    <div class="stat"><span class="label">Last period started</span><span class="value" id="s-last">—</span></div>
-    <div class="stat"><span class="label">Cycle day (today)</span><span class="value" id="s-day">—</span></div>
-    <div class="stat"><span class="label">Avg cycle length</span><span class="value" id="s-avg">—</span></div>
-    <div class="stat"><span class="label">Avg period length</span><span class="value" id="s-plen">—</span></div>
-    <div class="stat"><span class="label">Next projected</span><span class="value" id="s-next">—</span></div>
-    <div class="stat"><span class="label">Fertile day (day 14)</span><span class="value" id="s-fertile">—</span></div>
-    <div id="sync-status" class="sync-status">—</div>
+    <div class="stat"><span class="label">Last period started</span><span class="value" id="s-last">-</span></div>
+    <div class="stat"><span class="label">Cycle day (today)</span><span class="value" id="s-day">-</span></div>
+    <div class="stat"><span class="label">Avg cycle length</span><span class="value" id="s-avg">-</span></div>
+    <div class="stat"><span class="label">Avg period length</span><span class="value" id="s-plen">-</span></div>
+    <div class="stat"><span class="label">Next projected</span><span class="value" id="s-next">-</span></div>
+    <div class="stat"><span class="label">Fertile day (day 14)</span><span class="value" id="s-fertile">-</span></div>
+    <div id="sync-status" class="sync-status">-</div>
   </div>
 
   <!-- Calendar -->
   <div class="card">
     <div class="cal-header">
-      <h3 id="cal-title">—</h3>
+      <h3 id="cal-title">-</h3>
       <div class="cal-nav">
         <button onclick="calPrev()">‹</button>
         <button onclick="calToday()">•</button>
@@ -325,13 +325,13 @@ function render() {
   const last = periods.length ? periods[periods.length-1] : null;
   const today = todayStr();
 
-  document.getElementById('s-last').textContent = last ? last.start : '—';
-  document.getElementById('s-day').textContent = last ? (daysBetween(last.start, today) + 1) : '—';
+  document.getElementById('s-last').textContent = last ? last.start : '-';
+  document.getElementById('s-day').textContent = last ? (daysBetween(last.start, today) + 1) : '-';
   document.getElementById('s-avg').textContent = avg + ' days';
   document.getElementById('s-plen').textContent = plen + ' days';
 
   const proj = projectedStarts(1);
-  document.getElementById('s-next').textContent = proj[0] || '—';
+  document.getElementById('s-next').textContent = proj[0] || '-';
   if (last) {
     const fertile = dateStr(addDays(parseDate(last.start), 13));
     document.getElementById('s-fertile').textContent = fertile;
@@ -345,7 +345,7 @@ function render() {
 function renderCharts() {
   const W = 320, H = 100, PAD_L = 28, PAD_R = 8, PAD_T = 10, PAD_B = 20;
 
-  // Cycle lengths — gap from each start to the next (last 12)
+  // Cycle lengths - gap from each start to the next (last 12)
   const gaps = [];
   for (let i = 1; i < periods.length; i++) {
     gaps.push({ label: periods[i].start.slice(5), value: daysBetween(periods[i-1].start, periods[i].start) });
@@ -536,7 +536,7 @@ async function syncAutoBlocks() {
 //  - beyond 7 days: show as pending in the conflicts panel
 // Override keeps a booking (un-cancels if already cancelled by moon-auto)
 const CONFLICT_BUFFER_DAYS = 7;
-const MOON_CANCEL_NOTE = 'Taya is resting this week 🌙 — see you next time.';
+const MOON_CANCEL_NOTE = 'Taya is resting this week 🌙 - see you next time.';
 let conflicts = []; // [{booking, moonDate, isAutoCancelled, withinBuffer}]
 
 async function fetchMoonDates() {
@@ -643,7 +643,7 @@ async function keepBooking(bookingId) {
 }
 
 async function releaseKeep(bookingId) {
-  if (!confirm('Undo keep — this booking will be auto-cancelled again if within 7 days.')) return;
+  if (!confirm('Undo keep - this booking will be auto-cancelled again if within 7 days.')) return;
   try {
     await pb('/api/collections/bookings/records/' + bookingId, {
       method: 'PATCH',

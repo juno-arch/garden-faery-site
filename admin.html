@@ -643,7 +643,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
     <div class="form-group">
       <label>Category</label>
       <select id="exp-category">
-        <option value="">—</option>
+        <option value="">-</option>
         <option value="plants">Plants</option>
         <option value="soil_amendments">Soil / Amendments</option>
         <option value="tools">Tools</option>
@@ -660,7 +660,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
     <div class="form-group">
       <label>Card / payment</label>
       <select id="exp-card">
-        <option value="">—</option>
+        <option value="">-</option>
         <option value="biz_debit">Business debit</option>
         <option value="biz_credit">Business credit</option>
         <option value="personal_debit">Personal debit</option>
@@ -704,7 +704,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
     <div class="form-group">
       <label>Payment method</label>
       <select id="pay-method">
-        <option value="">—</option>
+        <option value="">-</option>
         <option value="cash">Cash</option>
         <option value="check">Check</option>
         <option value="card">Card</option>
@@ -1091,7 +1091,7 @@ function renderSettings() {
     <div style="background:var(--white);border-radius:12px;padding:16px;box-shadow:var(--shadow);">
       <h3 style="margin-bottom:10px;">Receipt scanner</h3>
       <p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:12px;">
-        Paste your Anthropic API key here. It saves on this device only — never sent to the server, never committed anywhere.
+        Paste your Anthropic API key here. It saves on this device only - never sent to the server, never committed anywhere.
       </p>
       <div class="form-group">
         <label>Anthropic API key</label>
@@ -1204,7 +1204,7 @@ async function renderExpenses() {
         <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100);">
           <div style="flex:1;min-width:0;">
             <div style="font-weight:600;">${e.date} · ${e.vendor || 'Unknown vendor'}</div>
-            <div style="font-size:0.8rem;color:var(--gray-600);">${e.category||'—'} ${cardLabel?'· '+cardLabel:''} ${bizTag}</div>
+            <div style="font-size:0.8rem;color:var(--gray-600);">${e.category||'-'} ${cardLabel?'· '+cardLabel:''} ${bizTag}</div>
           </div>
           <div style="display:flex;gap:8px;align-items:center;">
             <div style="font-weight:700;">$${e.amount.toFixed(2)}</div>
@@ -1244,7 +1244,7 @@ function closeExpenseModal() {
 function renderLineItems(items) {
   if (!Array.isArray(items) || !items.length) return '';
   let h = '<div style="margin-top:4px;padding:8px;background:var(--gray-100);border-radius:8px;"><b>Line items:</b>';
-  items.forEach(i => { h += `<div>${i.description || ''} — $${Number(i.amount||0).toFixed(2)}</div>`; });
+  items.forEach(i => { h += `<div>${i.description || ''} - $${Number(i.amount||0).toFixed(2)}</div>`; });
   h += '</div>';
   return h;
 }
@@ -1318,7 +1318,7 @@ async function scanReceipt(input) {
     return;
   }
   if (file.type === 'application/pdf') {
-    status.innerHTML = 'PDF attached (auto-scan only works on images right now — enter details manually).';
+    status.innerHTML = 'PDF attached (auto-scan only works on images right now - enter details manually).';
     return;
   }
   status.textContent = '📷 Scanning…';
@@ -1375,7 +1375,7 @@ If a field is unclear, use null. Choose the most relevant category for a gardeni
     if (parsed.amount) document.getElementById('exp-amount').value = parsed.amount;
     if (parsed.category) document.getElementById('exp-category').value = parsed.category;
     if (parsed.line_items) document.getElementById('exp-line-items').innerHTML = renderLineItems(parsed.line_items);
-    status.innerHTML = '<span style="color:#6b8f52;">Scanned ✓ — review and adjust before saving.</span>';
+    status.innerHTML = '<span style="color:#6b8f52;">Scanned ✓ - review and adjust before saving.</span>';
   } catch (e) {
     status.innerHTML = '<span style="color:var(--red);">Scan error: ' + e.message + '</span>';
   }
@@ -1448,7 +1448,7 @@ function renderIncome() {
   html += '<div style="background:var(--white);border-radius:12px;padding:12px;box-shadow:var(--shadow);"><h3 style="margin-bottom:8px;font-size:1rem;">By client</h3>';
   const clientRows = Object.entries(byClient).sort((a,b) => b[1].gross - a[1].gross);
   if (!clientRows.length) {
-    html += '<div style="color:var(--gray-600);font-size:0.9rem;">—</div>';
+    html += '<div style="color:var(--gray-600);font-size:0.9rem;">-</div>';
   } else {
     clientRows.forEach(([name, s]) => {
       html += `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--gray-100);font-size:0.9rem;">

@@ -1269,7 +1269,7 @@ function renderCalendar() {
     if (available) classes += ' available';
     if (isSelected) classes += ' selected';
 
-    // Mark moon days visibly — Taya is resting
+    // Mark moon days visibly - Taya is resting
     const dayBlocks = getBlocks().filter(b => b.date === dateStr);
     const isMoonDay = dayBlocks.some(b => (b.reason || '').toLowerCase().startsWith('moon days'));
     if (isMoonDay) classes += ' moon-day';
@@ -1277,7 +1277,7 @@ function renderCalendar() {
     if (available) {
       html += '<div class="' + classes + '" data-date="' + calYear + '-' + (calMonth+1) + '-' + d + '" onclick="selectDate(this)">' + d + '</div>';
     } else if (isMoonDay && !isPast) {
-      html += '<div class="' + classes + '" title="Moon days — Taya is resting">' + d + '<span class="moon-mark">🌙</span></div>';
+      html += '<div class="' + classes + '" title="Moon days - Taya is resting">' + d + '<span class="moon-mark">🌙</span></div>';
     } else {
       html += '<div class="' + classes + '">' + d + '</div>';
     }
@@ -1580,7 +1580,7 @@ async function lookupBookings() {
     afternoon: 'Afternoon Garden Care'
   };
 
-  // Group recurring series — show one header card per series with a "Cancel entire series" button,
+  // Group recurring series - show one header card per series with a "Cancel entire series" button,
   // then the individual visits below it.
   const seriesSizes = {};
   bookings.forEach(b => {
