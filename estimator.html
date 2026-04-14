@@ -99,39 +99,33 @@
       white-space: nowrap;
     }
 
-    .nav-links {
-      display: flex;
-      gap: 6px;
-    }
-
-    .nav-links a {
-      font-family: var(--font-body);
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      text-decoration: none;
-      padding: 6px 14px;
-      border-bottom: 2px solid transparent;
-      transition: color 0.2s, border-color 0.2s;
-    }
-
-    .nav-links a:hover {
-      color: var(--text-primary);
-    }
-
-    .nav-links a.active {
-      color: var(--text-primary);
-      border-bottom-color: var(--accent-1);
-    }
-
+    .nav-links { display: flex; gap: 6px; align-items: center; }
+    .nav-links a, .nav-group-toggle { font-family: var(--font-body); font-size: 14px; font-weight: 600; color: var(--text-secondary); text-decoration: none; padding: 6px 14px; border: none; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; background: none; cursor: pointer; line-height: 1.4; }
+    .nav-links a:hover, .nav-group-toggle:hover { color: var(--text-primary); }
+    .nav-links a.active, .nav-group.active > .nav-group-toggle { color: var(--text-primary); border-bottom-color: var(--accent-1); }
+    .nav-group { position: relative; }
+    .nav-group-toggle .caret { display: inline-block; margin-left: 4px; font-size: 10px; transition: transform 0.2s; }
+    .nav-group:hover .caret, .nav-group.open .caret { transform: rotate(180deg); }
+    .nav-group-menu { display: none; position: absolute; top: 100%; left: 0; background: var(--bg); border: 1px solid var(--accent-1); border-radius: 10px; padding: 4px 0; min-width: 170px; box-shadow: 0 8px 20px rgba(74,25,66,0.15); z-index: 101; margin-top: 2px; }
+    .nav-group:hover .nav-group-menu, .nav-group.open .nav-group-menu, .nav-group:focus-within .nav-group-menu { display: block; }
+    .nav-group-menu a { display: block; padding: 9px 18px; border-bottom: none !important; white-space: nowrap; }
+    .nav-group-menu a:hover { background: rgba(196,139,176,0.12); color: var(--text-primary); }
+    .nav-group-menu a.active { color: var(--text-primary); background: rgba(196,139,176,0.08); border-bottom: none; }
     .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 4px; }
     .hamburger svg { width: 26px; height: 26px; stroke: var(--text-primary); }
     @media (max-width: 600px) {
       .hamburger { display: block; }
-      .nav-links { display: none; position: absolute; top: 54px; left: 0; right: 0; flex-direction: column; background: var(--bg); border-bottom: 2px solid var(--accent-1); padding: 8px 0; gap: 0; }
+      .nav-links { display: none; position: absolute; top: 54px; left: 0; right: 0; flex-direction: column; background: var(--bg); border-bottom: 2px solid var(--accent-1); padding: 8px 0; gap: 0; align-items: stretch; }
       .nav-links.open { display: flex; }
       .nav-links a { padding: 12px 24px; font-size: 15px; border-bottom: none; }
       .nav-links a.active { border-bottom: none; color: var(--text-primary); background: rgba(196,139,176,0.1); }
+      .nav-group { width: 100%; display: flex; flex-direction: column; }
+      .nav-group-toggle { padding: 14px 24px 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-secondary); opacity: 0.6; cursor: default; pointer-events: none; text-align: left; width: 100%; border-bottom: none; }
+      .nav-group-toggle .caret { display: none; }
+      .nav-group.active > .nav-group-toggle { background: none; border: none; color: var(--text-secondary); }
+      .nav-group-menu { display: block; position: static; background: none; border: none; padding: 0 0 6px; box-shadow: none; min-width: 0; margin: 0; }
+      .nav-group-menu a { padding: 10px 36px; font-size: 14px; }
+      .nav-group-menu a.active { background: rgba(196,139,176,0.1); }
     }
 
     /* Footer */
@@ -301,23 +295,275 @@
       background: var(--highlight);
       transform: scale(1.03);
     }
+
+    /* ========= Bed Planner ========= */
+    .bed-planner {
+      margin-top: 40px;
+      padding: 26px 24px;
+      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: 18px;
+    }
+    .bp-title {
+      font-family: var(--font-heading);
+      font-size: 24px;
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+    .bp-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 18px;
+    }
+    .bp-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .bp-filter {
+      padding: 6px 12px;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      border: 1.5px solid rgba(74, 25, 66, 0.15);
+      border-radius: 16px;
+      background: white;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .bp-filter:hover { border-color: var(--text-primary); }
+    .bp-filter.active { background: var(--accent-1); border-color: var(--accent-1); color: white; }
+    .bp-spacer { flex: 1; }
+    .bp-clear {
+      padding: 6px 12px;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      border: 1.5px solid rgba(74, 25, 66, 0.15);
+      border-radius: 16px;
+      background: transparent;
+      color: rgba(74, 25, 66, 0.65);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .bp-clear:hover {
+      color: var(--text-primary);
+      border-color: rgba(74, 25, 66, 0.35);
+      background: rgba(74, 25, 66, 0.04);
+    }
+
+    .bp-layout {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 18px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 640px) {
+      .bp-layout { grid-template-columns: 1fr; }
+    }
+
+    .bp-palette {
+      max-height: 380px;
+      overflow-y: auto;
+      padding-right: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .bp-tile {
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1.5px solid rgba(74, 25, 66, 0.1);
+      background: white;
+      cursor: grab;
+      font-family: var(--font-body);
+      font-size: 12.5px;
+      color: var(--text-primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .bp-tile:hover {
+      border-color: var(--text-primary);
+      transform: translateX(2px);
+    }
+    .bp-tile.selected {
+      background: var(--accent-1);
+      border-color: var(--accent-1);
+      color: white;
+      transform: translateX(2px);
+      box-shadow: 0 2px 8px rgba(74, 25, 66, 0.2);
+    }
+    .bp-tile.selected .bp-tile-qty { color: rgba(255,255,255,0.85); }
+    .bp-tile-name { font-weight: 700; flex: 1; }
+    .bp-tile-qty {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: rgba(74, 25, 66, 0.55);
+      white-space: nowrap;
+    }
+    .bp-empty-hint {
+      padding: 16px 10px;
+      text-align: center;
+      color: rgba(74, 25, 66, 0.5);
+      font-size: 12.5px;
+      font-style: italic;
+      line-height: 1.5;
+    }
+
+    .bp-canvas { min-width: 0; }
+    .bp-grid {
+      display: grid;
+      gap: 3px;
+      padding: 10px;
+      background: linear-gradient(135deg, #8b6f47, #a0825a);
+      border-radius: 8px;
+      aspect-ratio: var(--bp-aspect, 1);
+      max-width: 100%;
+    }
+    .bp-cell {
+      background: #d8c9a8;
+      border-radius: 4px;
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-primary);
+      cursor: pointer;
+      position: relative;
+      padding: 2px 3px;
+      line-height: 1.15;
+      transition: background 0.12s, transform 0.12s, box-shadow 0.12s;
+      overflow: hidden;
+    }
+    .bp-cell:hover { background: #ebdfc5; transform: scale(1.03); }
+    .bp-cell.placed {
+      background: var(--cell-color, #a3b88c);
+      color: white;
+      font-weight: 700;
+    }
+    .bp-cell.placed:hover { transform: scale(1.04); box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+    .bp-cell.placed .bp-cell-qty {
+      display: block;
+      font-size: 9px;
+      font-weight: 500;
+      opacity: 0.85;
+    }
+    .bp-cell.warning {
+      box-shadow: 0 0 0 2px #d46344 inset;
+    }
+    .bp-cell.warning::after {
+      content: '!';
+      position: absolute;
+      top: 2px;
+      right: 4px;
+      font-size: 11px;
+      font-weight: 900;
+      color: #d46344;
+      background: white;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .bp-cell.good-pair {
+      box-shadow: 0 0 0 2px #4e6838 inset;
+    }
+
+    .bp-legend {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      padding: 0 2px;
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .bp-warnings {
+      margin-top: 8px;
+      font-size: 12.5px;
+      line-height: 1.5;
+    }
+    .bp-warn-item {
+      color: #b8622e;
+      background: rgba(212, 99, 68, 0.08);
+      border-radius: 6px;
+      padding: 6px 10px;
+      margin-bottom: 4px;
+    }
+    .bp-warn-item strong { color: #9a4e22; }
+
+    .bp-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .bp-action {
+      flex: 1;
+      min-width: 140px;
+      padding: 11px 14px;
+      border: 2px solid var(--text-primary);
+      background: white;
+      color: var(--text-primary);
+      border-radius: 8px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .bp-action:hover { background: var(--text-primary); color: white; }
+    .bp-action.primary {
+      background: var(--highlight);
+      border-color: var(--highlight);
+    }
+    .bp-action.primary:hover {
+      background: var(--text-primary);
+      border-color: var(--text-primary);
+      color: white;
+    }
+
+    @media print {
+      nav, .cta-box, .bp-toolbar, .bp-palette, .bp-actions, footer { display: none !important; }
+      .bed-planner { background: white; border: 1px solid rgba(74,25,66,0.2); }
+      .bp-layout { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 
 <nav class="site-nav">
   <a href="index.html" class="nav-logo">Garden Faery</a>
-  <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+  <button class="hamburger" onclick="var m=document.querySelector('.nav-links');m.classList.toggle('open');this.setAttribute('aria-expanded',m.classList.contains('open'))" aria-label="Menu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
   <div class="nav-links">
-      <a href="index.html">Home</a>
+    <a href="index.html">Home</a>
     <a href="about.html">About</a>
-    <a href="services.html">Services</a>
-    <a href="estimator.html" class="active">Bed Builder</a>
+    <a href="services.html" class="active">Services</a>
     <a href="gallery.html">Gallery</a>
-    <a href="plant-guide.html">Plant Guide</a>
-    <a href="food-guide.html">Market Garden</a>
+    <div class="nav-group">
+      <button class="nav-group-toggle" type="button" onclick="this.parentElement.classList.toggle('open')">Guides<span class="caret" aria-hidden="true">&#9662;</span></button>
+      <div class="nav-group-menu">
+        <a href="plant-guide.html">Plant Guide</a>
+        <a href="food-guide.html">Market Garden</a>
+      </div>
+    </div>
     <a href="book.html">Book</a>
-    <a href="contact.html">Contact</a>
   </div>
 </nav>
 
@@ -357,6 +603,35 @@
     </div>
   </div>
 
+  <div class="bed-planner" id="bed-planner">
+    <h2 class="bp-title">Plan Your Bed</h2>
+    <p class="bp-subtitle">Pick a crop, tap a square to plant it. Warnings appear when neighbors don't get along. Saved to your browser.</p>
+
+    <div class="bp-toolbar">
+      <button type="button" class="bp-filter active" data-view="favorites" id="bp-filter-favs">From My Garden (0)</button>
+      <button type="button" class="bp-filter" data-view="all">All crops</button>
+      <span class="bp-spacer"></span>
+      <button type="button" class="bp-clear" id="bp-clear">Clear bed</button>
+    </div>
+
+    <div class="bp-layout">
+      <div class="bp-palette" id="bp-palette"></div>
+      <div class="bp-canvas">
+        <div class="bp-grid" id="bp-grid"></div>
+        <div class="bp-legend">
+          <span><strong id="bp-dims">4' × 4'</strong></span>
+          <span id="bp-fill">0 of 16 squares used</span>
+        </div>
+        <div class="bp-warnings" id="bp-warnings"></div>
+      </div>
+    </div>
+
+    <div class="bp-actions">
+      <a href="#" class="bp-action primary" id="bp-email">Email Layout to Taya</a>
+      <button type="button" class="bp-action" id="bp-print">Print Layout</button>
+    </div>
+  </div>
+
   <div class="cta-box" id="cta-box">
     <p>Like what you see? Reach out and we can talk about making it happen.</p>
     <a href="contact.html" class="cta-btn" id="cta-btn">Get in Touch</a>
@@ -370,6 +645,10 @@
       <a href="https://www.facebook.com/profile.php?id=61578540137419" target="_blank" rel="noopener" aria-label="Facebook"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
       <a href="https://www.instagram.com/gardenfaery__/" target="_blank" rel="noopener" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
       <a href="https://nextdoor.com/profile/01fPxwm9JL8Y2BKt9/" target="_blank" rel="noopener" aria-label="Nextdoor"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 2L2 10h3v10h5v-6h4v6h5V10h3L12 2z"/></svg></a>
+    </div>
+    <div style="margin-top:14px; font-size:11px; opacity:0.55;">
+      <a href="privacy.html" style="color:inherit; text-decoration:none; margin:0 6px;">Privacy</a>
+      <a href="terms.html" style="color:inherit; text-decoration:none; margin:0 6px;">Terms</a>
     </div>
   </footer>
 
@@ -439,7 +718,364 @@
     var btn = document.getElementById('cta-btn');
     btn.href = 'mailto:taya@gardenfaery.love?subject=' + subject + '&body=' + body;
     btn.textContent = 'Get in Touch';
+
+    BedPlanner.onDimensionsChanged(L, W);
   }
+
+  // ===== Bed Planner =====
+  const COMPANIONS = {
+    'blueberry': { good: ['strawberry', 'thyme', 'borage'], bad: [] },
+    'strawberry': { good: ['borage', 'thyme', 'lettuce', 'spinach'], bad: ['cabbage', 'broccoli'] },
+    'raspberry': { good: ['garlic', 'yarrow', 'chives'], bad: ['potato'] },
+    'apple': { good: ['chives', 'nasturtium', 'comfrey', 'yarrow'], bad: ['potato'] },
+    'fig': { good: ['rosemary', 'marigold', 'comfrey'], bad: [] },
+    'pear': { good: ['chives', 'nasturtium', 'comfrey', 'yarrow'], bad: [] },
+    'currant': { good: ['chives', 'yarrow', 'comfrey'], bad: [] },
+    'grapes': { good: ['basil', 'chives'], bad: ['cabbage', 'radish'] },
+    'kale': { good: ['onion', 'garlic', 'dill', 'nasturtium'], bad: ['strawberry', 'tomatoes'] },
+    'lettuce': { good: ['carrot', 'radish', 'strawberry', 'chives'], bad: [] },
+    'spinach': { good: ['strawberry', 'cabbage', 'radish', 'sugar-snap-peas'], bad: [] },
+    'chard': { good: ['beans', 'onion', 'cabbage'], bad: [] },
+    'sugar-snap-peas': { good: ['carrot', 'radish', 'corn', 'cucumber'], bad: ['garlic', 'onion'] },
+    'broccoli': { good: ['onion', 'dill', 'nasturtium'], bad: ['strawberry', 'tomatoes'] },
+    'cabbage': { good: ['onion', 'dill', 'nasturtium', 'thyme'], bad: ['strawberry', 'tomatoes'] },
+    'cucumber': { good: ['beans', 'corn', 'radish', 'nasturtium'], bad: ['sage', 'potato'] },
+    'tomatoes': { good: ['basil', 'marigold', 'carrot', 'parsley'], bad: ['fennel', 'potato'] },
+    'summer-squash': { good: ['beans', 'corn', 'nasturtium', 'borage'], bad: ['potato'] },
+    'winter-squash': { good: ['beans', 'corn', 'nasturtium', 'borage'], bad: ['potato'] },
+    'beans': { good: ['corn', 'summer-squash', 'winter-squash', 'carrot'], bad: ['onion', 'garlic'] },
+    'corn': { good: ['beans', 'winter-squash', 'summer-squash', 'cucumber'], bad: ['tomatoes'] },
+    'artichoke': { good: ['sunflower', 'yarrow'], bad: [] },
+    'rhubarb': { good: ['garlic', 'cabbage'], bad: [] },
+    'garlic': { good: ['tomatoes', 'carrot', 'strawberry', 'lettuce'], bad: ['beans', 'sugar-snap-peas'] },
+    'onion': { good: ['carrot', 'cabbage', 'broccoli', 'lettuce'], bad: ['beans', 'sugar-snap-peas'] },
+    'carrot': { good: ['onion', 'lettuce', 'chives', 'sugar-snap-peas'], bad: ['dill'] },
+    'beet': { good: ['onion', 'cabbage', 'lettuce'], bad: ['beans'] },
+    'radish': { good: ['lettuce', 'cucumber', 'sugar-snap-peas', 'carrot'], bad: ['grapes'] },
+    'turnip': { good: ['sugar-snap-peas', 'onion'], bad: ['potato'] },
+    'potato': { good: ['beans', 'corn', 'cabbage', 'marigold'], bad: ['tomatoes', 'cucumber'] },
+    'basil': { good: ['tomatoes', 'parsley', 'borage'], bad: [] },
+    'rosemary': { good: ['lavender', 'thyme', 'sage', 'cabbage'], bad: [] },
+    'thyme': { good: ['strawberry', 'cabbage', 'lavender', 'rosemary'], bad: [] },
+    'sage': { good: ['rosemary', 'cabbage', 'carrot'], bad: ['cucumber'] },
+    'oregano': { good: ['basil', 'thyme', 'cabbage'], bad: [] },
+    'cilantro': { good: ['spinach', 'sugar-snap-peas', 'beans'], bad: [] },
+    'parsley': { good: ['tomatoes', 'carrot', 'chives'], bad: ['mint'] },
+    'chives': { good: ['carrot', 'apple', 'tomatoes', 'lettuce'], bad: ['beans', 'sugar-snap-peas'] },
+    'dill': { good: ['cabbage', 'broccoli', 'cucumber', 'lettuce'], bad: ['carrot', 'tomatoes'] },
+    'borage': { good: ['strawberry', 'tomatoes', 'summer-squash', 'winter-squash'], bad: [] },
+    'nasturtium': { good: ['cucumber', 'cabbage', 'summer-squash', 'apple'], bad: [] },
+    'marigold': { good: ['tomatoes', 'potato', 'cucumber', 'beans'], bad: [] },
+    'calendula': { good: ['tomatoes', 'lettuce', 'cabbage', 'strawberry'], bad: [] }
+  };
+
+  // Crops suitable for raised beds: label, plants per sq ft, color.
+  // Excludes fruit trees, rhubarb, artichoke (they need more room than a single bed cell).
+  const BED_CROPS = {
+    'tomatoes':        { label: 'Tomato',     qty: 1,  color: '#c9553a', group: 'veg' },
+    'strawberry':      { label: 'Strawberry', qty: 4,  color: '#c9873a', group: 'fruit' },
+    'kale':            { label: 'Kale',       qty: 1,  color: '#6b8f5e', group: 'veg' },
+    'lettuce':         { label: 'Lettuce',    qty: 4,  color: '#8fa76d', group: 'veg' },
+    'spinach':         { label: 'Spinach',    qty: 9,  color: '#5c7d47', group: 'veg' },
+    'chard':           { label: 'Chard',      qty: 4,  color: '#a35e6e', group: 'veg' },
+    'sugar-snap-peas': { label: 'Snap Peas',  qty: 8,  color: '#7fa86c', group: 'veg' },
+    'broccoli':        { label: 'Broccoli',   qty: 1,  color: '#4e7a5e', group: 'veg' },
+    'cabbage':         { label: 'Cabbage',    qty: 1,  color: '#9fb68a', group: 'veg' },
+    'cucumber':        { label: 'Cucumber',   qty: 2,  color: '#6ea560', group: 'veg' },
+    'summer-squash':   { label: 'Summer Squash', qty: 1, color: '#e0c341', group: 'veg', spread: 'Needs 4 sq ft' },
+    'winter-squash':   { label: 'Winter Squash', qty: 1, color: '#c98738', group: 'veg', spread: 'Needs 9 sq ft' },
+    'beans':           { label: 'Beans',      qty: 9,  color: '#7a8f5a', group: 'veg' },
+    'corn':            { label: 'Corn',       qty: 1,  color: '#d4b54a', group: 'veg' },
+    'garlic':          { label: 'Garlic',     qty: 4,  color: '#c7b9a2', group: 'root' },
+    'onion':           { label: 'Onion',      qty: 9,  color: '#b897a8', group: 'root' },
+    'carrot':          { label: 'Carrot',     qty: 16, color: '#d4843a', group: 'root' },
+    'beet':            { label: 'Beet',       qty: 9,  color: '#8b4563', group: 'root' },
+    'radish':          { label: 'Radish',     qty: 16, color: '#c94a4a', group: 'root' },
+    'turnip':          { label: 'Turnip',     qty: 9,  color: '#b87a9a', group: 'root' },
+    'potato':          { label: 'Potato',     qty: 1,  color: '#9a7a52', group: 'root' },
+    'blueberry':       { label: 'Blueberry',  qty: 1,  color: '#4d6a8a', group: 'fruit', spread: 'Needs 9 sq ft' },
+    'basil':           { label: 'Basil',      qty: 4,  color: '#4e8e4e', group: 'herb' },
+    'rosemary':        { label: 'Rosemary',   qty: 1,  color: '#5a7a6e', group: 'herb' },
+    'thyme':           { label: 'Thyme',      qty: 4,  color: '#7a9a7e', group: 'herb' },
+    'sage':            { label: 'Sage',       qty: 1,  color: '#8a9a8e', group: 'herb' },
+    'oregano':         { label: 'Oregano',    qty: 1,  color: '#6a8e5e', group: 'herb' },
+    'cilantro':        { label: 'Cilantro',   qty: 9,  color: '#8eae6e', group: 'herb' },
+    'parsley':         { label: 'Parsley',    qty: 4,  color: '#5e8e4e', group: 'herb' },
+    'chives':          { label: 'Chives',     qty: 4,  color: '#7a9e8e', group: 'herb' },
+    'dill':            { label: 'Dill',       qty: 1,  color: '#aecb72', group: 'herb' },
+    'borage':          { label: 'Borage',     qty: 1,  color: '#7a8ab5', group: 'flower' },
+    'nasturtium':      { label: 'Nasturtium', qty: 1,  color: '#d4843a', group: 'flower' },
+    'marigold':        { label: 'Marigold',   qty: 1,  color: '#e0a83a', group: 'flower' },
+    'calendula':       { label: 'Calendula',  qty: 1,  color: '#d49a3a', group: 'flower' }
+  };
+
+  const BedPlanner = (function() {
+    const STORAGE_KEY = 'gf_bed_layout_v1';
+    const FAV_KEY = 'gf_favorites_v1';
+
+    let L = 4, W = 4;
+    let cells = [];       // flat array length L*W of slug or null
+    let selectedSlug = null;
+    let showMode = 'favorites'; // 'favorites' | 'all'
+    let favorites = { plants: [], food: [] };
+
+    function loadFavorites() {
+      try {
+        const raw = localStorage.getItem(FAV_KEY);
+        if (raw) favorites = Object.assign({ plants: [], food: [] }, JSON.parse(raw));
+      } catch (e) {}
+    }
+
+    function availableSlugs() {
+      return Object.keys(BED_CROPS);
+    }
+
+    function favoritedAvailable() {
+      const all = new Set((favorites.food || []).concat(favorites.plants || []));
+      return availableSlugs().filter(s => all.has(s));
+    }
+
+    function loadLayout() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        if (data.L) L = data.L;
+        if (data.W) W = data.W;
+        if (Array.isArray(data.cells)) cells = data.cells;
+      } catch (e) {}
+    }
+
+    function saveLayout() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ L: L, W: W, cells: cells }));
+      } catch (e) {}
+    }
+
+    function ensureCellsSize() {
+      const total = L * W;
+      if (cells.length === total) return;
+      const old = cells.slice();
+      cells = new Array(total).fill(null);
+      // Preserve overlap
+      for (let r = 0; r < W && r * L < old.length / (old.length / Math.max(1, Math.round(Math.sqrt(old.length)))); r++) {
+        // Simple: just copy what fits linearly
+      }
+      for (let i = 0; i < Math.min(old.length, cells.length); i++) cells[i] = old[i];
+    }
+
+    function renderPalette() {
+      const palette = document.getElementById('bp-palette');
+      const favsOnly = showMode === 'favorites';
+      const favFood = favoritedAvailable();
+      const list = favsOnly && favFood.length > 0
+        ? favFood
+        : availableSlugs();
+
+      const favBtn = document.getElementById('bp-filter-favs');
+      if (favBtn) favBtn.textContent = 'From My Garden (' + favFood.length + ')';
+
+      if (favsOnly && favFood.length === 0) {
+        palette.innerHTML = '<div class="bp-empty-hint">No saved crops yet. Switch to All crops, or save some hearts on the Plant Guide and Market Garden first.</div>';
+        return;
+      }
+
+      palette.innerHTML = list.map(slug => {
+        const c = BED_CROPS[slug];
+        const qtyText = c.spread
+          ? c.spread
+          : (c.qty === 1 ? '1 per sq ft' : c.qty + ' per sq ft');
+        return '<button type="button" class="bp-tile' + (selectedSlug === slug ? ' selected' : '') +
+          '" data-slug="' + slug + '" style="border-left: 4px solid ' + c.color + '">' +
+          '<span class="bp-tile-name">' + c.label + '</span>' +
+          '<span class="bp-tile-qty">' + qtyText + '</span>' +
+          '</button>';
+      }).join('');
+
+      palette.querySelectorAll('.bp-tile').forEach(tile => {
+        tile.addEventListener('click', () => {
+          selectedSlug = (selectedSlug === tile.dataset.slug) ? null : tile.dataset.slug;
+          renderPalette();
+        });
+      });
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById('bp-grid');
+      grid.style.gridTemplateColumns = 'repeat(' + L + ', 1fr)';
+      grid.style.setProperty('--bp-aspect', (L / Math.max(1, W)));
+      ensureCellsSize();
+
+      let html = '';
+      for (let i = 0; i < L * W; i++) {
+        const slug = cells[i];
+        const c = slug ? BED_CROPS[slug] : null;
+        if (c) {
+          html += '<div class="bp-cell placed" data-idx="' + i + '" ' +
+            'style="--cell-color:' + c.color + '">' +
+            '<span>' + c.label + '</span>' +
+            (c.qty > 1 ? '<span class="bp-cell-qty">×' + c.qty + '</span>' : '') +
+            '</div>';
+        } else {
+          html += '<div class="bp-cell" data-idx="' + i + '"></div>';
+        }
+      }
+      grid.innerHTML = html;
+
+      grid.querySelectorAll('.bp-cell').forEach(el => {
+        el.addEventListener('click', () => onCellClick(parseInt(el.dataset.idx, 10)));
+      });
+
+      checkCompatibility();
+      updateLegend();
+      updateEmail();
+    }
+
+    function onCellClick(idx) {
+      if (cells[idx]) {
+        // Remove
+        cells[idx] = null;
+      } else if (selectedSlug) {
+        // Place
+        cells[idx] = selectedSlug;
+      } else {
+        return; // Nothing selected, nothing to place
+      }
+      saveLayout();
+      renderGrid();
+    }
+
+    function neighbors(idx) {
+      const row = Math.floor(idx / L);
+      const col = idx % L;
+      const out = [];
+      if (col > 0) out.push(idx - 1);
+      if (col < L - 1) out.push(idx + 1);
+      if (row > 0) out.push(idx - L);
+      if (row < W - 1) out.push(idx + L);
+      return out;
+    }
+
+    function checkCompatibility() {
+      const grid = document.getElementById('bp-grid');
+      const warnings = document.getElementById('bp-warnings');
+      const badPairs = new Set();
+
+      for (let i = 0; i < cells.length; i++) {
+        const a = cells[i];
+        if (!a) continue;
+        const comp = COMPANIONS[a];
+        const bad = (comp && comp.bad) || [];
+        const good = (comp && comp.good) || [];
+        for (const j of neighbors(i)) {
+          const b = cells[j];
+          if (!b) continue;
+          if (bad.includes(b)) {
+            grid.children[i].classList.add('warning');
+            grid.children[j].classList.add('warning');
+            const pair = [a, b].sort().join('/');
+            badPairs.add(pair);
+          } else if (good.includes(b)) {
+            grid.children[i].classList.add('good-pair');
+            grid.children[j].classList.add('good-pair');
+          }
+        }
+      }
+
+      if (badPairs.size === 0) {
+        warnings.innerHTML = '';
+      } else {
+        warnings.innerHTML = Array.from(badPairs).map(pair => {
+          const [a, b] = pair.split('/');
+          return '<div class="bp-warn-item"><strong>' +
+            BED_CROPS[a].label + '</strong> and <strong>' + BED_CROPS[b].label +
+            '</strong> don\'t play nice as neighbors. Try to put a square between them.</div>';
+        }).join('');
+      }
+    }
+
+    function updateLegend() {
+      document.getElementById('bp-dims').textContent = L + "' × " + W + "'";
+      const used = cells.filter(x => x).length;
+      document.getElementById('bp-fill').textContent = used + ' of ' + (L * W) + ' squares used';
+    }
+
+    function updateEmail() {
+      const placed = {};
+      cells.forEach(s => { if (s) placed[s] = (placed[s] || 0) + 1; });
+      const lines = Object.keys(placed).map(slug => {
+        const c = BED_CROPS[slug];
+        const totalPlants = c.qty * placed[slug];
+        return '  - ' + c.label + ' × ' + placed[slug] + ' square' +
+          (placed[slug] > 1 ? 's' : '') + ' (' + totalPlants + ' plant' +
+          (totalPlants === 1 ? '' : 's') + ' total)';
+      }).join('\n');
+      const subject = 'My Bed Plan: ' + L + "' × " + W + "'";
+      const body =
+        'Hi Taya!\n\nI used the bed planner on your site to sketch out a planting plan. ' +
+        'Would love to talk about making it real.\n\n' +
+        'Bed size: ' + L + "' × " + W + "' × 12\"\n\n" +
+        (lines ? 'Crops I want:\n' + lines + '\n\n' : 'No crops placed yet.\n\n') +
+        '(Sent from Garden Faery bed planner)';
+      document.getElementById('bp-email').href =
+        'mailto:taya@gardenfaery.love?subject=' + encodeURIComponent(subject) +
+        '&body=' + encodeURIComponent(body);
+    }
+
+    function clearBed() {
+      if (!confirm('Clear all planted squares?')) return;
+      cells = new Array(L * W).fill(null);
+      saveLayout();
+      renderGrid();
+    }
+
+    function onDimensionsChanged(newL, newW) {
+      if (newL === L && newW === W) return;
+      L = Math.max(1, Math.min(30, Math.round(newL)));
+      W = Math.max(1, Math.min(12, Math.round(newW)));
+      cells = new Array(L * W).fill(null);
+      saveLayout();
+      renderGrid();
+    }
+
+    function init() {
+      loadFavorites();
+      loadLayout();
+      // Sync with estimator inputs
+      const lEl = document.getElementById('est-length');
+      const wEl = document.getElementById('est-width');
+      if (lEl && wEl) {
+        L = Math.max(1, Math.min(30, Math.round(parseFloat(lEl.value) || 4)));
+        W = Math.max(1, Math.min(12, Math.round(parseFloat(wEl.value) || 4)));
+        lEl.addEventListener('input', () => onDimensionsChanged(
+          parseFloat(lEl.value) || 4,
+          parseFloat(wEl.value) || 4
+        ));
+        wEl.addEventListener('input', () => onDimensionsChanged(
+          parseFloat(lEl.value) || 4,
+          parseFloat(wEl.value) || 4
+        ));
+      }
+      ensureCellsSize();
+      renderPalette();
+      renderGrid();
+
+      document.querySelectorAll('.bp-filter').forEach(btn => {
+        btn.addEventListener('click', () => {
+          showMode = btn.dataset.view;
+          document.querySelectorAll('.bp-filter').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          renderPalette();
+        });
+      });
+      document.getElementById('bp-clear').addEventListener('click', clearBed);
+      document.getElementById('bp-print').addEventListener('click', () => window.print());
+    }
+
+    return { init, onDimensionsChanged };
+  })();
+
+  document.addEventListener('DOMContentLoaded', () => BedPlanner.init());
 </script>
 
 </body>
