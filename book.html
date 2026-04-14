@@ -253,6 +253,19 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   box-shadow: inset 0 0 0 2px var(--pollen-gold);
 }
 .cal-day.past { color: var(--gray-200); }
+.cal-day.moon-day {
+  background: #f3eef5;
+  color: #8a6b9e;
+  position: relative;
+  cursor: help;
+}
+.cal-day.moon-day .moon-mark {
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
 
 /* Time slots */
 .time-slots {
@@ -1256,8 +1269,15 @@ function renderCalendar() {
     if (available) classes += ' available';
     if (isSelected) classes += ' selected';
 
+    // Mark moon days visibly — Taya is resting
+    const dayBlocks = getBlocks().filter(b => b.date === dateStr);
+    const isMoonDay = dayBlocks.some(b => (b.reason || '').toLowerCase().startsWith('moon days'));
+    if (isMoonDay) classes += ' moon-day';
+
     if (available) {
       html += '<div class="' + classes + '" data-date="' + calYear + '-' + (calMonth+1) + '-' + d + '" onclick="selectDate(this)">' + d + '</div>';
+    } else if (isMoonDay && !isPast) {
+      html += '<div class="' + classes + '" title="Moon days — Taya is resting">' + d + '<span class="moon-mark">🌙</span></div>';
     } else {
       html += '<div class="' + classes + '">' + d + '</div>';
     }

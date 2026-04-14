@@ -467,6 +467,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
     <button class="tab active" data-tab="day" onclick="switchTab('day')">Day</button>
     <button class="tab" data-tab="upcoming" onclick="switchTab('upcoming')">Upcoming</button>
     <button class="tab" data-tab="clients" onclick="switchTab('clients')">Clients</button>
+    <button class="tab" data-tab="income" onclick="switchTab('income')">Income</button>
   </div>
 
   <!-- Day view -->
@@ -482,6 +483,52 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   <!-- Clients view -->
   <div class="tab-panel" id="tab-clients" style="display:none;">
     <div id="clients-content"></div>
+  </div>
+
+  <!-- Income view -->
+  <div class="tab-panel" id="tab-income" style="display:none;">
+    <div id="income-content"></div>
+  </div>
+</div>
+
+<!-- Payment modal -->
+<div class="modal-overlay" id="modal-payment">
+  <div class="modal">
+    <h2>Booking payment</h2>
+    <div id="pay-booking-info" style="margin-bottom:12px;color:var(--gray-600);font-size:0.9rem;"></div>
+    <div class="form-group">
+      <label>Price ($)</label>
+      <input type="number" id="pay-price" step="1" min="0" placeholder="0">
+    </div>
+    <div class="form-group">
+      <label>
+        <input type="checkbox" id="pay-paid" style="margin-right:6px;"> Paid
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Payment method</label>
+      <select id="pay-method">
+        <option value="">—</option>
+        <option value="cash">Cash</option>
+        <option value="check">Check</option>
+        <option value="card">Card</option>
+        <option value="venmo">Venmo</option>
+        <option value="zelle">Zelle</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Paid on</label>
+      <input type="date" id="pay-date">
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <input type="text" id="pay-notes" placeholder="Optional">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-payment')">Cancel</button>
+      <button class="modal-btn primary" onclick="savePayment()">Save</button>
+    </div>
   </div>
 </div>
 
@@ -665,6 +712,11 @@ const DB = {
       canceledBy: r.canceled_by,
       recurringSeriesId: r.recurring_series_id,
       recurringFrequency: r.recurring_frequency,
+      price: r.price,
+      paid: r.paid,
+      paymentMethod: r.payment_method,
+      paidDate: r.paid_date,
+      paymentNotes: r.payment_notes,
       createdAt: r.created,
     }));
   },
@@ -729,6 +781,11 @@ const DB = {
     if (updates.time !== undefined) pbUpdates.time = updates.time;
     if (updates.status !== undefined) pbUpdates.status = updates.status;
     if (updates.rescheduledAt !== undefined) pbUpdates.rescheduled_at = updates.rescheduledAt;
+    if (updates.price !== undefined) pbUpdates.price = updates.price;
+    if (updates.paid !== undefined) pbUpdates.paid = updates.paid;
+    if (updates.paymentMethod !== undefined) pbUpdates.payment_method = updates.paymentMethod;
+    if (updates.paidDate !== undefined) pbUpdates.paid_date = updates.paidDate;
+    if (updates.paymentNotes !== undefined) pbUpdates.payment_notes = updates.paymentNotes;
     return this._pb('PATCH', 'bookings/records/' + id, pbUpdates);
   },
 
@@ -823,6 +880,149 @@ function switchTab(tab) {
   if (tab === 'day') renderDay();
   if (tab === 'upcoming') renderUpcoming();
   if (tab === 'clients') renderClients();
+  if (tab === 'income') renderIncome();
+}
+
+// --- Income tab ---
+let incomeViewMonth = (() => { const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); })();
+let _payingBookingId = null;
+
+function renderIncome() {
+  const el = document.getElementById('income-content');
+  const all = getBookings().filter(b => b.status !== 'canceled');
+  // Pull all months that have bookings
+  const months = Array.from(new Set(all.map(b => (b.date||'').slice(0,7)).filter(Boolean))).sort().reverse();
+  if (!months.includes(incomeViewMonth)) months.unshift(incomeViewMonth);
+
+  const inMonth = all.filter(b => (b.date||'').slice(0,7) === incomeViewMonth);
+  const gross = inMonth.reduce((s,b) => s + (Number(b.price)||0), 0);
+  const paid  = inMonth.filter(b => b.paid).reduce((s,b) => s + (Number(b.price)||0), 0);
+  const outstanding = gross - paid;
+
+  // Per-client breakdown for the month
+  const byClient = {};
+  inMonth.forEach(b => {
+    const k = b.clientName || 'Unknown';
+    if (!byClient[k]) byClient[k] = { count:0, gross:0, paid:0 };
+    byClient[k].count++;
+    byClient[k].gross += Number(b.price)||0;
+    if (b.paid) byClient[k].paid += Number(b.price)||0;
+  });
+
+  const monthOpts = months.map(m => `<option value="${m}"${m===incomeViewMonth?' selected':''}>${m}</option>`).join('');
+
+  let html = `
+    <div class="card" style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+        <select onchange="incomeViewMonth=this.value;renderIncome()" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--gray-200);">${monthOpts}</select>
+        <button class="modal-btn secondary" style="padding:8px 12px;" onclick="exportIncomeCsv()">CSV</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
+        <div><div style="font-size:0.75rem;color:var(--gray-600);">Gross</div><div style="font-size:1.3rem;font-weight:700;">$${gross.toFixed(0)}</div></div>
+        <div><div style="font-size:0.75rem;color:var(--gray-600);">Paid</div><div style="font-size:1.3rem;font-weight:700;color:var(--spring-sage,#6b8f52);">$${paid.toFixed(0)}</div></div>
+        <div><div style="font-size:0.75rem;color:var(--gray-600);">Outstanding</div><div style="font-size:1.3rem;font-weight:700;color:${outstanding>0?'var(--red)':'var(--gray-400)'};">$${outstanding.toFixed(0)}</div></div>
+      </div>
+    </div>
+  `;
+
+  html += '<div style="background:var(--white);border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:var(--shadow);"><h3 style="margin-bottom:8px;font-size:1rem;">Bookings this month</h3>';
+  if (!inMonth.length) {
+    html += '<div style="color:var(--gray-600);font-size:0.9rem;">No bookings.</div>';
+  } else {
+    inMonth.sort((a,b) => (a.date||'').localeCompare(b.date||''));
+    inMonth.forEach(b => {
+      const price = Number(b.price)||0;
+      const paidBadge = b.paid
+        ? `<span style="background:#dfe8d4;color:#4a1942;padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:700;">PAID ${b.paymentMethod? '· '+b.paymentMethod:''}</span>`
+        : (price > 0 ? `<span style="background:var(--red-light);color:var(--red);padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:700;">UNPAID</span>` : `<span style="color:var(--gray-400);font-size:0.8rem;">no price</span>`);
+      html += `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100);">
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:600;">${b.date} · ${b.clientName||'Client'}</div>
+            <div style="font-size:0.8rem;color:var(--gray-600);">${EVENT_LABELS[b.eventType]||b.eventType} · $${price.toFixed(0)}</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">${paidBadge}<button class="modal-btn secondary" style="padding:4px 10px;font-size:0.8rem;" onclick="openPayment('${b.id}')">Edit</button></div>
+        </div>`;
+    });
+  }
+  html += '</div>';
+
+  html += '<div style="background:var(--white);border-radius:12px;padding:12px;box-shadow:var(--shadow);"><h3 style="margin-bottom:8px;font-size:1rem;">By client</h3>';
+  const clientRows = Object.entries(byClient).sort((a,b) => b[1].gross - a[1].gross);
+  if (!clientRows.length) {
+    html += '<div style="color:var(--gray-600);font-size:0.9rem;">—</div>';
+  } else {
+    clientRows.forEach(([name, s]) => {
+      html += `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--gray-100);font-size:0.9rem;">
+        <span>${name} <span style="color:var(--gray-600);font-size:0.8rem;">(${s.count})</span></span>
+        <span><b>$${s.gross.toFixed(0)}</b> <span style="color:var(--gray-600);font-size:0.8rem;">(${s.paid.toFixed(0)} paid)</span></span>
+      </div>`;
+    });
+  }
+  html += '</div>';
+
+  el.innerHTML = html;
+}
+
+function openPayment(bookingId) {
+  const b = getBookings().find(x => x.id === bookingId);
+  if (!b) return;
+  _payingBookingId = bookingId;
+  document.getElementById('pay-booking-info').textContent = `${b.date} · ${b.clientName||'Client'} · ${EVENT_LABELS[b.eventType]||b.eventType}`;
+  document.getElementById('pay-price').value = b.price || '';
+  document.getElementById('pay-paid').checked = !!b.paid;
+  document.getElementById('pay-method').value = b.paymentMethod || '';
+  document.getElementById('pay-date').value = (b.paidDate||'').slice(0,10);
+  document.getElementById('pay-notes').value = b.paymentNotes || '';
+  document.getElementById('modal-payment').classList.add('visible');
+}
+
+async function savePayment() {
+  if (!_payingBookingId) return;
+  const price = parseFloat(document.getElementById('pay-price').value) || 0;
+  const paid = document.getElementById('pay-paid').checked;
+  const method = document.getElementById('pay-method').value || null;
+  const paidDate = document.getElementById('pay-date').value || null;
+  const notes = document.getElementById('pay-notes').value || '';
+  // If marking paid and no date set, default to today
+  const finalDate = paid && !paidDate ? formatDate(new Date()) : paidDate;
+  try {
+    await DB.updateBooking(_payingBookingId, {
+      price, paid, paymentMethod: method, paidDate: finalDate, paymentNotes: notes
+    });
+    // Update cache
+    const b = _cachedBookings.find(x => x.id === _payingBookingId);
+    if (b) { b.price = price; b.paid = paid; b.paymentMethod = method; b.paidDate = finalDate; b.paymentNotes = notes; }
+    closeModal('modal-payment');
+    _payingBookingId = null;
+    renderIncome();
+  } catch (e) {
+    alert('Save failed: ' + e.message);
+  }
+}
+
+function exportIncomeCsv() {
+  const inMonth = getBookings().filter(b => b.status !== 'canceled' && (b.date||'').slice(0,7) === incomeViewMonth);
+  const rows = [['Date','Client','Service','Price','Paid','Method','Paid Date','Notes']];
+  inMonth.sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  inMonth.forEach(b => {
+    rows.push([
+      b.date || '',
+      b.clientName || '',
+      EVENT_LABELS[b.eventType] || b.eventType || '',
+      Number(b.price)||0,
+      b.paid ? 'yes' : 'no',
+      b.paymentMethod || '',
+      (b.paidDate||'').slice(0,10),
+      (b.paymentNotes||'').replace(/"/g,'""')
+    ]);
+  });
+  const csv = rows.map(r => r.map(c => `"${String(c)}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type:'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'income-' + incomeViewMonth + '.csv'; a.click();
+  URL.revokeObjectURL(url);
 }
 
 // --- Week strip ---
