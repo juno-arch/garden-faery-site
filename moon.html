@@ -148,6 +148,21 @@ input[type=date], input[type=password], input[type=text] {
     <div id="conflict-list"></div>
   </div>
 
+  <!-- Charts -->
+  <div class="card" id="charts-card">
+    <h3>Trends</h3>
+    <div style="margin-bottom:14px;">
+      <div style="font-size:0.85rem;color:var(--gray-600);margin-bottom:4px;">Cycle length (days between period starts)</div>
+      <svg id="chart-cycle" viewBox="0 0 320 100" preserveAspectRatio="none" style="width:100%;height:100px;"></svg>
+      <div id="chart-cycle-legend" style="font-size:0.7rem;color:var(--gray-600);text-align:center;"></div>
+    </div>
+    <div>
+      <div style="font-size:0.85rem;color:var(--gray-600);margin-bottom:4px;">Period length (days of bleed)</div>
+      <svg id="chart-plen" viewBox="0 0 320 100" preserveAspectRatio="none" style="width:100%;height:100px;"></svg>
+      <div id="chart-plen-legend" style="font-size:0.7rem;color:var(--gray-600);text-align:center;"></div>
+    </div>
+  </div>
+
   <!-- Log new period -->
   <div class="card">
     <h3>Log a period</h3>
@@ -320,6 +335,74 @@ function render() {
 
   renderList();
   renderCal();
+  renderCharts();
+}
+
+function renderCharts() {
+  const W = 320, H = 100, PAD_L = 28, PAD_R = 8, PAD_T = 10, PAD_B = 20;
+
+  // Cycle lengths — gap from each start to the next (last 12)
+  const gaps = [];
+  for (let i = 1; i < periods.length; i++) {
+    gaps.push({ label: periods[i].start.slice(5), value: daysBetween(periods[i-1].start, periods[i].start) });
+  }
+  const cycleData = gaps.slice(-12);
+  renderLineChart('chart-cycle', 'chart-cycle-legend', cycleData, 'days', W, H, PAD_L, PAD_R, PAD_T, PAD_B);
+
+  // Period lengths (last 12 with end dates)
+  const plens = periods.filter(p => p.end).slice(-12).map(p => ({
+    label: p.start.slice(5),
+    value: daysBetween(p.start, p.end) + 1
+  }));
+  renderBarChart('chart-plen', 'chart-plen-legend', plens, 'days', W, H, PAD_L, PAD_R, PAD_T, PAD_B);
+}
+
+function renderLineChart(svgId, legendId, data, unit, W, H, PL, PR, PT, PB) {
+  const svg = document.getElementById(svgId);
+  const legend = document.getElementById(legendId);
+  if (!data.length) { svg.innerHTML = ''; legend.textContent = 'Need at least 2 periods logged.'; return; }
+  const min = Math.min(...data.map(d => d.value));
+  const max = Math.max(...data.map(d => d.value));
+  const avg = data.reduce((s,d) => s + d.value, 0) / data.length;
+  const lo = Math.floor(min - 1), hi = Math.ceil(max + 1);
+  const x = i => PL + (data.length === 1 ? (W - PL - PR)/2 : i * (W - PL - PR) / (data.length - 1));
+  const y = v => PT + (H - PT - PB) * (1 - (v - lo) / (hi - lo || 1));
+  const path = data.map((d,i) => (i===0?'M':'L') + x(i).toFixed(1) + ',' + y(d.value).toFixed(1)).join(' ');
+  const avgY = y(avg).toFixed(1);
+  const dots = data.map((d,i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(d.value).toFixed(1)}" r="3" fill="var(--moon)"></circle>`).join('');
+  const yTicks = [lo, Math.round((lo+hi)/2), hi].map(t => `<text x="${PL-4}" y="${y(t)+3}" text-anchor="end" font-size="8" fill="var(--gray-400)">${t}</text>`).join('');
+  svg.innerHTML = `
+    <line x1="${PL}" y1="${avgY}" x2="${W-PR}" y2="${avgY}" stroke="var(--moon-light)" stroke-dasharray="3,3" stroke-width="1"></line>
+    ${yTicks}
+    <path d="${path}" fill="none" stroke="var(--moon)" stroke-width="2"></path>
+    ${dots}
+  `;
+  legend.textContent = `${data.length} cycles · avg ${avg.toFixed(1)} ${unit} · range ${min}–${max}`;
+}
+
+function renderBarChart(svgId, legendId, data, unit, W, H, PL, PR, PT, PB) {
+  const svg = document.getElementById(svgId);
+  const legend = document.getElementById(legendId);
+  if (!data.length) { svg.innerHTML = ''; legend.textContent = 'No periods with end dates yet.'; return; }
+  const max = Math.max(...data.map(d => d.value));
+  const avg = data.reduce((s,d) => s + d.value, 0) / data.length;
+  const hi = Math.ceil(max + 1);
+  const bw = (W - PL - PR) / data.length;
+  const y = v => PT + (H - PT - PB) * (1 - v / (hi || 1));
+  const bars = data.map((d,i) => {
+    const bx = PL + i * bw + 1.5;
+    const by = y(d.value);
+    const bh = H - PB - by;
+    return `<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${(bw-3).toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="var(--petal-pink)"></rect>`;
+  }).join('');
+  const avgY = y(avg).toFixed(1);
+  const yTicks = [0, Math.round(hi/2), hi].map(t => `<text x="${PL-4}" y="${y(t)+3}" text-anchor="end" font-size="8" fill="var(--gray-400)">${t}</text>`).join('');
+  svg.innerHTML = `
+    <line x1="${PL}" y1="${avgY}" x2="${W-PR}" y2="${avgY}" stroke="var(--petal-pink-light)" stroke-dasharray="3,3" stroke-width="1"></line>
+    ${yTicks}
+    ${bars}
+  `;
+  legend.textContent = `${data.length} periods · avg ${avg.toFixed(1)} ${unit} · longest ${max}`;
 }
 
 function renderList() {
