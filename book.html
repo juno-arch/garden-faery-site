@@ -90,17 +90,47 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
 
 /* Header */
 .header {
+  position: relative;
+  margin: -24px -16px 28px;
+  height: 220px;
+  border-radius: 0 0 18px 18px;
+  overflow: hidden;
+  background: #2a1a26;
+}
+.header img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+  filter: brightness(0.72) saturate(1.05);
+}
+.header .hero-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  margin-bottom: 28px;
+  padding: 16px;
+  background: linear-gradient(to bottom, rgba(74,25,66,0.15), rgba(74,25,66,0.55));
 }
 .header h1 {
-  font-size: 2rem;
-  color: var(--plum);
+  font-size: 2.2rem;
+  color: #fff;
   margin-bottom: 6px;
+  text-shadow: 0 2px 14px rgba(0,0,0,0.4);
 }
 .header p {
-  color: var(--gray-600);
-  font-size: 0.95rem;
+  color: rgba(255,255,255,0.92);
+  font-size: 1rem;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.35);
+}
+@media (max-width: 500px) {
+  .header { height: 170px; }
+  .header h1 { font-size: 1.6rem; }
 }
 
 /* Step indicator */
@@ -616,8 +646,11 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
 <div class="container">
   <a href="/" class="site-home">&larr; Garden Faery</a>
   <div class="header">
-    <h1>Book a Visit</h1>
-    <p>Pick a service, choose your day, and you're all set.</p>
+    <img src="gallery/flower-field-dianthus.jpg" alt="Garden Faery flower field">
+    <div class="hero-overlay">
+      <h1>Book a Visit</h1>
+      <p>Pick a service, choose your day, and you're all set.</p>
+    </div>
   </div>
 
   <div class="steps">

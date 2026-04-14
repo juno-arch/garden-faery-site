@@ -153,6 +153,51 @@
     }
 
     /* Page-specific styles */
+    .page-hero {
+      position: relative;
+      height: 260px;
+      overflow: hidden;
+      background: #2a1a26;
+    }
+    .page-hero img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 45%;
+      filter: brightness(0.72) saturate(1.05);
+    }
+    .page-hero .hero-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      background: linear-gradient(to bottom, rgba(74,25,66,0.15), rgba(74,25,66,0.6));
+    }
+    .page-hero h1 {
+      font-size: 42px;
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 8px;
+      text-shadow: 0 2px 16px rgba(0,0,0,0.4);
+    }
+    .page-hero p {
+      font-size: 16px;
+      color: rgba(255,255,255,0.95);
+      max-width: 480px;
+      text-shadow: 0 1px 8px rgba(0,0,0,0.35);
+    }
+    @media (max-width: 600px) {
+      .page-hero { height: 200px; }
+      .page-hero h1 { font-size: 32px; }
+      .page-hero p { font-size: 14px; }
+    }
+
     .page-content {
       max-width: 580px;
       margin: 0 auto;
@@ -309,9 +354,16 @@
     </div>
   </nav>
 
+  <div class="page-hero">
+    <img src="gallery/calendula-flowers-hand.jpg" alt="Hands holding calendula flowers">
+    <div class="hero-overlay">
+      <h1>Send a Flutter</h1>
+      <p>Got questions? Want to chat about your garden? Drop me a message or book a time.</p>
+    </div>
+  </div>
+
   <div class="page-content">
-    <h1 class="page-title">Send a Flutter</h1>
-    <p class="page-subtitle">Got questions? Want to chat about your garden? Drop me a message or book a time.</p>
+    <p class="page-subtitle" style="text-align:center; margin-bottom:32px;">I read everything. Expect a reply within a day or two.</p>
 
     <div style="text-align:center; padding:20px; margin-bottom:24px; border-radius:14px; background:rgba(255,255,255,0.5); border:1px solid rgba(255,255,255,0.6);">
       <h2 style="font-family:var(--font-heading); font-size:22px; margin-bottom:8px;">Book a Time</h2>
