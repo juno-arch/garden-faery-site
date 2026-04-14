@@ -775,7 +775,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
         <h2>You're Booked!</h2>
         <p>Looking forward to it.</p>
         <div class="confirm-details" id="confirm-details"></div>
-        <button class="btn btn-primary" id="btn-add-cal" onclick="downloadICS()" style="margin-top: 16px; max-width: 260px; margin-left: auto; margin-right: auto;">Add to Calendar</button>
+        <button class="btn btn-primary" id="btn-add-cal" onclick="showCalendarPicker()" style="margin-top: 16px; max-width: 260px; margin-left: auto; margin-right: auto;">Add to Calendar</button>
         <p style="font-size: 0.85rem; color: var(--gray-400); margin-top: 12px;">
           Taya will reach out if anything comes up. See you in the garden!
         </p>
@@ -1738,23 +1738,25 @@ async function clientCancelSeries(seriesId) {
   }
 }
 
-// --- .ics calendar download ---
-function downloadICS() {
-  if (!selectedDate || !selectedEvent || !selectedTime) return;
-
+// --- .ics calendar: picker + exports ---
+function _calEventParams() {
+  if (!selectedDate || !selectedEvent || !selectedTime) return null;
   const et = EVENT_TYPES[selectedEvent];
   const y = selectedDate.getFullYear();
   const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
   const d = String(selectedDate.getDate()).padStart(2, '0');
-
   const startH = String(et.startHour).padStart(2, '0');
   const startM = String(et.startMin).padStart(2, '0');
   const endH = String(et.endHour).padStart(2, '0');
   const endM = String(et.endMin).padStart(2, '0');
-
-  // Format: YYYYMMDDTHHMMSS (local time, no Z = floating)
   const dtStart = y + m + d + 'T' + startH + startM + '00';
   const dtEnd = y + m + d + 'T' + endH + endM + '00';
+  const address = document.getElementById('f-address').value.trim();
+  const name = document.getElementById('f-name').value.trim();
+  return { et, dtStart, dtEnd, address, name };
+}
+
+function _buildICS(p) {
   const now = new Date();
   const stamp = now.getFullYear() +
     String(now.getMonth() + 1).padStart(2, '0') +
@@ -1762,37 +1764,90 @@ function downloadICS() {
     String(now.getHours()).padStart(2, '0') +
     String(now.getMinutes()).padStart(2, '0') +
     String(now.getSeconds()).padStart(2, '0');
-
-  const address = document.getElementById('f-address').value.trim();
-  const name = document.getElementById('f-name').value.trim();
-
-  const ics = [
+  return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
     'PRODID:-//Garden Faery//Booking//EN',
     'BEGIN:VEVENT',
-    'UID:' + 'gf-' + Date.now() + '@gardenfaery.love',
+    'UID:gf-' + Date.now() + '@gardenfaery.love',
     'DTSTAMP:' + stamp,
-    'DTSTART:' + dtStart,
-    'DTEND:' + dtEnd,
-    'SUMMARY:Garden Faery - ' + et.name,
-    'DESCRIPTION:' + et.name + ' with Taya from Garden Faery.\\nClient: ' + name,
-    address ? 'LOCATION:' + address.replace(/,/g, '\\,') : '',
+    'DTSTART:' + p.dtStart,
+    'DTEND:' + p.dtEnd,
+    'SUMMARY:Garden Faery - ' + p.et.name,
+    'DESCRIPTION:' + p.et.name + ' with Taya from Garden Faery.\\nClient: ' + p.name,
+    p.address ? 'LOCATION:' + p.address.replace(/,/g, '\\,') : '',
     'STATUS:CONFIRMED',
     'END:VEVENT',
     'END:VCALENDAR'
-  ].filter(line => line !== '').join('\r\n');
+  ].filter(Boolean).join('\r\n');
+}
 
-  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+function _downloadICSFile() {
+  const p = _calEventParams(); if (!p) return;
+  const blob = new Blob([_buildICS(p)], { type: 'text/calendar;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = 'garden-faery-booking.ics';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
+function _openGoogleCal() {
+  const p = _calEventParams(); if (!p) return;
+  const title = encodeURIComponent('Garden Faery - ' + p.et.name);
+  const details = encodeURIComponent(p.et.name + ' with Taya from Garden Faery.\nClient: ' + p.name);
+  const loc = encodeURIComponent(p.address || '');
+  const url = 'https://calendar.google.com/calendar/render?action=TEMPLATE' +
+    '&text=' + title +
+    '&dates=' + p.dtStart + '/' + p.dtEnd +
+    '&details=' + details +
+    (loc ? '&location=' + loc : '');
+  window.open(url, '_blank');
+}
+
+function _openOutlookCal() {
+  const p = _calEventParams(); if (!p) return;
+  // Outlook expects ISO format: YYYY-MM-DDTHH:MM:SS
+  const iso = (s) => s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6,8)+'T'+s.slice(9,11)+':'+s.slice(11,13)+':00';
+  const title = encodeURIComponent('Garden Faery - ' + p.et.name);
+  const body = encodeURIComponent(p.et.name + ' with Taya from Garden Faery.\nClient: ' + p.name);
+  const loc = encodeURIComponent(p.address || '');
+  const url = 'https://outlook.live.com/calendar/0/deeplink/compose?path=%2Fcalendar%2Faction%2Fcompose&rru=addevent' +
+    '&subject=' + title +
+    '&startdt=' + iso(p.dtStart) +
+    '&enddt=' + iso(p.dtEnd) +
+    '&body=' + body +
+    (loc ? '&location=' + loc : '');
+  window.open(url, '_blank');
+}
+
+function showCalendarPicker() {
+  if (document.getElementById('cal-picker-overlay')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'cal-picker-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;';
+  overlay.innerHTML = `
+    <div style="background:var(--white,#fff);border-radius:16px;max-width:340px;width:100%;padding:24px;box-shadow:0 10px 40px rgba(0,0,0,0.25);font-family:'Nunito',sans-serif;">
+      <h3 style="margin:0 0 6px;font-size:1.2rem;text-align:center;">Add to your calendar</h3>
+      <p style="margin:0 0 18px;font-size:0.85rem;color:#888;text-align:center;">Choose where to save it.</p>
+      <button type="button" class="btn btn-primary" style="width:100%;margin-bottom:10px;" onclick="_downloadICSFile();_closeCalPicker()">🍎 Apple Calendar</button>
+      <button type="button" class="btn btn-primary" style="width:100%;margin-bottom:10px;" onclick="_openGoogleCal();_closeCalPicker()">📅 Google Calendar</button>
+      <button type="button" class="btn btn-primary" style="width:100%;margin-bottom:10px;" onclick="_openOutlookCal();_closeCalPicker()">📧 Outlook</button>
+      <button type="button" class="btn" style="width:100%;background:transparent;color:#888;" onclick="_downloadICSFile();_closeCalPicker()">Download .ics file</button>
+      <button type="button" class="btn" style="width:100%;margin-top:8px;background:transparent;color:#888;" onclick="_closeCalPicker()">Cancel</button>
+    </div>`;
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) _closeCalPicker(); });
+  document.body.appendChild(overlay);
+}
+
+function _closeCalPicker() {
+  const ov = document.getElementById('cal-picker-overlay');
+  if (ov) ov.remove();
+}
+
+// Backwards compat
+function downloadICS() { showCalendarPicker(); }
 
 // --- Helpers ---
 function formatDate(date) {

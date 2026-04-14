@@ -336,6 +336,92 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
 .fab-primary { background: var(--petal-pink); color: var(--white); }
 .fab-secondary { background: var(--sage-light); color: var(--plum); }
 
+/* Month view */
+.month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.month-nav h2 {
+  font-size: 1.1rem;
+  font-family: 'Lora', serif;
+  color: var(--plum);
+}
+.month-nav .day-btn {
+  background: var(--sage-light);
+  color: var(--plum);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 8px;
+  box-shadow: var(--shadow);
+}
+.month-dow {
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--gray-600);
+  padding: 4px 0;
+  letter-spacing: 0.5px;
+}
+.month-cell {
+  min-height: 64px;
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--cream, #faf6ef);
+  font-size: 0.75rem;
+  color: var(--plum);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid transparent;
+  overflow: hidden;
+}
+.month-cell.empty { background: transparent; cursor: default; }
+.month-cell.today { border-color: var(--spring-sage); background: var(--sage-light); }
+.month-cell:not(.empty):hover { border-color: var(--spring-sage); }
+.month-cell .mc-num {
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-bottom: 2px;
+}
+.month-cell .mc-evt {
+  background: var(--petal-pink);
+  color: var(--white);
+  border-radius: 4px;
+  padding: 1px 4px;
+  margin-bottom: 2px;
+  font-size: 0.65rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.month-cell .mc-evt.morning { background: var(--spring-sage); }
+.month-cell .mc-evt.afternoon { background: var(--petal-pink); }
+.month-cell .mc-evt.monday { background: #b48ec2; }
+.month-cell .mc-evt.blocked { background: var(--gray-400); }
+.month-cell .mc-more {
+  font-size: 0.6rem;
+  color: var(--gray-600);
+}
+@media (max-width: 480px) {
+  .month-cell { min-height: 52px; padding: 3px; font-size: 0.7rem; }
+  .month-cell .mc-evt { font-size: 0.55rem; padding: 0 2px; }
+  .month-cell .mc-num { font-size: 0.75rem; }
+}
+
 /* Login screen */
 .login-screen {
   min-height: 100vh;
@@ -364,7 +450,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
 }
 .login-card input {
   width: 100%;
-  padding: 14px 16px;
+  padding: 14px 48px 14px 16px;
   border: 2px solid var(--gray-200);
   border-radius: 10px;
   font-family: 'Nunito', sans-serif;
@@ -373,7 +459,22 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   text-align: center;
   letter-spacing: 2px;
   margin-bottom: 16px;
+  box-sizing: border-box;
 }
+.pin-wrap { position: relative; }
+.pin-toggle {
+  position: absolute;
+  right: 8px;
+  top: 10px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 6px 10px;
+  color: var(--gray-600);
+  line-height: 1;
+}
+.pin-toggle:hover { color: var(--plum); }
 .login-card input:focus {
   outline: none;
   border-color: var(--spring-sage);
@@ -446,7 +547,10 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   <div class="login-card">
     <h1>Garden Faery</h1>
     <p>Enter your PIN to open the dashboard.</p>
-    <input type="password" id="login-pin" placeholder="PIN" maxlength="20" autocomplete="off">
+    <div class="pin-wrap">
+      <input type="password" id="login-pin" placeholder="PIN" maxlength="20" autocomplete="off">
+      <button type="button" class="pin-toggle" id="pin-toggle" aria-label="Show PIN" onclick="togglePinVisibility()">👁</button>
+    </div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Open Dashboard</button>
     <div class="login-error" id="login-error">Wrong PIN. Try again.</div>
   </div>
@@ -469,6 +573,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   <!-- Tabs -->
   <div class="tabs">
     <button class="tab active" data-tab="day" onclick="switchTab('day')">Day</button>
+    <button class="tab" data-tab="month" onclick="switchTab('month')">Month</button>
     <button class="tab" data-tab="upcoming" onclick="switchTab('upcoming')">Upcoming</button>
     <button class="tab" data-tab="clients" onclick="switchTab('clients')">Clients</button>
     <button class="tab" data-tab="income" onclick="switchTab('income')">Income</button>
@@ -479,6 +584,11 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   <!-- Day view -->
   <div class="tab-panel active" id="tab-day">
     <div id="day-content"></div>
+  </div>
+
+  <!-- Month view -->
+  <div class="tab-panel" id="tab-month" style="display:none;">
+    <div id="month-content"></div>
   </div>
 
   <!-- Upcoming view -->
@@ -964,6 +1074,7 @@ function switchTab(tab) {
   document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
   document.getElementById('tab-' + tab).style.display = 'block';
   if (tab === 'day') renderDay();
+  if (tab === 'month') renderMonth();
   if (tab === 'upcoming') renderUpcoming();
   if (tab === 'clients') renderClients();
   if (tab === 'income') renderIncome();
@@ -1560,6 +1671,78 @@ function nextDay() {
 }
 
 // --- Upcoming view ---
+let monthViewDate = (() => { const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d; })();
+
+function prevMonth() { monthViewDate = new Date(monthViewDate.getFullYear(), monthViewDate.getMonth() - 1, 1); renderMonth(); }
+function nextMonth() { monthViewDate = new Date(monthViewDate.getFullYear(), monthViewDate.getMonth() + 1, 1); renderMonth(); }
+
+function renderMonth() {
+  const container = document.getElementById('month-content');
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const y = monthViewDate.getFullYear();
+  const m = monthViewDate.getMonth();
+  const firstDay = new Date(y, m, 1);
+  const lastDay = new Date(y, m + 1, 0);
+  const startPad = firstDay.getDay();
+  const totalDays = lastDay.getDate();
+  const today = formatDate(new Date());
+
+  const bookings = getBookings().filter(b => b.status !== 'canceled' && (b.date || '').startsWith(y + '-' + String(m+1).padStart(2,'0')));
+  const blocks = getBlocks().filter(b => (b.date || '').startsWith(y + '-' + String(m+1).padStart(2,'0')));
+
+  let html = '<div class="month-nav">' +
+    '<button class="day-btn" onclick="prevMonth()">&#8592;</button>' +
+    '<h2>' + monthNames[m] + ' ' + y + '</h2>' +
+    '<button class="day-btn" onclick="nextMonth()">&#8594;</button></div>';
+
+  html += '<div class="month-grid">';
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => { html += '<div class="month-dow">' + d + '</div>'; });
+
+  for (let i = 0; i < startPad; i++) html += '<div class="month-cell empty"></div>';
+
+  for (let d = 1; d <= totalDays; d++) {
+    const ds = y + '-' + String(m+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    const dayBookings = bookings.filter(b => b.date === ds);
+    const dayBlocks = blocks.filter(b => b.date === ds);
+    const isToday = ds === today;
+
+    let cell = '<div class="month-cell' + (isToday ? ' today' : '') + '" onclick="jumpToDay(\'' + ds + '\')">';
+    cell += '<div class="mc-num">' + d + '</div>';
+
+    const maxShow = 2;
+    const items = [];
+    dayBookings.forEach(b => {
+      const type = b.eventType || 'afternoon';
+      const label = (b.clientName || '').split(' ')[0] || '·';
+      items.push({cls: type, label: label});
+    });
+    dayBlocks.forEach(b => items.push({cls: 'blocked', label: b.reason || 'Blocked'}));
+
+    items.slice(0, maxShow).forEach(it => {
+      cell += '<div class="mc-evt ' + it.cls + '">' + escapeHtml(it.label) + '</div>';
+    });
+    if (items.length > maxShow) {
+      cell += '<div class="mc-more">+' + (items.length - maxShow) + ' more</div>';
+    }
+    cell += '</div>';
+    html += cell;
+  }
+  html += '</div>';
+
+  container.innerHTML = html;
+}
+
+function jumpToDay(ds) {
+  const [y, m, d] = ds.split('-').map(Number);
+  viewDate = new Date(y, m - 1, d);
+  viewDate.setHours(0,0,0,0);
+  switchTab('day');
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
 function renderUpcoming() {
   const container = document.getElementById('upcoming-content');
   const today = formatDate(new Date());
@@ -1923,6 +2106,20 @@ function showApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-wrap').classList.add('visible');
   refreshData().then(() => renderAll());
+}
+
+function togglePinVisibility() {
+  const input = document.getElementById('login-pin');
+  const btn = document.getElementById('pin-toggle');
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '🙈';
+    btn.setAttribute('aria-label', 'Hide PIN');
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁';
+    btn.setAttribute('aria-label', 'Show PIN');
+  }
 }
 
 async function doLogin() {
