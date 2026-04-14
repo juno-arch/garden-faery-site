@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4a1942">
+  <meta name="apple-mobile-web-app-title" content="Garden Faery">
   <meta name="description" content="Food growing guide for Arcata and Humboldt County's coastal climate. Vegetables, fruits, and staple crops for Zone 9b, by your local gardener in Humboldt County, CA.">
   <meta property="og:title" content="Humboldt County Food Growing Guide | Garden Faery, Arcata, CA">
   <meta property="og:description" content="Food growing guide for Humboldt County's coastal climate. Vegetables, fruits, berries, and staple crops for Zone 9b, by your local Arcata gardener.">
@@ -109,7 +111,7 @@
     }
 
     .nav-links { display: flex; gap: 6px; align-items: center; }
-    .nav-links a, .nav-group-toggle { font-family: var(--font-body); font-size: 14px; font-weight: 600; color: rgba(74, 25, 66, 0.6); text-decoration: none; padding: 6px 14px; border: none; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; background: none; cursor: pointer; line-height: 1.4; }
+    .nav-links a, .nav-group-toggle { font-family: var(--font-body); font-size: 14px; font-weight: 600; color: rgba(74, 25, 66, 0.78); text-decoration: none; padding: 6px 14px; border: none; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; background: none; cursor: pointer; line-height: 1.4; }
     .nav-links a:hover, .nav-group-toggle:hover { color: var(--text-primary); }
     .nav-links a.active, .nav-group.active > .nav-group-toggle { color: var(--text-primary); border-bottom-color: var(--accent-1); }
     .nav-group { position: relative; }
@@ -1034,7 +1036,7 @@
     .fav-item-scientific {
       font-size: 11px;
       font-style: italic;
-      color: rgba(74, 25, 66, 0.6);
+      color: rgba(74, 25, 66, 0.78);
       margin-top: 2px;
     }
     .fav-remove {
@@ -1051,7 +1053,7 @@
     .fav-empty {
       text-align: center;
       padding: 50px 16px;
-      color: rgba(74, 25, 66, 0.6);
+      color: rgba(74, 25, 66, 0.78);
     }
     .fav-empty svg {
       width: 56px;
@@ -1545,7 +1547,7 @@
   <!-- Navigation -->
   <nav class="site-nav">
     <a href="index.html" class="nav-logo">Garden Faery</a>
-    <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
+    <button class="hamburger" onclick="var m=document.querySelector('.nav-links');m.classList.toggle('open');this.setAttribute('aria-expanded',m.classList.contains('open'))" aria-label="Menu" aria-expanded="false">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
         <line x1="3" y1="6" x2="21" y2="6"/>
         <line x1="3" y1="12" x2="21" y2="12"/>
@@ -1562,12 +1564,14 @@
         <div class="nav-group-menu">
           <a href="plant-guide.html">Plant Guide</a>
           <a href="food-guide.html" class="active">Market Garden</a>
+          <a href="estimator.html">Bed Builder</a>
         </div>
       </div>
       <a href="book.html">Book</a>
     </div>
   </nav>
 
+  <main>
   <!-- Hero Section -->
   <section class="hero">
     <h1>Grow Your Own Food</h1>
@@ -1946,6 +1950,7 @@
     </div>
 
   </div>
+  </main>
 
   <!-- Footer -->
   <footer>
@@ -1969,6 +1974,10 @@
           <path d="M12 2L2 10h3v10h5v-6h4v6h5V10h3L12 2z"/>
         </svg>
       </a>
+    </div>
+    <div style="margin-top:14px; font-size:11px; opacity:0.55;">
+      <a href="privacy.html" style="color:inherit; text-decoration:none; margin:0 6px;">Privacy</a>
+      <a href="terms.html" style="color:inherit; text-decoration:none; margin:0 6px;">Terms</a>
     </div>
   </footer>
 

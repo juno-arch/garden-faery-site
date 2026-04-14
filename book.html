@@ -633,11 +633,95 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   color: var(--gray-400);
 }
 
+/* Contact plug under booking */
+.contact-plug {
+  margin: 32px 0 0;
+  padding: 22px 22px;
+  background: linear-gradient(135deg, rgba(196,139,176,0.10), rgba(163,184,140,0.10));
+  border: 1px solid rgba(196,139,176,0.35);
+  border-radius: var(--radius);
+  text-align: center;
+}
+.contact-plug h3 {
+  font-family: 'Lora', serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--plum);
+  margin-bottom: 6px;
+}
+.contact-plug p {
+  font-size: 0.92rem;
+  color: var(--gray-600);
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+.contact-plug-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.contact-plug-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: var(--petal-pink);
+  color: white;
+  text-decoration: none;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  border-radius: 10px;
+  transition: background 0.2s, transform 0.2s;
+}
+.contact-plug-btn:hover { background: var(--plum); transform: translateY(-1px); }
+.contact-plug-btn.secondary {
+  background: transparent;
+  color: var(--plum);
+  border: 2px solid var(--petal-pink);
+}
+.contact-plug-btn.secondary:hover { background: rgba(196,139,176,0.15); color: var(--plum); }
+
+/* Site footer */
+.site-footer {
+  text-align: center;
+  padding: 28px 20px 30px;
+  margin-top: 40px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--petal-pink);
+  background: var(--plum);
+}
+.site-footer a { color: var(--petal-pink); text-decoration: none; }
+.site-footer a:hover { text-decoration: underline; }
+.site-footer .footer-contact { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+.site-footer .footer-link-row { display: flex; gap: 14px; justify-content: center; margin-top: 4px; flex-wrap: wrap; font-size: 13px; }
+.site-footer .footer-link-row a { opacity: 0.9; }
+.site-footer .social-links { display: flex; justify-content: center; gap: 16px; margin-top: 12px; }
+.site-footer .social-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  transition: background 0.2s, transform 0.2s;
+}
+.site-footer .social-links a:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
+.site-footer .social-links svg { width: 18px; height: 18px; fill: var(--petal-pink); display: block; }
+.site-footer .footer-legal { margin-top: 14px; font-size: 11px; opacity: 0.55; }
+.site-footer .footer-legal a { color: inherit; margin: 0 6px; }
+
 /* Mobile tweaks */
 @media (max-width: 400px) {
   .container { padding: 16px 12px; }
   .header h1 { font-size: 1.6rem; }
   .event-type-btn { padding: 12px; }
+  .contact-plug { padding: 18px 16px; }
+  .contact-plug-actions { flex-direction: column; }
+  .contact-plug-btn { justify-content: center; }
 }
 </style>
 </head>
@@ -795,7 +879,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
       </div>
     </div>
     <p style="font-size: 0.78rem; color: var(--gray-600); line-height: 1.5; margin: 14px 2px 0;">
-      By booking, you agree to receive SMS appointment confirmations and reminders from Garden Faery at the phone number provided. Message and data rates may apply. Reply STOP to opt out, HELP for help. See our <a href="/privacy.html" style="color: var(--plum); text-decoration: underline;">Privacy Policy</a> and <a href="/terms.html" style="color: var(--plum); text-decoration: underline;">Terms</a>.
+      By booking, you agree to receive SMS appointment confirmations and reminders from Garden Faery at the phone number provided. Message and data rates may apply. Reply STOP to opt out, HELP for help. See our <a href="privacy.html" style="color: var(--plum); text-decoration: underline;">Privacy Policy</a> and <a href="terms.html" style="color: var(--plum); text-decoration: underline;">Terms</a>.
     </p>
     <div class="btn-row">
       <button class="btn btn-back" onclick="goStep(1)">&#8592; Back</button>
@@ -816,6 +900,16 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
           Taya will reach out if anything comes up. See you in the garden!
         </p>
       </div>
+    </div>
+  </div>
+
+  <!-- Contact plug -->
+  <div class="contact-plug">
+    <h3>Have a question first?</h3>
+    <p>Not quite ready to book? Send a quick note and I'll get back to you soon.</p>
+    <div class="contact-plug-actions">
+      <a href="contact.html" class="contact-plug-btn">Send a Message</a>
+      <a href="mailto:taya@gardenfaery.love" class="contact-plug-btn secondary">Email Taya</a>
     </div>
   </div>
 </div>
@@ -880,27 +974,20 @@ const DB = {
       try { return JSON.parse(localStorage.getItem('gf_bookings_v1') || '[]'); }
       catch { return []; }
     }
-    const data = await this._pb('GET', 'bookings/records?perPage=500&filter=(status!=%27canceled%27)');
+    // Public availability endpoint — returns no client PII.
+    // The calendar only needs {date, time, duration, status, recurring_*}.
+    const resp = await fetch(PB_URL + '/api/availability');
+    if (!resp.ok) throw new Error('availability ' + resp.status);
+    const data = await resp.json();
     return (data.items || []).map(r => ({
       id: r.id,
       eventType: r.event_type,
-      eventName: r.event_name,
       date: r.date,
       time: r.time,
       duration: r.duration,
-      clientName: r.client_name,
-      clientEmail: r.client_email,
-      clientPhone: r.client_phone,
-      clientAddress: r.client_address,
-      gardenNotes: r.garden_notes,
       status: r.status,
-      bookedBy: r.booked_by,
-      rescheduledAt: r.rescheduled_at,
-      canceledAt: r.canceled_at,
-      canceledBy: r.canceled_by,
       recurringSeriesId: r.recurring_series_id,
       recurringFrequency: r.recurring_frequency,
-      createdAt: r.created,
     }));
   },
 
@@ -1895,5 +1982,27 @@ function formatDate(date) {
 // --- Init: preload data ---
 refreshData();
 </script>
+
+<footer class="site-footer">
+  <div class="footer-contact">
+    <a href="mailto:taya@gardenfaery.love">taya@gardenfaery.love</a>
+    <span style="opacity: 0.8;">Arcata, CA</span>
+  </div>
+  <div class="footer-link-row">
+    <a href="index.html">Home</a>
+    <a href="services.html">Services</a>
+    <a href="contact.html">Contact</a>
+  </div>
+  <div class="social-links">
+    <a href="https://www.facebook.com/profile.php?id=61578540137419" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+    <a href="https://www.instagram.com/gardenfaery__/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+    <a href="https://nextdoor.com/profile/01fPxwm9JL8Y2BKt9/" target="_blank" rel="noopener" aria-label="Nextdoor"><svg viewBox="0 0 24 24"><path d="M12 2L2 10h3v10h5v-6h4v6h5V10h3L12 2z"/></svg></a>
+  </div>
+  <div class="footer-legal">
+    <a href="privacy.html">Privacy</a>
+    <a href="terms.html">Terms</a>
+  </div>
+</footer>
+
 </body>
 </html>
