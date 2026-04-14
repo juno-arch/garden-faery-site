@@ -103,78 +103,33 @@
       white-space: nowrap;
     }
 
-    .nav-links {
-      display: flex;
-      gap: 6px;
-    }
-
-    .nav-links a {
-      font-family: var(--font-body);
-      font-size: 14px;
-      font-weight: 600;
-      color: rgba(74, 25, 66, 0.6);
-      text-decoration: none;
-      padding: 6px 14px;
-      border-bottom: 2px solid transparent;
-      transition: color 0.2s, border-color 0.2s;
-    }
-
-    .nav-links a:hover {
-      color: var(--text-primary);
-    }
-
-    .nav-links a.active {
-      color: var(--text-primary);
-      border-bottom-color: var(--accent-1);
-    }
-
-    .hamburger {
-      display: none;
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 4px;
-    }
-
-    .hamburger svg {
-      width: 26px;
-      height: 26px;
-      stroke: var(--text-primary);
-    }
-
+    .nav-links { display: flex; gap: 6px; align-items: center; }
+    .nav-links a, .nav-group-toggle { font-family: var(--font-body); font-size: 14px; font-weight: 600; color: rgba(74, 25, 66, 0.6); text-decoration: none; padding: 6px 14px; border: none; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; background: none; cursor: pointer; line-height: 1.4; }
+    .nav-links a:hover, .nav-group-toggle:hover { color: var(--text-primary); }
+    .nav-links a.active, .nav-group.active > .nav-group-toggle { color: var(--text-primary); border-bottom-color: var(--accent-1); }
+    .nav-group { position: relative; }
+    .nav-group-toggle .caret { display: inline-block; margin-left: 4px; font-size: 10px; transition: transform 0.2s; }
+    .nav-group:hover .caret, .nav-group.open .caret { transform: rotate(180deg); }
+    .nav-group-menu { display: none; position: absolute; top: 100%; left: 0; background: var(--bg); border: 1px solid var(--accent-1); border-radius: 10px; padding: 4px 0; min-width: 170px; box-shadow: 0 8px 20px rgba(74,25,66,0.15); z-index: 101; margin-top: 2px; }
+    .nav-group:hover .nav-group-menu, .nav-group.open .nav-group-menu, .nav-group:focus-within .nav-group-menu { display: block; }
+    .nav-group-menu a { display: block; padding: 9px 18px; border-bottom: none !important; white-space: nowrap; }
+    .nav-group-menu a:hover { background: rgba(196,139,176,0.12); color: var(--text-primary); }
+    .nav-group-menu a.active { color: var(--text-primary); background: rgba(196,139,176,0.08); border-bottom: none; }
+    .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 4px; }
+    .hamburger svg { width: 26px; height: 26px; stroke: var(--text-primary); }
     @media (max-width: 600px) {
-      .hamburger {
-        display: block;
-      }
-
-      .nav-links {
-        display: none;
-        position: absolute;
-        top: 54px;
-        left: 0;
-        right: 0;
-        flex-direction: column;
-        background: var(--bg);
-        border-bottom: 2px solid var(--accent-1);
-        padding: 8px 0;
-        gap: 0;
-      }
-
-      .nav-links.open {
-        display: flex;
-      }
-
-      .nav-links a {
-        padding: 12px 24px;
-        font-size: 15px;
-        border-bottom: none;
-      }
-
-      .nav-links a.active {
-        border-bottom: none;
-        color: var(--text-primary);
-        background: rgba(196, 139, 176, 0.1);
-      }
+      .hamburger { display: block; }
+      .nav-links { display: none; position: absolute; top: 54px; left: 0; right: 0; flex-direction: column; background: var(--bg); border-bottom: 2px solid var(--accent-1); padding: 8px 0; gap: 0; align-items: stretch; }
+      .nav-links.open { display: flex; }
+      .nav-links a { padding: 12px 24px; font-size: 15px; border-bottom: none; }
+      .nav-links a.active { border-bottom: none; color: var(--text-primary); background: rgba(196, 139, 176, 0.1); }
+      .nav-group { width: 100%; display: flex; flex-direction: column; }
+      .nav-group-toggle { padding: 14px 24px 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: rgba(74, 25, 66, 0.55); opacity: 1; cursor: default; pointer-events: none; text-align: left; width: 100%; border-bottom: none; }
+      .nav-group-toggle .caret { display: none; }
+      .nav-group.active > .nav-group-toggle { background: none; border: none; color: rgba(74, 25, 66, 0.55); }
+      .nav-group-menu { display: block; position: static; background: none; border: none; padding: 0 0 6px; box-shadow: none; min-width: 0; margin: 0; }
+      .nav-group-menu a { padding: 10px 36px; font-size: 14px; }
+      .nav-group-menu a.active { background: rgba(196,139,176,0.1); }
     }
 
     /* Hero Section */
@@ -753,6 +708,538 @@
     .seasonal-color.winter {
       --highlight: #a3b88c;
     }
+
+    /* ========= Interactive Kit: heart, modal, drawer, filters ========= */
+
+    /* Heart button on cards */
+    .plant-card { position: relative; }
+    .fav-heart {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 3;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s, background 0.15s, color 0.15s;
+      color: rgba(74, 25, 66, 0.45);
+      padding: 0;
+    }
+    .fav-heart svg { width: 20px; height: 20px; pointer-events: none; }
+    .fav-heart:hover { transform: scale(1.1); background: white; color: #c48bb0; }
+    .fav-heart.active { color: #c48bb0; background: white; }
+    .fav-heart.active svg path { fill: currentColor; }
+    .fav-heart:not(.active) svg path { fill: none; stroke: currentColor; stroke-width: 2.2; }
+    @keyframes heartPop {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.4); }
+      100% { transform: scale(1); }
+    }
+    .fav-heart.pop { animation: heartPop 0.4s ease-out; }
+
+    /* Make plant image look clickable for modal */
+    .plant-card .plant-image { cursor: pointer; transition: opacity 0.15s; }
+    .plant-card .plant-image:hover { opacity: 0.92; }
+    .plant-name-btn {
+      font-family: inherit;
+      font-size: inherit;
+      font-weight: inherit;
+      color: inherit;
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      text-align: left;
+      display: block;
+      width: 100%;
+    }
+    .plant-name-btn:hover { color: #7a3d70; text-decoration: underline; }
+
+    /* My Garden floating button */
+    .my-garden-fab {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 90;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 18px;
+      border: none;
+      border-radius: 28px;
+      background: var(--text-primary);
+      color: white;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(74, 25, 66, 0.3);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .my-garden-fab:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(74, 25, 66, 0.4);
+    }
+    .my-garden-fab svg { width: 18px; height: 18px; fill: var(--accent-1); }
+    .my-garden-fab .count-badge {
+      background: var(--accent-1);
+      color: var(--text-primary);
+      min-width: 22px;
+      height: 22px;
+      padding: 0 7px;
+      border-radius: 11px;
+      font-size: 12px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .my-garden-fab.empty .count-badge { display: none; }
+    @keyframes fabPop {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+    .my-garden-fab.pop { animation: fabPop 0.4s ease-out; }
+
+    /* Overlay shared by modal + drawer */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(30, 10, 30, 0.5);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      z-index: 150;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .overlay.open { opacity: 1; pointer-events: auto; }
+
+    /* Drawer: My Garden list */
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 420px;
+      max-width: 100vw;
+      background: var(--bg);
+      z-index: 160;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      box-shadow: -8px 0 24px rgba(74, 25, 66, 0.15);
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-header {
+      padding: 20px 24px 16px;
+      border-bottom: 2px solid var(--accent-1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .drawer-header h2 {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      font-weight: 900;
+      margin: 0;
+      color: var(--text-primary);
+    }
+    .drawer-body { flex: 1; overflow-y: auto; padding: 16px 24px; }
+    .drawer-footer {
+      padding: 14px 20px 18px;
+      border-top: 1px solid rgba(74, 25, 66, 0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .drawer-close {
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: var(--text-primary);
+      cursor: pointer;
+      line-height: 1;
+      padding: 6px 10px;
+      border-radius: 50%;
+    }
+    .drawer-close:hover { background: rgba(74, 25, 66, 0.08); }
+
+    .fav-group { margin-bottom: 18px; }
+    .fav-group-title {
+      font-family: var(--font-heading);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+    .fav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: white;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      box-shadow: var(--shadow);
+    }
+    .fav-item-main {
+      flex: 1;
+      min-width: 0;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      text-align: left;
+      font-family: var(--font-body);
+    }
+    .fav-item-name {
+      font-weight: 700;
+      color: var(--text-primary);
+      font-size: 14px;
+      line-height: 1.3;
+    }
+    .fav-item-scientific {
+      font-size: 11px;
+      font-style: italic;
+      color: rgba(74, 25, 66, 0.6);
+      margin-top: 2px;
+    }
+    .fav-remove {
+      background: none;
+      border: none;
+      color: rgba(74, 25, 66, 0.5);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      line-height: 1;
+    }
+    .fav-remove:hover { color: var(--text-primary); background: rgba(74, 25, 66, 0.06); }
+    .fav-empty {
+      text-align: center;
+      padding: 50px 16px;
+      color: rgba(74, 25, 66, 0.6);
+    }
+    .fav-empty svg {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 14px;
+      display: block;
+      color: rgba(74, 25, 66, 0.2);
+    }
+    .fav-empty p { font-size: 14px; line-height: 1.6; }
+
+    .fav-action-btn {
+      padding: 12px 14px;
+      border: 2px solid var(--text-primary);
+      background: white;
+      color: var(--text-primary);
+      border-radius: 6px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      transition: all 0.15s;
+      display: inline-block;
+    }
+    .fav-action-btn:hover { background: var(--text-primary); color: white; }
+    .fav-action-btn.primary {
+      background: var(--highlight);
+      border-color: var(--highlight);
+    }
+    .fav-action-btn.primary:hover {
+      background: var(--text-primary);
+      border-color: var(--text-primary);
+      color: white;
+    }
+    .fav-action-btn.ghost {
+      border-color: rgba(74, 25, 66, 0.15);
+      color: rgba(74, 25, 66, 0.65);
+      font-size: 12px;
+      padding: 8px;
+      font-weight: 600;
+    }
+    .fav-action-btn.ghost:hover {
+      background: rgba(74, 25, 66, 0.05);
+      color: var(--text-primary);
+      border-color: rgba(74, 25, 66, 0.3);
+    }
+
+    @media (max-width: 600px) {
+      .drawer { width: 100vw; }
+      .my-garden-fab { bottom: 16px; right: 16px; padding: 10px 14px; }
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -42%) scale(0.96);
+      width: 94%;
+      max-width: 680px;
+      max-height: 92vh;
+      background: var(--bg);
+      border-radius: 14px;
+      z-index: 170;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(74, 25, 66, 0.35);
+    }
+    .modal.open {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-image {
+      width: 100%;
+      height: 300px;
+      background: rgba(74, 25, 66, 0.08);
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .modal-image img { width: 100%; height: 100%; object-fit: cover; }
+    .modal-image-fallback {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.92);
+      border: none;
+      cursor: pointer;
+      font-size: 22px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      box-shadow: var(--shadow);
+      line-height: 1;
+    }
+    .modal-close:hover { background: white; transform: scale(1.05); }
+    .modal-heart {
+      position: absolute;
+      top: 12px;
+      right: 60px;
+      z-index: 4;
+    }
+    .modal-body {
+      padding: 22px 26px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .modal-body h3 {
+      font-family: var(--font-heading);
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--text-primary);
+      margin: 0 0 4px;
+      line-height: 1.15;
+    }
+    .modal-scientific {
+      font-size: 13px;
+      font-style: italic;
+      color: rgba(74, 25, 66, 0.65);
+      margin-bottom: 10px;
+    }
+    .modal-category-tag {
+      display: inline-block;
+      padding: 4px 11px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+      color: var(--text-primary);
+    }
+    .modal-section { margin-bottom: 18px; }
+    .modal-section h4 {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      color: var(--text-primary);
+      margin: 0 0 6px;
+      opacity: 0.7;
+    }
+    .modal-section p {
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--text-primary);
+      margin: 0;
+    }
+    .modal-footer {
+      padding: 14px 20px;
+      border-top: 1px solid rgba(74, 25, 66, 0.1);
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .modal-footer .fav-action-btn {
+      flex: 1;
+      min-width: 130px;
+    }
+    body.no-scroll { overflow: hidden; }
+
+    @media (max-width: 600px) {
+      .modal { width: 100%; max-width: 100%; max-height: 100vh; border-radius: 0; top: 0; left: 0; transform: translateY(100%); }
+      .modal.open { transform: translateY(0); }
+      .modal-image { height: 220px; }
+      .modal-body { padding: 18px 20px; }
+      .modal-body h3 { font-size: 24px; }
+      .modal-heart { right: 58px; }
+    }
+
+    /* Extended filters + sort */
+    .filter-toolbar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px 14px;
+      flex-wrap: wrap;
+      padding: 0 24px 12px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .tag-toggle {
+      padding: 7px 13px;
+      min-height: 34px;
+      border: 1.5px solid rgba(74, 25, 66, 0.22);
+      background: transparent;
+      border-radius: 17px;
+      font-family: var(--font-body);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tag-toggle:hover { border-color: var(--text-primary); }
+    .tag-toggle.active {
+      background: var(--accent-1);
+      border-color: var(--accent-1);
+      color: white;
+    }
+
+    .sort-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+      color: rgba(74, 25, 66, 0.7);
+    }
+    .sort-select {
+      padding: 7px 30px 7px 12px;
+      border: 1.5px solid rgba(74, 25, 66, 0.22);
+      border-radius: 17px;
+      background: white;
+      font-family: var(--font-body);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%234a1942' stroke-width='2'><path d='M1 1l5 5 5-5'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 10px;
+    }
+    .sort-select:focus { border-color: var(--text-primary); }
+
+    .no-results {
+      text-align: center;
+      padding: 60px 24px;
+      color: rgba(74, 25, 66, 0.55);
+      font-size: 15px;
+    }
+    .no-results button {
+      margin-top: 14px;
+      padding: 8px 16px;
+      border: 1.5px solid rgba(74, 25, 66, 0.3);
+      background: white;
+      border-radius: 16px;
+      cursor: pointer;
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 88px;
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: var(--text-primary);
+      color: white;
+      padding: 10px 18px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s;
+      z-index: 200;
+      box-shadow: 0 4px 16px rgba(74, 25, 66, 0.25);
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Print styles for My Garden list */
+    @media print {
+      nav, .hero, .top-actions, .filter-section, #plants-container, .directory-section,
+      .cta-section, footer, .my-garden-fab, .overlay, .modal, .drawer-close,
+      .drawer-footer .fav-action-btn.ghost { display: none !important; }
+      .drawer {
+        position: static;
+        transform: none;
+        width: 100%;
+        box-shadow: none;
+        background: white;
+      }
+      .drawer-header { border-bottom: 2px solid #4a1942; }
+      .fav-item { box-shadow: none; border: 1px solid rgba(74,25,66,0.2); }
+      body { background: white; }
+    }
   </style>
 </head>
 <body>
@@ -771,12 +1258,15 @@
       <a href="index.html">Home</a>
       <a href="about.html">About</a>
       <a href="services.html">Services</a>
-      <a href="estimator.html">Bed Builder</a>
       <a href="gallery.html">Gallery</a>
-      <a href="plant-guide.html" class="active">Plant Guide</a>
-      <a href="food-guide.html">Market Garden</a>
+      <div class="nav-group active">
+        <button class="nav-group-toggle" type="button" onclick="this.parentElement.classList.toggle('open')">Guides<span class="caret" aria-hidden="true">&#9662;</span></button>
+        <div class="nav-group-menu">
+          <a href="plant-guide.html" class="active">Plant Guide</a>
+          <a href="food-guide.html">Market Garden</a>
+        </div>
+      </div>
       <a href="book.html">Book</a>
-      <a href="contact.html">Contact</a>
     </div>
   </nav>
 
@@ -804,7 +1294,24 @@
       <button class="filter-btn" data-category="ornamentals" aria-pressed="false">Ornamentals</button>
       <button class="filter-btn" data-category="trees" aria-pressed="false">Trees</button>
     </div>
-    <p class="plant-count">256 plants chosen for Humboldt County's coastal climate</p>
+    <div class="filter-toolbar" role="group" aria-label="Refine by traits">
+      <button class="tag-toggle" data-tag="full-sun">Full Sun</button>
+      <button class="tag-toggle" data-tag="part-shade">Part Shade</button>
+      <button class="tag-toggle" data-tag="drought">Drought-Tolerant</button>
+      <button class="tag-toggle" data-tag="low-maintenance">Low Maintenance</button>
+      <button class="tag-toggle" data-tag="deer-resistant">Deer-Resistant</button>
+      <button class="tag-toggle" data-tag="evergreen">Evergreen</button>
+      <button class="tag-toggle" data-tag="self-seeding">Self-Seeding</button>
+      <label class="sort-wrap">
+        Sort:
+        <select id="sort-select" class="sort-select" aria-label="Sort plants">
+          <option value="category">By category</option>
+          <option value="alpha">A to Z</option>
+          <option value="alpha-reverse">Z to A</option>
+        </select>
+      </label>
+    </div>
+    <p class="plant-count" id="plant-count">256 plants chosen for Humboldt County's coastal climate</p>
   </section>
 
   <!-- Plants Container -->
@@ -3181,7 +3688,585 @@
     document.addEventListener('DOMContentLoaded', () => {
       init();
       updateSeasonalColor();
+      GFKit.init();
     });
+  </script>
+
+  <!-- ================ Interactive Kit HTML ================ -->
+  <button class="my-garden-fab empty" id="my-garden-fab" aria-label="Open My Garden list" hidden>
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 21s-7.5-4.7-9.5-9.2C1 7.7 4 4 7.5 4c2 0 3.5 1 4.5 2.5C13 5 14.5 4 16.5 4 20 4 23 7.7 21.5 11.8 19.5 16.3 12 21 12 21z"/></svg>
+    <span class="fab-label">My Garden</span>
+    <span class="count-badge" id="fav-count-badge">0</span>
+  </button>
+
+  <div class="overlay" id="kit-overlay" aria-hidden="true"></div>
+
+  <aside class="drawer" id="garden-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" aria-hidden="true">
+    <div class="drawer-header">
+      <h2 id="drawer-title">My Garden</h2>
+      <button class="drawer-close" id="drawer-close" aria-label="Close My Garden">&times;</button>
+    </div>
+    <div class="drawer-body" id="drawer-body"></div>
+    <div class="drawer-footer" id="drawer-footer" hidden>
+      <a href="#" class="fav-action-btn primary" id="email-taya-btn">Email My List to Taya</a>
+      <button class="fav-action-btn" id="print-list-btn">Print My List</button>
+      <button class="fav-action-btn ghost" id="clear-list-btn">Clear All</button>
+    </div>
+  </aside>
+
+  <div class="modal" id="plant-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true">
+    <div class="modal-image" id="modal-image"></div>
+    <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="fav-action-btn primary" id="modal-fav-btn">&#9825; Add to My Garden</button>
+      <button class="fav-action-btn" id="modal-share-btn">Copy Share Link</button>
+    </div>
+  </div>
+
+  <div class="toast" id="gf-toast" role="status" aria-live="polite"></div>
+
+  <!-- ================ Interactive Kit JS ================ -->
+  <script>
+  const GFKit = (function() {
+    const STORAGE_KEY = 'gf_favorites_v1';
+    const PAGE_KEY = 'plants';
+    const CATEGORY_COLORS = {
+      pollinator: '#d4c27a',
+      native: '#a3b88c',
+      herbs: '#7a9e7e',
+      flowers: '#d4a04a',
+      ornamentals: '#5a7a6e',
+      trees: '#7a6e5a'
+    };
+    const CATEGORY_LABELS = {
+      pollinator: 'Pollinator', native: 'Native', herbs: 'Herbs',
+      flowers: 'Flowers', ornamentals: 'Ornamentals', trees: 'Trees'
+    };
+    const TAG_KEYWORDS = {
+      'full-sun': ['full sun'],
+      'part-shade': ['part shade', 'partial shade', 'part sun', 'dappled'],
+      'drought': ['drought tolerant', 'drought-tolerant', 'drought resistant', 'no summer water', 'minimal water', 'dry'],
+      'low-maintenance': ['low maintenance', 'zero maintenance', 'almost zero', 'no maintenance', 'minimal input', 'very low'],
+      'deer-resistant': ['deer resistant', 'deer-resistant', 'deer proof', 'deer-proof', 'deer don\'t', 'avoided by deer'],
+      'evergreen': ['evergreen'],
+      'self-seeding': ['self-seed', 'self seed', 'self-sow', 'self sow', 'reseeds']
+    };
+
+    let allPlants = [];
+    let favorites = { plants: [], food: [] };
+    let activeTags = new Set();
+    let currentSort = 'category';
+    let currentCategory = 'all';
+
+    function loadFavorites() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) favorites = Object.assign({ plants: [], food: [] }, JSON.parse(raw));
+      } catch (e) {}
+    }
+    function saveFavorites() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites)); } catch (e) {}
+    }
+    function isFav(slug) { return favorites[PAGE_KEY].includes(slug); }
+    function toggleFav(slug) {
+      const list = favorites[PAGE_KEY];
+      const idx = list.indexOf(slug);
+      if (idx >= 0) list.splice(idx, 1); else list.push(slug);
+      saveFavorites();
+      updateFab();
+      syncHearts(slug);
+    }
+
+    function deriveTags(plant) {
+      const text = ((plant.growth || '') + ' ' + (plant.care || '') + ' ' + (plant.planting || '')).toLowerCase();
+      const tags = new Set();
+      for (const [tag, keywords] of Object.entries(TAG_KEYWORDS)) {
+        if (keywords.some(k => text.includes(k))) tags.add(tag);
+      }
+      return tags;
+    }
+
+    function buildPlantIndex() {
+      const plantsData = (typeof plants !== 'undefined') ? plants : {};
+      allPlants = [];
+      Object.keys(plantsData).forEach(cat => {
+        (plantsData[cat].plants || []).forEach(p => {
+          allPlants.push(Object.assign({}, p, {
+            category: cat,
+            _tags: deriveTags(p)
+          }));
+        });
+      });
+    }
+
+    function findPlant(slug) {
+      return allPlants.find(p => p.slug === slug);
+    }
+
+    function heartSvg() {
+      return '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 21s-7.5-4.7-9.5-9.2C1 7.7 4 4 7.5 4c2 0 3.5 1 4.5 2.5C13 5 14.5 4 16.5 4 20 4 23 7.7 21.5 11.8 19.5 16.3 12 21 12 21z"/></svg>';
+    }
+
+    function decorateCards() {
+      document.querySelectorAll('.plant-card').forEach(card => {
+        if (card.dataset.kitDecorated === '1') return;
+        const slug = (card.id || '').replace(/^plant-/, '');
+        if (!slug) return;
+        card.dataset.slug = slug;
+        card.dataset.kitDecorated = '1';
+
+        // Heart button
+        const heart = document.createElement('button');
+        heart.className = 'fav-heart' + (isFav(slug) ? ' active' : '');
+        heart.setAttribute('aria-label', (isFav(slug) ? 'Remove from' : 'Add to') + ' My Garden');
+        heart.setAttribute('type', 'button');
+        heart.dataset.slug = slug;
+        heart.innerHTML = heartSvg();
+        heart.addEventListener('click', e => {
+          e.stopPropagation();
+          e.preventDefault();
+          toggleFav(slug);
+          heart.classList.add('pop');
+          setTimeout(() => heart.classList.remove('pop'), 400);
+          const fab = document.getElementById('my-garden-fab');
+          if (fab) { fab.classList.add('pop'); setTimeout(() => fab.classList.remove('pop'), 400); }
+          showToast(isFav(slug) ? 'Added to My Garden' : 'Removed from My Garden');
+        });
+        card.appendChild(heart);
+
+        // Click image to open modal
+        const img = card.querySelector('.plant-image');
+        if (img) {
+          img.setAttribute('role', 'button');
+          img.setAttribute('tabindex', '0');
+          img.setAttribute('aria-label', 'View plant details');
+          img.addEventListener('click', () => openModal(slug));
+          img.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(slug); }
+          });
+        }
+
+        // Click plant name to open modal
+        const nameEl = card.querySelector('.plant-name');
+        if (nameEl) {
+          const text = nameEl.textContent;
+          nameEl.innerHTML = '';
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'plant-name-btn';
+          btn.textContent = text;
+          btn.addEventListener('click', () => openModal(slug));
+          nameEl.appendChild(btn);
+        }
+      });
+    }
+
+    function syncHearts(slug) {
+      document.querySelectorAll('.fav-heart[data-slug="' + slug + '"]').forEach(h => {
+        h.classList.toggle('active', isFav(slug));
+        h.setAttribute('aria-label', (isFav(slug) ? 'Remove from' : 'Add to') + ' My Garden');
+      });
+      const modalBtn = document.getElementById('modal-fav-btn');
+      if (modalBtn && modalBtn.dataset.slug === slug) updateModalFavBtn(slug);
+      if (document.getElementById('garden-drawer').classList.contains('open')) renderDrawer();
+    }
+
+    function updateFab() {
+      const fab = document.getElementById('my-garden-fab');
+      const badge = document.getElementById('fav-count-badge');
+      const count = favorites[PAGE_KEY].length + favorites.food.length;
+      if (!fab) return;
+      fab.hidden = false;
+      badge.textContent = count;
+      fab.classList.toggle('empty', count === 0);
+      fab.setAttribute('aria-label', count === 0 ? 'My Garden (empty)' : 'My Garden (' + count + ' plants)');
+    }
+
+    // ------ Extended filters + sort ------
+
+    function applyFilters() {
+      const sections = document.querySelectorAll('#plants-container .category-section');
+      let totalVisible = 0;
+      sections.forEach(section => {
+        const cat = section.dataset.category;
+        const grid = section.querySelector('.plants-grid');
+        if (!grid) return;
+
+        // Reorder cards per sort
+        const cards = Array.from(grid.querySelectorAll('.plant-card'));
+        cards.sort((a, b) => {
+          const an = a.querySelector('.plant-name').textContent.trim().toLowerCase();
+          const bn = b.querySelector('.plant-name').textContent.trim().toLowerCase();
+          if (currentSort === 'alpha') return an.localeCompare(bn);
+          if (currentSort === 'alpha-reverse') return bn.localeCompare(an);
+          return 0; // category = original order
+        });
+        cards.forEach(c => grid.appendChild(c));
+
+        // Apply tag filters per card
+        let catVisible = 0;
+        cards.forEach(card => {
+          const slug = card.dataset.slug;
+          const p = findPlant(slug);
+          let show = true;
+          if (activeTags.size > 0 && p) {
+            for (const t of activeTags) if (!p._tags.has(t)) { show = false; break; }
+          }
+          card.style.display = show ? '' : 'none';
+          if (show) catVisible++;
+        });
+
+        const showSection = (currentCategory === 'all' || currentCategory === cat) && catVisible > 0;
+        section.style.display = showSection ? 'block' : 'none';
+        if (showSection) totalVisible += catVisible;
+
+        // Update count badge
+        const badge = section.querySelector('.plant-count-badge');
+        if (badge) {
+          const total = (typeof plants !== 'undefined' && plants[cat]) ? plants[cat].plants.length : 0;
+          badge.textContent = catVisible === total ? (total + ' plants') : (catVisible + ' of ' + total);
+        }
+      });
+
+      // Total count message
+      const countEl = document.getElementById('plant-count');
+      if (countEl) {
+        if (activeTags.size === 0 && currentCategory === 'all') {
+          countEl.textContent = allPlants.length + " plants chosen for Humboldt County's coastal climate";
+        } else {
+          const tagText = activeTags.size ? ' matching ' + Array.from(activeTags).map(t => t.replace('-', ' ')).join(' + ') : '';
+          const catText = currentCategory !== 'all' ? ' in ' + (CATEGORY_LABELS[currentCategory] || currentCategory) : '';
+          countEl.textContent = 'Showing ' + totalVisible + ' plant' + (totalVisible === 1 ? '' : 's') + catText + tagText;
+        }
+      }
+
+      // Empty state
+      const container = document.getElementById('plants-container');
+      let emptyEl = container.querySelector('.no-results');
+      if (totalVisible === 0) {
+        if (!emptyEl) {
+          emptyEl = document.createElement('div');
+          emptyEl.className = 'no-results';
+          emptyEl.innerHTML = 'No plants match those filters. <br><button type="button" id="clear-filters-btn">Clear filters</button>';
+          container.appendChild(emptyEl);
+          emptyEl.querySelector('#clear-filters-btn').addEventListener('click', clearAllFilters);
+        }
+      } else if (emptyEl) {
+        emptyEl.remove();
+      }
+    }
+
+    function clearAllFilters() {
+      activeTags.clear();
+      document.querySelectorAll('.tag-toggle').forEach(b => b.classList.remove('active'));
+      applyFilters();
+    }
+
+    // ------ Modal ------
+
+    function openModal(slug) {
+      const p = findPlant(slug);
+      if (!p) return;
+      const modal = document.getElementById('plant-modal');
+      const overlay = document.getElementById('kit-overlay');
+      const body = document.getElementById('modal-body');
+      const imgWrap = document.getElementById('modal-image');
+      const color = CATEGORY_COLORS[p.category] || '#7a6e5a';
+
+      imgWrap.innerHTML = '<img src="plant-guide/' + p.slug + '.jpg" alt="' + escapeHtml(p.name) +
+        '" onerror="this.parentElement.innerHTML=\'<div class=modal-image-fallback style=\\\'background:' + color +
+        '20;\\\'><svg viewBox=\\\'0 0 100 100\\\' style=\\\'width:100px;height:100px;opacity:0.4;\\\'><circle cx=50 cy=50 r=45 fill=' + color +
+        ' opacity=0.3/></svg></div>\'">';
+
+      body.innerHTML =
+        '<h3 id="modal-title">' + escapeHtml(p.name) + '</h3>' +
+        '<p class="modal-scientific">' + escapeHtml(p.scientific) + '</p>' +
+        '<span class="modal-category-tag" style="background:' + color + '30;">' + (CATEGORY_LABELS[p.category] || p.category) + '</span>' +
+        '<div class="modal-section"><h4>Growth</h4><p>' + escapeHtml(p.growth || '') + '</p></div>' +
+        '<div class="modal-section"><h4>Care</h4><p>' + escapeHtml(p.care || '') + '</p></div>' +
+        '<div class="modal-section"><h4>Planting</h4><p>' + escapeHtml(p.planting || '') + '</p></div>';
+
+      const favBtn = document.getElementById('modal-fav-btn');
+      favBtn.dataset.slug = p.slug;
+      updateModalFavBtn(p.slug);
+      favBtn.onclick = () => {
+        toggleFav(p.slug);
+        favBtn.classList.add('pop');
+        setTimeout(() => favBtn.classList.remove('pop'), 400);
+      };
+
+      document.getElementById('modal-share-btn').onclick = () => {
+        const url = location.origin + location.pathname + '?plant=' + p.slug;
+        navigator.clipboard.writeText(url).then(() => showToast('Link copied')).catch(() => showToast('Copy failed'));
+      };
+
+      modal.classList.add('open');
+      overlay.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      overlay.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('no-scroll');
+
+      history.replaceState(null, '', location.pathname + '?plant=' + p.slug);
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('plant-modal');
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+      if (!document.getElementById('garden-drawer').classList.contains('open')) {
+        document.getElementById('kit-overlay').classList.remove('open');
+        document.body.classList.remove('no-scroll');
+      }
+      if (location.search.includes('plant=')) {
+        history.replaceState(null, '', location.pathname);
+      }
+    }
+
+    function updateModalFavBtn(slug) {
+      const btn = document.getElementById('modal-fav-btn');
+      if (isFav(slug)) {
+        btn.innerHTML = '&#9829; Saved to My Garden';
+        btn.style.background = 'var(--accent-1)';
+        btn.style.borderColor = 'var(--accent-1)';
+        btn.style.color = 'white';
+      } else {
+        btn.innerHTML = '&#9825; Add to My Garden';
+        btn.style.background = '';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+      }
+    }
+
+    // ------ Drawer: My Garden ------
+
+    function openDrawer() {
+      renderDrawer();
+      document.getElementById('garden-drawer').classList.add('open');
+      document.getElementById('kit-overlay').classList.add('open');
+      document.getElementById('garden-drawer').setAttribute('aria-hidden', 'false');
+      document.body.classList.add('no-scroll');
+    }
+
+    function closeDrawer() {
+      document.getElementById('garden-drawer').classList.remove('open');
+      document.getElementById('garden-drawer').setAttribute('aria-hidden', 'true');
+      if (!document.getElementById('plant-modal').classList.contains('open')) {
+        document.getElementById('kit-overlay').classList.remove('open');
+        document.body.classList.remove('no-scroll');
+      }
+    }
+
+    function renderDrawer() {
+      const body = document.getElementById('drawer-body');
+      const footer = document.getElementById('drawer-footer');
+      const plantFavs = favorites[PAGE_KEY].map(s => findPlant(s)).filter(Boolean);
+      const foodFavs = favorites.food || [];
+      const totalCount = plantFavs.length + foodFavs.length;
+
+      if (totalCount === 0) {
+        body.innerHTML =
+          '<div class="fav-empty">' +
+          '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-7.5-4.7-9.5-9.2C1 7.7 4 4 7.5 4c2 0 3.5 1 4.5 2.5C13 5 14.5 4 16.5 4 20 4 23 7.7 21.5 11.8 19.5 16.3 12 21 12 21z"/></svg>' +
+          '<p><strong>Your garden list is empty.</strong><br>Tap the heart on any plant to save it here.<br>Share your list with Taya when you book.</p>' +
+          '</div>';
+        footer.hidden = true;
+        return;
+      }
+
+      let html = '';
+      // Group plant favs by category
+      const byCat = {};
+      plantFavs.forEach(p => { (byCat[p.category] = byCat[p.category] || []).push(p); });
+      Object.keys(CATEGORY_LABELS).forEach(cat => {
+        if (!byCat[cat]) return;
+        html += '<div class="fav-group">' +
+          '<div class="fav-group-title" style="background:' + (CATEGORY_COLORS[cat] || '#ccc') + '30">' +
+          CATEGORY_LABELS[cat] + ' (' + byCat[cat].length + ')</div>';
+        byCat[cat].forEach(p => {
+          html += '<div class="fav-item">' +
+            '<button class="fav-item-main" data-view="' + p.slug + '">' +
+            '<div class="fav-item-name">' + escapeHtml(p.name) + '</div>' +
+            '<div class="fav-item-scientific">' + escapeHtml(p.scientific) + '</div>' +
+            '</button>' +
+            '<button class="fav-remove" data-remove="' + p.slug + '" aria-label="Remove">&times;</button>' +
+            '</div>';
+        });
+        html += '</div>';
+      });
+
+      if (foodFavs.length > 0) {
+        html += '<div class="fav-group">' +
+          '<div class="fav-group-title" style="background:#c48bb030">From Market Garden (' + foodFavs.length + ')</div>' +
+          foodFavs.map(slug =>
+            '<div class="fav-item">' +
+              '<a class="fav-item-main" href="food-guide.html?plant=' + slug + '" style="text-decoration:none;">' +
+                '<div class="fav-item-name">' + escapeHtml(slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())) + '</div>' +
+                '<div class="fav-item-scientific">View on Market Garden page</div>' +
+              '</a>' +
+              '<button class="fav-remove" data-remove-food="' + slug + '" aria-label="Remove">&times;</button>' +
+            '</div>'
+          ).join('') +
+          '</div>';
+      }
+
+      body.innerHTML = html;
+      footer.hidden = false;
+
+      body.querySelectorAll('[data-view]').forEach(el => {
+        el.addEventListener('click', () => {
+          closeDrawer();
+          openModal(el.dataset.view);
+        });
+      });
+      body.querySelectorAll('[data-remove]').forEach(el => {
+        el.addEventListener('click', () => {
+          toggleFav(el.dataset.remove);
+          showToast('Removed from My Garden');
+        });
+      });
+      body.querySelectorAll('[data-remove-food]').forEach(el => {
+        el.addEventListener('click', () => {
+          const slug = el.dataset.removeFood;
+          favorites.food = favorites.food.filter(s => s !== slug);
+          saveFavorites();
+          updateFab();
+          renderDrawer();
+          showToast('Removed from My Garden');
+        });
+      });
+
+      // Update email link
+      const emailBody = buildEmailBody(plantFavs, foodFavs);
+      const subject = 'My Garden list from gardenfaery.love';
+      document.getElementById('email-taya-btn').href =
+        'mailto:taya@gardenfaery.love?subject=' + encodeURIComponent(subject) +
+        '&body=' + encodeURIComponent(emailBody);
+    }
+
+    function buildEmailBody(plantFavs, foodFavs) {
+      let body = "Hi Taya,\n\nHere are the plants I'd love to include in my garden:\n\n";
+      const byCat = {};
+      plantFavs.forEach(p => { (byCat[p.category] = byCat[p.category] || []).push(p); });
+      Object.keys(CATEGORY_LABELS).forEach(cat => {
+        if (!byCat[cat]) return;
+        body += CATEGORY_LABELS[cat].toUpperCase() + '\n';
+        byCat[cat].forEach(p => { body += '  - ' + p.name + ' (' + p.scientific + ')\n'; });
+        body += '\n';
+      });
+      if (foodFavs.length > 0) {
+        body += 'FROM MARKET GARDEN\n';
+        foodFavs.forEach(s => { body += '  - ' + s.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) + '\n'; });
+        body += '\n';
+      }
+      body += "I'd like to talk about how to make these work in my space.\n\nThanks!";
+      return body;
+    }
+
+    // ------ Toast ------
+
+    let toastTimer;
+    function showToast(msg) {
+      const el = document.getElementById('gf-toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+    }
+
+    // ------ Helpers ------
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    // ------ Init ------
+
+    let reDecorateScheduled = false;
+    function scheduleReDecorate() {
+      if (reDecorateScheduled) return;
+      reDecorateScheduled = true;
+      requestAnimationFrame(() => {
+        reDecorateScheduled = false;
+        decorateCards();
+        applyFilters();
+      });
+    }
+
+    function init() {
+      loadFavorites();
+      buildPlantIndex();
+      updateFab();
+
+      // Run after the existing init() has populated cards.
+      setTimeout(() => {
+        decorateCards();
+        applyFilters();
+      }, 0);
+
+      // Category filter buttons — existing handler re-renders cards;
+      // piggyback to re-decorate and re-apply filters/sort.
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentCategory = btn.dataset.category;
+          scheduleReDecorate();
+        });
+      });
+
+      // Tag toggle buttons
+      document.querySelectorAll('.tag-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tag = btn.dataset.tag;
+          if (activeTags.has(tag)) { activeTags.delete(tag); btn.classList.remove('active'); }
+          else { activeTags.add(tag); btn.classList.add('active'); }
+          applyFilters();
+        });
+      });
+
+      // Sort select
+      const sortSelect = document.getElementById('sort-select');
+      if (sortSelect) {
+        sortSelect.addEventListener('change', e => {
+          currentSort = e.target.value;
+          applyFilters();
+        });
+      }
+
+      // FAB
+      document.getElementById('my-garden-fab').addEventListener('click', openDrawer);
+      document.getElementById('drawer-close').addEventListener('click', closeDrawer);
+      document.getElementById('modal-close').addEventListener('click', closeModal);
+      document.getElementById('kit-overlay').addEventListener('click', () => {
+        closeModal(); closeDrawer();
+      });
+
+      // Print
+      document.getElementById('print-list-btn').addEventListener('click', () => window.print());
+
+      // Clear all
+      document.getElementById('clear-list-btn').addEventListener('click', () => {
+        if (!confirm('Clear all plants from My Garden?')) return;
+        favorites[PAGE_KEY] = [];
+        favorites.food = [];
+        saveFavorites();
+        updateFab();
+        renderDrawer();
+        document.querySelectorAll('.fav-heart.active').forEach(h => h.classList.remove('active'));
+      });
+
+      // Escape key
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { closeModal(); closeDrawer(); }
+      });
+
+      // Deep link: ?plant=slug
+      const params = new URLSearchParams(location.search);
+      const slug = params.get('plant');
+      if (slug) setTimeout(() => openModal(slug), 100);
+    }
+
+    return { init, openModal, openDrawer, toggleFav };
+  })();
   </script>
 
 </body>
