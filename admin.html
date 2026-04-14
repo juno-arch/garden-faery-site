@@ -1117,11 +1117,11 @@ function openExpenseModal(id) {
   document.getElementById('exp-scan-status').textContent = '';
   document.getElementById('exp-line-items').innerHTML = (e && e.lineItems) ? renderLineItems(e.lineItems) : '';
   document.getElementById('exp-photo').value = '';
-  document.getElementById('modal-expense').classList.add('visible');
+  document.getElementById('modal-expense').classList.add('open');
 }
 
 function closeExpenseModal() {
-  document.getElementById('modal-expense').classList.remove('visible');
+  document.getElementById('modal-expense').classList.remove('open');
   _editingExpenseId = null;
   _pendingReceiptFile = null;
 }
@@ -1357,7 +1357,7 @@ function openPayment(bookingId) {
   document.getElementById('pay-method').value = b.paymentMethod || '';
   document.getElementById('pay-date').value = (b.paidDate||'').slice(0,10);
   document.getElementById('pay-notes').value = b.paymentNotes || '';
-  document.getElementById('modal-payment').classList.add('visible');
+  document.getElementById('modal-payment').classList.add('open');
 }
 
 async function savePayment() {
