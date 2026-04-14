@@ -148,6 +148,92 @@
     .intro { padding: 32px 0 24px; font-size: 16px; text-align: center; }
     .intro strong { font-family: var(--font-heading); font-size: 20px; }
 
+    /* Plant of the Month */
+    .potm {
+      max-width: 780px;
+      margin: 28px auto;
+      padding: 0 16px;
+    }
+    .potm-card {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 22px;
+      background: white;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(74, 25, 66, 0.08);
+      border: 1.5px solid rgba(196, 139, 176, 0.2);
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .potm-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(74, 25, 66, 0.15);
+    }
+    .potm-image {
+      width: 100%;
+      height: 100%;
+      min-height: 220px;
+      background: #f0e4ec;
+      overflow: hidden;
+    }
+    .potm-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .potm-body {
+      padding: 22px 24px 22px 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .potm-eyebrow {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--accent-1);
+      margin-bottom: 6px;
+    }
+    .potm-name {
+      font-family: var(--font-heading);
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 6px;
+      color: var(--text-primary);
+    }
+    .potm-sci {
+      font-size: 12px;
+      font-style: italic;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+    }
+    .potm-note {
+      font-size: 14.5px;
+      line-height: 1.55;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+    .potm-link {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent-1);
+    }
+    .potm-card:hover .potm-link {
+      color: var(--text-primary);
+    }
+    @media (max-width: 600px) {
+      .potm-card { grid-template-columns: 1fr; }
+      .potm-image { min-height: 180px; max-height: 220px; }
+      .potm-body { padding: 20px 20px 22px; }
+      .potm-name { font-size: 24px; }
+    }
+
     /* Newsletter */
     .newsletter { border-radius: 16px; padding: 22px 20px; margin-bottom: 32px; text-align: center; background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.6); }
     .newsletter h2 { font-size: 24px; font-weight: 900; margin-bottom: 6px; }
@@ -218,6 +304,19 @@
     <a href="services.html" class="service-chip" id="chip-2"><img src="gallery/fresh-beet-harvest.jpg" alt="Fresh beet harvest"><span>Raised Beds</span></a>
     <a href="services.html" class="service-chip" id="chip-3"><img src="gallery/honeybees-hive-frame.jpg" alt="Honeybees on hive frame"><span>Bee Services</span></a>
     <a href="services.html" class="service-chip" id="chip-4"><img src="gallery/flower-field-dianthus.jpg" alt="Flower field"><span>Pet &amp; Plant Sitting</span></a>
+  </div>
+
+  <div class="potm">
+    <a class="potm-card" id="potm-card" href="#">
+      <div class="potm-image"><img id="potm-img" src="" alt="" loading="lazy"></div>
+      <div class="potm-body">
+        <div class="potm-eyebrow" id="potm-eyebrow">Plant of the Month</div>
+        <div class="potm-name" id="potm-name"></div>
+        <div class="potm-sci" id="potm-sci"></div>
+        <div class="potm-note" id="potm-note"></div>
+        <div class="potm-link">Learn how to grow it &rarr;</div>
+      </div>
+    </a>
   </div>
 
   <div class="content">
@@ -316,6 +415,56 @@
 
     // Newsletter signup
     var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxtiXs-zCfNa9wbJ3ly9hIlFftGiDhoIOeVfSIWoPtzBLOUsrSbVyqxriOXY5VWV5xqQA/exec';
+    // Plant of the Month rotation
+    (function renderPotm() {
+      var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      var spotlights = [
+        { month: 0, name: 'Blueberry', scientific: 'Vaccinium corymbosum', slug: 'blueberry', page: 'food-guide.html',
+          note: "Humboldt's naturally acidic soil is perfect for blueberries. Plant bare-root now while they're dormant, choose two varieties for cross-pollination, and you'll be harvesting by year three." },
+        { month: 1, name: 'Sugar Snap Peas', scientific: 'Pisum sativum', slug: 'sugar-snap-peas', page: 'food-guide.html',
+          note: 'Peas love cool weather and our damp coastal soil. Direct-sow now against a trellis and you\'ll be eating the sweetest sugar snaps by April.' },
+        { month: 2, name: 'California Poppy', scientific: 'Eschscholzia californica', slug: 'california-poppy', page: 'plant-guide.html',
+          note: 'Scatter seed on bare soil and press it in. They self-sow forever, ask almost nothing, and carpet the garden in orange from March through fall. A gift to bees.' },
+        { month: 3, name: 'Lavender', scientific: 'Lavandula angustifolia', slug: 'lavender', page: 'plant-guide.html',
+          note: 'A pollinator magnet that loves Humboldt\'s mild climate. Plant starts now in a sunny, well-drained spot for waves of bee-friendly blooms all summer long.' },
+        { month: 4, name: 'Bee Balm', scientific: 'Monarda didyma', slug: 'bee-balm', page: 'plant-guide.html',
+          note: 'Plant now and hummingbirds will find it within days. Showy red or purple flowers through summer, and our fog-and-moisture climate suits it perfectly.' },
+        { month: 5, name: 'Strawberry', scientific: 'Fragaria x ananassa', slug: 'strawberry', page: 'food-guide.html',
+          note: 'Peak season on the coast. Day-neutral varieties keep fruiting into fall here. Mulch with straw to keep berries clean and slugs frustrated.' },
+        { month: 6, name: 'Garlic', scientific: 'Allium sativum', slug: 'garlic', page: 'food-guide.html',
+          note: 'Harvest month. Pull when the lower leaves yellow, cure in shade for 2-3 weeks, save the best heads to replant in October. Humboldt garlic stores beautifully.' },
+        { month: 7, name: 'Tomatoes', scientific: 'Solanum lycopersicum', slug: 'tomatoes', page: 'food-guide.html',
+          note: 'August is the reward. Stupice, Early Girl, and Sungold thrive on the coast; a south-facing wall and some black mulch help even the pickier varieties ripen.' },
+        { month: 8, name: 'Kale', scientific: 'Brassica oleracea var. sabellica', slug: 'kale', page: 'food-guide.html',
+          note: 'Plant now and eat all winter. Lacinato holds up through frost, Red Russian gets sweeter as nights cool. Our mild winters keep the harvest going for months.' },
+        { month: 9, name: 'Phacelia', scientific: 'Phacelia tanacetifolia', slug: 'phacelia', page: 'plant-guide.html',
+          note: 'The single best cover crop for a Humboldt garden. Sow it now in bare beds: it improves the soil, wakes the early bees, and dies back cleanly come summer.' },
+        { month: 10, name: 'Apple', scientific: 'Malus domestica', slug: 'apple', page: 'food-guide.html',
+          note: 'Pruning season. Late November, once trees are fully dormant, shape for next year\'s crop. Our cool coastal valleys are excellent apple country with low disease pressure.' },
+        { month: 11, name: 'Ceanothus', scientific: 'Ceanothus thyrsiflorus', slug: 'ceanothus', page: 'plant-guide.html',
+          note: 'Plan for spring. Native California lilac blooms in cascades of blue just as the bees wake up. Plant from fall-sown nursery stock; never amend the soil.' }
+      ];
+
+      var spot = spotlights[new Date().getMonth()];
+      if (!spot) return;
+
+      var card = document.getElementById('potm-card');
+      var img = document.getElementById('potm-img');
+      if (!card || !img) return;
+
+      card.href = spot.page + '?plant=' + spot.slug;
+      img.src = 'plant-guide/' + spot.slug + '.jpg';
+      img.alt = spot.name;
+      img.onerror = function() {
+        img.style.display = 'none';
+        img.parentElement.innerHTML += '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:Lora,serif;font-size:48px;color:rgba(74,25,66,0.2);">&#127793;</div>';
+      };
+      document.getElementById('potm-eyebrow').textContent = MONTHS[spot.month] + ' Plant of the Month';
+      document.getElementById('potm-name').textContent = spot.name;
+      document.getElementById('potm-sci').textContent = spot.scientific;
+      document.getElementById('potm-note').textContent = spot.note;
+    })();
+
     function subscribeNewsletter() {
       var email = document.getElementById('nl-email').value;
       if (!email) return;
