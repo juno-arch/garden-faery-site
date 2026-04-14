@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#4a1942">
+<meta name="apple-mobile-web-app-title" content="Garden Faery">
 <title>Book a Gardener in Arcata &amp; Humboldt County | Garden Faery</title>
 <meta name="description" content="Book your garden care visit with Garden Faery. Your local gardener in Arcata & Humboldt County, CA. Morning or afternoon sessions, $25/hr.">
 <meta property="og:title" content="Book a Gardener in Arcata & Humboldt County | Garden Faery">
@@ -1019,7 +1021,7 @@ const DB = {
     return booking;
   },
 
-  async updateBooking(id, updates) {
+  async updateBooking(id, updates, phone) {
     if (!this._usePB) {
       const bookings = await this.getBookings();
       const idx = bookings.findIndex(b => b.id === id);
@@ -1028,16 +1030,21 @@ const DB = {
       localStorage.setItem('gf_bookings_v1', JSON.stringify(bookings));
       return bookings[idx];
     }
-    const pbUpdates = {};
-    if (updates.date !== undefined) pbUpdates.date = updates.date;
-    if (updates.eventType !== undefined) pbUpdates.event_type = updates.eventType;
-    if (updates.eventName !== undefined) pbUpdates.event_name = updates.eventName;
-    if (updates.time !== undefined) pbUpdates.time = updates.time;
-    if (updates.status !== undefined) pbUpdates.status = updates.status;
-    if (updates.rescheduledAt !== undefined) pbUpdates.rescheduled_at = updates.rescheduledAt;
-    if (updates.canceledAt !== undefined) pbUpdates.canceled_at = updates.canceledAt;
-    if (updates.canceledBy !== undefined) pbUpdates.canceled_by = updates.canceledBy;
-    return this._pb('PATCH', 'bookings/records/' + id, pbUpdates);
+    // Public PATCH endpoint requires phone for ownership check.
+    const body = { phone: phone || '' };
+    if (updates.date !== undefined) body.date = updates.date;
+    if (updates.time !== undefined) body.time = updates.time;
+    if (updates.status !== undefined) body.status = updates.status;
+    if (updates.rescheduledAt !== undefined) body.rescheduled_at = updates.rescheduledAt;
+    if (updates.canceledAt !== undefined) body.canceled_at = updates.canceledAt;
+    if (updates.canceledBy !== undefined) body.canceled_by = updates.canceledBy;
+    const resp = await fetch(PB_URL + '/api/my-bookings/' + id, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!resp.ok) throw new Error('updateBooking ' + resp.status);
+    return resp.json();
   },
 
   async getBookingsByPhone(phone) {
@@ -1046,24 +1053,24 @@ const DB = {
       const all = await this.getBookings();
       return all.filter(b => (b.clientPhone || '').replace(/[^\d]/g, '') === normalizedPhone);
     }
-    // PocketBase filter: search all bookings, filter client-side for phone match
-    const data = await this._pb('GET', 'bookings/records?perPage=500');
-    return (data.items || [])
-      .filter(r => (r.client_phone || '').replace(/[^\d]/g, '') === normalizedPhone)
-      .map(r => ({
-        id: r.id,
-        eventType: r.event_type,
-        eventName: r.event_name,
-        date: r.date,
-        time: r.time,
-        clientName: r.client_name,
-        clientPhone: r.client_phone,
-        status: r.status,
-        rescheduledAt: r.rescheduled_at,
-        bookedBy: r.booked_by,
-        recurringSeriesId: r.recurring_series_id,
-        recurringFrequency: r.recurring_frequency,
-      }));
+    // PII-safe endpoint: returns only this phone's bookings.
+    const resp = await fetch(PB_URL + '/api/my-bookings?phone=' + encodeURIComponent(normalizedPhone));
+    if (!resp.ok) throw new Error('my-bookings ' + resp.status);
+    const data = await resp.json();
+    return (data.items || []).map(r => ({
+      id: r.id,
+      eventType: r.event_type,
+      eventName: r.event_name,
+      date: r.date,
+      time: r.time,
+      clientName: r.client_name,
+      clientPhone: r.client_phone,
+      status: r.status,
+      rescheduledAt: r.rescheduled_at,
+      bookedBy: r.booked_by,
+      recurringSeriesId: r.recurring_series_id,
+      recurringFrequency: r.recurring_frequency,
+    }));
   },
 
   // --- Blocked times ---
@@ -1805,6 +1812,7 @@ async function confirmClientReschedule(id) {
     return;
   }
 
+  const phone = normalizePhone(document.getElementById('manage-phone').value.trim());
   try {
     await DB.updateBooking(id, {
       date: newDate,
@@ -1812,7 +1820,7 @@ async function confirmClientReschedule(id) {
       eventName: et.name,
       time: et.slots[0],
       rescheduledAt: new Date().toISOString(),
-    });
+    }, phone);
     // PocketBase hook sends reschedule email to Taya automatically
     lookupBookings();
   } catch (err) {
@@ -1823,12 +1831,13 @@ async function confirmClientReschedule(id) {
 async function clientCancel(id) {
   if (!confirm('Cancel this visit? Taya will be notified. If you want to rebook later, you can always come back.')) return;
 
+  const phone = normalizePhone(document.getElementById('manage-phone').value.trim());
   try {
     await DB.updateBooking(id, {
       status: 'canceled',
       canceledAt: new Date().toISOString(),
       canceledBy: 'client',
-    });
+    }, phone);
     // PocketBase hook sends cancellation email to Taya automatically
     lookupBookings();
   } catch (err) {
@@ -1852,7 +1861,7 @@ async function clientCancelSeries(seriesId) {
         status: 'canceled',
         canceledAt: new Date().toISOString(),
         canceledBy: 'client',
-      });
+      }, phone);
     }
     lookupBookings();
   } catch (err) {
