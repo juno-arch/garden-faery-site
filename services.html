@@ -212,41 +212,66 @@
     }
 
     .service-card {
-      border-radius: 14px;
-      padding: 20px;
-      margin-bottom: 14px;
-      background: rgba(255, 255, 255, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.6);
-      border-left: 3px solid var(--accent-1);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .service-card:nth-child(odd) {
-      border-left-color: var(--accent-1);
-    }
-
-    .service-card:nth-child(even) {
-      border-left-color: var(--accent-2);
-    }
-
-    .service-card:nth-child(3) {
-      border-left-color: var(--highlight);
+      border-radius: 18px;
+      margin-bottom: 22px;
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      overflow: hidden;
+      transition: transform 0.25s, box-shadow 0.25s;
+      box-shadow: 0 2px 14px rgba(74, 25, 66, 0.06);
     }
 
     .service-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(74, 25, 66, 0.08);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 28px rgba(74, 25, 66, 0.12);
     }
 
-    .service-card h3 {
-      font-size: 20px;
-      margin-bottom: 6px;
+    .service-card-image {
+      position: relative;
+      aspect-ratio: 16/7;
+      overflow: hidden;
     }
 
-    .service-card p {
-      font-size: 14px;
-      color: var(--text-secondary);
-      margin-bottom: 8px;
+    .service-card-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+
+    .service-card:hover .service-card-image img {
+      transform: scale(1.04);
+    }
+
+    .service-card-image::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 40%, rgba(74,25,66,0.55) 100%);
+    }
+
+    .service-card-image h3 {
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      bottom: 14px;
+      font-size: 24px;
+      color: #fff;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.45);
+      z-index: 2;
+    }
+
+    .service-card-body {
+      padding: 18px 22px 22px;
+    }
+
+    .service-card-body p {
+      font-size: 15px;
+      color: var(--text-primary);
+      opacity: 0.82;
+      margin-bottom: 10px;
+      line-height: 1.6;
     }
 
     .service-card .price {
@@ -315,27 +340,47 @@
     <p class="page-subtitle">Here's what I can do for your garden, your bees, and your critters.</p>
 
     <div class="service-card">
-      <h3>Garden Tending &amp; Weeding</h3>
-      <p>I come to your garden on a regular schedule and take care of everything: weeding, pruning, planting, mulching, watering, and seasonal upkeep. Morning shifts run 9am to 2pm (5 hours) and afternoon shifts run 2:30 to 4:30pm (2 hours). I treat every garden like it's my own, and I'll let you know if I spot anything that needs attention. Think of it as having your own personal garden faery on call.</p>
-      <span class="price">$25/hr &middot; Cash only &middot; <a href="book.html" style="color:var(--accent-1);">Book a visit</a></span>
+      <div class="service-card-image">
+        <img src="gallery/beds.jpg" alt="Lush tended garden bed" loading="lazy">
+        <h3>Garden Tending &amp; Weeding</h3>
+      </div>
+      <div class="service-card-body">
+        <p>I come to your garden on a regular schedule and take care of everything: weeding, pruning, planting, mulching, watering, and seasonal upkeep. Morning shifts run 9am to 2pm (5 hours) and afternoon shifts run 2:30 to 4:30pm (2 hours). I treat every garden like it's my own, and I'll let you know if I spot anything that needs attention. Think of it as having your own personal garden faery on call.</p>
+        <span class="price">$25/hr &middot; Cash only &middot; <a href="book.html" style="color:var(--accent-1);">Book a visit</a></span>
+      </div>
     </div>
 
     <div class="service-card">
-      <h3>Creative Raised Beds</h3>
-      <p>Not every raised bed has to be a cedar box. I build beds from all kinds of materials: cedar, woven willow, stacked firewood, salvaged bricks, whatever you have around or whatever fits your space. Every bed is sized to your yard and comes filled with quality soil from Mad River Gardens. I can plant them out with the herbs, veggies, or flowers of your choice. I recommend keeping beds 4 feet wide or narrower so you can comfortably reach the center without stepping in.</p>
-      <span class="price">Custom pricing, <a href="estimator.html" style="color:var(--accent-1);">try the bed builder</a></span>
+      <div class="service-card-image">
+        <img src="gallery/fresh-beet-harvest.jpg" alt="Fresh beet harvest from raised bed" loading="lazy">
+        <h3>Creative Raised Beds</h3>
+      </div>
+      <div class="service-card-body">
+        <p>Not every raised bed has to be a cedar box. I build beds from all kinds of materials: cedar, woven willow, stacked firewood, salvaged bricks, whatever you have around or whatever fits your space. Every bed is sized to your yard and comes filled with quality soil from Mad River Gardens. I can plant them out with the herbs, veggies, or flowers of your choice. I recommend keeping beds 4 feet wide or narrower so you can comfortably reach the center without stepping in.</p>
+        <span class="price">Custom pricing, <a href="estimator.html" style="color:var(--accent-1);">try the bed builder</a></span>
+      </div>
     </div>
 
     <div class="service-card">
-      <h3>Honey Bee Sitting, Swarm Relocation &amp; Hive Care</h3>
-      <p>Whether you have a hive that needs looking after while you're away, a swarm that showed up uninvited, or you're curious about starting your own bees, I can help. I do gentle swarm relocation (no chemicals, no harm), regular hive health checks, and bee sitting for beekeepers who travel. Your bees are in good hands.</p>
-      <span class="price">Swarm relocation often free &middot; Other rates by situation</span>
+      <div class="service-card-image">
+        <img src="gallery/honeybees-hive-frame.jpg" alt="Honeybees on hive frame" loading="lazy">
+        <h3>Bee Sitting, Swarms &amp; Hive Care</h3>
+      </div>
+      <div class="service-card-body">
+        <p>Whether you have a hive that needs looking after while you're away, a swarm that showed up uninvited, or you're curious about starting your own bees, I can help. I do gentle swarm relocation (no chemicals, no harm), regular hive health checks, and bee sitting for beekeepers who travel. Your bees are in good hands.</p>
+        <span class="price">Swarm relocation often free &middot; Other rates by situation</span>
+      </div>
     </div>
 
     <div class="service-card">
-      <h3>Out-of-Town Pet &amp; Plant Sitting</h3>
-      <p>Going out of town? I'll keep your plants watered, your garden tended, and your pets fed and loved while you're away. We'll put together a care plan before you leave so everything runs smooth. I'm comfortable with dogs, cats, chickens, and goats. Have a different kind of critter? Send me care notes and we can talk. You come home to happy animals and a garden that looks like you never left.</p>
-      <span class="price">$25/hr or flat rate &middot; <a href="contact.html" style="color:var(--accent-1);">Let's chat</a></span>
+      <div class="service-card-image">
+        <img src="gallery/flower-field-dianthus.jpg" alt="Flower field with dianthus" loading="lazy">
+        <h3>Pet &amp; Plant Sitting</h3>
+      </div>
+      <div class="service-card-body">
+        <p>Going out of town? I'll keep your plants watered, your garden tended, and your pets fed and loved while you're away. We'll put together a care plan before you leave so everything runs smooth. I'm comfortable with dogs, cats, chickens, and goats. Have a different kind of critter? Send me care notes and we can talk. You come home to happy animals and a garden that looks like you never left.</p>
+        <span class="price">$25/hr or flat rate &middot; <a href="contact.html" style="color:var(--accent-1);">Let's chat</a></span>
+      </div>
     </div>
 
     <div class="section-divider"></div>

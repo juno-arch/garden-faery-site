@@ -97,14 +97,32 @@
     .hero-cta:hover { background: var(--highlight); transform: scale(1.03); }
     @media (min-width: 600px) { .hero { height: 420px; } .hero h1 { font-size: 42px; } .hero-overlay { padding: 50px 20px 44px; } }
 
-    /* Service Chips */
-    .service-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 520px; margin: 0 auto; padding: 0 20px 40px; }
-    .service-chip { display: block; text-align: center; padding: 16px 12px; border-radius: 12px; font-family: var(--font-body); font-size: 14px; font-weight: 700; color: var(--text-primary); text-decoration: none; transition: transform 0.2s, box-shadow 0.2s; border: 2px solid; }
-    .service-chip:nth-child(1) { background: rgba(196,139,176,0.1); border-color: var(--accent-1); }
-    .service-chip:nth-child(2) { background: rgba(163,184,140,0.1); border-color: var(--accent-2); }
-    .service-chip:nth-child(3) { background: rgba(212,194,122,0.1); border-color: var(--highlight); }
-    .service-chip:nth-child(4) { background: rgba(196,139,176,0.1); border-color: var(--accent-1); }
-    .service-chip:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(74,25,66,0.1); }
+    /* Service Cards (photo tiles) */
+    .service-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 720px; margin: 0 auto; padding: 0 20px 40px; }
+    .service-chip { display: block; position: relative; overflow: hidden; aspect-ratio: 4/3; border-radius: 18px; font-family: var(--font-body); font-size: 15px; font-weight: 700; color: #fff; text-decoration: none; transition: transform 0.25s ease, box-shadow 0.25s ease; box-shadow: 0 4px 16px rgba(74,25,66,0.12); }
+    .service-chip img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+    .service-chip::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(74,25,66,0.05) 0%, rgba(74,25,66,0.75) 100%); }
+    .service-chip span { position: absolute; left: 14px; right: 14px; bottom: 12px; z-index: 2; text-shadow: 0 2px 8px rgba(0,0,0,0.4); font-family: var(--font-heading); font-size: 17px; font-weight: 600; letter-spacing: 0.3px; }
+    .service-chip:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(74,25,66,0.22); }
+    .service-chip:hover img { transform: scale(1.06); }
+    @media (min-width: 700px) { .service-chips { grid-template-columns: repeat(4, 1fr); } }
+
+    /* Meet Taya card */
+    .meet-card { display: flex; gap: 18px; align-items: center; background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.7); border-radius: 20px; padding: 18px; margin: 8px 0 32px; box-shadow: 0 4px 20px rgba(74,25,66,0.06); }
+    .meet-card img { width: 96px; height: 96px; flex-shrink: 0; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent-1); }
+    .meet-card .meet-text { font-size: 15px; line-height: 1.55; }
+    .meet-card .meet-text strong { font-family: var(--font-heading); font-size: 19px; display: block; margin-bottom: 4px; }
+    @media (max-width: 500px) { .meet-card { flex-direction: column; text-align: center; } .meet-card img { width: 110px; height: 110px; } }
+
+    /* Photo strip */
+    .photo-strip-section { margin: 8px 0 32px; }
+    .photo-strip-section h2 { font-size: 22px; font-weight: 700; text-align: center; margin-bottom: 14px; }
+    .photo-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .photo-strip a { display: block; aspect-ratio: 1; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(74,25,66,0.08); transition: transform 0.25s ease; }
+    .photo-strip a:hover { transform: scale(1.03); }
+    .photo-strip img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .photo-strip-link { text-align: center; margin-top: 14px; }
+    .photo-strip-link a { color: var(--accent-1); text-decoration: none; font-weight: 700; font-size: 14px; border-bottom: 2px solid var(--accent-1); padding-bottom: 2px; }
 
     .content { max-width: 580px; margin: 0 auto; padding: 0 20px; }
     .faery-divider { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 8px 0; margin: 8px 0; }
@@ -166,19 +184,36 @@
   </div>
 
   <div class="content">
-    <div class="intro">
-      <strong>Hi, I&rsquo;m Taya</strong>, your local garden faery. I show up weekly to weed, prune, plant, and keep your garden happy so you don&rsquo;t have to. With roots in permaculture, beekeeping, and microgreen cultivation, I bring real know-how straight to your backyard. Let me tend what you love.
+    <div class="meet-card">
+      <img src="gallery/taya.jpg" alt="Taya, Garden Faery, smiling in the garden">
+      <div class="meet-text">
+        <strong>Hi, I&rsquo;m Taya</strong>
+        Your local garden faery. I show up weekly to weed, prune, plant, and keep your garden happy so you don&rsquo;t have to &mdash; with roots in permaculture, beekeeping, and microgreen cultivation. Let me tend what you love.
+      </div>
     </div>
   </div>
 
   <div class="service-chips">
-    <a href="services.html" class="service-chip" id="chip-1">Garden Tending</a>
-    <a href="services.html" class="service-chip" id="chip-2">Raised Beds</a>
-    <a href="services.html" class="service-chip" id="chip-3">Bee Services</a>
-    <a href="services.html" class="service-chip" id="chip-4">Pet &amp; Plant Sitting</a>
+    <a href="services.html" class="service-chip" id="chip-1"><img src="gallery/beds.jpg" alt="Lush garden bed"><span>Garden Tending</span></a>
+    <a href="services.html" class="service-chip" id="chip-2"><img src="gallery/fresh-beet-harvest.jpg" alt="Fresh beet harvest"><span>Raised Beds</span></a>
+    <a href="services.html" class="service-chip" id="chip-3"><img src="gallery/honeybees-hive-frame.jpg" alt="Honeybees on hive frame"><span>Bee Services</span></a>
+    <a href="services.html" class="service-chip" id="chip-4"><img src="gallery/flower-field-dianthus.jpg" alt="Flower field"><span>Pet &amp; Plant Sitting</span></a>
   </div>
 
   <div class="content">
+    <div class="photo-strip-section">
+      <h2>Recent Garden Love</h2>
+      <div class="photo-strip">
+        <a href="gallery.html"><img src="gallery/greenhouse-growing.jpg" alt="Greenhouse growing" loading="lazy"></a>
+        <a href="gallery.html"><img src="gallery/tomato-tomatillo-harvest.jpg" alt="Tomato and tomatillo harvest" loading="lazy"></a>
+        <a href="gallery.html"><img src="gallery/calendula-flowers-hand.jpg" alt="Calendula flowers" loading="lazy"></a>
+        <a href="gallery.html"><img src="gallery/garlic-harvest-drying.jpg" alt="Garlic harvest drying" loading="lazy"></a>
+        <a href="gallery.html"><img src="gallery/honeybee-on-finger.jpg" alt="Honeybee on a finger" loading="lazy"></a>
+        <a href="gallery.html"><img src="gallery/fresh-carrot-harvest.jpg" alt="Fresh carrot harvest" loading="lazy"></a>
+      </div>
+      <p class="photo-strip-link"><a href="gallery.html">See the full gallery &rarr;</a></p>
+    </div>
+
     <div class="faery-divider"><div class="faery-divider-line"></div><img src="garden-faery-logo-alt.png" alt="Garden Faery logo, fairy kneeling with shovel" style="height:100px; opacity:0.75; filter: drop-shadow(0 1px 3px rgba(74,25,66,0.2));"><div class="faery-divider-line"></div></div>
 
     <div class="newsletter">
@@ -246,7 +281,11 @@
       document.getElementById('hero-cta').href = 'book.html';
       for (var i = 0; i < s.chips.length; i++) {
         var chip = document.getElementById('chip-' + (i + 1));
-        if (chip) chip.textContent = s.chips[i];
+        if (chip) {
+          var label = chip.querySelector('span');
+          if (label) label.textContent = s.chips[i];
+          else chip.textContent = s.chips[i];
+        }
       }
     })();
 
