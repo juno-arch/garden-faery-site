@@ -276,6 +276,91 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
 .time-slot:hover { border-color: var(--spring-sage); }
 .time-slot.selected { border-color: var(--spring-sage); background: var(--sage-light); }
 
+.booking-type {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+.booking-type button {
+  flex: 1;
+  padding: 14px;
+  background: white;
+  border: 2px solid var(--gray-200);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--plum);
+  transition: all 0.15s ease;
+}
+.booking-type button:hover { border-color: var(--spring-sage); }
+.booking-type button.selected {
+  border-color: var(--spring-sage);
+  background: var(--sage-light);
+}
+.booking-type button small {
+  display: block;
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--gray-600);
+  margin-top: 4px;
+}
+.recurring-setup { margin-top: 16px; }
+.recurring-setup h4 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--plum);
+  margin: 16px 0 8px;
+}
+.weekday-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.weekday-chip {
+  padding: 10px 16px;
+  background: white;
+  border: 2px solid var(--gray-200);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--plum);
+  transition: all 0.15s ease;
+}
+.weekday-chip:hover:not(.taken) { border-color: var(--spring-sage); }
+.weekday-chip.selected {
+  border-color: var(--spring-sage);
+  background: var(--sage-light);
+}
+.weekday-chip.taken {
+  opacity: 0.4;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+.recurring-preview {
+  background: var(--sage-light);
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 12px;
+  font-size: 0.9rem;
+  color: var(--plum);
+}
+.recurring-preview .count {
+  font-weight: 700;
+  display: block;
+  margin-bottom: 6px;
+}
+.recurring-preview .dates {
+  color: var(--gray-600);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.recurring-preview .skipped {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #b06000;
+}
 .no-slots {
   text-align: center;
   padding: 20px;
@@ -556,6 +641,47 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
       </button>
       -->
     </div>
+
+    <!-- Booking type: one visit vs recurring (only shown after picking morning) -->
+    <div id="booking-type-section" style="display:none; margin-top: 20px;">
+      <h4 style="font-size: 0.95rem; font-weight: 600; color: var(--plum); margin-bottom: 8px;">How often?</h4>
+      <div class="booking-type">
+        <button type="button" id="bt-once" onclick="selectBookingType('once')">
+          Just one visit
+          <small>A single morning</small>
+        </button>
+        <button type="button" id="bt-recurring" onclick="selectBookingType('recurring')">
+          Recurring
+          <small>Same weekday, repeating</small>
+        </button>
+      </div>
+    </div>
+
+    <!-- Recurring setup -->
+    <div id="recurring-setup" class="recurring-setup" style="display:none;">
+      <h4>Pick a weekday</h4>
+      <div class="weekday-chips" id="weekday-chips"></div>
+
+      <h4>How often?</h4>
+      <select id="recur-frequency" class="form-control" style="width:100%; padding:10px; border:2px solid var(--gray-200); border-radius:10px; font-size:0.95rem;">
+        <option value="weekly">Weekly</option>
+        <option value="biweekly">Every other week</option>
+        <option value="monthly">Monthly (same weekday)</option>
+      </select>
+
+      <h4>Start date</h4>
+      <input type="date" id="recur-start" style="width:100%; padding:10px; border:2px solid var(--gray-200); border-radius:10px; font-size:0.95rem;">
+
+      <h4>End date</h4>
+      <input type="date" id="recur-end" style="width:100%; padding:10px; border:2px solid var(--gray-200); border-radius:10px; font-size:0.95rem;">
+
+      <div id="recurring-preview" class="recurring-preview" style="display:none;"></div>
+    </div>
+
+    <div class="btn-row" id="step-0-continue" style="display:none; margin-top: 20px;">
+      <button class="btn btn-primary" id="btn-step0-continue" onclick="continueFromStep0()">Continue</button>
+    </div>
+
     <div class="manage-link">
       <a onclick="showManage()">Need to reschedule or cancel?</a>
     </div>
@@ -736,7 +862,7 @@ const DB = {
       localStorage.setItem('gf_bookings_v1', JSON.stringify(bookings));
       return booking;
     }
-    const data = await this._pb('POST', 'bookings/records', {
+    const payload = {
       event_type: booking.eventType,
       event_name: booking.eventName,
       date: booking.date,
@@ -749,7 +875,10 @@ const DB = {
       garden_notes: booking.gardenNotes,
       status: booking.status || 'confirmed',
       booked_by: booking.bookedBy || 'client',
-    });
+    };
+    if (booking.recurringSeriesId) payload.recurring_series_id = booking.recurringSeriesId;
+    if (booking.recurringFrequency) payload.recurring_frequency = booking.recurringFrequency;
+    const data = await this._pb('POST', 'bookings/records', payload);
     booking.id = data.id;
     return booking;
   },
@@ -796,6 +925,8 @@ const DB = {
         status: r.status,
         rescheduledAt: r.rescheduled_at,
         bookedBy: r.booked_by,
+        recurringSeriesId: r.recurring_series_id,
+        recurringFrequency: r.recurring_frequency,
       }));
   },
 
@@ -856,6 +987,23 @@ let selectedTime = null;
 let calMonth = new Date().getMonth();
 let calYear = new Date().getFullYear();
 
+// Recurring booking state
+let bookingType = 'once'; // 'once' or 'recurring'
+let recurWeekday = null;  // 0-6 (Sun..Sat)
+let recurFrequency = 'weekly';
+let recurStart = null;    // YYYY-MM-DD
+let recurEnd = null;      // YYYY-MM-DD
+let recurDates = [];      // computed array of { date, status: 'ok'|'skip-booked'|'skip-blocked' }
+
+function resetRecurringState() {
+  bookingType = 'once';
+  recurWeekday = null;
+  recurFrequency = 'weekly';
+  recurStart = null;
+  recurEnd = null;
+  recurDates = [];
+}
+
 // --- Step navigation ---
 function goStep(n) {
   currentStep = n;
@@ -877,10 +1025,187 @@ document.querySelectorAll('.event-type-btn').forEach(btn => {
     selectedEvent = btn.dataset.event;
     selectedDate = null;
     selectedTime = null;
+    resetRecurringState();
     document.querySelectorAll('.event-type-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
-    setTimeout(() => goStep(1), 200);
+
+    // Morning: show booking-type picker (one vs recurring). Other events auto-advance.
+    const btSection = document.getElementById('booking-type-section');
+    const rSetup = document.getElementById('recurring-setup');
+    const contRow = document.getElementById('step-0-continue');
+    rSetup.style.display = 'none';
+    contRow.style.display = 'none';
+    document.getElementById('bt-once').classList.remove('selected');
+    document.getElementById('bt-recurring').classList.remove('selected');
+
+    if (selectedEvent === 'morning') {
+      btSection.style.display = 'block';
+      refreshData(); // prefetch for taken-weekday computation
+    } else {
+      btSection.style.display = 'none';
+      setTimeout(() => goStep(1), 200);
+    }
   });
+});
+
+// --- Booking type (one / recurring) ---
+function selectBookingType(type) {
+  bookingType = type;
+  document.getElementById('bt-once').classList.toggle('selected', type === 'once');
+  document.getElementById('bt-recurring').classList.toggle('selected', type === 'recurring');
+  const rSetup = document.getElementById('recurring-setup');
+  const contRow = document.getElementById('step-0-continue');
+
+  if (type === 'once') {
+    rSetup.style.display = 'none';
+    contRow.style.display = 'none';
+    setTimeout(() => goStep(1), 200);
+  } else {
+    rSetup.style.display = 'block';
+    contRow.style.display = 'flex';
+    renderWeekdayChips();
+    // Default start date: next occurrence of tomorrow, end: ~12 weeks out
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('recur-start').value = formatDate(tomorrow);
+    const endDefault = new Date(tomorrow);
+    endDefault.setDate(endDefault.getDate() + 84);
+    document.getElementById('recur-end').value = formatDate(endDefault);
+    recurStart = document.getElementById('recur-start').value;
+    recurEnd = document.getElementById('recur-end').value;
+    recurFrequency = document.getElementById('recur-frequency').value;
+    document.getElementById('btn-step0-continue').disabled = true;
+  }
+}
+
+function renderWeekdayChips() {
+  const et = EVENT_TYPES[selectedEvent];
+  const container = document.getElementById('weekday-chips');
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  // Find weekdays already taken by an existing recurring morning booking
+  const bookings = getBookings();
+  const takenWeekdays = new Set();
+  bookings.forEach(b => {
+    if (b.eventType !== selectedEvent) return;
+    if (b.status === 'canceled') return;
+    if (!b.recurringSeriesId && !b.recurringFrequency) return;
+    const parts = (b.date || '').split('-');
+    if (parts.length !== 3) return;
+    const dow = new Date(parts[0], parts[1]-1, parts[2]).getDay();
+    takenWeekdays.add(dow);
+  });
+
+  let html = '';
+  et.days.forEach(dow => {
+    const taken = takenWeekdays.has(dow);
+    const cls = 'weekday-chip' + (taken ? ' taken' : '') + (recurWeekday === dow ? ' selected' : '');
+    const click = taken
+      ? ''
+      : ' onclick="selectWeekday(' + dow + ')"';
+    html += '<button type="button" class="' + cls + '"' + click + '>' + dayNames[dow] + '</button>';
+  });
+  container.innerHTML = html;
+}
+
+function selectWeekday(dow) {
+  recurWeekday = dow;
+  renderWeekdayChips();
+  updateRecurringPreview();
+}
+
+function updateRecurringPreview() {
+  recurStart = document.getElementById('recur-start').value;
+  recurEnd = document.getElementById('recur-end').value;
+  recurFrequency = document.getElementById('recur-frequency').value;
+
+  const preview = document.getElementById('recurring-preview');
+  const continueBtn = document.getElementById('btn-step0-continue');
+
+  if (recurWeekday === null || !recurStart || !recurEnd) {
+    preview.style.display = 'none';
+    continueBtn.disabled = true;
+    return;
+  }
+
+  recurDates = computeRecurringDates(recurWeekday, recurFrequency, recurStart, recurEnd);
+  const okDates = recurDates.filter(d => d.status === 'ok');
+  const skipped = recurDates.filter(d => d.status !== 'ok');
+
+  if (okDates.length === 0) {
+    preview.innerHTML = '<span class="count">No dates available</span><span class="dates">Try a different weekday or extend the end date.</span>';
+    preview.style.display = 'block';
+    continueBtn.disabled = true;
+    return;
+  }
+
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const shown = okDates.slice(0, 6).map(d => {
+    const parts = d.date.split('-');
+    return monthNames[parseInt(parts[1],10)-1] + ' ' + parseInt(parts[2],10);
+  }).join(', ');
+  const more = okDates.length > 6 ? ' + ' + (okDates.length - 6) + ' more' : '';
+
+  let html = '<span class="count">' + okDates.length + ' visit' + (okDates.length === 1 ? '' : 's') + '</span>' +
+             '<span class="dates">' + shown + more + '</span>';
+  if (skipped.length > 0) {
+    html += '<div class="skipped">Skipping ' + skipped.length + ' date' + (skipped.length === 1 ? '' : 's') +
+            ' that conflict with existing bookings or blocked days.</div>';
+  }
+  preview.innerHTML = html;
+  preview.style.display = 'block';
+  continueBtn.disabled = false;
+}
+
+function computeRecurringDates(weekday, frequency, startStr, endStr) {
+  const start = new Date(startStr + 'T12:00:00');
+  const end = new Date(endStr + 'T12:00:00');
+  if (isNaN(start) || isNaN(end) || end < start) return [];
+
+  // Move start forward to the first occurrence of the chosen weekday
+  const first = new Date(start);
+  const delta = (weekday - first.getDay() + 7) % 7;
+  first.setDate(first.getDate() + delta);
+
+  const step = frequency === 'biweekly' ? 14 : frequency === 'monthly' ? 28 : 7;
+
+  const bookings = getBookings();
+  const out = [];
+  const cursor = new Date(first);
+  let safety = 0;
+  while (cursor <= end && safety < 200) {
+    const dateStr = formatDate(cursor);
+    // Check conflicts
+    const isBooked = bookings.some(b =>
+      b.date === dateStr && b.eventType === selectedEvent && b.status !== 'canceled'
+    );
+    const isBlocked = isDateBlocked(dateStr, selectedEvent);
+    let status = 'ok';
+    if (isBooked) status = 'skip-booked';
+    else if (isBlocked) status = 'skip-blocked';
+    out.push({ date: dateStr, status: status });
+    cursor.setDate(cursor.getDate() + step);
+    safety++;
+  }
+  return out;
+}
+
+function continueFromStep0() {
+  if (bookingType !== 'recurring') return;
+  if (recurDates.filter(d => d.status === 'ok').length === 0) return;
+  // Skip calendar step for recurring; jump to details form.
+  goStep(2);
+}
+
+// Wire up recurring form inputs
+document.addEventListener('DOMContentLoaded', () => {
+  const hook = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', updateRecurringPreview);
+  };
+  hook('recur-frequency');
+  hook('recur-start');
+  hook('recur-end');
 });
 
 // --- Calendar ---
@@ -1007,17 +1332,42 @@ function renderSummary() {
   const et = EVENT_TYPES[selectedEvent];
   const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-  const dateStr = dayNames[selectedDate.getDay()] + ', ' +
-    monthNames[selectedDate.getMonth()] + ' ' + selectedDate.getDate();
+  const freqLabels = { weekly: 'Every week', biweekly: 'Every other week', monthly: 'Every 4 weeks' };
 
   const durationStr = et.duration >= 60
     ? (et.duration / 60) + ' hours'
     : et.duration + ' min';
 
   const priceStr = et.price > 0
-    ? '$' + (et.price * (et.duration / 60)) + ' ($' + et.price + '/hr)'
+    ? '$' + (et.price * (et.duration / 60)) + ' per visit ($' + et.price + '/hr)'
     : 'Free';
+
+  if (bookingType === 'recurring') {
+    const okDates = recurDates.filter(d => d.status === 'ok');
+    const skipped = recurDates.filter(d => d.status !== 'ok');
+    const firstParts = okDates[0].date.split('-');
+    const lastParts = okDates[okDates.length - 1].date.split('-');
+    const startLabel = monthNames[parseInt(firstParts[1],10)-1] + ' ' + parseInt(firstParts[2],10) + ', ' + firstParts[0];
+    const endLabel = monthNames[parseInt(lastParts[1],10)-1] + ' ' + parseInt(lastParts[2],10) + ', ' + lastParts[0];
+    const weekdayLabel = dayNames[recurWeekday] + 's';
+    let html =
+      '<div class="summary-item"><span class="summary-label">Service</span><span class="summary-value">' + et.name + ' (recurring)</span></div>' +
+      '<div class="summary-item"><span class="summary-label">When</span><span class="summary-value">' + weekdayLabel + ', ' + (freqLabels[recurFrequency] || recurFrequency) + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">First visit</span><span class="summary-value">' + startLabel + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Last visit</span><span class="summary-value">' + endLabel + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Visits</span><span class="summary-value">' + okDates.length + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Time</span><span class="summary-value">' + et.slots[0] + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Duration</span><span class="summary-value">' + durationStr + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Rate</span><span class="summary-value">' + priceStr + '</span></div>';
+    if (skipped.length > 0) {
+      html += '<div class="summary-item"><span class="summary-label">Skipping</span><span class="summary-value">' + skipped.length + ' conflicting date' + (skipped.length === 1 ? '' : 's') + '</span></div>';
+    }
+    document.getElementById('booking-summary').innerHTML = html;
+    return;
+  }
+
+  const dateStr = dayNames[selectedDate.getDay()] + ', ' +
+    monthNames[selectedDate.getMonth()] + ' ' + selectedDate.getDate();
 
   document.getElementById('booking-summary').innerHTML =
     '<div class="summary-item"><span class="summary-label">Service</span><span class="summary-value">' + et.name + '</span></div>' +
@@ -1045,6 +1395,51 @@ async function submitBooking() {
   btn.textContent = 'Booking...';
 
   const et = EVENT_TYPES[selectedEvent];
+
+  if (bookingType === 'recurring') {
+    const okDates = recurDates.filter(d => d.status === 'ok');
+    if (okDates.length === 0) {
+      alert('No available dates for this recurring schedule. Please go back and adjust.');
+      btn.disabled = false;
+      btn.textContent = 'Book My Visit';
+      return;
+    }
+    const seriesId = 'rec_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    let saved = 0;
+    try {
+      for (const d of okDates) {
+        const b = {
+          id: 'b_' + Date.now() + '_' + saved,
+          eventType: selectedEvent,
+          eventName: et.name,
+          date: d.date,
+          time: et.slots[0],
+          duration: et.duration,
+          clientName: name,
+          clientEmail: email,
+          clientPhone: phone,
+          clientAddress: address,
+          gardenNotes: notes,
+          status: 'confirmed',
+          bookedBy: 'client',
+          recurringSeriesId: seriesId,
+          recurringFrequency: recurFrequency,
+          createdAt: new Date().toISOString()
+        };
+        await DB.saveBooking(b);
+        saved++;
+      }
+      showRecurringConfirmation(et, okDates, seriesId);
+      goStep(3);
+    } catch (err) {
+      console.log('Recurring booking error:', err);
+      alert('Saved ' + saved + ' of ' + okDates.length + ' visits before an error. Please contact Taya if anything looks off.');
+      btn.disabled = false;
+      btn.textContent = 'Book My Visit';
+    }
+    return;
+  }
+
   const booking = {
     id: 'b_' + Date.now(),
     eventType: selectedEvent,
@@ -1072,6 +1467,30 @@ async function submitBooking() {
     alert('Something went wrong saving your booking. Please try again.');
     btn.disabled = false;
     btn.textContent = 'Book My Visit';
+  }
+}
+
+function showRecurringConfirmation(et, okDates, seriesId) {
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const firstParts = okDates[0].date.split('-');
+  const lastParts = okDates[okDates.length - 1].date.split('-');
+  const firstDate = new Date(firstParts[0], firstParts[1]-1, firstParts[2]);
+  const lastDate = new Date(lastParts[0], lastParts[1]-1, lastParts[2]);
+  const firstStr = dayNames[firstDate.getDay()] + ', ' + monthNames[firstDate.getMonth()] + ' ' + firstDate.getDate() + ', ' + firstDate.getFullYear();
+  const lastStr = monthNames[lastDate.getMonth()] + ' ' + lastDate.getDate() + ', ' + lastDate.getFullYear();
+  const name = document.getElementById('f-name').value.trim();
+  const address = document.getElementById('f-address').value.trim();
+
+  const el = document.getElementById('confirm-details');
+  if (el) {
+    el.innerHTML =
+      '<div class="summary-item"><span class="summary-label">What</span><span class="summary-value">' + et.name + ' (recurring)</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Visits</span><span class="summary-value">' + okDates.length + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">First visit</span><span class="summary-value">' + firstStr + ' at ' + et.slots[0] + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Last visit</span><span class="summary-value">' + lastStr + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Where</span><span class="summary-value">' + (address || 'TBD') + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Who</span><span class="summary-value">' + name + '</span></div>';
   }
 }
 
@@ -1141,6 +1560,16 @@ async function lookupBookings() {
     afternoon: 'Afternoon Garden Care'
   };
 
+  // Group recurring series — show one header card per series with a "Cancel entire series" button,
+  // then the individual visits below it.
+  const seriesSizes = {};
+  bookings.forEach(b => {
+    if (b.recurringSeriesId && b.status !== 'canceled') {
+      seriesSizes[b.recurringSeriesId] = (seriesSizes[b.recurringSeriesId] || 0) + 1;
+    }
+  });
+  const seriesShown = {};
+
   let html = '';
   bookings.forEach(b => {
     const parts = b.date.split('-');
@@ -1149,15 +1578,32 @@ async function lookupBookings() {
     const statusClass = b.status === 'canceled' ? 'canceled' : b.rescheduledAt ? 'rescheduled' : 'confirmed';
     const statusLabel = b.status === 'canceled' ? 'Canceled' : b.rescheduledAt ? 'Rescheduled' : 'Confirmed';
 
+    // Show recurring series banner once per series
+    if (b.recurringSeriesId && !seriesShown[b.recurringSeriesId] && b.status !== 'canceled') {
+      seriesShown[b.recurringSeriesId] = true;
+      const count = seriesSizes[b.recurringSeriesId];
+      const freqLabel = { weekly: 'weekly', biweekly: 'every other week', monthly: 'monthly' }[b.recurringFrequency] || 'recurring';
+      html += '<div class="my-booking-card ' + b.eventType + '" style="border-left:4px solid var(--spring-sage);">' +
+        '<h3>Recurring series <span class="status-badge confirmed">' + (eventNames[b.eventType] || b.eventName) + ' - ' + freqLabel + '</span></h3>' +
+        '<div class="meta">' + count + ' upcoming visit' + (count === 1 ? '' : 's') + '</div>' +
+        '<div class="actions" style="margin-top:8px;">' +
+          '<button class="cancel-btn" onclick="clientCancelSeries(\'' + b.recurringSeriesId + '\')">Cancel entire series</button>' +
+        '</div>' +
+      '</div>';
+    }
+
     html += '<div class="my-booking-card ' + b.eventType + '" id="manage-card-' + b.id + '">' +
       '<h3>' + (eventNames[b.eventType] || b.eventName) +
+        (b.recurringSeriesId ? ' <span style="font-size:0.75rem;color:var(--gray-600);font-weight:400;">(recurring)</span>' : '') +
         ' <span class="status-badge ' + statusClass + '">' + statusLabel + '</span></h3>' +
       '<div class="meta">' + dateStr + ' at ' + b.time + '</div>';
 
     if (b.status !== 'canceled') {
       html += '<div class="actions">' +
         '<button onclick="clientReschedule(\'' + b.id + '\')">Reschedule</button>' +
-        '<button class="cancel-btn" onclick="clientCancel(\'' + b.id + '\')">Cancel Visit</button>' +
+        '<button class="cancel-btn" onclick="clientCancel(\'' + b.id + '\')">' +
+          (b.recurringSeriesId ? 'Cancel this visit' : 'Cancel Visit') +
+        '</button>' +
       '</div>' +
       '<div class="reschedule-picker" id="reschedule-' + b.id + '" style="display:none;">' +
         '<label>New date</label>' +
@@ -1244,6 +1690,31 @@ async function clientCancel(id) {
     lookupBookings();
   } catch (err) {
     alert('Could not cancel. Please try again.');
+  }
+}
+
+async function clientCancelSeries(seriesId) {
+  const phone = normalizePhone(document.getElementById('manage-phone').value.trim());
+  if (!phone) return;
+  if (!confirm('Cancel ALL upcoming visits in this recurring series? This cannot be undone. Taya will be notified.')) return;
+
+  try {
+    const all = await DB.getBookingsByPhone(phone);
+    const today = formatDate(new Date());
+    const series = all.filter(b =>
+      b.recurringSeriesId === seriesId && b.status !== 'canceled' && b.date >= today
+    );
+    for (const b of series) {
+      await DB.updateBooking(b.id, {
+        status: 'canceled',
+        canceledAt: new Date().toISOString(),
+        canceledBy: 'client',
+      });
+    }
+    lookupBookings();
+  } catch (err) {
+    console.log('Cancel series error:', err);
+    alert('Could not cancel the series. Please try again or contact Taya.');
   }
 }
 
