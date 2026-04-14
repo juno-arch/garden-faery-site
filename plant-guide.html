@@ -1224,6 +1224,70 @@
       transform: translateX(-50%) translateY(0);
     }
 
+    /* Companion planting chips (in modal) */
+    .modal-section.companions {
+      background: rgba(163, 184, 140, 0.1);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .companion-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .companion-row:last-child { margin-bottom: 0; }
+    .companion-label {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      padding-right: 4px;
+      flex-shrink: 0;
+    }
+    .companion-label.good { color: #4e6838; }
+    .companion-label.bad { color: #b8622e; }
+    .companion-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 11px;
+      font-size: 12.5px;
+      font-weight: 600;
+      font-family: var(--font-body);
+      border-radius: 13px;
+      border: 1.5px solid;
+      background: white;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .companion-chip.good {
+      border-color: rgba(78, 104, 56, 0.3);
+      color: #4e6838;
+    }
+    .companion-chip.good:hover {
+      background: #4e6838;
+      color: white;
+      border-color: #4e6838;
+    }
+    .companion-chip.bad {
+      border-color: rgba(184, 98, 46, 0.3);
+      color: #b8622e;
+    }
+    .companion-chip.bad:hover {
+      background: #b8622e;
+      color: white;
+      border-color: #b8622e;
+    }
+    .companion-chip.unknown {
+      border-color: rgba(74, 25, 66, 0.12);
+      color: rgba(74, 25, 66, 0.5);
+      cursor: default;
+      font-weight: 500;
+    }
+    .companion-chip.unknown:hover { background: white; }
+
     /* Print styles for My Garden list */
     @media print {
       nav, .hero, .top-actions, .filter-section, #plants-container, .directory-section,
@@ -3728,9 +3792,75 @@
 
   <!-- ================ Interactive Kit JS ================ -->
   <script>
+  // Companion planting relationships, keyed by slug.
+  // good = plants that pair well; bad = plants to keep apart.
+  const COMPANIONS = {
+    'blueberry': { good: ['strawberry', 'thyme', 'borage'], bad: [] },
+    'strawberry': { good: ['borage', 'thyme', 'lettuce', 'spinach'], bad: ['cabbage', 'broccoli'] },
+    'raspberry': { good: ['garlic', 'yarrow', 'chives'], bad: ['potato'] },
+    'apple': { good: ['chives', 'nasturtium', 'comfrey', 'yarrow'], bad: ['potato'] },
+    'fig': { good: ['rosemary', 'marigold', 'comfrey'], bad: [] },
+    'pear': { good: ['chives', 'nasturtium', 'comfrey', 'yarrow'], bad: [] },
+    'currant': { good: ['chives', 'yarrow', 'comfrey'], bad: [] },
+    'grapes': { good: ['basil', 'chives'], bad: ['cabbage', 'radish'] },
+    'kale': { good: ['onion', 'garlic', 'dill', 'nasturtium'], bad: ['strawberry', 'tomatoes'] },
+    'lettuce': { good: ['carrot', 'radish', 'strawberry', 'chives'], bad: [] },
+    'spinach': { good: ['strawberry', 'cabbage', 'radish', 'sugar-snap-peas'], bad: [] },
+    'chard': { good: ['beans', 'onion', 'cabbage'], bad: [] },
+    'sugar-snap-peas': { good: ['carrot', 'radish', 'corn', 'cucumber'], bad: ['garlic', 'onion'] },
+    'broccoli': { good: ['onion', 'dill', 'nasturtium'], bad: ['strawberry', 'tomatoes'] },
+    'cabbage': { good: ['onion', 'dill', 'nasturtium', 'thyme'], bad: ['strawberry', 'tomatoes'] },
+    'cucumber': { good: ['beans', 'corn', 'radish', 'nasturtium'], bad: ['sage', 'potato'] },
+    'tomatoes': { good: ['basil', 'marigold', 'carrot', 'parsley'], bad: ['fennel', 'potato'] },
+    'summer-squash': { good: ['beans', 'corn', 'nasturtium', 'borage'], bad: ['potato'] },
+    'winter-squash': { good: ['beans', 'corn', 'nasturtium', 'borage'], bad: ['potato'] },
+    'beans': { good: ['corn', 'summer-squash', 'winter-squash', 'carrot'], bad: ['onion', 'garlic'] },
+    'corn': { good: ['beans', 'winter-squash', 'summer-squash', 'cucumber'], bad: ['tomatoes'] },
+    'artichoke': { good: ['sunflower', 'yarrow'], bad: [] },
+    'rhubarb': { good: ['garlic', 'cabbage'], bad: [] },
+    'garlic': { good: ['tomatoes', 'carrot', 'strawberry', 'lettuce'], bad: ['beans', 'sugar-snap-peas'] },
+    'onion': { good: ['carrot', 'cabbage', 'broccoli', 'lettuce'], bad: ['beans', 'sugar-snap-peas'] },
+    'carrot': { good: ['onion', 'lettuce', 'chives', 'sugar-snap-peas'], bad: ['dill'] },
+    'beet': { good: ['onion', 'cabbage', 'lettuce'], bad: ['beans'] },
+    'radish': { good: ['lettuce', 'cucumber', 'sugar-snap-peas', 'carrot'], bad: ['grapes'] },
+    'turnip': { good: ['sugar-snap-peas', 'onion'], bad: ['potato'] },
+    'potato': { good: ['beans', 'corn', 'cabbage', 'marigold'], bad: ['tomatoes', 'cucumber'] },
+    'california-poppy': { good: ['yarrow', 'phacelia', 'buckwheat'], bad: [] },
+    'lavender': { good: ['rosemary', 'thyme', 'echinacea'], bad: [] },
+    'bee-balm': { good: ['tomatoes', 'echinacea', 'yarrow'], bad: [] },
+    'yarrow': { good: ['echinacea', 'california-poppy', 'apple', 'lavender'], bad: [] },
+    'phacelia': { good: ['buckwheat', 'california-poppy', 'alyssum'], bad: [] },
+    'buckwheat': { good: ['phacelia', 'alyssum', 'beans'], bad: [] },
+    'ceanothus': { good: ['manzanita', 'california-poppy', 'yarrow'], bad: [] },
+    'manzanita': { good: ['ceanothus', 'california-poppy', 'yarrow'], bad: [] },
+    'basil': { good: ['tomatoes', 'parsley', 'borage'], bad: [] },
+    'rosemary': { good: ['lavender', 'thyme', 'sage', 'cabbage'], bad: [] },
+    'thyme': { good: ['strawberry', 'cabbage', 'lavender', 'rosemary'], bad: [] },
+    'sage': { good: ['rosemary', 'cabbage', 'carrot'], bad: ['cucumber'] },
+    'mint': { good: ['cabbage', 'tomatoes'], bad: ['parsley'] },
+    'oregano': { good: ['basil', 'thyme', 'cabbage'], bad: [] },
+    'cilantro': { good: ['spinach', 'sugar-snap-peas', 'beans'], bad: [] },
+    'parsley': { good: ['tomatoes', 'carrot', 'chives'], bad: ['mint'] },
+    'chives': { good: ['carrot', 'apple', 'tomatoes', 'lettuce'], bad: ['beans', 'sugar-snap-peas'] },
+    'dill': { good: ['cabbage', 'broccoli', 'cucumber', 'lettuce'], bad: ['carrot', 'tomatoes'] },
+    'fennel': { good: [], bad: ['tomatoes', 'beans'] },
+    'borage': { good: ['strawberry', 'tomatoes', 'summer-squash', 'winter-squash'], bad: [] },
+    'nasturtium': { good: ['cucumber', 'cabbage', 'summer-squash', 'apple'], bad: [] },
+    'marigold': { good: ['tomatoes', 'potato', 'cucumber', 'beans'], bad: [] },
+    'calendula': { good: ['tomatoes', 'lettuce', 'cabbage', 'strawberry'], bad: [] },
+    'sunflower': { good: ['cucumber', 'beans', 'corn'], bad: ['potato'] },
+    'zinnia': { good: ['tomatoes', 'cucumber', 'cabbage'], bad: [] },
+    'cosmos': { good: ['tomatoes', 'corn', 'beans'], bad: [] },
+    'alyssum': { good: ['lettuce', 'cabbage', 'phacelia', 'buckwheat'], bad: [] },
+    'echinacea': { good: ['bee-balm', 'yarrow', 'lavender'], bad: [] },
+    'anise-hyssop': { good: ['tomatoes', 'cabbage', 'echinacea'], bad: [] },
+    'comfrey': { good: ['apple', 'pear', 'fig', 'currant'], bad: [] }
+  };
+
   const GFKit = (function() {
     const STORAGE_KEY = 'gf_favorites_v1';
     const PAGE_KEY = 'plants';
+    const OTHER_PAGE = 'food-guide.html';
     const CATEGORY_COLORS = {
       pollinator: '#d4c27a',
       native: '#a3b88c',
@@ -3985,7 +4115,10 @@
         '<span class="modal-category-tag" style="background:' + color + '30;">' + (CATEGORY_LABELS[p.category] || p.category) + '</span>' +
         '<div class="modal-section"><h4>Growth</h4><p>' + escapeHtml(p.growth || '') + '</p></div>' +
         '<div class="modal-section"><h4>Care</h4><p>' + escapeHtml(p.care || '') + '</p></div>' +
-        '<div class="modal-section"><h4>Planting</h4><p>' + escapeHtml(p.planting || '') + '</p></div>';
+        '<div class="modal-section"><h4>Planting</h4><p>' + escapeHtml(p.planting || '') + '</p></div>' +
+        renderCompanions(p.slug);
+
+      wireCompanionChips(body);
 
       const favBtn = document.getElementById('modal-fav-btn');
       favBtn.dataset.slug = p.slug;
@@ -4178,6 +4311,50 @@
 
     function escapeHtml(s) {
       return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function titleize(s) {
+      return s.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function renderCompanions(slug) {
+      const c = COMPANIONS[slug];
+      if (!c) return '';
+      const good = c.good || [];
+      const bad = c.bad || [];
+      if (good.length === 0 && bad.length === 0) return '';
+
+      function chip(companionSlug, kind) {
+        const label = titleize(companionSlug);
+        const onThisPage = !!findPlant(companionSlug);
+        if (onThisPage) {
+          return '<button type="button" class="companion-chip ' + kind + '" data-companion="' + companionSlug + '">' + escapeHtml(label) + '</button>';
+        }
+        // If it exists in COMPANIONS at all, assume it's on the other page
+        if (COMPANIONS[companionSlug]) {
+          return '<a class="companion-chip ' + kind + '" href="' + OTHER_PAGE + '?plant=' + companionSlug + '">' + escapeHtml(label) + '</a>';
+        }
+        // Otherwise: uncknown (e.g., a reference plant we don't have a page for)
+        return '<span class="companion-chip unknown">' + escapeHtml(label) + '</span>';
+      }
+
+      let html = '<div class="modal-section companions"><h4>Companion Planting</h4>';
+      if (good.length) {
+        html += '<div class="companion-row"><span class="companion-label good">Pairs with</span>' +
+          good.map(s => chip(s, 'good')).join('') + '</div>';
+      }
+      if (bad.length) {
+        html += '<div class="companion-row"><span class="companion-label bad">Keep apart</span>' +
+          bad.map(s => chip(s, 'bad')).join('') + '</div>';
+      }
+      html += '</div>';
+      return html;
+    }
+
+    function wireCompanionChips(root) {
+      root.querySelectorAll('.companion-chip[data-companion]').forEach(btn => {
+        btn.addEventListener('click', () => openModal(btn.dataset.companion));
+      });
     }
 
     // ------ Init ------
