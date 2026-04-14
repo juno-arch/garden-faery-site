@@ -1439,7 +1439,7 @@ function renderIncome() {
             <div style="font-weight:600;">${b.date} · ${b.clientName||'Client'}</div>
             <div style="font-size:0.8rem;color:var(--gray-600);">${EVENT_LABELS[b.eventType]||b.eventType} · $${price.toFixed(0)}</div>
           </div>
-          <div style="display:flex;gap:8px;align-items:center;">${paidBadge}<button class="modal-btn secondary" style="padding:4px 10px;font-size:0.8rem;" onclick="openPayment('${b.id}')">Edit</button></div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">${paidBadge}${!b.paid && price > 0 ? `<button class="modal-btn primary" style="padding:4px 10px;font-size:0.8rem;" onclick="quickMarkPaid('${b.id}')">Paid</button><button class="modal-btn secondary" style="padding:4px 10px;font-size:0.8rem;" onclick="sendInvoice('${b.id}')">Invoice</button>` : ''}<button class="modal-btn secondary" style="padding:4px 10px;font-size:0.8rem;" onclick="openPayment('${b.id}')">Edit</button></div>
         </div>`;
     });
   }
@@ -1497,6 +1497,49 @@ async function savePayment() {
   } catch (e) {
     alert('Save failed: ' + e.message);
   }
+}
+
+async function quickMarkPaid(bookingId) {
+  const b = getBookings().find(x => x.id === bookingId);
+  if (!b) return;
+  const method = prompt('Payment method? (cash, check, card, venmo, zelle, other)', b.paymentMethod || 'cash');
+  if (method === null) return;
+  const today = formatDate(new Date());
+  try {
+    await DB.updateBooking(bookingId, { paid: true, paymentMethod: method || null, paidDate: today });
+    const cached = _cachedBookings.find(x => x.id === bookingId);
+    if (cached) { cached.paid = true; cached.paymentMethod = method || null; cached.paidDate = today; }
+    renderIncome();
+  } catch (e) {
+    alert('Save failed: ' + e.message);
+  }
+}
+
+function sendInvoice(bookingId) {
+  const b = getBookings().find(x => x.id === bookingId);
+  if (!b) return;
+  const price = Number(b.price) || 0;
+  const service = EVENT_LABELS[b.eventType] || b.eventType || 'Garden care visit';
+  const to = b.clientEmail || '';
+  const subject = `Invoice from Garden Faery — ${b.date}`;
+  const body =
+    `Hi ${(b.clientName || '').split(' ')[0] || 'there'},\n\n` +
+    `Thanks so much for having me in the garden on ${b.date}. Here is your invoice:\n\n` +
+    `  Service:  ${service}\n` +
+    `  Date:     ${b.date}\n` +
+    `  Amount:   $${price.toFixed(0)}\n\n` +
+    `Payment options:\n` +
+    `  Venmo:   @gardenfaery\n` +
+    `  Zelle:   taya@gardenfaery.love\n` +
+    `  Check:   payable to Taya (address on request)\n` +
+    `  Cash:    next visit is fine too\n\n` +
+    `Just reply to this email if anything looks off or you want to reschedule something.\n\n` +
+    `Whimsy,\n` +
+    `Taya\n` +
+    `Your local Garden Faery. Arcata & Humboldt County.\n` +
+    `taya@gardenfaery.love`;
+  const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = mailto;
 }
 
 function exportIncomeCsv() {
