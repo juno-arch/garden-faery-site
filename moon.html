@@ -143,7 +143,7 @@ input[type=date], input[type=password], input[type=text] {
   <div class="card" id="conflict-card" style="display:none;">
     <h3>Upcoming moon-day conflicts</h3>
     <p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:10px;">
-      Recurring bookings landing on projected moon days. Within 7 days, these auto-cancel (a polite note is saved on the booking record). Override any by tapping "Keep".
+      Bookings (one-off or recurring) landing on projected moon days. Within 7 days, these auto-cancel. Override any by tapping "Keep".
     </p>
     <div id="conflict-list"></div>
   </div>
@@ -543,9 +543,9 @@ async function fetchMoonDates() {
   return new Set((d.items||[]).map(b => (b.date||'').slice(0,10)));
 }
 
-async function fetchFutureRecurring() {
+async function fetchFutureBookings() {
   const today = todayStr();
-  const filter = encodeURIComponent('date >= "' + today + '" && recurring_series_id != ""');
+  const filter = encodeURIComponent('date >= "' + today + '"');
   const r = await pb('/api/collections/bookings/records?filter=' + filter + '&perPage=500&sort=date');
   if (!r.ok) return [];
   const d = await r.json();
@@ -557,17 +557,18 @@ async function fetchFutureRecurring() {
     eventType: b.event_type,
     status: b.status,
     canceledBy: b.canceled_by,
-    moonExempt: !!b.moon_exempt
+    moonExempt: !!b.moon_exempt,
+    isRecurring: !!b.recurring_series_id
   }));
 }
 
 async function syncConflicts() {
   try {
-    const [moonDates, recurring] = await Promise.all([fetchMoonDates(), fetchFutureRecurring()]);
+    const [moonDates, future] = await Promise.all([fetchMoonDates(), fetchFutureBookings()]);
     const today = todayStr();
     const bufferDate = dateStr(addDays(parseDate(today), CONFLICT_BUFFER_DAYS));
     conflicts = [];
-    for (const b of recurring) {
+    for (const b of future) {
       if (!moonDates.has(b.date)) continue;
       const withinBuffer = b.date <= bufferDate;
       if (b.moonExempt) {
@@ -614,7 +615,7 @@ function renderConflicts() {
     return `
       <div class="period-item">
         <div>
-          <div class="dates">${b.date} ${b.time||''} · ${b.clientName}</div>
+          <div class="dates">${b.date} ${b.time||''} · ${b.clientName}${b.isRecurring?' (recurring)':''}</div>
           <div class="len">${stateLabel}</div>
         </div>
         ${keepBtn}
