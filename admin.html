@@ -1307,6 +1307,49 @@ function exportExpenseCsv() {
 }
 
 // --- Receipt OCR via Claude Vision API ---
+// Downscale an image File to JPEG base64, capped at maxLongSide pixels and given quality.
+// Returns { b64, mediaType }. Falls back to raw bytes if canvas/decoding fails.
+async function downscaleImageToBase64(file, maxLongSide, quality) {
+  const rawBytesToB64 = async () => {
+    const buf = await file.arrayBuffer();
+    return {
+      b64: btoa(Array.from(new Uint8Array(buf)).map(b => String.fromCharCode(b)).join('')),
+      mediaType: file.type || 'image/jpeg'
+    };
+  };
+  try {
+    const url = URL.createObjectURL(file);
+    const img = await new Promise((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = reject;
+      i.src = url;
+    });
+    const longSide = Math.max(img.naturalWidth, img.naturalHeight);
+    const scale = longSide > maxLongSide ? maxLongSide / longSide : 1;
+    const w = Math.round(img.naturalWidth * scale);
+    const h = Math.round(img.naturalHeight * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    URL.revokeObjectURL(url);
+    const dataUrl = canvas.toDataURL('image/jpeg', quality);
+    // Strip "data:image/jpeg;base64,"
+    const b64 = dataUrl.split(',')[1] || '';
+    // Approx size check: base64 is ~4/3 of bytes. Cap at 4.5 MB raw => ~6 MB b64.
+    const approxBytes = Math.floor(b64.length * 3 / 4);
+    if (approxBytes > 4_500_000 && quality > 0.6) {
+      // Re-encode at lower quality
+      const dataUrl2 = canvas.toDataURL('image/jpeg', 0.65);
+      return { b64: dataUrl2.split(',')[1] || '', mediaType: 'image/jpeg' };
+    }
+    return { b64, mediaType: 'image/jpeg' };
+  } catch (e) {
+    return await rawBytesToB64();
+  }
+}
+
 async function scanReceipt(input) {
   const file = input.files && input.files[0];
   if (!file) return;
@@ -1323,10 +1366,9 @@ async function scanReceipt(input) {
   }
   status.textContent = '📷 Scanning…';
   try {
-    // Read as base64
-    const buf = await file.arrayBuffer();
-    const b64 = btoa(Array.from(new Uint8Array(buf)).map(b => String.fromCharCode(b)).join(''));
-    const mediaType = file.type || 'image/jpeg';
+    // Downscale the image so we stay under Claude's 5 MB / image limit.
+    // iPhone photos are often 5–10 MB; we resize to max 1800px long side, JPEG q 0.85.
+    const { b64, mediaType } = await downscaleImageToBase64(file, 1800, 0.85);
 
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
