@@ -593,6 +593,14 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
 
   <!-- Upcoming view -->
   <div class="tab-panel" id="tab-upcoming" style="display:none;">
+    <div id="moon-conflicts-card" style="display:none; background:#fff; border:1px solid var(--gray-200); border-radius:12px; padding:16px; margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <h3 style="margin:0;">🌙 Moon-day conflicts</h3>
+        <button class="action-btn" onclick="syncMoonConflicts()" style="font-size:0.8rem;">Refresh</button>
+      </div>
+      <p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:10px;">Bookings that land on moon-block days. Auto-cancel within 7 days. Tap Keep to override.</p>
+      <div id="moon-conflicts-list"></div>
+    </div>
     <div id="upcoming-content"></div>
   </div>
 
@@ -1863,6 +1871,143 @@ function renderUpcoming() {
   });
 
   container.innerHTML = html;
+
+  // Refresh moon conflicts whenever the Upcoming tab renders.
+  syncMoonConflicts();
+}
+
+// --- Moon-day conflict handling (moved from /moon) ---
+// Recurring bookings that fall on moon-day auto-blocks:
+//   - within 7 days: auto-cancel, set canceled_by='moon-auto'
+//   - beyond 7 days: show as pending so Taya can Keep if she wants
+// Keep flips moon_exempt=true and un-cancels if needed.
+const MOON_AUTO_BLOCK_TAG = 'moon-auto-block';
+const MOON_CONFLICT_BUFFER_DAYS = 7;
+let moonConflicts = [];
+
+async function syncMoonConflicts() {
+  if (!PB_TOKEN) return;
+  try {
+    const today = formatDate(new Date());
+    const bufferEnd = formatDate(new Date(Date.now() + MOON_CONFLICT_BUFFER_DAYS * 86400000));
+
+    // Moon-block dates (future only)
+    const filter = encodeURIComponent('reason = "' + MOON_AUTO_BLOCK_TAG + '"');
+    const blocksResp = await fetch(PB_URL + '/api/collections/blocked_times/records?filter=' + filter + '&perPage=500', {
+      headers: { 'Authorization': 'Bearer ' + PB_TOKEN },
+    });
+    if (!blocksResp.ok) throw new Error('blocks ' + blocksResp.status);
+    const blocksData = await blocksResp.json();
+    const moonDates = new Set((blocksData.items || []).map(b => (b.date || '').slice(0, 10)));
+
+    // Future bookings
+    const bkFilter = encodeURIComponent('date >= "' + today + '"');
+    const bkResp = await fetch(PB_URL + '/api/collections/bookings/records?filter=' + bkFilter + '&perPage=500&sort=date', {
+      headers: { 'Authorization': 'Bearer ' + PB_TOKEN },
+    });
+    if (!bkResp.ok) throw new Error('bookings ' + bkResp.status);
+    const bkData = await bkResp.json();
+    const future = (bkData.items || []).map(b => ({
+      id: b.id,
+      date: (b.date || '').slice(0, 10),
+      time: b.time,
+      clientName: b.client_name || 'Client',
+      status: b.status,
+      canceledBy: b.canceled_by,
+      moonExempt: !!b.moon_exempt,
+      isRecurring: !!b.recurring_series_id,
+    }));
+
+    moonConflicts = [];
+    for (const b of future) {
+      if (!moonDates.has(b.date)) continue;
+      const withinBuffer = b.date <= bufferEnd;
+      if (b.moonExempt) {
+        moonConflicts.push({ booking: b, withinBuffer, isAutoCancelled: false, kept: true });
+        continue;
+      }
+      if (withinBuffer && b.status !== 'canceled') {
+        // Auto-cancel
+        await fetch(PB_URL + '/api/collections/bookings/records/' + b.id, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+          body: JSON.stringify({
+            status: 'canceled',
+            canceled_by: 'moon-auto',
+            canceled_at: new Date().toISOString(),
+          }),
+        });
+        b.status = 'canceled';
+        b.canceledBy = 'moon-auto';
+      }
+      moonConflicts.push({
+        booking: b,
+        withinBuffer,
+        isAutoCancelled: b.canceledBy === 'moon-auto' && b.status === 'canceled',
+        kept: false,
+      });
+    }
+    renderMoonConflicts();
+  } catch (e) {
+    console.log('moon conflict sync error:', e);
+  }
+}
+
+function renderMoonConflicts() {
+  const card = document.getElementById('moon-conflicts-card');
+  const list = document.getElementById('moon-conflicts-list');
+  if (!card || !list) return;
+  if (!moonConflicts.length) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  list.innerHTML = moonConflicts.map(c => {
+    const b = c.booking;
+    const stateLabel = c.kept
+      ? '<span style="color:var(--sage);font-size:0.8rem;">kept (you overrode)</span>'
+      : c.isAutoCancelled
+        ? '<span style="color:var(--red);font-size:0.8rem;">auto-cancelled</span>'
+        : (c.withinBuffer
+            ? '<span style="color:var(--red);font-size:0.8rem;">cancelling now...</span>'
+            : '<span style="color:var(--gray-600);font-size:0.8rem;">pending (auto-cancels 7 days before)</span>');
+    const btn = c.kept
+      ? '<button class="action-btn danger" onclick="releaseMoonKeep(\'' + b.id + '\')" style="font-size:0.8rem;">Undo keep</button>'
+      : '<button class="action-btn" onclick="keepMoonBooking(\'' + b.id + '\')" style="font-size:0.8rem;">Keep</button>';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100);">' +
+      '<div>' +
+        '<div style="font-weight:600;">' + escapeHtml(b.date) + ' ' + escapeHtml(b.time || '') + ' &middot; ' + escapeHtml(b.clientName) + (b.isRecurring ? ' (recurring)' : '') + '</div>' +
+        '<div>' + stateLabel + '</div>' +
+      '</div>' +
+      btn +
+    '</div>';
+  }).join('');
+}
+
+async function keepMoonBooking(bookingId) {
+  try {
+    await fetch(PB_URL + '/api/collections/bookings/records/' + bookingId, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+      body: JSON.stringify({
+        status: 'confirmed',
+        canceled_by: null,
+        canceled_at: null,
+        moon_exempt: true,
+      }),
+    });
+    await refreshData();
+    renderAll();
+  } catch (e) { alert('Keep failed: ' + e.message); }
+}
+
+async function releaseMoonKeep(bookingId) {
+  if (!confirm('Undo keep - this booking will be auto-cancelled again if within 7 days.')) return;
+  try {
+    await fetch(PB_URL + '/api/collections/bookings/records/' + bookingId, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+      body: JSON.stringify({ moon_exempt: false }),
+    });
+    await syncMoonConflicts();
+  } catch (e) { alert('Undo failed: ' + e.message); }
 }
 
 // --- Clients view ---
