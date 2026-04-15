@@ -1278,17 +1278,17 @@ async function renderDashboard() {
         <h3 style="margin:0;font-size:1rem;">Last 12 Months</h3>
         <span style="font-size:0.75rem;color:var(--gray-600);"><span style="display:inline-block;width:10px;height:10px;background:#6b8f52;border-radius:2px;vertical-align:middle;margin-right:4px;"></span>paid <span style="display:inline-block;width:10px;height:10px;background:#e8b828;border-radius:2px;vertical-align:middle;margin-right:4px;margin-left:10px;"></span>unpaid</span>
       </div>
-      <div style="display:flex;align-items:flex-end;gap:6px;height:140px;padding:0 4px;border-bottom:1px solid var(--gray-200);">
+      <div style="display:flex;align-items:stretch;gap:6px;height:140px;padding:0 4px;border-bottom:1px solid var(--gray-200);">
   `;
   monthBuckets.forEach(m => {
     const totalPct = maxMonth > 0 ? (m.total / maxMonth) * 100 : 0;
     const paidPct = m.total > 0 ? (m.paid / m.total) * 100 : 0;
     const outstandPct = 100 - paidPct;
     html += `
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;">
-          <div title="${m.label} ${m.year}: ${fmt(m.paid)} paid + ${fmt(m.outstanding)} unpaid = ${fmt(m.total)}" style="width:100%;height:${totalPct}%;min-height:${m.total>0?'2px':'0'};display:flex;flex-direction:column;justify-content:flex-end;border-radius:3px 3px 0 0;overflow:hidden;background:var(--gray-100);">
-            <div style="background:#e8b828;height:${outstandPct}%;"></div>
-            <div style="background:#6b8f52;height:${paidPct}%;"></div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;min-width:0;">
+          <div title="${m.label} ${m.year}: ${fmt(m.paid)} paid + ${fmt(m.outstanding)} unpaid = ${fmt(m.total)}" style="width:100%;height:${totalPct}%;min-height:${m.total>0?'2px':'0'};display:flex;flex-direction:column;justify-content:flex-end;border-radius:3px 3px 0 0;overflow:hidden;">
+            <div style="background:#e8b828;height:${outstandPct}%;min-height:${m.outstanding>0?'2px':'0'};"></div>
+            <div style="background:#6b8f52;height:${paidPct}%;min-height:${m.paid>0?'2px':'0'};"></div>
           </div>
         </div>
     `;
@@ -1330,6 +1330,120 @@ async function renderDashboard() {
           </div>
         </div>
         <div style="font-size:1.4rem;font-weight:700;color:#6b8f52;text-align:right;">${fmt(next30Projected)}</div>
+      </div>
+    </div>
+  `;
+
+  // 6-7. Service mix pie + Expense donut (side-by-side on wider screens)
+  // Service mix: aggregate YTD revenue by event type
+  const SVC_COLORS = { morning: '#e8b828', afternoon: '#c48bb0', monday: '#a3b88c', other: '#a89e96' };
+  const SVC_LABELS = { morning: 'Morning', afternoon: 'Afternoon', monday: 'Monday', other: 'Other' };
+  const svcTotals = { morning: 0, afternoon: 0, monday: 0, other: 0 };
+  ytdBookings.forEach(b => {
+    const k = svcTotals.hasOwnProperty(b.eventType) ? b.eventType : 'other';
+    svcTotals[k] += Number(b.price) || 0;
+  });
+  const svcTotal = Object.values(svcTotals).reduce((s,v) => s+v, 0);
+  const svcSlices = svcTotal > 0
+    ? Object.entries(svcTotals).filter(([,v]) => v > 0).map(([k,v]) => ({ k, v, pct: (v/svcTotal)*100, color: SVC_COLORS[k], label: SVC_LABELS[k] }))
+    : [];
+
+  // Expense categories donut
+  const EXP_COLORS = {
+    plants: '#6b8f52', soil_amendments: '#8b6b45', tools: '#4a1942', equipment: '#7a3b4e',
+    fuel: '#c9553a', vehicle: '#a67c52', supplies: '#8fb0a5', marketing: '#c48bb0',
+    software: '#506a6e', professional_services: '#b5c99a', other: '#a89e96'
+  };
+  const EXP_LABELS = {
+    plants: 'Plants', soil_amendments: 'Soil/amend', tools: 'Tools', equipment: 'Equipment',
+    fuel: 'Fuel', vehicle: 'Vehicle', supplies: 'Supplies', marketing: 'Marketing',
+    software: 'Software', professional_services: 'Pro svcs', other: 'Other'
+  };
+  const ytdBizExpenses = expenses.filter(e => (e.date||'').startsWith(year) && e.onBiz);
+  const expByCategory = {};
+  ytdBizExpenses.forEach(e => {
+    const k = e.category || 'other';
+    expByCategory[k] = (expByCategory[k] || 0) + e.amount;
+  });
+  const expSlices = ytdExpensesBiz > 0
+    ? Object.entries(expByCategory).sort((a,b) => b[1] - a[1]).map(([k,v]) => ({ k, v, pct: (v/ytdExpensesBiz)*100, color: EXP_COLORS[k] || '#a89e96', label: EXP_LABELS[k] || k }))
+    : [];
+
+  // Build conic-gradient strings (safe — generator makes no assumptions about slice count)
+  const buildConic = slices => {
+    if (!slices.length) return 'var(--gray-100)';
+    let cursor = 0;
+    return 'conic-gradient(' + slices.map(s => {
+      const start = cursor;
+      cursor += s.pct;
+      return `${s.color} ${start.toFixed(2)}% ${cursor.toFixed(2)}%`;
+    }).join(', ') + ')';
+  };
+
+  const renderSlicesLegend = (slices, valuePrefix = '$') => {
+    if (!slices.length) return '<div style="color:var(--gray-600);font-size:0.85rem;">No data yet.</div>';
+    return slices.map(s => `
+      <div style="display:flex;align-items:center;gap:6px;font-size:0.78rem;margin-bottom:3px;">
+        <span style="width:10px;height:10px;border-radius:2px;background:${s.color};flex-shrink:0;"></span>
+        <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.label}</span>
+        <span style="color:var(--gray-600);font-variant-numeric:tabular-nums;">${valuePrefix}${Math.round(s.v).toLocaleString()} · ${s.pct.toFixed(0)}%</span>
+      </div>
+    `).join('');
+  };
+
+  html += `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:12px;">
+      <div style="background:var(--white);border-radius:12px;padding:14px;box-shadow:var(--shadow);">
+        <h3 style="margin:0 0 10px;font-size:1rem;">Service mix ${year}</h3>
+        <div style="display:flex;gap:14px;align-items:center;">
+          <div style="width:100px;height:100px;border-radius:50%;flex-shrink:0;background:${buildConic(svcSlices)};"></div>
+          <div style="flex:1;min-width:0;">${renderSlicesLegend(svcSlices)}</div>
+        </div>
+      </div>
+      <div style="background:var(--white);border-radius:12px;padding:14px;box-shadow:var(--shadow);">
+        <h3 style="margin:0 0 10px;font-size:1rem;">Expense categories ${year}</h3>
+        <div style="display:flex;gap:14px;align-items:center;">
+          <div style="width:100px;height:100px;border-radius:50%;flex-shrink:0;background:${buildConic(expSlices)};position:relative;">
+            <div style="position:absolute;inset:22px;background:var(--white);border-radius:50%;"></div>
+          </div>
+          <div style="flex:1;min-width:0;">${renderSlicesLegend(expSlices)}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 8. Net profit trend line (last 12 months)
+  const monthNet = monthBuckets.map(m => {
+    const expInMo = expenses.filter(e => (e.date||'').slice(0,7) === m.key && e.onBiz).reduce((s,e) => s + e.amount, 0);
+    return { ...m, expenses: expInMo, net: m.total - expInMo };
+  });
+  const netVals = monthNet.map(m => m.net);
+  const netMin = Math.min(0, ...netVals);
+  const netMax = Math.max(100, ...netVals);
+  const netRange = Math.max(1, netMax - netMin);
+  const chartW = 600, chartH = 120, padX = 24, padY = 14;
+  const plotW = chartW - padX * 2;
+  const plotH = chartH - padY * 2;
+  const xAt = i => padX + (i / Math.max(1, monthNet.length - 1)) * plotW;
+  const yAt = v => padY + plotH - ((v - netMin) / netRange) * plotH;
+  const zeroY = yAt(0);
+  const pointsStr = monthNet.map((m,i) => xAt(i) + ',' + yAt(m.net)).join(' ');
+  const areaPath = 'M' + xAt(0) + ',' + zeroY + ' L' + pointsStr.split(' ').join(' L ') + ' L' + xAt(monthNet.length-1) + ',' + zeroY + ' Z';
+
+  html += `
+    <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+        <h3 style="margin:0;font-size:1rem;">Net profit trend</h3>
+        <span style="font-size:0.72rem;color:var(--gray-600);">month-over-month (biz expenses subtracted)</span>
+      </div>
+      <svg viewBox="0 0 ${chartW} ${chartH}" preserveAspectRatio="none" style="width:100%;height:${chartH}px;display:block;">
+        <line x1="${padX}" y1="${zeroY}" x2="${chartW - padX}" y2="${zeroY}" stroke="var(--gray-200)" stroke-width="1" stroke-dasharray="3 3"/>
+        <path d="${areaPath}" fill="rgba(107,143,82,0.12)" stroke="none"/>
+        <polyline points="${pointsStr}" fill="none" stroke="#6b8f52" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        ${monthNet.map((m,i) => `<circle cx="${xAt(i)}" cy="${yAt(m.net)}" r="3" fill="${m.net>=0?'#6b8f52':'#c9553a'}"><title>${m.label} ${m.year}: ${fmt(m.net)} net</title></circle>`).join('')}
+      </svg>
+      <div style="display:flex;padding:4px ${padX}px 0;">
+        ${monthNet.map(m => `<div style="flex:1;text-align:center;font-size:0.65rem;color:var(--gray-600);">${m.label}</div>`).join('')}
       </div>
     </div>
   `;
@@ -2337,13 +2451,24 @@ function renderUpcoming() {
       html += '<div style="font-weight:700; font-size:0.85rem; color:var(--gray-400); margin: 16px 0 8px; text-transform: uppercase;">' + label + '</div>';
       lastDate = b.date;
     }
+    const phone = b.clientPhone || '';
     html += '<div class="booking-card ' + b.eventType + '">' +
-      '<h3>' + b.clientName + '</h3>' +
+      '<h3>' + b.clientName +
+        (b.recurringSeriesId ? '<span class="series-badge">' + (b.recurringFrequency || 'recurring') + '</span>' : '') +
+      '</h3>' +
       '<div class="booking-meta">' + EVENT_LABELS[b.eventType] + ' at ' + b.time + '</div>' +
       '<div class="booking-client">' +
         (b.clientPhone ? b.clientPhone : '') +
         (b.clientAddress ? ' &middot; ' + b.clientAddress : '') +
-      '</div></div>';
+      '</div>' +
+      '<div class="booking-actions">' +
+        (phone ? '<button class="action-btn" onclick="callClient(\'' + phone + '\')">Call</button>' : '') +
+        (phone ? '<button class="action-btn" onclick="textClient(\'' + phone + '\')">Text</button>' : '') +
+        '<button class="action-btn" onclick="openReschedule(\'' + b.id + '\')">Reschedule</button>' +
+        '<button class="action-btn danger" onclick="cancelBooking(\'' + b.id + '\')">Cancel</button>' +
+        (b.recurringSeriesId ? '<button class="action-btn danger" onclick="cancelSeries(\'' + b.recurringSeriesId + '\')">Cancel Series</button>' : '') +
+      '</div>' +
+    '</div>';
   });
 
   container.innerHTML = html;
@@ -2444,15 +2569,19 @@ function renderMoonConflicts() {
         : (c.withinBuffer
             ? '<span style="color:var(--red);font-size:0.8rem;">cancelling now...</span>'
             : '<span style="color:var(--gray-600);font-size:0.8rem;">pending (auto-cancels 7 days before)</span>');
-    const btn = c.kept
+    const keepBtn = c.kept
       ? '<button class="action-btn danger" onclick="releaseMoonKeep(\'' + b.id + '\')" style="font-size:0.8rem;">Undo keep</button>'
       : '<button class="action-btn" onclick="keepMoonBooking(\'' + b.id + '\')" style="font-size:0.8rem;">Keep</button>';
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100);">' +
-      '<div>' +
+    const notCanceled = b.status !== 'canceled';
+    const extraBtns =
+      '<button class="action-btn" onclick="openReschedule(\'' + b.id + '\')" style="font-size:0.8rem;">Reschedule</button>' +
+      (notCanceled ? '<button class="action-btn danger" onclick="cancelBooking(\'' + b.id + '\')" style="font-size:0.8rem;">Cancel</button>' : '');
+    return '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid var(--gray-100);">' +
+      '<div style="flex:1;min-width:0;">' +
         '<div style="font-weight:600;">' + escapeHtml(b.date) + ' ' + escapeHtml(b.time || '') + ' &middot; ' + escapeHtml(b.clientName) + (b.isRecurring ? ' (recurring)' : '') + '</div>' +
         '<div>' + stateLabel + '</div>' +
       '</div>' +
-      btn +
+      '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;">' + keepBtn + extraBtns + '</div>' +
     '</div>';
   }).join('');
 }
