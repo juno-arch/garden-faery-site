@@ -18,11 +18,11 @@
   <meta name="twitter:description" content="Your local gardener in Arcata and Humboldt County. Garden care, creative raised beds, beekeeping, and pet sitting.">
   <meta name="twitter:image" content="https://gardenfaery.love/farm.jpg">
   <link rel="canonical" href="https://gardenfaery.love">
-  <link rel="apple-touch-icon" href="/icon-garden.png">
-  <link rel="icon" type="image/png" href="/icon-garden.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <meta name="apple-mobile-web-app-title" content="Garden Faery">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <link rel="icon" type="image/png" href="landing-icon.png">
   <title>Garden Faery | Gardener in Arcata & Humboldt County, CA</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -72,7 +72,8 @@
 
     /* Nav */
     .site-nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 54px; background: var(--bg); border-bottom: 2px solid var(--accent-1); }
-    .nav-logo { font-family: 'Elsie Swash Caps', serif; font-size: 22px; font-weight: 900; color: var(--text-primary); text-decoration: none; white-space: nowrap; }
+    .nav-logo { font-family: 'Elsie Swash Caps', serif; font-size: 22px; font-weight: 900; color: var(--text-primary); text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 10px; }
+    .nav-logo-img { height: 32px; width: auto; flex-shrink: 0; }
     .nav-links { display: flex; gap: 6px; align-items: center; }
     .nav-links a, .nav-group-toggle { font-family: var(--font-body); font-size: 14px; font-weight: 600; color: var(--text-secondary); text-decoration: none; padding: 6px 14px; border: none; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; background: none; cursor: pointer; line-height: 1.4; }
     .nav-links a:hover, .nav-group-toggle:hover { color: var(--text-primary); }
@@ -104,7 +105,7 @@
 
     /* Hero */
     .hero { text-align: center; padding: 0; position: relative; overflow: hidden; height: 340px; }
-    .hero-video { position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; transform: translate(-50%, -50%); object-fit: cover; z-index: 0; transition: opacity 1.2s ease; }
+    .hero-video { position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; transform: translate(-50%, -50%); object-fit: cover; z-index: 0; }
     .hero-overlay { position: absolute; top: 0; bottom: 0; left: 0; right: 0; padding: 40px 20px 36px; background: rgba(74,25,66,0.65); display: flex; flex-direction: column; justify-content: flex-end; align-items: center; z-index: 1; }
     .hero h1 { font-size: 32px; font-weight: 900; letter-spacing: 0.5px; margin-bottom: 8px; line-height: 1.15; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
     .hero p { font-size: 15px; color: rgba(255,255,255,0.9); max-width: 420px; margin: 0 auto 18px; text-shadow: 0 1px 4px rgba(0,0,0,0.3); }
@@ -257,7 +258,7 @@
 <body>
 
   <nav class="site-nav">
-    <a href="index.html" class="nav-logo">Garden Faery</a>
+    <a href="index.html" class="nav-logo"><img src="garden-faery-logo.png" alt="" class="nav-logo-img" aria-hidden="true">Garden Faery</a>
     <button class="hamburger" onclick="var m=document.querySelector('.nav-links');m.classList.toggle('open');this.setAttribute('aria-expanded',m.classList.contains('open'))" aria-label="Menu" aria-expanded="false" aria-controls="nav-links"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div class="nav-links">
       <a href="index.html" class="active">Home</a>
@@ -413,8 +414,6 @@
       }
     })();
 
-    // Newsletter signup
-    var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxtiXs-zCfNa9wbJ3ly9hIlFftGiDhoIOeVfSIWoPtzBLOUsrSbVyqxriOXY5VWV5xqQA/exec';
     // Plant of the Month rotation
     (function renderPotm() {
       var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -471,32 +470,27 @@
       var status = document.getElementById('nl-status');
       status.style.display = 'block';
       status.textContent = 'Signing you up...';
-      fetch(SCRIPT_URL, {
+      fetch('https://api.buttondown.com/v1/subscribers', {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'newsletter', email: email })
-      }).then(function() {
-        status.textContent = "You're in! Watch for garden magic in your inbox.";
-        document.getElementById('nl-email').value = '';
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Token f5562637-5256-4345-9c13-768b1f8004a0' },
+        body: JSON.stringify({ email: email })
+      }).then(function(r) {
+        if (r.status === 201 || r.status === 200) {
+          status.textContent = "You're in! Watch for garden magic in your inbox.";
+          document.getElementById('nl-email').value = '';
+        } else if (r.status === 400) {
+          status.textContent = "Looks like you're already on the list!";
+        } else {
+          throw new Error('Server error');
+        }
       }).catch(function() {
         status.textContent = 'Hmm, something went wrong. Try again?';
       });
     }
-    /* Video loop crossfade */
-    (function() {
-      var v = document.querySelector('.hero-video');
-      if (!v) return;
-      var fadeDur = 1.2;
-      v.addEventListener('timeupdate', function() {
-        if (v.duration && v.currentTime > v.duration - fadeDur) {
-          v.style.opacity = '0';
-        }
-      });
-      v.addEventListener('seeked', function() {
-        if (v.currentTime < 1) v.style.opacity = '1';
-      });
-    })();
+    /* Video loop — let it play cleanly through without a fade.
+       The previous crossfade relied on the 'seeked' event firing on loop restart,
+       which Chrome/Safari don't reliably emit, leaving the video stuck near
+       opacity 0 at the start of each loop. A clean jump reads better. */
   </script>
 </body>
 </html>
