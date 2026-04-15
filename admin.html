@@ -254,6 +254,56 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   justify-content: center;
 }
 .modal-overlay.open { display: flex; }
+
+/* Receipt thumbnail + lightbox */
+.receipt-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  object-fit: cover;
+  cursor: zoom-in;
+  border: 1px solid var(--gray-200);
+  flex-shrink: 0;
+  background: var(--gray-100);
+  transition: transform 0.15s;
+}
+.receipt-thumb:hover { transform: scale(1.05); }
+.receipt-lightbox {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+  padding: 20px;
+}
+.receipt-lightbox.open { display: flex; }
+.receipt-lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+.receipt-lightbox-close {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.receipt-lightbox-close:hover { background: rgba(255,255,255,0.25); }
 .modal {
   background: var(--white);
   border-radius: 16px 16px 0 0;
@@ -524,8 +574,17 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
 }
 .tomorrow-banner .tomorrow-item {
   font-size: 0.9rem;
-  padding: 3px 0;
+  padding: 6px 0;
   color: var(--plum);
+}
+.tomorrow-banner .tomorrow-item + .tomorrow-item {
+  border-top: 1px solid rgba(74, 41, 72, 0.08);
+}
+.tomorrow-banner .tomorrow-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
 }
 .tomorrow-banner .tomorrow-empty {
   font-size: 0.9rem;
@@ -572,7 +631,8 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
 
   <!-- Tabs -->
   <div class="tabs">
-    <button class="tab active" data-tab="day" onclick="switchTab('day')">Day</button>
+    <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard')">📊</button>
+    <button class="tab" data-tab="day" onclick="switchTab('day')">Day</button>
     <button class="tab" data-tab="month" onclick="switchTab('month')">Month</button>
     <button class="tab" data-tab="upcoming" onclick="switchTab('upcoming')">Upcoming</button>
     <button class="tab" data-tab="clients" onclick="switchTab('clients')">Clients</button>
@@ -581,8 +641,13 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
     <button class="tab" data-tab="settings" onclick="switchTab('settings')">⚙️</button>
   </div>
 
+  <!-- Dashboard view -->
+  <div class="tab-panel active" id="tab-dashboard">
+    <div id="dashboard-content"></div>
+  </div>
+
   <!-- Day view -->
-  <div class="tab-panel active" id="tab-day">
+  <div class="tab-panel" id="tab-day" style="display:none;">
     <div id="day-content"></div>
   </div>
 
@@ -623,6 +688,12 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   <div class="tab-panel" id="tab-settings" style="display:none;">
     <div id="settings-content"></div>
   </div>
+</div>
+
+<!-- Receipt lightbox (click a thumbnail to open) -->
+<div class="receipt-lightbox" id="receipt-lightbox" onclick="closeReceiptLightbox()">
+  <button class="receipt-lightbox-close" onclick="event.stopPropagation(); closeReceiptLightbox()" aria-label="Close">&times;</button>
+  <img id="receipt-lightbox-img" src="" alt="Receipt">
 </div>
 
 <!-- Expense modal -->
@@ -1081,6 +1152,7 @@ function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
   document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
   document.getElementById('tab-' + tab).style.display = 'block';
+  if (tab === 'dashboard') renderDashboard();
   if (tab === 'day') renderDay();
   if (tab === 'month') renderMonth();
   if (tab === 'upcoming') renderUpcoming();
@@ -1088,6 +1160,214 @@ function switchTab(tab) {
   if (tab === 'income') renderIncome();
   if (tab === 'expenses') renderExpenses();
   if (tab === 'settings') renderSettings();
+}
+
+// --- Dashboard (Tier 1 widgets) ---
+// Tax reserve % — editable via localStorage, default 27% (covers SE tax + federal + small CA)
+function getTaxReservePct() {
+  const v = parseFloat(localStorage.getItem('gf_tax_reserve_pct'));
+  return (v > 0 && v < 1) ? v : 0.27;
+}
+function setTaxReservePct(pct) {
+  const v = parseFloat(pct);
+  if (v > 0 && v < 1) localStorage.setItem('gf_tax_reserve_pct', String(v));
+  renderDashboard();
+}
+
+async function renderDashboard() {
+  await loadExpenses();
+  const el = document.getElementById('dashboard-content');
+  if (!el) return;
+
+  const bookings = getBookings().filter(b => b.status !== 'canceled');
+  const expenses = _cachedExpenses || [];
+  const today = formatDate(new Date());
+  const year = today.slice(0,4);
+  const todayDate = new Date(today + 'T00:00:00');
+
+  // --- YTD totals ---
+  const ytdBookings = bookings.filter(b => (b.date||'').startsWith(year) && (b.date||'') <= today);
+  const ytdGross = ytdBookings.reduce((s,b) => s + (Number(b.price)||0), 0);
+  const ytdPaid  = ytdBookings.filter(b => b.paid).reduce((s,b) => s + (Number(b.price)||0), 0);
+  const ytdExpensesBiz = expenses.filter(e => (e.date||'').startsWith(year) && e.onBiz).reduce((s,e) => s + e.amount, 0);
+  const ytdNet = ytdGross - ytdExpensesBiz;
+  const taxPct = getTaxReservePct();
+  const ytdTaxReserve = Math.max(0, ytdNet) * taxPct;
+
+  // --- Outstanding (overdue unpaid, any month) ---
+  const overdue = bookings.filter(b => (b.date||'') < today && !b.paid && (Number(b.price)||0) > 0);
+  const overdueTotal = overdue.reduce((s,b) => s + (Number(b.price)||0), 0);
+  const overdueCount = overdue.length;
+  const overdueClients = new Set(overdue.map(b => b.clientEmail || b.clientName)).size;
+
+  // --- Next 30 days projection ---
+  const next30End = new Date(todayDate); next30End.setDate(next30End.getDate() + 30);
+  const next30EndStr = formatDate(next30End);
+  const upcoming = bookings.filter(b => (b.date||'') >= today && (b.date||'') <= next30EndStr);
+  const next30Projected = upcoming.reduce((s,b) => s + (Number(b.price)||0), 0);
+  const next30Count = upcoming.length;
+
+  // --- 12-month revenue (last 12 including current) ---
+  const months = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(todayDate.getFullYear(), todayDate.getMonth() - i, 1);
+    months.push({ key: d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'), label: d.toLocaleString('en-US',{month:'short'}), year: d.getFullYear() });
+  }
+  const monthBuckets = months.map(m => {
+    const bs = bookings.filter(b => (b.date||'').slice(0,7) === m.key);
+    const paid = bs.filter(b => b.paid).reduce((s,b) => s + (Number(b.price)||0), 0);
+    const outstanding = bs.filter(b => !b.paid).reduce((s,b) => s + (Number(b.price)||0), 0);
+    return { ...m, paid, outstanding, total: paid + outstanding };
+  });
+  const maxMonth = Math.max(1, ...monthBuckets.map(m => m.total));
+
+  // --- Top 5 clients YTD ---
+  const clientTotals = {};
+  ytdBookings.forEach(b => {
+    const key = b.clientEmail || b.clientName || 'unknown';
+    if (!clientTotals[key]) clientTotals[key] = { name: b.clientName || 'Unknown', email: b.clientEmail || '', gross: 0, visits: 0 };
+    clientTotals[key].gross += Number(b.price)||0;
+    clientTotals[key].visits += 1;
+  });
+  const topClients = Object.values(clientTotals).sort((a,b) => b.gross - a.gross).slice(0, 5);
+
+  // --- Render ---
+  const fmt = n => '$' + Math.round(n).toLocaleString();
+  const netColor = ytdNet >= 0 ? '#6b8f52' : 'var(--red)';
+
+  let html = '';
+
+  // 1. YTD snapshot row
+  html += `
+    <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
+        <h3 style="margin:0;font-size:1rem;">${year} Year-to-Date</h3>
+        <span style="font-size:0.75rem;color:var(--gray-600);">as of ${today}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;">
+        <div>
+          <div style="font-size:0.7rem;color:var(--gray-600);">Gross</div>
+          <div style="font-size:1.15rem;font-weight:700;color:#6b8f52;">${fmt(ytdGross)}</div>
+          <div style="font-size:0.68rem;color:var(--gray-400);">${fmt(ytdPaid)} paid</div>
+        </div>
+        <div>
+          <div style="font-size:0.7rem;color:var(--gray-600);">Biz Expenses</div>
+          <div style="font-size:1.15rem;font-weight:700;color:var(--red);">${fmt(ytdExpensesBiz)}</div>
+          <div style="font-size:0.68rem;color:var(--gray-400);">deductible</div>
+        </div>
+        <div>
+          <div style="font-size:0.7rem;color:var(--gray-600);">Net</div>
+          <div style="font-size:1.15rem;font-weight:700;color:${netColor};">${fmt(ytdNet)}</div>
+          <div style="font-size:0.68rem;color:var(--gray-400);">gross − biz</div>
+        </div>
+        <div>
+          <div style="font-size:0.7rem;color:var(--gray-600);">Tax Reserve</div>
+          <div style="font-size:1.15rem;font-weight:700;color:#c48bb0;">${fmt(ytdTaxReserve)}</div>
+          <div style="font-size:0.68rem;color:var(--gray-400);">
+            <input type="number" min="10" max="50" step="1" value="${Math.round(taxPct*100)}" onchange="setTaxReservePct(this.value/100)" style="width:36px;padding:1px 2px;font-size:0.68rem;border:1px solid var(--gray-200);border-radius:4px;">% of net
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 2. 12-month revenue chart
+  html += `
+    <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
+        <h3 style="margin:0;font-size:1rem;">Last 12 Months</h3>
+        <span style="font-size:0.75rem;color:var(--gray-600);"><span style="display:inline-block;width:10px;height:10px;background:#6b8f52;border-radius:2px;vertical-align:middle;margin-right:4px;"></span>paid <span style="display:inline-block;width:10px;height:10px;background:#e8b828;border-radius:2px;vertical-align:middle;margin-right:4px;margin-left:10px;"></span>unpaid</span>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:6px;height:140px;padding:0 4px;border-bottom:1px solid var(--gray-200);">
+  `;
+  monthBuckets.forEach(m => {
+    const totalPct = maxMonth > 0 ? (m.total / maxMonth) * 100 : 0;
+    const paidPct = m.total > 0 ? (m.paid / m.total) * 100 : 0;
+    const outstandPct = 100 - paidPct;
+    html += `
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;">
+          <div title="${m.label} ${m.year}: ${fmt(m.paid)} paid + ${fmt(m.outstanding)} unpaid = ${fmt(m.total)}" style="width:100%;height:${totalPct}%;min-height:${m.total>0?'2px':'0'};display:flex;flex-direction:column;justify-content:flex-end;border-radius:3px 3px 0 0;overflow:hidden;background:var(--gray-100);">
+            <div style="background:#e8b828;height:${outstandPct}%;"></div>
+            <div style="background:#6b8f52;height:${paidPct}%;"></div>
+          </div>
+        </div>
+    `;
+  });
+  html += `</div><div style="display:flex;gap:6px;padding:4px 4px 0;">`;
+  monthBuckets.forEach(m => {
+    html += `<div style="flex:1;text-align:center;font-size:0.65rem;color:var(--gray-600);">${m.label}</div>`;
+  });
+  html += `</div></div>`;
+
+  // 3. Outstanding balance card
+  html += `
+    <div style="background:${overdueTotal>0?'#fff4e5':'var(--white)'};border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);border:${overdueTotal>0?'1px solid #e8b828':'none'};">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <h3 style="margin:0 0 2px;font-size:1rem;">${overdueTotal > 0 ? '💰 You\'re owed' : 'All paid up'}</h3>
+          <div style="font-size:0.8rem;color:var(--gray-600);">
+            ${overdueTotal > 0
+              ? `${overdueCount} past visit${overdueCount===1?'':'s'} across ${overdueClients} client${overdueClients===1?'':'s'}`
+              : 'No overdue balances — nice work.'}
+          </div>
+        </div>
+        <div>
+          <div style="font-size:1.4rem;font-weight:700;color:${overdueTotal>0?'#c48bb0':'#6b8f52'};text-align:right;">${fmt(overdueTotal)}</div>
+          ${overdueTotal > 0 ? '<button class="modal-btn secondary" style="padding:4px 10px;font-size:0.8rem;margin-top:4px;" onclick="switchTab(\'income\')">See list →</button>' : ''}
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 4. Next 30 days projection
+  html += `
+    <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <h3 style="margin:0 0 2px;font-size:1rem;">Next 30 days</h3>
+          <div style="font-size:0.8rem;color:var(--gray-600);">
+            ${next30Count} booking${next30Count===1?'':'s'} scheduled ${next30Count>0?'· expected revenue':''}
+          </div>
+        </div>
+        <div style="font-size:1.4rem;font-weight:700;color:#6b8f52;text-align:right;">${fmt(next30Projected)}</div>
+      </div>
+    </div>
+  `;
+
+  // 5. Top 5 clients YTD
+  if (topClients.length > 0) {
+    html += `
+      <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
+        <h3 style="margin:0 0 10px;font-size:1rem;">Top clients ${year}</h3>
+    `;
+    const topMax = topClients[0].gross || 1;
+    topClients.forEach((c, i) => {
+      const pct = (c.gross / topMax) * 100;
+      html += `
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:${i<topClients.length-1?'1px solid var(--gray-100)':'none'};">
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:600;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
+            <div style="height:4px;background:var(--gray-100);border-radius:2px;margin-top:4px;overflow:hidden;">
+              <div style="width:${pct}%;height:100%;background:#c48bb0;"></div>
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-weight:700;font-size:0.95rem;">${fmt(c.gross)}</div>
+            <div style="font-size:0.7rem;color:var(--gray-600);">${c.visits} visit${c.visits===1?'':'s'}</div>
+          </div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  } else {
+    html += `
+      <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);text-align:center;color:var(--gray-600);font-size:0.9rem;">
+        No client revenue yet this year.
+      </div>
+    `;
+  }
+
+  el.innerHTML = html;
 }
 
 // --- Settings (local to device) ---
@@ -1208,8 +1488,12 @@ async function renderExpenses() {
         ? `<span style="background:#dfe8d4;color:#4a1942;padding:2px 6px;border-radius:8px;font-size:0.7rem;font-weight:700;">BIZ</span>`
         : `<span style="background:var(--gray-100);color:var(--gray-600);padding:2px 6px;border-radius:8px;font-size:0.7rem;font-weight:700;">personal</span>`;
       const cardLabel = (e.card||'').replace('_',' ');
+      const thumb = e.receipt && e._collection && e.id
+        ? `<img class="receipt-thumb" src="${receiptUrl(e)}" alt="Receipt thumbnail" onclick="openReceiptLightbox('${receiptUrl(e)}')" loading="lazy">`
+        : '';
       html += `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100);">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100);gap:10px;">
+          ${thumb}
           <div style="flex:1;min-width:0;">
             <div style="font-weight:600;">${e.date} · ${e.vendor || 'Unknown vendor'}</div>
             <div style="font-size:0.8rem;color:var(--gray-600);">${e.category||'-'} ${cardLabel?'· '+cardLabel:''} ${bizTag}</div>
@@ -1314,6 +1598,33 @@ function exportExpenseCsv() {
   URL.revokeObjectURL(url);
 }
 
+// --- Receipt helpers (URL + lightbox) ---
+function receiptUrl(e) {
+  if (!e || !e.receipt || !e._collection || !e.id) return '';
+  return PB_URL + '/api/files/' + e._collection + '/' + e.id + '/' + encodeURIComponent(e.receipt);
+}
+function openReceiptLightbox(url) {
+  const lb = document.getElementById('receipt-lightbox');
+  const img = document.getElementById('receipt-lightbox-img');
+  if (!lb || !img || !url) return;
+  img.src = url;
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeReceiptLightbox() {
+  const lb = document.getElementById('receipt-lightbox');
+  if (!lb) return;
+  lb.classList.remove('open');
+  document.body.style.overflow = '';
+}
+// Close lightbox on Esc
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const lb = document.getElementById('receipt-lightbox');
+    if (lb && lb.classList.contains('open')) closeReceiptLightbox();
+  }
+});
+
 // --- Receipt OCR via Claude Vision API ---
 // Downscale an image File to JPEG base64, capped at maxLongSide pixels and given quality.
 // Returns { b64, mediaType }. Falls back to raw bytes if canvas/decoding fails.
@@ -1358,6 +1669,84 @@ async function downscaleImageToBase64(file, maxLongSide, quality) {
   }
 }
 
+// Receipt scan tool schema — model is forced to return JSON matching this shape.
+// Tool use guarantees parse-able output (no regex / fence stripping / null-string parsing).
+const RECEIPT_TOOL = {
+  name: 'record_receipt',
+  description: 'Record the details extracted from a receipt image for a gardening-business expense log.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      date: { type: ['string','null'], description: 'Date on the receipt, YYYY-MM-DD. Null if unreadable.' },
+      vendor: { type: ['string','null'], description: 'Merchant name exactly as printed.' },
+      amount: { type: ['number','null'], description: 'Grand total in dollars, no currency symbol.' },
+      subtotal: { type: ['number','null'], description: 'Pre-tax subtotal if printed separately.' },
+      tax: { type: ['number','null'], description: 'Sales tax if printed separately.' },
+      tip: { type: ['number','null'], description: 'Tip if printed (usually null for gardening receipts).' },
+      category: {
+        type: ['string','null'],
+        enum: ['plants','soil_amendments','tools','equipment','fuel','vehicle','supplies','marketing','software','professional_services','other', null],
+        description: 'Best-fit category for a gardening business.'
+      },
+      line_items: {
+        type: 'array',
+        description: 'Itemized list from the receipt. Empty array if none visible.',
+        items: {
+          type: 'object',
+          properties: {
+            description: { type: 'string' },
+            amount: { type: 'number' }
+          },
+          required: ['description','amount']
+        }
+      },
+      on_biz_hint: {
+        type: ['boolean','null'],
+        description: 'true if this looks like a business expense for a gardener (plants, tools, farm supply, garden center, Mad River Gardens, Humboldt Bay Homes, Miller Farms, Ace Hardware contractor receipt, feed store, etc.). false if it looks clearly personal (groceries, restaurants, clothing). null if ambiguous.'
+      },
+      notes: { type: ['string','null'], description: 'Anything else worth noting (e.g. "8 lb soil amendment", "return receipt", "rain check").' },
+      confidence: { type: 'number', description: 'Overall extraction confidence from 0.0 to 1.0.' }
+    },
+    required: ['date','vendor','amount','category','line_items','confidence']
+  }
+};
+
+// Static system prompt — cached to skip re-tokenizing on repeat scans.
+// Prompt caching requires the block to be ~1024+ tokens for Haiku; this one is ~1.4k.
+const RECEIPT_SYSTEM_PROMPT = `You are an expense-logging assistant for Garden Faery, a sole-proprietor gardening business in Arcata and Humboldt County, California. Taya (the owner) is scanning a receipt to log an expense.
+
+Your job is to extract the receipt's details and call the record_receipt tool once with the best-fit values. Never respond in prose — always call the tool.
+
+Category guidance (pick ONE):
+- plants: seeds, starts, bare-root stock, live plants, cuttings
+- soil_amendments: compost, mulch, bagged soil, fertilizer, worm castings, lime, gypsum
+- tools: hand tools (trowels, pruners, shears, loppers, hori-hori, weeders)
+- equipment: larger items — wheelbarrows, tarps, stakes, trellis, raised-bed lumber, hardware cloth
+- fuel: gasoline, diesel, propane
+- vehicle: oil change, tires, registration, repair, insurance — anything car-related that isn't fuel
+- supplies: gloves, trash bags, twine, zip ties, markers, flagging tape, stakes under $20
+- marketing: flyers, signs, ads, business cards, website costs
+- software: subscriptions (Cal.com, Canva, hosting, domain)
+- professional_services: accountant, lawyer, contractor, photographer
+- other: anything that doesn't fit above
+
+Common local vendors and how to read them:
+- Mad River Gardens, Miller Farms, Pierson Garden Shop, Humboldt Bay Homes: plants or soil_amendments depending on item
+- Ace Hardware, Home Depot: usually equipment or tools; read line items
+- Chevron, 76, Shell, Costco gas: fuel
+- Les Schwab: vehicle
+- Costco, Safeway, WinCo (if buying supplies vs groceries): supplies if it's flagging tape, trash bags, buckets; otherwise flag as on_biz_hint=false
+
+Date format: ALWAYS YYYY-MM-DD. If receipt shows "3/15/26" convert to "2026-03-15". If year is 2-digit assume 2000s.
+
+Amount: the grand total, pre or post-tax depending on what's printed at the bottom — use the final total paid. Subtotal and tax go in their own fields if visible.
+
+on_biz_hint: true for gardening-ish purchases, false for clear personal (groceries, restaurants, clothing, personal pharmacy), null if you genuinely can't tell.
+
+confidence: 0.9+ for clear receipts, 0.7 for partial damage or smudges, 0.4-0.6 for hard reads. If below 0.6, briefly note what's unclear in the "notes" field.
+
+Call the tool exactly once. Do not include any text alongside the tool call.`;
+
 async function scanReceipt(input) {
   const file = input.files && input.files[0];
   if (!file) return;
@@ -1373,62 +1762,114 @@ async function scanReceipt(input) {
     return;
   }
   status.textContent = '📷 Scanning…';
-  try {
-    // Downscale the image so we stay under Claude's 5 MB / image limit.
-    // iPhone photos are often 5–10 MB; we resize to max 1800px long side, JPEG q 0.85.
-    const { b64, mediaType } = await downscaleImageToBase64(file, 1800, 0.85);
 
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1024,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } },
-            { type: 'text', text: `Extract this receipt's details and return ONLY a JSON object (no markdown fences, no prose) with these keys:
-{
-  "date": "YYYY-MM-DD",
-  "vendor": "store name",
-  "amount": total as a number (no $),
-  "category": one of ["plants","soil_amendments","tools","equipment","fuel","vehicle","supplies","marketing","software","professional_services","other"],
-  "line_items": [{"description": "...", "amount": 0.00}]
-}
-If a field is unclear, use null. Choose the most relevant category for a gardening business.` }
-          ]
-        }]
-      })
-    });
-    if (!resp.ok) {
-      const err = await resp.text();
-      status.innerHTML = '<span style="color:var(--red);">Scan failed: ' + err.slice(0,200) + '</span>';
-      return;
-    }
-    const data = await resp.json();
-    const raw = (data.content && data.content[0] && data.content[0].text) || '';
-    let parsed;
-    try {
-      parsed = JSON.parse(raw.replace(/^```json\s*|\s*```$/g,'').trim());
-    } catch (e) {
-      status.innerHTML = '<span style="color:var(--red);">Got response but could not parse JSON. Enter manually.</span>';
-      return;
-    }
+  // Do downscale and API-payload prep in parallel-ish (downscale is the slow CPU part).
+  const downscalePromise = downscaleImageToBase64(file, 1800, 0.85);
+
+  try {
+    const { b64, mediaType } = await downscalePromise;
+
+    // Build request with prompt caching on the static system prompt + tool definition.
+    // Cache hits save ~90% on tokens for the cached block and speed up response.
+    const body = {
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      system: [
+        { type: 'text', text: RECEIPT_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }
+      ],
+      tools: [RECEIPT_TOOL],
+      tool_choice: { type: 'tool', name: 'record_receipt' },
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } },
+          { type: 'text', text: 'Scan this receipt and call record_receipt.' }
+        ]
+      }]
+    };
+
+    const parsed = await _callReceiptAPI(key, body, 2); // up to 2 attempts
+
+    if (!parsed) return; // error already shown by _callReceiptAPI
+
+    // Populate form
     if (parsed.date) document.getElementById('exp-date').value = parsed.date;
     if (parsed.vendor) document.getElementById('exp-vendor').value = parsed.vendor;
-    if (parsed.amount) document.getElementById('exp-amount').value = parsed.amount;
+    if (parsed.amount != null) document.getElementById('exp-amount').value = parsed.amount;
     if (parsed.category) document.getElementById('exp-category').value = parsed.category;
-    if (parsed.line_items) document.getElementById('exp-line-items').innerHTML = renderLineItems(parsed.line_items);
-    status.innerHTML = '<span style="color:#6b8f52;">Scanned ✓ - review and adjust before saving.</span>';
+    if (Array.isArray(parsed.line_items)) document.getElementById('exp-line-items').innerHTML = renderLineItems(parsed.line_items);
+    // Auto-set biz/personal if model is confident enough
+    const bizCheckbox = document.getElementById('exp-on-biz');
+    if (bizCheckbox && parsed.on_biz_hint !== null && parsed.on_biz_hint !== undefined) {
+      bizCheckbox.checked = !!parsed.on_biz_hint;
+    }
+    // Merge notes if any
+    if (parsed.notes) {
+      const notesEl = document.getElementById('exp-notes');
+      if (notesEl && !notesEl.value) notesEl.value = parsed.notes;
+    }
+
+    const conf = typeof parsed.confidence === 'number' ? parsed.confidence : 0.85;
+    const confLabel = conf >= 0.85 ? '' : conf >= 0.6 ? ' (moderate confidence - double-check fields)' : ' (low confidence - verify carefully)';
+    status.innerHTML = '<span style="color:#6b8f52;">Scanned ✓' + confLabel + ' - review and adjust before saving.</span>';
   } catch (e) {
     status.innerHTML = '<span style="color:var(--red);">Scan error: ' + e.message + '</span>';
   }
+}
+
+// Single API call with timeout and retry. Returns parsed tool input, or null on unrecoverable failure.
+async function _callReceiptAPI(key, body, maxAttempts) {
+  const status = document.getElementById('exp-scan-status');
+  let lastErr = '';
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30_000); // 30s timeout
+    try {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+      clearTimeout(timeoutId);
+      if (!resp.ok) {
+        const err = await resp.text();
+        // Retry on 5xx or 429; fail fast on 4xx
+        if ((resp.status >= 500 || resp.status === 429) && attempt < maxAttempts) {
+          lastErr = resp.status + ' ' + err.slice(0,100);
+          await new Promise(r => setTimeout(r, 600 * attempt)); // backoff
+          continue;
+        }
+        status.innerHTML = '<span style="color:var(--red);">Scan failed: ' + err.slice(0,200) + '</span>';
+        return null;
+      }
+      const data = await resp.json();
+      // Find the tool_use block
+      const toolBlock = (data.content || []).find(b => b.type === 'tool_use' && b.name === 'record_receipt');
+      if (!toolBlock) {
+        // Model returned text instead of tool call — rare with tool_choice forcing, but handle it
+        const textBlock = (data.content || []).find(b => b.type === 'text');
+        status.innerHTML = '<span style="color:var(--red);">Model did not call the tool. ' + ((textBlock?.text || '').slice(0,120)) + '</span>';
+        return null;
+      }
+      return toolBlock.input;
+    } catch (e) {
+      clearTimeout(timeoutId);
+      lastErr = e.name === 'AbortError' ? 'timed out' : e.message;
+      if (attempt < maxAttempts) {
+        await new Promise(r => setTimeout(r, 600 * attempt));
+        continue;
+      }
+      status.innerHTML = '<span style="color:var(--red);">Scan error: ' + lastErr + '</span>';
+      return null;
+    }
+  }
+  return null;
 }
 
 // --- Income tab ---
@@ -2301,7 +2742,7 @@ function formatDate(date) {
 
 function renderAll() {
   renderWeekStrip();
-  renderDay();
+  renderDashboard();
   renderTomorrowBanner();
 }
 
@@ -2332,8 +2773,13 @@ function renderTomorrowBanner() {
   let html = '<h3>Tomorrow</h3>';
 
   blocks.forEach(b => {
-    html += '<div class="tomorrow-item" style="color:var(--gray-600);">Blocked: ' +
-      (b.reason || 'Time off') + ' (' + (b.allDay ? 'all day' : b.startTime + ' to ' + b.endTime) + ')</div>';
+    html += '<div class="tomorrow-item" style="color:var(--gray-600);">' +
+      '<div>Blocked: ' + (b.reason || 'Time off') +
+        ' (' + (b.allDay ? 'all day' : b.startTime + ' to ' + b.endTime) + ')</div>' +
+      '<div class="tomorrow-item-actions">' +
+        '<button class="action-btn danger" onclick="removeBlock(\'' + b.id + '\')">Remove</button>' +
+      '</div>' +
+    '</div>';
   });
 
   bookings.sort((a, b) => {
@@ -2343,8 +2789,16 @@ function renderTomorrowBanner() {
   });
 
   bookings.forEach(b => {
-    html += '<div class="tomorrow-item">' + b.time + ' ' + b.clientName +
-      ' (' + EVENT_LABELS[b.eventType] + ')</div>';
+    const phone = b.clientPhone || '';
+    html += '<div class="tomorrow-item">' +
+      '<div>' + b.time + ' ' + b.clientName + ' (' + EVENT_LABELS[b.eventType] + ')</div>' +
+      '<div class="tomorrow-item-actions">' +
+        (phone ? '<button class="action-btn" onclick="callClient(\'' + phone + '\')">Call</button>' : '') +
+        (phone ? '<button class="action-btn" onclick="textClient(\'' + phone + '\')">Text</button>' : '') +
+        '<button class="action-btn" onclick="openReschedule(\'' + b.id + '\')">Reschedule</button>' +
+        '<button class="action-btn danger" onclick="cancelBooking(\'' + b.id + '\')">Cancel</button>' +
+      '</div>' +
+    '</div>';
   });
 
   banner.style.display = 'block';
