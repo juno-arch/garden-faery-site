@@ -16,7 +16,9 @@
   <meta name="twitter:title" content="Humboldt County Plant Guide | Garden Faery, Arcata, CA">
   <meta name="twitter:description" content="256 plants for Humboldt County's coastal climate, by your local Arcata gardener.">
   <link rel="canonical" href="https://gardenfaery.love/plant-guide.html">
-  <link rel="icon" type="image/png" href="landing-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
@@ -103,7 +105,11 @@
       color: var(--text-primary);
       text-decoration: none;
       white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
     }
+    .nav-logo-img { height: 32px; width: auto; flex-shrink: 0; }
 
     .nav-links { display: flex; gap: 6px; align-items: center; }
     .nav-links a, .nav-group-toggle { font-family: var(--font-body); font-size: 14px; font-weight: 600; color: rgba(74, 25, 66, 0.78); text-decoration: none; padding: 6px 14px; border: none; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; background: none; cursor: pointer; line-height: 1.4; }
@@ -1312,7 +1318,7 @@
 
   <!-- Navigation -->
   <nav class="site-nav">
-    <a href="index.html" class="nav-logo">Garden Faery</a>
+    <a href="index.html" class="nav-logo"><img src="garden-faery-logo.png" alt="" class="nav-logo-img" aria-hidden="true">Garden Faery</a>
     <button class="hamburger" onclick="var m=document.querySelector('.nav-links');m.classList.toggle('open');this.setAttribute('aria-expanded',m.classList.contains('open'))" aria-label="Menu" aria-expanded="false">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
         <line x1="3" y1="6" x2="21" y2="6"/>

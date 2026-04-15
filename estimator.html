@@ -20,7 +20,9 @@
   <meta name="twitter:description" content="Tinker with raised bed sizes and see what materials go into a custom cedar build in Humboldt County.">
   <meta name="twitter:image" content="https://gardenfaery.love/farm.jpg">
   <link rel="canonical" href="https://gardenfaery.love/estimator.html">
-  <link rel="icon" type="image/png" href="landing-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -99,7 +101,11 @@
       color: var(--text-primary);
       text-decoration: none;
       white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
     }
+    .nav-logo-img { height: 32px; width: auto; flex-shrink: 0; }
 
     .nav-links { display: flex; gap: 6px; align-items: center; }
     .nav-links a, .nav-group-toggle { font-family: var(--font-body); font-size: 14px; font-weight: 600; color: var(--text-secondary); text-decoration: none; padding: 6px 14px; border: none; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; background: none; cursor: pointer; line-height: 1.4; }
@@ -551,7 +557,7 @@
 <body>
 
 <nav class="site-nav">
-  <a href="index.html" class="nav-logo">Garden Faery</a>
+  <a href="index.html" class="nav-logo"><img src="garden-faery-logo.png" alt="" class="nav-logo-img" aria-hidden="true">Garden Faery</a>
   <button class="hamburger" onclick="var m=document.querySelector('.nav-links');m.classList.toggle('open');this.setAttribute('aria-expanded',m.classList.contains('open'))" aria-label="Menu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
   <div class="nav-links">
     <a href="index.html">Home</a>
