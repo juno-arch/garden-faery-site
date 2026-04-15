@@ -10,27 +10,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
 <style>
-:root {
-  --plum: #4a1942;
-  --cream: #f8f4ed;
-  --petal-pink: #c48bb0;
-  --petal-pink-light: #e8d0df;
-  --spring-sage: #a3b88c;
-  --pollen-gold: #d4c27a;
-  --sage-light: #dfe8d4;
-  --white: #ffffff;
-  --gray-100: #f2efe8;
-  --gray-200: #e0dbd3;
-  --gray-400: #a89e96;
-  --gray-600: #6b5f56;
-  --red-light: #f0d4d4;
-  --red: #a03020;
-  --radius: 12px;
-  --shadow: 0 2px 12px rgba(74,25,66,0.08);
-}
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
 body {
   font-family: 'Nunito', sans-serif;
   background: var(--cream);
@@ -638,6 +619,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
     <button class="tab" data-tab="clients" onclick="switchTab('clients')">Clients</button>
     <button class="tab" data-tab="income" onclick="switchTab('income')">Income</button>
     <button class="tab" data-tab="expenses" onclick="switchTab('expenses')">Expenses</button>
+    <button class="tab" data-tab="taxes" onclick="switchTab('taxes')">Taxes</button>
     <button class="tab" data-tab="settings" onclick="switchTab('settings')">⚙️</button>
   </div>
 
@@ -682,6 +664,11 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   <!-- Expenses view -->
   <div class="tab-panel" id="tab-expenses" style="display:none;">
     <div id="expenses-content"></div>
+  </div>
+
+  <!-- Taxes view -->
+  <div class="tab-panel" id="tab-taxes" style="display:none;">
+    <div id="taxes-content"></div>
   </div>
 
   <!-- Settings view -->
@@ -1159,6 +1146,7 @@ function switchTab(tab) {
   if (tab === 'clients') renderClients();
   if (tab === 'income') renderIncome();
   if (tab === 'expenses') renderExpenses();
+  if (tab === 'taxes') renderTaxes();
   if (tab === 'settings') renderSettings();
 }
 
@@ -1482,6 +1470,317 @@ async function renderDashboard() {
   }
 
   el.innerHTML = html;
+}
+
+// --- Taxes (Tier 3: quarterly tracker, Schedule C mapper, accountant CSV) ---
+// IRS quarterly estimated-tax periods (not calendar quarters!)
+// Source: IRS Publication 505 — 1040-ES. Dates current as of 2024+.
+const IRS_QUARTERS = [
+  { q: 1, startMonth: 1,  endMonth: 3,  dueDate: '04-15', label: 'Q1' },
+  { q: 2, startMonth: 4,  endMonth: 5,  dueDate: '06-15', label: 'Q2' },
+  { q: 3, startMonth: 6,  endMonth: 8,  dueDate: '09-15', label: 'Q3' },
+  { q: 4, startMonth: 9,  endMonth: 12, dueDate: '01-15', label: 'Q4' } // due Jan 15 of NEXT year
+];
+
+// Schedule C category → line mapping (IRS Form 1040 Schedule C, Part II)
+const SCHEDULE_C = {
+  marketing:             { line: 8,   name: 'Line 8 — Advertising' },
+  fuel:                  { line: 9,   name: 'Line 9 — Car and truck expenses' },
+  vehicle:               { line: 9,   name: 'Line 9 — Car and truck expenses' },
+  professional_services: { line: 17,  name: 'Line 17 — Legal and professional services' },
+  software:              { line: 18,  name: 'Line 18 — Office expense' },
+  plants:                { line: 22,  name: 'Line 22 — Supplies' },
+  soil_amendments:       { line: 22,  name: 'Line 22 — Supplies' },
+  tools:                 { line: 22,  name: 'Line 22 — Supplies' },
+  equipment:             { line: 22,  name: 'Line 22 — Supplies (or Line 13 Depreciation if >$2,500)' },
+  supplies:              { line: 22,  name: 'Line 22 — Supplies' },
+  other:                 { line: '27a', name: 'Line 27a — Other expenses' }
+};
+
+let _taxYear = new Date().getFullYear();
+
+function setTaxYear(y) {
+  _taxYear = parseInt(y, 10) || new Date().getFullYear();
+  renderTaxes();
+}
+
+async function renderTaxes() {
+  await loadExpenses();
+  const el = document.getElementById('taxes-content');
+  if (!el) return;
+
+  const bookings = getBookings().filter(b => b.status !== 'canceled');
+  const expenses = _cachedExpenses || [];
+  const year = String(_taxYear);
+  const today = formatDate(new Date());
+  const taxPct = getTaxReservePct();
+  const fmt = n => '$' + Math.round(n).toLocaleString();
+
+  // Available years for picker: pull from data
+  const years = Array.from(new Set([
+    ...bookings.map(b => (b.date||'').slice(0,4)),
+    ...expenses.map(e => (e.date||'').slice(0,4)),
+    String(new Date().getFullYear())
+  ].filter(Boolean))).sort().reverse();
+  const yearOpts = years.map(y => `<option value="${y}"${y===year?' selected':''}>${y}</option>`).join('');
+
+  // Year totals
+  const yearBookings = bookings.filter(b => (b.date||'').startsWith(year));
+  const yearGross = yearBookings.reduce((s,b) => s + (Number(b.price)||0), 0);
+  const yearPaid = yearBookings.filter(b => b.paid).reduce((s,b) => s + (Number(b.price)||0), 0);
+  const yearExpensesBiz = expenses.filter(e => (e.date||'').startsWith(year) && e.onBiz);
+  const yearExpensesTotal = yearExpensesBiz.reduce((s,e) => s + e.amount, 0);
+  const yearNet = yearGross - yearExpensesTotal;
+
+  // Per-quarter breakdown with clear status phases
+  const quarters = IRS_QUARTERS.map(qd => {
+    const qBookings = yearBookings.filter(b => {
+      const m = parseInt((b.date||'').slice(5,7), 10);
+      return m >= qd.startMonth && m <= qd.endMonth;
+    });
+    const qExpenses = yearExpensesBiz.filter(e => {
+      const m = parseInt((e.date||'').slice(5,7), 10);
+      return m >= qd.startMonth && m <= qd.endMonth;
+    });
+    const gross = qBookings.reduce((s,b) => s + (Number(b.price)||0), 0);
+    const exp   = qExpenses.reduce((s,e) => s + e.amount, 0);
+    const net   = gross - exp;
+    const estTax = Math.max(0, net) * taxPct;
+    // Due date: Q4 is due Jan 15 of NEXT year
+    const dueYear = qd.q === 4 ? parseInt(year,10) + 1 : parseInt(year,10);
+    const due = dueYear + '-' + qd.dueDate;
+
+    // Period bounds (for knowing whether we're inside it)
+    const periodStart = year + '-' + String(qd.startMonth).padStart(2,'0') + '-01';
+    const lastDay = new Date(parseInt(year), qd.endMonth, 0).getDate();
+    const periodEnd = year + '-' + String(qd.endMonth).padStart(2,'0') + '-' + String(lastDay).padStart(2,'0');
+
+    // Status phases (in order of priority)
+    let phase;           // 'future' | 'current' | 'window' | 'dueToday' | 'overdue' | 'settled'
+    if (today < periodStart) phase = 'future';
+    else if (today <= periodEnd) phase = 'current';
+    else if (today < due) phase = 'window';              // period closed, payment due soon
+    else if (today === due) phase = 'dueToday';
+    else phase = estTax > 0 ? 'overdue' : 'settled';
+
+    return { ...qd, gross, exp, net, estTax, due, periodStart, periodEnd, phase, visits: qBookings.length };
+  });
+
+  // Schedule C mapping: group expenses by line
+  const byLine = {};
+  yearExpensesBiz.forEach(e => {
+    const mapping = SCHEDULE_C[e.category] || SCHEDULE_C.other;
+    const key = String(mapping.line);
+    if (!byLine[key]) byLine[key] = { line: mapping.line, name: mapping.name, total: 0, count: 0, items: [] };
+    byLine[key].total += e.amount;
+    byLine[key].count += 1;
+    byLine[key].items.push(e);
+  });
+  const scheduleCLines = Object.values(byLine).sort((a,b) => {
+    const ak = typeof a.line === 'number' ? a.line : 99;
+    const bk = typeof b.line === 'number' ? b.line : 99;
+    return ak - bk;
+  });
+  const totalExpenses = scheduleCLines.reduce((s,l) => s + l.total, 0);
+
+  // Render
+  let html = '';
+
+  // Year picker + year summary
+  html += `
+    <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <label style="font-size:0.9rem;font-weight:700;">Tax year</label>
+        <select onchange="setTaxYear(this.value)" style="padding:6px 8px;border-radius:8px;border:1px solid var(--gray-200);font-size:0.9rem;">${yearOpts}</select>
+        <span style="flex:1;"></span>
+        <button class="modal-btn primary" style="padding:6px 14px;font-size:0.85rem;" onclick="exportAccountantCsv()">📄 Accountant CSV</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;border-top:1px solid var(--gray-100);padding-top:10px;">
+        <div><div style="font-size:0.7rem;color:var(--gray-600);">Gross Income</div><div style="font-size:1.05rem;font-weight:700;color:#6b8f52;">${fmt(yearGross)}</div><div style="font-size:0.65rem;color:var(--gray-400);">SchC Line 1</div></div>
+        <div><div style="font-size:0.7rem;color:var(--gray-600);">Biz Expenses</div><div style="font-size:1.05rem;font-weight:700;color:var(--red);">${fmt(yearExpensesTotal)}</div><div style="font-size:0.65rem;color:var(--gray-400);">SchC Line 28</div></div>
+        <div><div style="font-size:0.7rem;color:var(--gray-600);">Net Profit</div><div style="font-size:1.05rem;font-weight:700;color:${yearNet>=0?'#6b8f52':'var(--red)'};">${fmt(yearNet)}</div><div style="font-size:0.65rem;color:var(--gray-400);">SchC Line 31</div></div>
+        <div><div style="font-size:0.7rem;color:var(--gray-600);">Est. Tax Reserve</div><div style="font-size:1.05rem;font-weight:700;color:#c48bb0;">${fmt(Math.max(0, yearNet) * taxPct)}</div><div style="font-size:0.65rem;color:var(--gray-400);">${Math.round(taxPct*100)}% of net</div></div>
+      </div>
+    </div>
+  `;
+
+  // Quarterly tracker
+  html += `
+    <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
+        <h3 style="margin:0;font-size:1rem;">Quarterly estimated tax — ${year}</h3>
+        <span style="font-size:0.72rem;color:var(--gray-600);">IRS Form 1040-ES periods</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;">
+  `;
+  const PHASE_STYLES = {
+    future:   { label: 'upcoming',        color: 'var(--gray-600)', bg: 'var(--gray-100)', border: 'transparent' },
+    current:  { label: 'in progress',     color: '#6b8f52',         bg: '#eef5e4',          border: '#b5c99a' },
+    window:   { label: 'payment window',  color: '#b38a1e',         bg: '#f4ebdf',          border: '#e8b828' },
+    dueToday: { label: 'DUE TODAY',       color: '#c9553a',         bg: '#fff4e5',          border: '#c9553a' },
+    overdue:  { label: 'OVERDUE',         color: '#c9553a',         bg: '#fff4e5',          border: '#e8b828' },
+    settled:  { label: 'settled',         color: 'var(--gray-600)', bg: 'var(--gray-100)', border: 'transparent' }
+  };
+  quarters.forEach(q => {
+    const ps = PHASE_STYLES[q.phase];
+    const { label: status, color: statusColor, bg, border } = ps;
+    const startMo = new Date(parseInt(year), q.startMonth - 1, 1).toLocaleString('en-US',{month:'short'});
+    const endMo = new Date(parseInt(year), q.endMonth - 1, 1).toLocaleString('en-US',{month:'short'});
+    html += `
+      <div style="background:${bg};border:1px solid ${border};border-radius:10px;padding:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+          <strong style="font-size:0.95rem;">${q.label}</strong>
+          <span style="font-size:0.65rem;color:${statusColor};font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">${status}</span>
+        </div>
+        <div style="font-size:0.7rem;color:var(--gray-600);margin-bottom:6px;">${startMo}–${endMo} · ${q.visits} visit${q.visits===1?'':'s'}</div>
+        <div style="display:flex;justify-content:space-between;font-size:0.78rem;"><span style="color:var(--gray-600);">Gross</span><span style="font-weight:600;">${fmt(q.gross)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.78rem;"><span style="color:var(--gray-600);">Expenses</span><span style="font-weight:600;">${fmt(q.exp)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.78rem;border-top:1px solid rgba(0,0,0,0.06);padding-top:3px;margin-top:3px;"><span style="color:var(--gray-600);">Net</span><span style="font-weight:700;">${fmt(q.net)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-top:4px;padding-top:4px;border-top:1px solid rgba(0,0,0,0.06);"><span style="color:var(--gray-600);">Est. tax due</span><span style="font-weight:700;color:#c48bb0;">${fmt(q.estTax)}</span></div>
+        <div style="font-size:0.65rem;color:var(--gray-400);text-align:right;margin-top:3px;">by ${q.due}</div>
+      </div>
+    `;
+  });
+  html += `</div></div>`;
+
+  // Schedule C mapper
+  html += `
+    <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
+        <h3 style="margin:0;font-size:1rem;">Schedule C summary — ${year}</h3>
+        <span style="font-size:0.72rem;color:var(--gray-600);">maps to IRS Form 1040 Schedule C, Part II</span>
+      </div>
+  `;
+  if (scheduleCLines.length === 0) {
+    html += `<div style="color:var(--gray-600);font-size:0.85rem;">No business expenses logged for ${year} yet.</div>`;
+  } else {
+    scheduleCLines.forEach(l => {
+      html += `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100);">
+          <div>
+            <div style="font-weight:600;font-size:0.88rem;">${l.name}</div>
+            <div style="font-size:0.72rem;color:var(--gray-600);">${l.count} receipt${l.count===1?'':'s'}</div>
+          </div>
+          <div style="font-weight:700;font-variant-numeric:tabular-nums;">${fmt(l.total)}</div>
+        </div>
+      `;
+    });
+    html += `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 2px;margin-top:4px;border-top:2px solid var(--plum);">
+        <div style="font-weight:700;">Total — Line 28</div>
+        <div style="font-weight:700;font-size:1.05rem;">${fmt(totalExpenses)}</div>
+      </div>
+    `;
+  }
+  html += `
+      <p style="font-size:0.72rem;color:var(--gray-600);margin-top:10px;line-height:1.5;">
+        Category mapping is a starting point — ask your CPA if a specific receipt belongs somewhere else.
+        Equipment purchases over $2,500 typically move from Line 22 to Line 13 (Depreciation).
+      </p>
+    </div>
+  `;
+
+  // Calculator note
+  html += `
+    <div style="background:#f4ebdf;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:0.78rem;color:var(--gray-600);line-height:1.55;">
+      <strong style="color:var(--plum);">How the tax reserve is calculated:</strong>
+      net profit × ${Math.round(taxPct*100)}% (your setting on the 📊 Dashboard).
+      For a Humboldt-based sole proprietor, 25-30% typically covers self-employment tax (~15.3%) plus federal
+      and California income tax at moderate income levels. Talk to your CPA for your exact rate.
+    </div>
+  `;
+
+  el.innerHTML = html;
+}
+
+// Single multi-section CSV for your accountant: summary + income detail + expense detail grouped by Schedule C line.
+function exportAccountantCsv() {
+  const year = String(_taxYear);
+  const today = formatDate(new Date());
+  const bookings = getBookings().filter(b => b.status !== 'canceled' && (b.date||'').startsWith(year));
+  const expenses = (_cachedExpenses || []).filter(e => (e.date||'').startsWith(year) && e.onBiz);
+
+  const gross = bookings.reduce((s,b) => s + (Number(b.price)||0), 0);
+  const totalExp = expenses.reduce((s,e) => s + e.amount, 0);
+  const net = gross - totalExp;
+
+  const esc = v => {
+    const s = String(v ?? '');
+    return (s.includes(',') || s.includes('"') || s.includes('\n')) ? '"' + s.replace(/"/g,'""') + '"' : s;
+  };
+
+  const lines = [];
+  lines.push(`Garden Faery Sole Proprietorship — Tax Year ${year}`);
+  lines.push(`Generated ${today}`);
+  lines.push('');
+  lines.push('SCHEDULE C SUMMARY');
+  lines.push(`Line 1 — Gross Receipts,${gross.toFixed(2)}`);
+  lines.push(`Line 28 — Total Expenses,${totalExp.toFixed(2)}`);
+  lines.push(`Line 31 — Net Profit or Loss,${net.toFixed(2)}`);
+  lines.push('');
+
+  // Expense totals by Schedule C line
+  const byLine = {};
+  expenses.forEach(e => {
+    const m = SCHEDULE_C[e.category] || SCHEDULE_C.other;
+    const k = String(m.line);
+    if (!byLine[k]) byLine[k] = { name: m.name, total: 0, items: [] };
+    byLine[k].total += e.amount;
+    byLine[k].items.push(e);
+  });
+  lines.push('EXPENSES BY SCHEDULE C LINE');
+  lines.push('Schedule C Line,Total');
+  Object.values(byLine)
+    .sort((a,b) => {
+      const ax = (''+Object.keys(byLine).find(k => byLine[k] === a)).padStart(3,'0');
+      const bx = (''+Object.keys(byLine).find(k => byLine[k] === b)).padStart(3,'0');
+      return ax.localeCompare(bx);
+    })
+    .forEach(l => lines.push(`${esc(l.name)},${l.total.toFixed(2)}`));
+  lines.push('');
+
+  // Income detail
+  lines.push('INCOME DETAIL');
+  lines.push('Date,Client,Service,Amount,Paid,Paid Date,Payment Method,Notes');
+  bookings.sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  bookings.forEach(b => {
+    const svc = EVENT_LABELS[b.eventType] || b.eventType || '';
+    lines.push([
+      b.date || '',
+      esc(b.clientName || ''),
+      esc(svc),
+      (Number(b.price)||0).toFixed(2),
+      b.paid ? 'yes' : 'no',
+      b.paidDate || '',
+      esc(b.paymentMethod || ''),
+      esc(b.paymentNotes || '')
+    ].join(','));
+  });
+  lines.push('');
+
+  // Expense detail
+  lines.push('EXPENSE DETAIL');
+  lines.push('Date,Vendor,Category,Schedule C Line,Amount,Card,Notes');
+  expenses.sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  expenses.forEach(e => {
+    const m = SCHEDULE_C[e.category] || SCHEDULE_C.other;
+    lines.push([
+      e.date || '',
+      esc(e.vendor || ''),
+      esc(e.category || ''),
+      esc(m.name),
+      (Number(e.amount)||0).toFixed(2),
+      esc(e.card || ''),
+      esc(e.notes || '')
+    ].join(','));
+  });
+
+  const csv = lines.join('\n');
+  const blob = new Blob([csv], { type:'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `garden-faery-tax-${year}.csv`; a.click();
+  URL.revokeObjectURL(url);
 }
 
 // --- Settings (local to device) ---
