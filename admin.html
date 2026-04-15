@@ -1438,9 +1438,22 @@ let _payingBookingId = null;
 function renderIncome() {
   const el = document.getElementById('income-content');
   const all = getBookings().filter(b => b.status !== 'canceled');
+  const today = formatDate(new Date());
   // Pull all months that have bookings
   const months = Array.from(new Set(all.map(b => (b.date||'').slice(0,7)).filter(Boolean))).sort().reverse();
   if (!months.includes(incomeViewMonth)) months.unshift(incomeViewMonth);
+
+  // --- Overall outstanding balance (all past visits, any month) ---
+  const overdue = all.filter(b => (b.date||'') < today && !b.paid && (Number(b.price)||0) > 0);
+  const overdueTotal = overdue.reduce((s,b) => s + (Number(b.price)||0), 0);
+  const overdueByClient = {};
+  overdue.forEach(b => {
+    const k = b.clientName || 'Unknown';
+    if (!overdueByClient[k]) overdueByClient[k] = { count: 0, total: 0, oldest: b.date };
+    overdueByClient[k].count++;
+    overdueByClient[k].total += Number(b.price)||0;
+    if ((b.date||'') < overdueByClient[k].oldest) overdueByClient[k].oldest = b.date;
+  });
 
   const inMonth = all.filter(b => (b.date||'').slice(0,7) === incomeViewMonth);
   const gross = inMonth.reduce((s,b) => s + (Number(b.price)||0), 0);
@@ -1459,7 +1472,29 @@ function renderIncome() {
 
   const monthOpts = months.map(m => `<option value="${m}"${m===incomeViewMonth?' selected':''}>${m}</option>`).join('');
 
-  let html = `
+  // Outstanding balance card — shown only if money is actually owed.
+  let html = '';
+  if (overdueTotal > 0) {
+    const clientRows = Object.entries(overdueByClient)
+      .sort((a,b) => b[1].total - a[1].total)
+      .map(([name, info]) => {
+        const visits = info.count + ' visit' + (info.count === 1 ? '' : 's');
+        return '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:0.9rem;">' +
+          '<span>' + escapeHtml(name) + ' <span style="color:var(--gray-600);font-size:0.8rem;">· ' + visits + ' · oldest ' + escapeHtml(info.oldest) + '</span></span>' +
+          '<span style="font-weight:700;">$' + info.total.toFixed(0) + '</span>' +
+        '</div>';
+      }).join('');
+    html += '<div class="card" style="background:#fff5f3;border:1px solid var(--red-light);border-radius:12px;padding:14px;margin-bottom:12px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">' +
+        '<h3 style="margin:0;color:var(--red);">You\'re owed</h3>' +
+        '<div style="font-size:1.6rem;font-weight:700;color:var(--red);">$' + overdueTotal.toFixed(0) + '</div>' +
+      '</div>' +
+      '<div style="font-size:0.8rem;color:var(--gray-600);margin-bottom:8px;">Past visits without a payment on file.</div>' +
+      clientRows +
+    '</div>';
+  }
+
+  html += `
     <div class="card" style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
         <select onchange="incomeViewMonth=this.value;renderIncome()" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--gray-200);">${monthOpts}</select>
