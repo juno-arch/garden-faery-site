@@ -637,6 +637,33 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   color: var(--gray-400);
 }
 
+/* Faery divider (page break with logo) */
+.faery-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px 0;
+  margin: 32px 0 8px;
+}
+.faery-divider-line {
+  flex: 1;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--petal-pink);
+  opacity: 0.55;
+}
+.faery-divider img {
+  height: 72px;
+  width: auto;
+  opacity: 0.75;
+  filter: drop-shadow(0 1px 3px rgba(74,25,66,0.15));
+}
+@media (max-width: 400px) {
+  .faery-divider img { height: 56px; }
+  .faery-divider { gap: 12px; }
+}
+
 /* Contact plug under booking */
 .contact-plug {
   margin: 32px 0 0;
@@ -905,6 +932,13 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
         </p>
       </div>
     </div>
+  </div>
+
+  <!-- Faery divider -->
+  <div class="faery-divider" aria-hidden="true">
+    <div class="faery-divider-line"></div>
+    <img src="garden-faery-logo.png" alt="">
+    <div class="faery-divider-line"></div>
   </div>
 
   <!-- Contact plug -->
