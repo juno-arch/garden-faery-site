@@ -253,6 +253,18 @@
     .social-links a:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
     .social-links svg { width: 18px; height: 18px; fill: var(--accent-1); }
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+
+    /* Admin login (footer, discreet) */
+    .admin-login { display: inline-block; }
+    .admin-login-trigger { background: none; border: none; color: inherit; font: inherit; cursor: pointer; padding: 0 6px; opacity: inherit; }
+    .admin-login-trigger:hover { text-decoration: underline; }
+    .admin-login-form { display: inline-flex; gap: 4px; align-items: center; flex-wrap: wrap; justify-content: center; margin-left: 4px; }
+    .admin-login-form input { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25); color: var(--accent-1); padding: 3px 8px; border-radius: 4px; font: inherit; font-size: 11px; width: 72px; }
+    .admin-login-form input:focus { outline: none; border-color: var(--accent-1); }
+    .admin-login-form input::placeholder { color: var(--accent-1); opacity: 0.6; }
+    .admin-login-form button { background: var(--accent-1); color: var(--text-primary); border: none; padding: 3px 9px; border-radius: 4px; cursor: pointer; font: inherit; font-size: 11px; font-weight: 700; }
+    .admin-login-form button:disabled { opacity: 0.5; cursor: wait; }
+    .admin-login-err { color: #f0c4c4; font-size: 11px; }
   </style>
 </head>
 <body>
@@ -360,6 +372,14 @@
     <div style="margin-top:14px; font-size:11px; opacity:0.55;">
       <a href="privacy.html" style="color:inherit; text-decoration:none; margin:0 6px;">Privacy</a>
       <a href="terms.html" style="color:inherit; text-decoration:none; margin:0 6px;">Terms</a>
+      <span class="admin-login">
+        <button type="button" class="admin-login-trigger" id="admin-login-trigger" onclick="showAdminLogin()">Admin</button>
+        <form class="admin-login-form" id="admin-login-form" onsubmit="return handleAdminLogin(event)" style="display:none;">
+          <input type="password" id="admin-login-pin" placeholder="PIN" autocomplete="off" aria-label="Admin PIN">
+          <button type="submit" id="admin-login-submit">Go</button>
+          <span class="admin-login-err" id="admin-login-err" aria-live="polite"></span>
+        </form>
+      </span>
     </div>
   </footer>
 
@@ -491,6 +511,37 @@
        The previous crossfade relied on the 'seeked' event firing on loop restart,
        which Chrome/Safari don't reliably emit, leaving the video stuck near
        opacity 0 at the start of each loop. A clean jump reads better. */
+
+    /* Admin login — authenticate against PocketBase, hand off token to /admin via sessionStorage. */
+    function showAdminLogin() {
+      document.getElementById('admin-login-trigger').style.display = 'none';
+      document.getElementById('admin-login-form').style.display = 'inline-flex';
+      document.getElementById('admin-login-pin').focus();
+    }
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      var pin = document.getElementById('admin-login-pin').value;
+      var err = document.getElementById('admin-login-err');
+      var btn = document.getElementById('admin-login-submit');
+      err.textContent = '';
+      if (!pin) return false;
+      btn.disabled = true;
+      fetch('https://bookings.gardenfaery.love/api/collections/_superusers/auth-with-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identity: 'taya@gardenfaery.love', password: pin }),
+      }).then(function(r) {
+        if (!r.ok) throw new Error('auth');
+        return r.json();
+      }).then(function(data) {
+        sessionStorage.setItem('gf_pb_handoff', data.token);
+        window.location.href = '/admin';
+      }).catch(function() {
+        err.textContent = 'Wrong PIN';
+        btn.disabled = false;
+      });
+      return false;
+    }
   </script>
 </body>
 </html>

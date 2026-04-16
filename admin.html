@@ -3372,6 +3372,14 @@ document.getElementById('login-pin').addEventListener('keydown', function(e) {
 });
 
 // --- Init ---
+// Accept a token handed off from the homepage footer login so Taya doesn't
+// have to re-enter her PIN after signing in there.
+var _gfHandoff = sessionStorage.getItem('gf_pb_handoff');
+if (_gfHandoff) {
+  sessionStorage.removeItem('gf_pb_handoff');
+  PB_TOKEN = _gfHandoff;
+}
+
 if (isLoggedIn()) {
   showApp();
 } else {
