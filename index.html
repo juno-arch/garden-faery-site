@@ -264,6 +264,8 @@
     .admin-login-form input::placeholder { color: var(--accent-1); opacity: 0.6; }
     .admin-login-form button { background: var(--accent-1); color: var(--text-primary); border: none; padding: 3px 9px; border-radius: 4px; cursor: pointer; font: inherit; font-size: 11px; font-weight: 700; }
     .admin-login-form button:disabled { opacity: 0.5; cursor: wait; }
+    .admin-login-toggle { background: none; color: var(--accent-1); font-weight: normal; font-size: 13px; padding: 2px 4px; line-height: 1; }
+    .admin-login-toggle:hover { opacity: 0.75; }
     .admin-login-err { color: #f0c4c4; font-size: 11px; }
   </style>
 </head>
@@ -376,6 +378,7 @@
         <button type="button" class="admin-login-trigger" id="admin-login-trigger" onclick="showAdminLogin()">Admin</button>
         <form class="admin-login-form" id="admin-login-form" onsubmit="return handleAdminLogin(event)" style="display:none;">
           <input type="password" id="admin-login-pin" placeholder="PIN" autocomplete="off" aria-label="Admin PIN">
+          <button type="button" class="admin-login-toggle" id="admin-login-toggle" aria-label="Show PIN" onclick="toggleAdminPinVisibility()">👁</button>
           <button type="submit" id="admin-login-submit">Go</button>
           <span class="admin-login-err" id="admin-login-err" aria-live="polite"></span>
         </form>
@@ -517,6 +520,19 @@
       document.getElementById('admin-login-trigger').style.display = 'none';
       document.getElementById('admin-login-form').style.display = 'inline-flex';
       document.getElementById('admin-login-pin').focus();
+    }
+    function toggleAdminPinVisibility() {
+      var input = document.getElementById('admin-login-pin');
+      var btn = document.getElementById('admin-login-toggle');
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = '🙈';
+        btn.setAttribute('aria-label', 'Hide PIN');
+      } else {
+        input.type = 'password';
+        btn.textContent = '👁';
+        btn.setAttribute('aria-label', 'Show PIN');
+      }
     }
     function handleAdminLogin(e) {
       e.preventDefault();
