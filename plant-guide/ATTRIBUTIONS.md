@@ -3747,3 +3747,10 @@ share alike – If you remix, transform, or build upon the material, you must di
 - License: CC BY-SA 2.5
 - License URL: https://creativecommons.org/licenses/by-sa/2.5
 - Downloaded: 2026-04-17
+
+
+## california-poppy-2.jpg
+- Note: Preserved from pre-2026-04-16 sourcing pass. Original attribution unknown.
+
+## california-poppy-3.jpg
+- Note: Preserved from pre-2026-04-16 sourcing pass. Original attribution unknown.
