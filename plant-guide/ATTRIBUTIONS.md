@@ -1089,3 +1089,60 @@ share alike – If you remix, transform, or build upon the material, you must di
 - License: CC BY-SA 4.0
 - License URL: https://creativecommons.org/licenses/by-sa/4.0
 - Downloaded: 2026-04-17
+
+
+## bee-balm-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Garden_in_Walnutstreet_14.jpg
+- Author: Burkhard Mücke
+- License: CC BY-SA 4.0
+- License URL: https://creativecommons.org/licenses/by-sa/4.0
+- Downloaded: 2026-04-17
+
+## bee-balm-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Monarda_didyma_15-p.bot-mona.didyma-08.jpg
+- Author: Ayotte, Gilles, 1948-
+- License: CC BY-SA 4.0
+- License URL: https://creativecommons.org/licenses/by-sa/4.0
+- Downloaded: 2026-04-17
+
+## yarrow-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Achillea_millefolium_07.2025_(6).jpg
+- Author: DidierFy
+- License: CC BY-SA 4.0
+- License URL: https://creativecommons.org/licenses/by-sa/4.0
+- Downloaded: 2026-04-17
+
+## yarrow-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Frankfurt_Oder_Dachsberge_03887.JPG
+- Author: Sebastian Wallroth
+- License: CC BY 3.0
+- License URL: https://creativecommons.org/licenses/by/3.0
+- Downloaded: 2026-04-17
+
+## phacelia-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Am_Rande_des_Oldhorster_Moores_02.jpg
+- Author: Puusterke
+- License: CC BY-SA 4.0
+- License URL: https://creativecommons.org/licenses/by-sa/4.0
+- Downloaded: 2026-04-17
+
+## phacelia-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:20190903_Phacelia_Sytzamaweg_Monnikenweg_Arum1.jpeg
+- Author: Gouwenaar
+- License: CC0
+- License URL: http://creativecommons.org/publicdomain/zero/1.0/deed.en
+- Downloaded: 2026-04-17
+
+## milkweed-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Santa_Rosa_Rural_Cemetery_-_May_2023_-_Sarah_Stierch_19.jpg
+- Author: Missvain
+- License: CC BY 4.0
+- License URL: https://creativecommons.org/licenses/by/4.0
+- Downloaded: 2026-04-17
+
+## milkweed-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Narrowleaf_Milkweed_-_Asclepias_fascicularis_(43436023812).jpg
+- Author: Björn S...
+- License: CC BY-SA 2.0
+- License URL: https://creativecommons.org/licenses/by-sa/2.0
+- Downloaded: 2026-04-17
