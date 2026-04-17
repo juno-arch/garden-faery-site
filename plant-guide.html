@@ -42,25 +42,8 @@
     "priceRange": "$25/hr"
   }
   </script>
+  <link rel="stylesheet" href="shared.css">
   <style>
-    :root {
-      --text-primary: #4a1942;
-      --bg: #f8f4ed;
-      --accent-1: #c48bb0;
-      --accent-2: #a3b88c;
-      --highlight: #d4c27a;
-      --font-heading: 'Lora', serif;
-      --font-body: 'Nunito', sans-serif;
-      --shadow: 0 2px 8px rgba(74, 25, 66, 0.1);
-      --shadow-hover: 0 6px 16px rgba(74, 25, 66, 0.15);
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
     html {
       scroll-behavior: smooth;
     }
@@ -153,6 +136,7 @@
       font-size: 48px;
       font-weight: 900;
       margin-bottom: 12px;
+      color: white;
     }
 
     .hero .subtitle {
@@ -1152,13 +1136,66 @@
     }
     .modal-image {
       width: 100%;
-      height: 300px;
+      height: 55vh;
+      max-height: 520px;
+      min-height: 320px;
       background: rgba(74, 25, 66, 0.08);
       position: relative;
       overflow: hidden;
       flex-shrink: 0;
     }
-    .modal-image img { width: 100%; height: 100%; object-fit: cover; }
+    .modal-image img { width: 100%; height: 100%; object-fit: contain; }
+    .gallery-nav {
+      position: absolute;
+      bottom: 12px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .gallery-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255, 255, 255, 0.55);
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      padding: 0;
+      box-shadow: 0 1px 4px rgba(74, 25, 66, 0.5);
+      pointer-events: auto;
+    }
+    .gallery-dot.active { background: #fff; transform: scale(1.35); }
+    .gallery-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.88);
+      border: none;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      box-shadow: 0 2px 8px rgba(74, 25, 66, 0.25);
+      transition: background 0.15s;
+    }
+    .gallery-arrow:hover { background: #fff; }
+    .gallery-arrow.prev { left: 12px; }
+    .gallery-arrow.next { right: 12px; }
+    .modal-image.multi .gallery-arrow { display: flex; }
+    @media (max-width: 600px) {
+      .modal-image.multi .gallery-arrow { display: none; }
+    }
     .modal-image-fallback {
       width: 100%;
       height: 100%;
@@ -1255,7 +1292,7 @@
     @media (max-width: 600px) {
       .modal { width: 100%; max-width: 100%; max-height: 100vh; border-radius: 0; top: 0; left: 0; transform: translateY(100%); }
       .modal.open { transform: translateY(0); }
-      .modal-image { height: 220px; }
+      .modal-image { height: 60vh; max-height: 440px; min-height: 260px; }
       .modal-body { padding: 18px 20px; }
       .modal-body h3 { font-size: 24px; }
       .modal-heart { right: 58px; }
@@ -4430,6 +4467,58 @@
 
     // ------ Modal ------
 
+    function setupGallery(p, imgWrap, color) {
+      const primaryUrl = 'plant-guide/' + p.slug + '.jpg';
+      const fallbackHTML = '<div class="modal-image-fallback" style="background:' + color + '20;">' +
+        '<svg viewBox="0 0 100 100" style="width:100px;height:100px;opacity:0.4;">' +
+        '<circle cx="50" cy="50" r="45" fill="' + color + '" opacity="0.3"/></svg></div>';
+
+      imgWrap.classList.remove('multi');
+      imgWrap.innerHTML =
+        '<img class="gallery-img" src="' + primaryUrl + '" alt="' + escapeHtml(p.name) + '">' +
+        '<button class="gallery-arrow prev" aria-label="Previous photo">&#8249;</button>' +
+        '<button class="gallery-arrow next" aria-label="Next photo">&#8250;</button>' +
+        '<div class="gallery-nav" hidden></div>';
+
+      const imgEl = imgWrap.querySelector('.gallery-img');
+      imgEl.onerror = () => { imgWrap.innerHTML = fallbackHTML; };
+
+      // Detect optional extra photos
+      const extras = [p.slug + '-2', p.slug + '-3'];
+      Promise.all(extras.map(name => new Promise(resolve => {
+        const test = new Image();
+        test.onload = () => resolve('plant-guide/' + name + '.jpg');
+        test.onerror = () => resolve(null);
+        test.src = 'plant-guide/' + name + '.jpg';
+      }))).then(found => {
+        const photos = [primaryUrl, ...found.filter(Boolean)];
+        if (photos.length <= 1) return;
+        wireGallery(imgWrap, imgEl, photos);
+      });
+    }
+
+    function wireGallery(imgWrap, imgEl, photos) {
+      let idx = 0;
+      imgWrap.classList.add('multi');
+      const nav = imgWrap.querySelector('.gallery-nav');
+      nav.innerHTML = photos.map((_, i) =>
+        '<button class="gallery-dot' + (i === 0 ? ' active' : '') + '" data-idx="' + i + '" aria-label="Photo ' + (i + 1) + '"></button>'
+      ).join('');
+      nav.hidden = false;
+
+      const goTo = (newIdx) => {
+        idx = (newIdx + photos.length) % photos.length;
+        imgEl.src = photos[idx];
+        nav.querySelectorAll('.gallery-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+      };
+
+      nav.querySelectorAll('.gallery-dot').forEach(dot => {
+        dot.onclick = () => goTo(parseInt(dot.dataset.idx));
+      });
+      imgWrap.querySelector('.gallery-arrow.prev').onclick = () => goTo(idx - 1);
+      imgWrap.querySelector('.gallery-arrow.next').onclick = () => goTo(idx + 1);
+    }
+
     function openModal(slug) {
       const p = findPlant(slug);
       if (!p) return;
@@ -4439,10 +4528,7 @@
       const imgWrap = document.getElementById('modal-image');
       const color = CATEGORY_COLORS[p.category] || '#7a6e5a';
 
-      imgWrap.innerHTML = '<img src="plant-guide/' + p.slug + '.jpg" alt="' + escapeHtml(p.name) +
-        '" onerror="this.parentElement.innerHTML=\'<div class=modal-image-fallback style=\\\'background:' + color +
-        '20;\\\'><svg viewBox=\\\'0 0 100 100\\\' style=\\\'width:100px;height:100px;opacity:0.4;\\\'><circle cx=50 cy=50 r=45 fill=' + color +
-        ' opacity=0.3/></svg></div>\'">';
+      setupGallery(p, imgWrap, color);
 
       body.innerHTML =
         '<h3 id="modal-title">' + escapeHtml(p.name) + '</h3>' +
