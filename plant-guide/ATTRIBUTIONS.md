@@ -912,3 +912,180 @@ share alike – If you remix, transform, or build upon the material, you must di
 - License: CC BY 2.0
 - License URL: https://creativecommons.org/licenses/by/2.0
 - Downloaded: 2026-04-17
+
+
+## european-hornbeam-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Carpinus_betulus_-_Hunsr%C3%BCck_001.jpg
+- Author: Willow
+- License: CC BY 2.5
+- License URL: https://creativecommons.org/licenses/by/2.5
+- Downloaded: 2026-04-17
+
+## scarlet-oak-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Scarlet_Oak_(30873601235).jpg
+- Author: Katja Schulz from Washington, D. C., USA
+- License: CC BY 2.0
+- License URL: https://creativecommons.org/licenses/by/2.0
+- Downloaded: 2026-04-17
+
+## scarlet-oak-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Quercus_coccinea_(scarlet_oak)_5.jpg
+- Author: James St. John
+- License: CC BY 2.0
+- License URL: https://creativecommons.org/licenses/by/2.0
+- Downloaded: 2026-04-17
+
+## golden-larch-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Pseudolarix_amabilis,_Tianmushan_Reserve,_Hangzhou,_Zhejiang,_China_1.jpg
+- Author: jcsvenning
+- License: CC BY 4.0
+- License URL: https://creativecommons.org/licenses/by/4.0
+- Downloaded: 2026-04-17
+
+## golden-larch-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Golden-Larch_Pseudolarix_kaempferi_Leaves_3008px.jpg
+- Author: Photo (c)2007 Derek Ramsey (Ram-Man)
+- License: CC BY-SA 2.5
+- License URL: https://creativecommons.org/licenses/by-sa/2.5
+- Downloaded: 2026-04-17
+
+## japanese-zelkova-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Five_Zelkovas_of_Kami-Itabashi.jpg
+- Author: Fred Cherrygarden
+- License: CC BY-SA 4.0
+- License URL: https://creativecommons.org/licenses/by-sa/4.0
+- Downloaded: 2026-04-17
+
+## japanese-zelkova-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Zelkova_serrata_leaf_RHu.JPG
+- Author: Meneerke bloem
+- License: CC BY-SA 4.0
+- License URL: https://creativecommons.org/licenses/by-sa/4.0
+- Downloaded: 2026-04-17
+
+## katsura-tree-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Cercidiphyllum_japonicum_in_the_Morris_Arboretum_04.jpg
+- Author: KATHERINE WAGNER-REISS
+- License: CC BY-SA 4.0
+- License URL: https://creativecommons.org/licenses/by-sa/4.0
+- Downloaded: 2026-04-17
+
+## deodar-cedar-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Cedrus_deodara_Manali_2.jpg
+- Author: Paul Evans from London, United Kingdom
+- License: CC BY 2.0
+- License URL: https://creativecommons.org/licenses/by/2.0
+- Downloaded: 2026-04-17
+
+## deodar-cedar-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Close-Up_Short_of_Deodar_Cedar_(Cedrus_deodara)_Needles.jpg
+- Author: Koshur
+- License: CC BY-SA 4.0
+- License URL: https://creativecommons.org/licenses/by-sa/4.0
+- Downloaded: 2026-04-17
+
+## shore-pine-coast.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Pinus_contorta_Pacific_Rim_NP_1.jpg
+- Author: yvr101
+- License: CC BY 3.0
+- License URL: https://creativecommons.org/licenses/by/3.0
+- Downloaded: 2026-04-17
+
+## shore-pine-coast-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Pinus_contorta_var_bolanderi_foliage_immature_cones.jpg
+- Author: Art Poskanzer from Berkeley, USA
+- License: CC BY 2.0
+- License URL: https://creativecommons.org/licenses/by/2.0
+- Downloaded: 2026-04-17
+
+## shore-pine-coast-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Pinus_contorta_cone_Little_Si.jpg
+- Author: Peter Stevens from Seattle
+- License: CC BY 2.0
+- License URL: https://creativecommons.org/licenses/by/2.0
+- Downloaded: 2026-04-17
+
+## crape-myrtle-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Lagerstroemia_indica_in_Eastwoodhill_Arboretum_(4).jpg
+- Author: Krzysztof Golik
+- License: CC BY-SA 4.0
+- License URL: https://creativecommons.org/licenses/by-sa/4.0
+- Downloaded: 2026-04-17
+
+## crape-myrtle-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:(MHNT)_Lagerstroemia_indica_-_Bark_in_winter.jpg
+- Author: Didier Descouens
+- License: CC BY-SA 4.0
+- License URL: https://creativecommons.org/licenses/by-sa/4.0
+- Downloaded: 2026-04-17
+
+## tulip-tree-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Liriodendron_tulipifera_JPG5a.jpg
+- Author: Jean-Pol GRANDMONT
+- License: CC BY 3.0
+- License URL: https://creativecommons.org/licenses/by/3.0
+- Downloaded: 2026-04-17
+
+## tulip-tree-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Tulip_Tree_Liriodendron_tulipifera_Treetop_Flowers_Closeup_3008px.jpg
+- Author: Photo (c)2007 Derek Ramsey (Ram-Man)
+- License: CC BY-SA 2.5
+- License URL: https://creativecommons.org/licenses/by-sa/2.5
+- Downloaded: 2026-04-17
+
+## serbian-spruce-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Picea_omorika,_Zaovine,_Serbia_1.jpg
+- Author: mikepirie
+- License: CC BY 4.0
+- License URL: https://creativecommons.org/licenses/by/4.0
+- Downloaded: 2026-04-17
+
+## serbian-spruce-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Picea_omorika,_Zaovine,_Serbia_2.jpg
+- Author: thomas--
+- License: CC BY 4.0
+- License URL: https://creativecommons.org/licenses/by/4.0
+- Downloaded: 2026-04-17
+
+## eastern-red-cedar-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Incensecedar_sanjacintomts.JPG
+- Author: The original uploader was Geographer at English Wikipedia.
+- License: CC BY 1.0
+- License URL: https://creativecommons.org/licenses/by/1.0
+- Downloaded: 2026-04-17
+
+## eastern-red-cedar-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Calocedrus_decurrens_bark.jpg
+- Author: Gmihail at Serbian Wikipedia
+- License: CC BY-SA 4.0
+- License URL: https://creativecommons.org/licenses/by-sa/4.0
+- Downloaded: 2026-04-17
+
+## american-beech-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Fagus_sylvatica_J1.JPG
+- Author: Jamain
+- License: CC BY-SA 3.0
+- License URL: https://creativecommons.org/licenses/by-sa/3.0
+- Downloaded: 2026-04-17
+
+## american-beech-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Fagus_sylvatica_020.jpg
+- Author: Willow
+- License: CC BY 2.5
+- License URL: https://creativecommons.org/licenses/by/2.5
+- Downloaded: 2026-04-17
+
+
+## european-hornbeam-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Carpinus_betulus_leaves_02.05.2011_p.jpg
+- Author: The making of this document was supported by Wikimedia Polska.
+- License: CC BY 3.0
+- License URL: https://creativecommons.org/licenses/by/3.0
+- Downloaded: 2026-04-17
+
+## katsura-tree-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Cercidiphyllum_japonicum_leaves.jpg
+- Author: William (Ned) Friedman
+- License: CC BY-SA 4.0
+- License URL: https://creativecommons.org/licenses/by-sa/4.0
+- Downloaded: 2026-04-17
