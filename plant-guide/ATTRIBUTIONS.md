@@ -827,3 +827,88 @@ share alike – If you remix, transform, or build upon the material, you must di
 - License: CC BY-SA 4.0
 - License URL: https://creativecommons.org/licenses/by-sa/4.0
 - Downloaded: 2026-04-16
+
+
+## western-redbud-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Western_Redbud_Blooming_-_Flickr_-_brewbooks.jpg
+- Author: brewbooks from near Seattle, USA
+- License: CC BY-SA 2.0
+- License URL: https://creativecommons.org/licenses/by-sa/2.0
+- Downloaded: 2026-04-17
+
+## western-redbud-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Cercis_occidentalis_(32825151424).jpg
+- Author: John Rusk from Berkeley, CA, United States of America
+- License: CC BY 2.0
+- License URL: https://creativecommons.org/licenses/by/2.0
+- Downloaded: 2026-04-17
+
+## pacific-dogwood-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Cornus_nuttallii_in_Christchurch_Botanic_Gardens_02.jpg
+- Author: Krzysztof Golik
+- License: CC BY-SA 4.0
+- License URL: https://creativecommons.org/licenses/by-sa/4.0
+- Downloaded: 2026-04-17
+
+## pacific-dogwood-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:White_Backlit_Pacific_Dogwood_Flower_in_Yosemite_Valley.JPG
+- Author: Wingchi Poon
+- License: CC BY-SA 3.0
+- License URL: https://creativecommons.org/licenses/by-sa/3.0
+- Downloaded: 2026-04-17
+
+## cascara-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Frangula_purshiana.jpg
+- Author: Thayne Tuason
+- License: CC BY-SA 4.0
+- License URL: https://creativecommons.org/licenses/by-sa/4.0
+- Downloaded: 2026-04-17
+
+## cascara-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Rhamnus_purshiana,_Cascara_--_branch_with_leaves,_flowers_and_buds.JPG
+- Author: Jesse Taylor
+- License: CC BY-SA 3.0
+- License URL: https://creativecommons.org/licenses/by-sa/3.0
+- Downloaded: 2026-04-17
+
+## pacific-wax-myrtle-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Myrica_californica_-_Leaning_Pine_Arboretum_-_DSC05800.JPG
+- Author: Daderot
+- License: CC0
+- License URL: http://creativecommons.org/publicdomain/zero/1.0/deed.en
+- Downloaded: 2026-04-17
+
+## pacific-wax-myrtle-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Myrica_californica_kz2.jpg
+- Author: Krzysztof Ziarnek, Kenraiz
+- License: CC BY-SA 4.0
+- License URL: https://creativecommons.org/licenses/by-sa/4.0
+- Downloaded: 2026-04-17
+
+## linden-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Tilia_cordata,_Lipa2009.jpg
+- Author: ImreKiss
+- License: CC BY 3.0
+- License URL: https://creativecommons.org/licenses/by/3.0
+- Downloaded: 2026-04-17
+
+## linden-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Harilik_p%C3%A4rn,_%C3%B5ied_juunis.jpg
+- Author: User:Sininine
+- License: CC BY 4.0
+- License URL: https://creativecommons.org/licenses/by/4.0
+- Downloaded: 2026-04-17
+
+## oregon-ash-2.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Goettingen_Oregonesche_(2017).jpg
+- Author: Mesmarek9
+- License: CC BY-SA 4.0
+- License URL: https://creativecommons.org/licenses/by-sa/4.0
+- Downloaded: 2026-04-17
+
+## oregon-ash-3.jpg
+- Source: https://commons.wikimedia.org/wiki/File:Oregon_Ash,_Oregon_07.jpg
+- Author: born1945 from Hillsboro, Oregon, USA
+- License: CC BY 2.0
+- License URL: https://creativecommons.org/licenses/by/2.0
+- Downloaded: 2026-04-17
