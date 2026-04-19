@@ -319,7 +319,7 @@
       <img src="garden-faery-logo.png" alt="" class="nav-logo-img">
       Garden Faery
     </a>
-    <button class="nav-toggle" aria-label="Menu" type="button" onclick="document.querySelector('.nav-links').classList.toggle('open')">
+    <button class="hamburger" aria-label="Menu" aria-expanded="false" type="button" onclick="var m=document.querySelector('.nav-links');m.classList.toggle('open');this.setAttribute('aria-expanded',m.classList.contains('open'))">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
         <line x1="3" y1="6" x2="21" y2="6"/>
         <line x1="3" y1="12" x2="21" y2="12"/>
@@ -360,17 +360,14 @@
 
       <div class="pitch-grid">
         <div class="pitch-card">
-          <div class="pitch-icon">&#10047;</div>
           <h3>Curated for Humboldt</h3>
           <p>Every variety chosen for our cool summers, mild winters, and marine layer. No hot-weather crops that need a hoop house just to ripen.</p>
         </div>
         <div class="pitch-card">
-          <div class="pitch-icon">&#9752;</div>
           <h3>This Week pointer</h3>
           <p>Built-in date formula tells you exactly which case to pull right now. Open the spreadsheet, get this week's plan in one glance.</p>
         </div>
         <div class="pitch-card">
-          <div class="pitch-icon">&#10052;</div>
           <h3>Re-sow notes</h3>
           <p>Each crop tells you when to sow it next. Lettuce in Case 2? Resow in Case 4. No more spreadsheet juggling.</p>
         </div>

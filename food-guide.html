@@ -2426,10 +2426,10 @@
             </div>
             <span class="lifecycle-badge ${lifecycleClass}">${lifecycleLabel}</span>
             <div class="card-meta">
-              <div class="meta-item"><span class="meta-icon">&#9728;</span> ${plant.sun}</div>
-              <div class="meta-item"><span class="meta-icon">&#128167;</span> ${plant.water}</div>
-              <div class="meta-item"><span class="meta-icon">&#128207;</span> ${plant.harvest}</div>
-              <div class="meta-item"><span class="meta-icon">&#128197;</span> ${plant.planting}</div>
+              <div class="meta-item">${plant.sun}</div>
+              <div class="meta-item">${plant.water}</div>
+              <div class="meta-item">${plant.harvest}</div>
+              <div class="meta-item">${plant.planting}</div>
             </div>
             <div class="detail-sections">
               <button class="detail-toggle" onclick="toggleDetail(this)">How to Start <span class="arrow">&#9654;</span></button>
@@ -2547,7 +2547,7 @@
     <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
     <div class="modal-body" id="modal-body"></div>
     <div class="modal-footer">
-      <button class="fav-action-btn primary" id="modal-fav-btn">&#9825; Add to My Garden</button>
+      <button class="fav-action-btn primary" id="modal-fav-btn">Add to My Garden</button>
       <button class="fav-action-btn" id="modal-share-btn">Copy Share Link</button>
     </div>
   </div>
@@ -3008,10 +3008,10 @@
           '<span class="modal-tag" style="background:' + lifecycleColor + '20;color:' + lifecycleColor + ';">' + (LIFECYCLE_LABELS[p.lifecycle] || p.lifecycle) + '</span>' +
         '</div>' +
         '<div class="modal-meta-grid">' +
-          '<div class="meta-item">&#9728; ' + escapeHtml(p.sun || '') + '</div>' +
-          '<div class="meta-item">&#128167; ' + escapeHtml(p.water || '') + '</div>' +
-          '<div class="meta-item">&#128207; ' + escapeHtml(p.harvest || '') + '</div>' +
-          '<div class="meta-item">&#128197; ' + escapeHtml(p.planting || '') + '</div>' +
+          '<div class="meta-item">' + escapeHtml(p.sun || '') + '</div>' +
+          '<div class="meta-item">' + escapeHtml(p.water || '') + '</div>' +
+          '<div class="meta-item">' + escapeHtml(p.harvest || '') + '</div>' +
+          '<div class="meta-item">' + escapeHtml(p.planting || '') + '</div>' +
         '</div>' +
         '<div class="modal-section"><h4>How to Start</h4><p>' + escapeHtml(p.how || '') + '</p></div>' +
         '<div class="modal-section"><h4>Growing Tips</h4><p>' + escapeHtml(p.tips || '') + '</p></div>' +
@@ -3059,12 +3059,12 @@
     function updateModalFavBtn(slug) {
       const btn = document.getElementById('modal-fav-btn');
       if (isFav(slug)) {
-        btn.innerHTML = '&#9829; Saved to My Garden';
+        btn.innerHTML = 'Saved to My Garden';
         btn.style.background = 'var(--food-rose)';
         btn.style.borderColor = 'var(--food-rose)';
         btn.style.color = 'white';
       } else {
-        btn.innerHTML = '&#9825; Add to My Garden';
+        btn.innerHTML = 'Add to My Garden';
         btn.style.background = '';
         btn.style.borderColor = '';
         btn.style.color = '';
@@ -3129,12 +3129,12 @@
 
       if (plantFavs.length > 0) {
         html += '<div class="fav-group">' +
-          '<div class="fav-group-title" style="background:#d4c27a30">From The Greenery (' + plantFavs.length + ')</div>' +
+          '<div class="fav-group-title" style="background:#d4c27a30">From Plant Archive (' + plantFavs.length + ')</div>' +
           plantFavs.map(slug =>
             '<div class="fav-item">' +
               '<a class="fav-item-main" href="plant-guide.html?plant=' + slug + '">' +
                 '<div class="fav-item-name">' + escapeHtml(slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())) + '</div>' +
-                '<div class="fav-item-scientific">View on The Greenery</div>' +
+                '<div class="fav-item-scientific">View on Plant Archive</div>' +
               '</a>' +
               '<button class="fav-remove" data-remove-plant="' + slug + '" aria-label="Remove">&times;</button>' +
             '</div>'

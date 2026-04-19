@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#4a1942">
   <meta name="apple-mobile-web-app-title" content="Garden Faery">
-  <meta name="description" content="Garden Faery's complete plant guide for Humboldt County's coastal climate. 256 plants chosen for Zone 9b, including pollinators, native plants, herbs, flowers, and ornamentals. Food plants have their own Edible Patch guide.">
+  <meta name="description" content="Garden Faery's complete plant archive for Humboldt County's coastal climate. 256 plants chosen for Zone 9b, including pollinators, native plants, herbs, flowers, and ornamentals. Food plants have their own Succession Planting guide.">
   <meta property="og:title" content="Plant Archive | Garden Faery, Arcata, CA">
   <meta property="og:description" content="256 plants chosen for Humboldt County's coastal climate. Growing guides for pollinators, natives, herbs, flowers, and ornamentals by your local Arcata gardener.">
   <meta property="og:type" content="website">
@@ -3964,7 +3964,7 @@
     <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
     <div class="modal-body" id="modal-body"></div>
     <div class="modal-footer">
-      <button class="fav-action-btn primary" id="modal-fav-btn">&#9825; Add to My Garden</button>
+      <button class="fav-action-btn primary" id="modal-fav-btn">Add to My Garden</button>
       <button class="fav-action-btn" id="modal-share-btn">Copy Share Link</button>
     </div>
   </div>
@@ -4629,12 +4629,12 @@
     function updateModalFavBtn(slug) {
       const btn = document.getElementById('modal-fav-btn');
       if (isFav(slug)) {
-        btn.innerHTML = '&#9829; Saved to My Garden';
+        btn.innerHTML = 'Saved to My Garden';
         btn.style.background = 'var(--accent-1)';
         btn.style.borderColor = 'var(--accent-1)';
         btn.style.color = 'white';
       } else {
-        btn.innerHTML = '&#9825; Add to My Garden';
+        btn.innerHTML = 'Add to My Garden';
         btn.style.background = '';
         btn.style.borderColor = '';
         btn.style.color = '';
@@ -4700,12 +4700,12 @@
 
       if (foodFavs.length > 0) {
         html += '<div class="fav-group">' +
-          '<div class="fav-group-title" style="background:#c48bb030">From The Edible Patch (' + foodFavs.length + ')</div>' +
+          '<div class="fav-group-title" style="background:#c48bb030">From Succession Planting (' + foodFavs.length + ')</div>' +
           foodFavs.map(slug =>
             '<div class="fav-item">' +
               '<a class="fav-item-main" href="food-guide.html?plant=' + slug + '" style="text-decoration:none;">' +
                 '<div class="fav-item-name">' + escapeHtml(slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())) + '</div>' +
-                '<div class="fav-item-scientific">View on The Edible Patch</div>' +
+                '<div class="fav-item-scientific">View on Succession Planting</div>' +
               '</a>' +
               '<button class="fav-remove" data-remove-food="' + slug + '" aria-label="Remove">&times;</button>' +
             '</div>'
@@ -4827,9 +4827,7 @@
       const chips = refs.map(r => {
         const page = r.t === 'p' ? 'plant-pairings.html' : 'garden-styles.html';
         const cls = r.t === 'p' ? 'pairing' : 'style';
-        const icon = r.t === 'p' ? '&#9752;' : '&#10047;'; // sun + sparkle-ish
-        return '<a class="feature-chip ' + cls + '" href="' + page + '#' + r.s + '">' +
-          '<span class="feature-chip-icon" aria-hidden="true">' + icon + '</span>' +
+                return '<a class="feature-chip ' + cls + '" href="' + page + '#' + r.s + '">' +
           escapeHtml(r.n) + '</a>';
       }).join('');
       return '<div class="modal-section companions"><h4>Featured in</h4>' +
