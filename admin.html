@@ -653,6 +653,13 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
 
   <!-- Clients view -->
   <div class="tab-panel" id="tab-clients" style="display:none;">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+      <button type="button"
+              onclick="runNameCleanup()"
+              style="background:none;border:1px solid var(--gray-200);color:var(--gray-600);font-family:'Nunito',sans-serif;font-size:0.8rem;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;">
+        Normalize names
+      </button>
+    </div>
     <div id="clients-content"></div>
   </div>
 
@@ -885,8 +892,12 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
       </select>
     </div>
     <div class="form-group">
-      <label>Client name</label>
-      <input type="text" id="obo-name" placeholder="First and last name">
+      <label>First name <span style="color:var(--red);">*</span></label>
+      <input type="text" id="obo-first-name" placeholder="Anna" required>
+    </div>
+    <div class="form-group">
+      <label>Last name <span style="color:var(--red);">*</span></label>
+      <input type="text" id="obo-last-name" placeholder="Peck" required>
     </div>
     <div class="form-group">
       <label>Email</label>
@@ -1070,6 +1081,10 @@ const DB = {
     if (updates.paymentMethod !== undefined) pbUpdates.payment_method = updates.paymentMethod;
     if (updates.paidDate !== undefined) pbUpdates.paid_date = updates.paidDate;
     if (updates.paymentNotes !== undefined) pbUpdates.payment_notes = updates.paymentNotes;
+    if (updates.clientName !== undefined) pbUpdates.client_name = updates.clientName;
+    if (updates.clientEmail !== undefined) pbUpdates.client_email = updates.clientEmail;
+    if (updates.clientPhone !== undefined) pbUpdates.client_phone = updates.clientPhone;
+    if (updates.clientAddress !== undefined) pbUpdates.client_address = updates.clientAddress;
     return this._pb('PATCH', 'bookings/records/' + id, pbUpdates);
   },
 
@@ -3516,11 +3531,24 @@ function openBookModal() {
   populateExistingClientSelect();
   // Clear the fields for a fresh booking (will be filled by the dropdown if picked)
   document.getElementById('obo-existing').value = '';
-  document.getElementById('obo-name').value = '';
+  document.getElementById('obo-first-name').value = '';
+  document.getElementById('obo-last-name').value = '';
   document.getElementById('obo-email').value = '';
   document.getElementById('obo-phone').value = '';
   document.getElementById('obo-address').value = '';
   openModal('modal-book');
+}
+
+// Split a full name into first + last on the first space.
+// "Anna"                  -> { first: "Anna", last: "" }
+// "Anna Peck"             -> { first: "Anna", last: "Peck" }
+// "Anna Van Der Berg"     -> { first: "Anna", last: "Van Der Berg" }
+function splitName(full) {
+  const trimmed = (full || '').trim().replace(/\s+/g, ' ');
+  if (!trimmed) return { first: '', last: '' };
+  const idx = trimmed.indexOf(' ');
+  if (idx === -1) return { first: trimmed, last: '' };
+  return { first: trimmed.slice(0, idx), last: trimmed.slice(idx + 1) };
 }
 
 // Merge bookings into unique clients. Two bookings are treated as the same
@@ -3584,6 +3612,106 @@ function buildExistingClientList() {
     .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 }
 
+// --- Name normalization migration ---
+// For each merged client group, pick a canonical "first last" name and
+// rewrite every booking in the group that uses a different variation.
+// Canonical name preference:
+//   1. Names with 2+ whitespace-separated parts (first + last) beat single-
+//      word names.
+//   2. Among those, longer name wins (more specific).
+//   3. Tie break by most-recent booking date.
+// Only touches client_name. Does not rewrite email/phone/address (those are
+// already backfilled in the merged view, and rewriting them would lose any
+// historical record of what was captured at booking time).
+function buildNameNormalizationPlan() {
+  const bookings = (getBookings() || []).filter(b => b.status !== 'canceled');
+  const groups = groupBookingsByClient(bookings);
+  const plan = []; // { to, froms: [name...], bookingIds: [id...] }
+
+  for (const g of groups) {
+    // Collect all distinct name variations seen in this group
+    const variants = new Map();
+    for (const v of g.visits) {
+      const n = (v.clientName || '').trim().replace(/\s+/g, ' ');
+      if (!n) continue;
+      if (!variants.has(n)) {
+        variants.set(n, { name: n, parts: n.split(' ').length, lastDate: '' });
+      }
+      const entry = variants.get(n);
+      if ((v.date || '') > entry.lastDate) entry.lastDate = v.date || '';
+    }
+    if (variants.size === 0) continue;
+
+    const ranked = [...variants.values()].sort((a, b) => {
+      const aHasLast = a.parts >= 2 ? 1 : 0;
+      const bHasLast = b.parts >= 2 ? 1 : 0;
+      if (aHasLast !== bHasLast) return bHasLast - aHasLast;
+      if (b.name.length !== a.name.length) return b.name.length - a.name.length;
+      return (b.lastDate || '').localeCompare(a.lastDate || '');
+    });
+    const canonical = ranked[0].name;
+
+    // If the winning name has no last name, skip — we refuse to "normalize"
+    // onto a first-name-only record because that just masks a missing last
+    // name. Taya should edit those bookings by hand (or book the client
+    // again with the full name).
+    if (ranked[0].parts < 2) continue;
+
+    // Every booking whose name differs from canonical goes in the plan
+    const toUpdate = g.visits.filter(v =>
+      (v.clientName || '').trim().replace(/\s+/g, ' ') !== canonical
+    );
+    if (toUpdate.length === 0) continue;
+
+    const froms = [...new Set(toUpdate.map(v => (v.clientName || '').trim() || '(blank)'))];
+    plan.push({
+      to: canonical,
+      froms: froms,
+      bookingIds: toUpdate.map(v => v.id)
+    });
+  }
+  return plan;
+}
+
+async function runNameCleanup() {
+  try { await refreshData(); } catch (_) { /* proceed with cached data */ }
+  const plan = buildNameNormalizationPlan();
+  if (plan.length === 0) {
+    alert('No duplicate names found. Everything is already consistent.');
+    return;
+  }
+
+  const totalBookings = plan.reduce((s, p) => s + p.bookingIds.length, 0);
+  const preview = plan
+    .map(p => '  ' + p.froms.join(' / ') + '  =>  ' + p.to + '   (' + p.bookingIds.length + ')')
+    .join('\n');
+  const msg = 'Normalize ' + totalBookings + ' booking' + (totalBookings === 1 ? '' : 's') +
+              ' across ' + plan.length + ' client' + (plan.length === 1 ? '' : 's') + '?\n\n' +
+              preview + '\n\n' +
+              'The right-hand name will replace the others. ' +
+              'Bookings with only a first name are left alone so you can fix them by hand.';
+  if (!confirm(msg)) return;
+
+  let updated = 0;
+  let failed = 0;
+  for (const p of plan) {
+    for (const id of p.bookingIds) {
+      try {
+        await DB.updateBooking(id, { clientName: p.to });
+        updated++;
+      } catch (err) {
+        console.error('Failed to update booking', id, err);
+        failed++;
+      }
+    }
+  }
+
+  alert('Updated ' + updated + ' booking' + (updated === 1 ? '' : 's') +
+        (failed > 0 ? '. ' + failed + ' failed (see console).' : '.'));
+  await refreshData();
+  renderAll();
+}
+
 function populateExistingClientSelect() {
   const sel = document.getElementById('obo-existing');
   if (!sel) return;
@@ -3605,7 +3733,9 @@ function onPickExistingClient() {
   if (!key || !sel._clients) return;
   const c = sel._clients.find(x => x.key === key);
   if (!c) return;
-  document.getElementById('obo-name').value    = c.name || '';
+  const parts = splitName(c.name);
+  document.getElementById('obo-first-name').value = parts.first;
+  document.getElementById('obo-last-name').value  = parts.last;
   document.getElementById('obo-email').value   = c.email || '';
   document.getElementById('obo-phone').value   = c.phone || '';
   document.getElementById('obo-address').value = c.address || '';
@@ -3648,7 +3778,9 @@ async function saveBlock() {
 async function saveOBO() {
   const eventType = document.getElementById('obo-event').value;
   const date = document.getElementById('obo-date').value;
-  const name = document.getElementById('obo-name').value.trim();
+  const firstName = document.getElementById('obo-first-name').value.trim().replace(/\s+/g, ' ');
+  const lastName  = document.getElementById('obo-last-name').value.trim().replace(/\s+/g, ' ');
+  const name = (firstName + ' ' + lastName).trim();
   const email = document.getElementById('obo-email').value.trim();
   const phone = document.getElementById('obo-phone').value.trim();
   const address = document.getElementById('obo-address').value.trim();
@@ -3656,7 +3788,9 @@ async function saveOBO() {
   const recurring = document.getElementById('obo-recurring').value;
   const weeks = parseInt(document.getElementById('obo-weeks').value) || 12;
 
-  if (!date || !name) { alert('Need at least a date and client name.'); return; }
+  if (!date) { alert('Pick a date.'); return; }
+  if (!firstName) { alert("Enter the client's first name."); document.getElementById('obo-first-name').focus(); return; }
+  if (!lastName)  { alert("Enter the client's last name. Both first and last are required so we can tell clients apart."); document.getElementById('obo-last-name').focus(); return; }
 
   const seriesId = recurring !== 'none' ? 'series_' + Date.now() : null;
   const interval = recurring === 'biweekly' ? 14 : 7;
