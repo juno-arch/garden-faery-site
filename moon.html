@@ -299,6 +299,42 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
   color: var(--moon-text);
 }
 .learn-body .phase-gift strong { color: var(--moon-gold); font-weight: 600; }
+.learn-body .phase-practice {
+  margin: 4px 0 16px; padding: 11px 14px;
+  background: rgba(163, 19, 102, 0.08);
+  border-left: 3px solid var(--moon-glow);
+  border-radius: 0 10px 10px 0;
+  font-size: 0.9rem; line-height: 1.55;
+  color: var(--moon-text);
+}
+.learn-body .phase-practice strong { color: var(--moon-pink); font-weight: 600; }
+
+/* Yoni steam card */
+.yoni-card { position: relative; }
+.yoni-card .intro {
+  font-style: italic; color: var(--moon-dim); font-size: 0.88rem;
+  margin: 0 0 14px; line-height: 1.55;
+}
+.yoni-section { margin-top: 14px; }
+.yoni-section h4 {
+  font-size: 0.74rem; letter-spacing: 0.8px; text-transform: uppercase;
+  color: var(--moon-dim); margin: 0 0 6px; font-weight: 600;
+}
+.yoni-section ul { margin: 2px 0 0 18px; padding: 0; font-size: 0.88rem; line-height: 1.55; }
+.yoni-section ul li { margin-bottom: 3px; }
+.yoni-section p { margin: 0 0 8px; font-size: 0.9rem; line-height: 1.55; }
+.yoni-section.warn {
+  background: rgba(105, 14, 14, 0.18); border: 1px solid rgba(197, 85, 107, 0.3);
+  border-radius: 10px; padding: 12px 14px;
+}
+.yoni-section.warn h4 { color: var(--moon-pink2); }
+.yoni-herbs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.yoni-herb {
+  padding: 5px 11px; background: rgba(192, 131, 11, 0.1);
+  border: 1px solid rgba(192, 131, 11, 0.3); border-radius: 999px;
+  font-size: 0.78rem;
+}
+.yoni-herb .em { color: var(--moon-gold); font-weight: 600; margin-right: 4px; }
 
 .attribution-card {
   margin-top: 16px; padding: 14px 16px;
@@ -602,6 +638,73 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
     </div>
   </div>
 
+  <!-- Yoni Steam: ancestral womb practice -->
+  <div class="card yoni-card">
+    <h3>🌿 Yoni steam</h3>
+    <p class="intro">The word <em>yoni</em> is Sanskrit for womb / vulva / sacred portal. The practice is ancient — traceable across Mayan, Korean, Russian, African, and indigenous curanderisma traditions. You sit over a pot of hot herbal water, wrapped to the waist in a blanket. Steam carries the herbs' volatiles to your vulva and cervix.</p>
+
+    <div class="yoni-section">
+      <h4>What it's for</h4>
+      <ul>
+        <li>Softening + supporting postpartum recovery (under midwife guidance)</li>
+        <li>Gentle womb care between cycles</li>
+        <li>Quieting stuck, stagnant, or heavy cycles (traditional use)</li>
+        <li>Ritual, slow, attentive time with the body that brings life</li>
+      </ul>
+    </div>
+
+    <div class="yoni-section">
+      <h4>When to steam</h4>
+      <ul>
+        <li>3-5 days before your expected period (late luteal) — reset</li>
+        <li>OR 3-5 days after your period ends</li>
+        <li>1-2x per month, not more</li>
+      </ul>
+    </div>
+
+    <div class="yoni-section warn">
+      <h4>When NOT to steam</h4>
+      <ul>
+        <li>During your period (don't heat active bleeding)</li>
+        <li>During pregnancy — ever</li>
+        <li>With an IUD (steam can damage it)</li>
+        <li>With active infection or open wounds</li>
+        <li>If you run hot / have hot flashes / excess heat conditions</li>
+      </ul>
+    </div>
+
+    <div class="yoni-section">
+      <h4>How to do it at home</h4>
+      <ol style="margin:2px 0 0 18px;padding:0;font-size:0.88rem;line-height:1.6;">
+        <li>Bring 2-3 quarts of water to near-boil with a handful of dried herbs</li>
+        <li>Steep 10 min covered, then check temp with your wrist — comfortable warm, never hot</li>
+        <li>Set pot on the floor or a low stool</li>
+        <li>Remove underwear, sit over the pot on a chair or commode</li>
+        <li>Wrap a blanket around your waist + legs to trap the steam</li>
+        <li>Stay 15-20 min. When it stops feeling warm, you're done.</li>
+        <li>Bundle up, rest, drink water for an hour after</li>
+      </ol>
+    </div>
+
+    <div class="yoni-section">
+      <h4>Herbs (pick 3-5)</h4>
+      <div class="yoni-herbs">
+        <div class="yoni-herb"><span class="em">🌹</span>Rose — heart opening</div>
+        <div class="yoni-herb"><span class="em">🌙</span>Mugwort — gentle flow (mindful)</div>
+        <div class="yoni-herb"><span class="em">🌼</span>Calendula — lymph, gentle</div>
+        <div class="yoni-herb"><span class="em">💜</span>Lavender — calm, spirit</div>
+        <div class="yoni-herb"><span class="em">🤍</span>Yarrow — womb tone</div>
+        <div class="yoni-herb"><span class="em">🍃</span>Raspberry leaf — tonic</div>
+        <div class="yoni-herb"><span class="em">🤲</span>Chamomile — soft nervine</div>
+      </div>
+      <p style="font-size:0.78rem;color:var(--moon-dim);margin-top:8px;">Your nose knows. If something's calling, follow it.</p>
+    </div>
+
+    <div class="yoni-section" style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+      <p style="font-size:0.8rem;color:var(--moon-dim);font-style:italic;">Yoni steaming is a culturally-borrowed practice our modern world almost forgot. Honor the lineage. Don't rush it. This isn't a hack — it's slow, attentive time with the part of you that brings life and wisdom.</p>
+    </div>
+  </div>
+
   <!-- Learn: body literacy -->
   <div class="card">
     <h3>🌸 Learn your body</h3>
@@ -895,6 +998,7 @@ const LEARN_CONTENT = {
     emoji: '🌑', label: 'Winter', title: 'Inner winter · menstrual · days 1-5',
     html: `
       <p class="phase-gift"><strong>Your spiritual gift:</strong> deep knowing. The veil is thin. Listen to what your body says when no one else is asking.</p>
+      <p class="phase-practice"><strong>Practice:</strong> Hands on your lower belly, thank her for this month's work. Write what's leaving with this blood, then burn or bury the paper. Offer the first drop of blood to a plant.</p>
       <h4>What's up in there</h4>
       <p>Day 1 is the day you bleed. Your uterus is peeling off its plush lining — the cozy velvet crib it built last month in case an embryo needed a home. No embryo moved in, so the eviction party starts today. <em class="witch">Totally normal. Totally magic.</em></p>
       <h4>The hormones</h4>
@@ -916,6 +1020,7 @@ const LEARN_CONTENT = {
     emoji: '🌱', label: 'Spring', title: 'Inner spring · follicular · days 6-13',
     html: `
       <p class="phase-gift"><strong>Your spiritual gift:</strong> the maiden. Curious, open, willing to start. This is your creation phase — plant seeds of every kind.</p>
+      <p class="phase-practice"><strong>Practice:</strong> Set one intention. Write it three times. Plant an actual seed (herb, flower, sprout in a jar) as a mirror of what you're growing inside. Morning sun on your face, three minutes.</p>
       <h4>What's up in there</h4>
       <p>Period's done. Your uterus is building a fresh lining — brand new velvet nursery going up floor by floor. Cervix is rising, opening slightly, making sticky-then-creamy mucus.</p>
       <h4>The hormones</h4>
@@ -937,6 +1042,7 @@ const LEARN_CONTENT = {
     emoji: '☀️', label: 'Summer', title: 'Inner summer · ovulation · days 14-16',
     html: `
       <p class="phase-gift"><strong>Your spiritual gift:</strong> the mother. Radiant, magnetic, generous. People feel you. Ask, speak, lead — the world is listening.</p>
+      <p class="phase-practice"><strong>Practice:</strong> Peak-fertility orgasm (alone or partnered) is recognized across traditions as a spiritual technology — it anchors your intention into the body. Say the thing out loud. Dance to one song. Record yourself speaking your vision; watch it back in autumn.</p>
       <h4>What's up in there — THE big day</h4>
       <p>The dominant follicle has grown to ~2cm (almost an inch). Estrogen hits peak. Your pituitary gland says <em class="witch">"OK, GO"</em> and releases a flood of <strong>LH</strong> — the Luteinizing Hormone surge.</p>
       <p>About 24-36 hours after the LH surge starts, the follicle <strong>BURSTS</strong>. It literally ruptures on the surface of your ovary and releases its egg. 🥚✨</p>
@@ -959,6 +1065,7 @@ const LEARN_CONTENT = {
     emoji: '🍂', label: 'Autumn', title: 'Inner autumn · luteal · days 17-28',
     html: `
       <p class="phase-gift"><strong>Your spiritual gift:</strong> the wild woman. Discerning, honest, finishing what needs finished. Your truth-teller is loudest here — let her.</p>
+      <p class="phase-practice"><strong>Practice:</strong> Yoni steam 3-5 days before your expected period (see the Yoni Steam card below). Warm oil massage on your lower belly (castor, black seed, or calendula-infused). Journal what wants to die with this cycle — what's finished.</p>
       <h4>What's up in there</h4>
       <p>The empty follicle that released your egg has transformed into the <strong>corpus luteum</strong> — a temporary hormone-making gland. Its one job: pump out progesterone to keep your uterine lining cushy and nesting in case an embryo implants.</p>
       <p>No pregnancy? Corpus luteum dies around day 26-28. Progesterone crashes. Lining has no support, starts shedding. Period begins. Cycle restarts.</p>
