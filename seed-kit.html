@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4a1942">
+  <meta name="apple-mobile-web-app-title" content="Garden Faery">
+  <meta name="description" content="The Humboldt Succession Seed Kit. A two-week-window planting plan in 16 cases for coastal Humboldt County. Coming soon from Garden Faery.">
+  <meta property="og:title" content="The Succession Kit (coming soon) | Garden Faery, Arcata, CA">
+  <meta property="og:description" content="A 16-case succession planting kit for Humboldt's coastal climate. Pull one case every two weeks, plant what's inside, come back in two weeks.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gardenfaery.love/seed-kit.html">
+  <meta property="og:image" content="https://gardenfaery.love/farm.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="The Succession Kit (coming soon) | Garden Faery">
+  <meta name="twitter:description" content="A 16-case succession planting kit for Humboldt's coastal climate.">
+  <meta name="twitter:image" content="https://gardenfaery.love/farm.jpg">
+  <link rel="canonical" href="https://gardenfaery.love/seed-kit.html">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <title>The Succession Kit (coming soon) | Garden Faery, Arcata, CA</title>
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    body { background: var(--bg); color: var(--text-primary); }
+
+    /* Hero */
+    .hero {
+      padding: 64px 24px 48px;
+      text-align: center;
+      background: linear-gradient(135deg, var(--pollen-gold) 0%, var(--petal-pink-light) 60%, var(--sage-light) 100%);
+      border-bottom: 2px solid var(--accent-1);
+      position: relative;
+    }
+    .hero-badge {
+      display: inline-block;
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: white;
+      background: var(--plum);
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 18px;
+    }
+    .hero h1 {
+      font-family: 'Elsie Swash Caps', serif;
+      font-size: clamp(38px, 7vw, 64px);
+      font-weight: 900;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      line-height: 1.05;
+    }
+    .hero .subtitle {
+      font-family: var(--font-heading);
+      font-style: italic;
+      font-size: clamp(17px, 2.5vw, 22px);
+      color: var(--text-secondary);
+      max-width: 580px;
+      margin: 0 auto 18px;
+      line-height: 1.4;
+    }
+    .hero .subtext {
+      font-size: 13px;
+      color: var(--gray-600);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* Section frame */
+    .section {
+      max-width: 980px;
+      margin: 56px auto;
+      padding: 0 24px;
+    }
+    .section h2 {
+      font-family: 'Elsie Swash Caps', serif;
+      font-size: clamp(28px, 4vw, 38px);
+      font-weight: 900;
+      color: var(--text-primary);
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .section .lede {
+      max-width: 640px;
+      margin: 0 auto 32px;
+      text-align: center;
+      font-size: 16px;
+      line-height: 1.65;
+      color: var(--text-secondary);
+    }
+
+    /* The pitch row (3 columns) */
+    .pitch-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 22px;
+      margin-top: 24px;
+    }
+    @media (min-width: 720px) { .pitch-grid { grid-template-columns: repeat(3, 1fr); } }
+    .pitch-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 24px 22px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .pitch-icon {
+      font-family: 'Elsie Swash Caps', serif;
+      font-size: 48px;
+      color: var(--accent-1);
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    .pitch-card h3 {
+      font-family: var(--font-heading);
+      font-size: 19px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .pitch-card p {
+      font-size: 14.5px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    /* Timeline */
+    .timeline-section {
+      background: var(--white);
+      padding: 48px 0;
+      border-top: 2px solid var(--gray-200);
+      border-bottom: 2px solid var(--gray-200);
+    }
+    .timeline-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    @media (min-width: 700px) { .timeline-grid { grid-template-columns: repeat(4, 1fr); } }
+    .case-card {
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 14px 14px 16px;
+      border-left: 4px solid var(--accent-1);
+      transition: transform 0.18s, box-shadow 0.18s;
+    }
+    .case-card:nth-child(4n+2) { border-left-color: var(--spring-sage); }
+    .case-card:nth-child(4n+3) { border-left-color: var(--pollen-gold); }
+    .case-card:nth-child(4n+4) { border-left-color: var(--moon, #8a6b9e); }
+    .case-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .case-num {
+      font-family: var(--font-body);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gray-600);
+    }
+    .case-when {
+      font-family: 'Elsie Swash Caps', serif;
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--text-primary);
+      margin: 4px 0 4px;
+    }
+    .case-theme {
+      font-family: var(--font-heading);
+      font-style: italic;
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+    .case-crops {
+      font-size: 12px;
+      color: var(--text-primary);
+      line-height: 1.45;
+      opacity: 0.85;
+    }
+
+    /* Current week highlight */
+    .case-card.current {
+      background: var(--petal-pink-light);
+      border-left-width: 6px;
+    }
+    .case-current-badge {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      background: var(--plum);
+      color: white;
+      padding: 2px 7px;
+      border-radius: 999px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    /* Waitlist CTA */
+    .waitlist {
+      background: linear-gradient(135deg, var(--sage-light) 0%, var(--petal-pink-light) 100%);
+      padding: 48px 24px;
+      text-align: center;
+      margin: 56px 0 0;
+    }
+    .waitlist h2 {
+      font-family: 'Elsie Swash Caps', serif;
+      font-size: clamp(28px, 4vw, 38px);
+      font-weight: 900;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+    .waitlist p {
+      max-width: 560px;
+      margin: 0 auto 24px;
+      font-size: 16px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .waitlist-form {
+      display: flex; gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .waitlist-form input {
+      flex: 1; min-width: 220px;
+      padding: 12px 16px;
+      border: 1.5px solid rgba(74,25,66,0.2);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      background: rgba(255,255,255,0.85);
+      color: var(--text-primary);
+    }
+    .waitlist-form input:focus {
+      outline: none;
+      border-color: var(--accent-1);
+      box-shadow: 0 0 0 3px rgba(196,139,176,0.2);
+    }
+    .waitlist-form button {
+      padding: 12px 22px;
+      background: var(--plum);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .waitlist-form button:hover { background: var(--accent-1); }
+    .waitlist-status {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-style: italic;
+      margin-top: 12px;
+      min-height: 18px;
+    }
+
+    /* Sources block */
+    .sources {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    .source-list { list-style: none; padding: 0; }
+    .source-list li {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .source-list li:last-child { border-bottom: none; }
+    .source-name {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--text-primary);
+    }
+    .source-region {
+      font-size: 12px;
+      color: var(--gray-600);
+      margin-left: 6px;
+    }
+    .source-why {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    /* Preview download */
+    .preview-link {
+      display: inline-block;
+      margin-top: 18px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent-1);
+      text-decoration: none;
+      border-bottom: 2px solid var(--accent-1);
+      padding-bottom: 1px;
+    }
+    .preview-link:hover { color: var(--text-primary); border-color: var(--text-primary); }
+  </style>
+</head>
+<body>
+  <nav class="site-nav">
+    <a href="index.html" class="nav-logo">
+      <img src="garden-faery-logo.png" alt="" class="nav-logo-img">
+      Garden Faery
+    </a>
+    <button class="nav-toggle" aria-label="Menu" type="button" onclick="document.querySelector('.nav-links').classList.toggle('open')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="about.html">About</a>
+      <a href="services.html">Services</a>
+      <a href="gallery.html">Gallery</a>
+      <div class="nav-group active">
+        <button class="nav-group-toggle" type="button" onclick="this.parentElement.classList.toggle('open')">Guides<span class="caret" aria-hidden="true">&#9662;</span></button>
+        <div class="nav-group-menu">
+          <a href="plant-guide.html">The Greenery</a>
+          <a href="plant-pairings.html">Plant Spells</a>
+          <a href="garden-styles.html">Lookbooks</a>
+          <a href="food-guide.html">The Edible Patch</a>
+          <a href="seed-kit.html" class="active">Seed Kit</a>
+          <a href="estimator.html">Bed Builder</a>
+        </div>
+      </div>
+      <a href="book.html">Book</a>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <div class="hero-badge">Coming Soon</div>
+      <h1>The Humboldt Succession Kit</h1>
+      <p class="subtitle">Sixteen cases. One for every two-week window from February to September. Pull a case, plant what's inside, come back in two weeks.</p>
+      <p class="subtext">Pre-curated for the coastal fog belt</p>
+    </section>
+
+    <section class="section">
+      <h2>The idea</h2>
+      <p class="lede">Succession planting works, but it's mentally heavy. You have to remember what to sow, when, and what gets re-sown two weeks later. The Succession Kit takes the remembering off your shoulders. Sixteen pre-loaded compartments in a photo storage case. One per fortnight, from cold-hardy openers in February to garlic + cover crops in September.</p>
+
+      <div class="pitch-grid">
+        <div class="pitch-card">
+          <div class="pitch-icon">&#10047;</div>
+          <h3>Curated for Humboldt</h3>
+          <p>Every variety chosen for our cool summers, mild winters, and marine layer. No hot-weather crops that need a hoop house just to ripen.</p>
+        </div>
+        <div class="pitch-card">
+          <div class="pitch-icon">&#9752;</div>
+          <h3>This Week pointer</h3>
+          <p>Built-in date formula tells you exactly which case to pull right now. Open the spreadsheet, get this week's plan in one glance.</p>
+        </div>
+        <div class="pitch-card">
+          <div class="pitch-icon">&#10052;</div>
+          <h3>Re-sow notes</h3>
+          <p>Each crop tells you when to sow it next. Lettuce in Case 2? Resow in Case 4. No more spreadsheet juggling.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="timeline-section">
+      <h2 style="font-family: 'Elsie Swash Caps', serif; font-size: clamp(28px, 4vw, 38px); font-weight: 900; text-align: center; margin-bottom: 14px;">Sixteen cases, eight months</h2>
+      <p class="lede">A look at the full year. The pink-highlighted card is what you'd be planting right now.</p>
+      <div class="timeline-grid" id="timeline-grid"></div>
+    </section>
+
+    <section class="section">
+      <h2>What's in the box</h2>
+      <ul style="max-width: 640px; margin: 0 auto; font-size: 15.5px; line-height: 1.85; color: var(--text-primary); padding-left: 20px;">
+        <li><strong>Welcome cover</strong> with the kit philosophy and how to use the photo storage case</li>
+        <li><strong>Case Index</strong>: 16 sowing windows mapped to dates and themes</li>
+        <li><strong>Seed Inventory</strong>: every variety pre-curated, with source links and notes specific to coastal Humboldt</li>
+        <li><strong>This Week pointer</strong>: live formula that updates daily and tells you which case to pull</li>
+        <li><strong>Case Labels</strong>: print-and-stick labels for the photo storage organizer (cases sold separately)</li>
+        <li>Plus a <strong>credits page</strong> linking to my favorite seed sources for re-stocking</li>
+      </ul>
+      <p style="text-align: center; margin-top: 24px;">
+        <a class="preview-link" href="seed-kit/Humboldt-Succession-Seed-Kit-preview.pdf" target="_blank" rel="noopener">Peek at the PDF preview &rarr;</a>
+      </p>
+    </section>
+
+    <section class="section sources">
+      <h2>Trusted seed sources</h2>
+      <p class="lede">Every variety in the kit comes from one of these. Region-tested, organic where possible, generous with growing notes.</p>
+      <ul class="source-list">
+        <li>
+          <span class="source-name">Johnny's Selected Seeds</span>
+          <span class="source-region">Maine</span>
+          <p class="source-why">Gold standard for market growers. Trial data, honest descriptions, excellent germination.</p>
+        </li>
+        <li>
+          <span class="source-name">Territorial Seed Company</span>
+          <span class="source-region">Oregon</span>
+          <p class="source-why">Pacific Northwest tested. Many varieties bred for cool, coastal conditions like ours.</p>
+        </li>
+        <li>
+          <span class="source-name">Uprising Seeds</span>
+          <span class="source-region">Washington</span>
+          <p class="source-why">Small, organic, open pollinated only. A trusted regional farm.</p>
+        </li>
+        <li>
+          <span class="source-name">Adaptive Seeds</span>
+          <span class="source-region">Oregon</span>
+          <p class="source-why">Seed stewards. Region-adapted rare and heirloom varieties with a conservation mission.</p>
+        </li>
+        <li>
+          <span class="source-name">Botanical Interests</span>
+          <span class="source-region">Colorado</span>
+          <p class="source-why">Gorgeous packet art, thoughtful growing notes. Widely available in stores for a quick refill.</p>
+        </li>
+        <li>
+          <span class="source-name">Filaree Garlic Farm</span>
+          <span class="source-region">Washington</span>
+          <p class="source-why">The garlic source. Certified organic, 100+ varieties, pure stock.</p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="waitlist">
+      <h2>Be the first to know</h2>
+      <p>The kit is in final polish. Drop your email and I'll let you know the moment it's ready, plus a small launch discount for early supporters.</p>
+      <form class="waitlist-form" onsubmit="signupWaitlist(event)">
+        <label for="waitlist-email" class="sr-only">Email</label>
+        <input type="email" id="waitlist-email" placeholder="your@email.com" required>
+        <button type="submit">Notify me</button>
+      </form>
+      <p class="waitlist-status" id="waitlist-status"></p>
+    </section>
+  </main>
+
+  <script>
+    // The 16 cases (mirrored from garden-faery-seed-kit/data.py).
+    // Keep in sync if the source data changes.
+    const CASES = [
+      { n: 1,  when: 'Feb 1',   theme: 'Cold hardy openers',     crops: 'Snap peas, fava, spinach, mache, claytonia' },
+      { n: 2,  when: 'Feb 15',  theme: 'First lettuce wave',     crops: 'Lettuce, radish, arugula, cilantro, brassica starts indoors' },
+      { n: 3,  when: 'Mar 1',   theme: 'Spring greens rolling',  crops: 'Lettuce, spinach, scallions, arugula, more peas' },
+      { n: 4,  when: 'Mar 15',  theme: 'Root and brassica push', crops: 'Lettuce, carrots, beets, chard, kale starts, radish' },
+      { n: 5,  when: 'Apr 1',   theme: 'Warm side prep',         crops: 'Lettuce, radish, dill, bush beans indoor, cilantro' },
+      { n: 6,  when: 'Apr 15',  theme: 'Carrot and beet round two', crops: 'Lettuce, carrots, beets, scallions, cilantro, chard' },
+      { n: 7,  when: 'May 1',   theme: 'Bean and squash debut',  crops: 'Bush beans, cucumbers, summer squash starts, lettuce, basil' },
+      { n: 8,  when: 'May 15',  theme: 'Full spring rotation',   crops: 'Beans, lettuce, carrots, beets, basil, dill' },
+      { n: 9,  when: 'Jun 1',   theme: 'Summer succession peak', crops: 'Beans, lettuce, cilantro, dill, summer squash round two' },
+      { n: 10, when: 'Jun 15',  theme: 'Mid season hold',         crops: 'Beans, carrots, beets, lettuce, scallions' },
+      { n: 11, when: 'Jul 1',   theme: 'Fall pivot begins',       crops: 'Beans, lettuce, radish, cilantro, fall brassica starts' },
+      { n: 12, when: 'Jul 15',  theme: 'Fall brassica bench',     crops: 'Lettuce, carrots, beets, broccoli, cabbage, Brussels starts' },
+      { n: 13, when: 'Aug 1',   theme: 'Transition to fall',      crops: 'Lettuce, spinach, radish, scallions, fall peas, overwintering brassicas' },
+      { n: 14, when: 'Aug 15',  theme: 'Overwinter prep greens',  crops: 'Spinach, lettuce, Asian greens, cilantro, overwintering kale' },
+      { n: 15, when: 'Sep 1',   theme: 'Garlic and allium drop',  crops: 'Garlic, shallots, overwintering onions, fava, mache, claytonia' },
+      { n: 16, when: 'Sep 15',  theme: 'Cover crop and close out', crops: 'Crimson clover, vetch, bell beans, winter rye, cover crop mixes' },
+    ];
+
+    // Boundary list: the case ACTIVE before each (month, day) cutoff.
+    // Mirrored from data.py WEEK_POINTER_BOUNDARIES.
+    const BOUNDARIES = [
+      [2, 15, 1], [3, 1, 2], [3, 15, 3], [4, 1, 4],
+      [4, 15, 5], [5, 1, 6], [5, 15, 7], [6, 1, 8],
+      [6, 15, 9], [7, 1, 10], [7, 15, 11], [8, 1, 12],
+      [8, 15, 13], [9, 1, 14], [9, 15, 15], [10, 1, 16]
+    ];
+
+    function currentCaseNumber() {
+      const now = new Date();
+      const m = now.getMonth() + 1; // 1-12
+      const d = now.getDate();
+      // Off season before Feb 1
+      if (m < 2 || (m === 2 && d < 1)) return null;
+      // Off season after Oct 1
+      if (m >= 10) return null;
+      for (const [bm, bd, caseN] of BOUNDARIES) {
+        if (m < bm || (m === bm && d < bd)) return caseN;
+      }
+      return null;
+    }
+
+    const grid = document.getElementById('timeline-grid');
+    const currentN = currentCaseNumber();
+    CASES.forEach(c => {
+      const isCurrent = c.n === currentN;
+      const card = document.createElement('div');
+      card.className = 'case-card' + (isCurrent ? ' current' : '');
+      card.innerHTML = `
+        <div class="case-num">Case ${c.n}${isCurrent ? '<span class="case-current-badge">This week</span>' : ''}</div>
+        <div class="case-when">${c.when}</div>
+        <div class="case-theme">${c.theme}</div>
+        <div class="case-crops">${c.crops}</div>
+      `;
+      grid.appendChild(card);
+    });
+
+    // Waitlist signup — for now reuse the existing newsletter (Buttondown) signup
+    // so emails land in one place. A dedicated 'seed-kit-waitlist' tag can be
+    // added later when picking the launch platform.
+    function signupWaitlist(e) {
+      e.preventDefault();
+      const email = document.getElementById('waitlist-email').value;
+      const status = document.getElementById('waitlist-status');
+      if (!email) return;
+      status.textContent = 'Adding you to the list...';
+      fetch('https://api.buttondown.com/v1/subscribers', {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email_address: email, tags: ['seed-kit-waitlist'] })
+      }).then(() => {
+        status.textContent = "You're on the list. I'll be in touch when the kit is ready.";
+        document.getElementById('waitlist-email').value = '';
+      }).catch(() => {
+        status.textContent = "Couldn't reach the server. Email taya@gardenfaery.love and I'll add you manually.";
+      });
+    }
+  </script>
+</body>
+</html>

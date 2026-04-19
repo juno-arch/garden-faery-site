@@ -192,6 +192,98 @@
       .potm-name { font-size: 24px; }
     }
 
+    /* Sow This Week — Succession Kit teaser */
+    .sow-week {
+      max-width: 780px;
+      margin: 28px auto 12px;
+      padding: 0 16px;
+    }
+    .sow-week-card {
+      display: grid;
+      grid-template-columns: 86px 1fr;
+      gap: 18px;
+      align-items: center;
+      background: linear-gradient(135deg, rgba(222,188,93,0.18) 0%, rgba(155,189,133,0.18) 100%);
+      border: 1.5px solid rgba(74,25,66,0.12);
+      border-radius: 14px;
+      padding: 16px 18px;
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .sow-week-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+    .sow-week-date {
+      text-align: center;
+      background: var(--white);
+      border-radius: 10px;
+      padding: 10px 6px;
+    }
+    .sow-week-date-month {
+      font-family: var(--font-body);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent-1);
+    }
+    .sow-week-date-num {
+      font-family: 'Elsie Swash Caps', serif;
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--text-primary);
+      line-height: 1;
+      margin: 2px 0 4px;
+    }
+    .sow-week-date-case {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+      color: var(--gray-600);
+    }
+    .sow-week-body {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .sow-week-eyebrow {
+      font-family: var(--font-body);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.3px;
+      text-transform: uppercase;
+      color: var(--accent-1);
+    }
+    .sow-week-title {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+    .sow-week-crops {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+    .sow-week-cta {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-1);
+      margin-top: 4px;
+    }
+    .sow-week-card.off-season .sow-week-date {
+      background: var(--gray-100);
+    }
+    @media (max-width: 480px) {
+      .sow-week-card { grid-template-columns: 70px 1fr; gap: 12px; padding: 14px; }
+      .sow-week-date-num { font-size: 22px; }
+      .sow-week-title { font-size: 17px; }
+    }
+
     /* In Season Now */
     .season-section {
       max-width: 980px;
@@ -300,6 +392,7 @@
           <a href="plant-pairings.html">Plant Spells</a>
           <a href="garden-styles.html">Lookbooks</a>
           <a href="food-guide.html">The Edible Patch</a>
+          <a href="seed-kit.html">Seed Kit</a>
           <a href="estimator.html">Bed Builder</a>
         </div>
       </div>
@@ -350,6 +443,8 @@
     </a>
   </div>
 
+  <div class="sow-week" id="sow-week-section"></div>
+
   <div class="season-section">
     <div class="season-header">
       <div>
@@ -358,7 +453,7 @@
       </div>
     </div>
     <div class="season-grid" id="season-grid"></div>
-    <div class="season-link"><a href="plant-guide.html">Browse the full plant guide &rarr;</a></div>
+    <div class="season-link"><a href="plant-guide.html">Browse The Greenery &rarr;</a></div>
   </div>
 
   <div class="content">
@@ -512,6 +607,76 @@
       document.getElementById('potm-name').textContent = spot.name;
       document.getElementById('potm-sci').textContent = spot.scientific;
       document.getElementById('potm-note').textContent = spot.note;
+    })();
+
+    // Sow This Week — Succession Kit teaser (links to upcoming kit page)
+    (function() {
+      var CASES = [
+        { n: 1,  when: 'Feb 1',   theme: 'Cold hardy openers',     crops: 'Snap peas, fava, spinach, mache, claytonia' },
+        { n: 2,  when: 'Feb 15',  theme: 'First lettuce wave',     crops: 'Lettuce, radish, arugula, cilantro, brassica starts indoors' },
+        { n: 3,  when: 'Mar 1',   theme: 'Spring greens rolling',  crops: 'Lettuce, spinach, scallions, arugula, more peas' },
+        { n: 4,  when: 'Mar 15',  theme: 'Root and brassica push', crops: 'Lettuce, carrots, beets, chard, kale starts, radish' },
+        { n: 5,  when: 'Apr 1',   theme: 'Warm side prep',         crops: 'Lettuce, radish, dill, bush beans indoor, cilantro' },
+        { n: 6,  when: 'Apr 15',  theme: 'Carrot and beet round two', crops: 'Lettuce, carrots, beets, scallions, cilantro, chard' },
+        { n: 7,  when: 'May 1',   theme: 'Bean and squash debut',  crops: 'Bush beans, cucumbers, summer squash starts, lettuce, basil' },
+        { n: 8,  when: 'May 15',  theme: 'Full spring rotation',   crops: 'Beans, lettuce, carrots, beets, basil, dill' },
+        { n: 9,  when: 'Jun 1',   theme: 'Summer succession peak', crops: 'Beans, lettuce, cilantro, dill, summer squash round two' },
+        { n: 10, when: 'Jun 15',  theme: 'Mid season hold',         crops: 'Beans, carrots, beets, lettuce, scallions' },
+        { n: 11, when: 'Jul 1',   theme: 'Fall pivot begins',       crops: 'Beans, lettuce, radish, cilantro, fall brassica starts' },
+        { n: 12, when: 'Jul 15',  theme: 'Fall brassica bench',     crops: 'Lettuce, carrots, beets, broccoli, cabbage, Brussels starts' },
+        { n: 13, when: 'Aug 1',   theme: 'Transition to fall',      crops: 'Lettuce, spinach, radish, scallions, fall peas, overwintering brassicas' },
+        { n: 14, when: 'Aug 15',  theme: 'Overwinter prep greens',  crops: 'Spinach, lettuce, Asian greens, cilantro, overwintering kale' },
+        { n: 15, when: 'Sep 1',   theme: 'Garlic and allium drop',  crops: 'Garlic, shallots, overwintering onions, fava, mache, claytonia' },
+        { n: 16, when: 'Sep 15',  theme: 'Cover crop and close out', crops: 'Crimson clover, vetch, bell beans, winter rye, cover crop mixes' },
+      ];
+      var BOUNDARIES = [
+        [2, 15, 1], [3, 1, 2], [3, 15, 3], [4, 1, 4],
+        [4, 15, 5], [5, 1, 6], [5, 15, 7], [6, 1, 8],
+        [6, 15, 9], [7, 1, 10], [7, 15, 11], [8, 1, 12],
+        [8, 15, 13], [9, 1, 14], [9, 15, 15], [10, 1, 16]
+      ];
+      function currentCase() {
+        var now = new Date();
+        var m = now.getMonth() + 1;
+        var d = now.getDate();
+        if (m < 2) return null;
+        if (m >= 10) return null;
+        for (var i = 0; i < BOUNDARIES.length; i++) {
+          var bm = BOUNDARIES[i][0], bd = BOUNDARIES[i][1], cn = BOUNDARIES[i][2];
+          if (m < bm || (m === bm && d < bd)) return CASES[cn - 1];
+        }
+        return null;
+      }
+      var section = document.getElementById('sow-week-section');
+      if (!section) return;
+      var c = currentCase();
+      if (c) {
+        var parts = c.when.split(' '); // ["Apr", "1"]
+        section.innerHTML = '<a class="sow-week-card" href="seed-kit.html">' +
+          '<div class="sow-week-date">' +
+            '<div class="sow-week-date-month">' + parts[0] + '</div>' +
+            '<div class="sow-week-date-num">' + parts[1] + '</div>' +
+            '<div class="sow-week-date-case">Case ' + c.n + '</div>' +
+          '</div>' +
+          '<div class="sow-week-body">' +
+            '<div class="sow-week-eyebrow">Sow this week</div>' +
+            '<div class="sow-week-title">' + c.theme + '</div>' +
+            '<div class="sow-week-crops">' + c.crops + '</div>' +
+            '<div class="sow-week-cta">Peek at the upcoming Succession Kit &rarr;</div>' +
+          '</div>' +
+        '</a>';
+      } else {
+        // Off season
+        section.innerHTML = '<a class="sow-week-card off-season" href="seed-kit.html">' +
+          '<div class="sow-week-date"><div class="sow-week-date-month">Soon</div><div class="sow-week-date-num">&#9889;</div><div class="sow-week-date-case">Off season</div></div>' +
+          '<div class="sow-week-body">' +
+            '<div class="sow-week-eyebrow">Succession Kit</div>' +
+            '<div class="sow-week-title">Plan ahead for the season</div>' +
+            '<div class="sow-week-crops">Sixteen pre-loaded sowing windows from February through September. Quiet now, ready to go in a few weeks.</div>' +
+            '<div class="sow-week-cta">Peek at the upcoming Succession Kit &rarr;</div>' +
+          '</div>' +
+        '</a>';
+      }
     })();
 
     // In Season Now — curated list of 8 plants per season
