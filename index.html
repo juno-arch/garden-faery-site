@@ -27,6 +27,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="shared.css">
+  <script src="shared.js" defer></script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -58,51 +60,6 @@
   }
   </script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    :root {
-      --text-primary: #4a1942;
-      --text-secondary: rgba(74, 25, 66, 0.78);
-      --font-heading: 'Lora', serif;
-      --font-body: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      --bg: #f8f4ed; --accent-1: #c48bb0; --accent-2: #a3b88c; --highlight: #d4c27a;
-    }
-    html { scroll-behavior: smooth; }
-    body { font-family: var(--font-body); background: var(--bg); color: var(--text-primary); line-height: 1.6; }
-    h1, h2, h3, h4 { font-family: var(--font-heading); color: var(--text-primary); line-height: 1.2; }
-
-    /* Nav */
-    .site-nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 54px; background: var(--bg); border-bottom: 2px solid var(--accent-1); }
-    .nav-logo { font-family: 'Elsie Swash Caps', serif; font-size: 22px; font-weight: 900; color: var(--text-primary); text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 10px; }
-    .nav-logo-img { height: 32px; width: auto; flex-shrink: 0; }
-    .nav-links { display: flex; gap: 6px; align-items: center; }
-    .nav-links a, .nav-group-toggle { font-family: var(--font-body); font-size: 14px; font-weight: 600; color: var(--text-secondary); text-decoration: none; padding: 6px 14px; border: none; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; background: none; cursor: pointer; line-height: 1.4; }
-    .nav-links a:hover, .nav-group-toggle:hover { color: var(--text-primary); }
-    .nav-links a.active, .nav-group.active > .nav-group-toggle { color: var(--text-primary); border-bottom-color: var(--accent-1); }
-    .nav-group { position: relative; }
-    .nav-group-toggle .caret { display: inline-block; margin-left: 4px; font-size: 10px; transition: transform 0.2s; }
-    .nav-group:hover .caret, .nav-group.open .caret { transform: rotate(180deg); }
-    .nav-group-menu { display: none; position: absolute; top: 100%; left: 0; background: var(--bg); border: 1px solid var(--accent-1); border-radius: 10px; padding: 4px 0; min-width: 170px; box-shadow: 0 8px 20px rgba(74,25,66,0.15); z-index: 101; margin-top: 2px; }
-    .nav-group:hover .nav-group-menu, .nav-group.open .nav-group-menu, .nav-group:focus-within .nav-group-menu { display: block; }
-    .nav-group-menu a { display: block; padding: 9px 18px; border-bottom: none !important; white-space: nowrap; }
-    .nav-group-menu a:hover { background: rgba(196,139,176,0.12); color: var(--text-primary); }
-    .nav-group-menu a.active { color: var(--text-primary); background: rgba(196,139,176,0.08); border-bottom: none; }
-    .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 4px; }
-    .hamburger svg { width: 26px; height: 26px; stroke: var(--text-primary); }
-    @media (max-width: 600px) {
-      .hamburger { display: block; }
-      .nav-links { display: none; position: absolute; top: 54px; left: 0; right: 0; flex-direction: column; background: var(--bg); border-bottom: 2px solid var(--accent-1); padding: 8px 0; gap: 0; align-items: stretch; }
-      .nav-links.open { display: flex; }
-      .nav-links a { padding: 12px 24px; font-size: 15px; border-bottom: none; }
-      .nav-links a.active { border-bottom: none; color: var(--text-primary); background: rgba(196,139,176,0.1); }
-      .nav-group { width: 100%; display: flex; flex-direction: column; }
-      .nav-group-toggle { padding: 14px 24px 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-secondary); opacity: 0.6; cursor: default; pointer-events: none; text-align: left; width: 100%; border-bottom: none; }
-      .nav-group-toggle .caret { display: none; }
-      .nav-group.active > .nav-group-toggle { background: none; border: none; color: var(--text-secondary); }
-      .nav-group-menu { display: block; position: static; background: none; border: none; padding: 0 0 6px; box-shadow: none; min-width: 0; margin: 0; }
-      .nav-group-menu a { padding: 10px 36px; font-size: 14px; }
-      .nav-group-menu a.active { background: rgba(196,139,176,0.1); }
-    }
-
     /* Hero */
     .hero { text-align: center; padding: 0; position: relative; overflow: hidden; height: 340px; }
     .hero-video { position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; transform: translate(-50%, -50%); object-fit: cover; z-index: 0; }
@@ -244,16 +201,6 @@
     .newsletter-btn { padding: 11px 18px; background: var(--accent-1); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; font-family: var(--font-heading); white-space: nowrap; transition: background 0.2s; }
     .newsletter-btn:hover { background: var(--highlight); }
 
-    /* Footer */
-    footer { text-align: center; padding: 20px 20px 24px; font-size: 14px; font-weight: 600; color: var(--accent-1); background: var(--text-primary); }
-    footer a { color: var(--accent-1); text-decoration: none; }
-    footer a:hover { text-decoration: underline; }
-    .social-links { display: flex; justify-content: center; gap: 16px; margin-top: 10px; }
-    .social-links a { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); transition: background 0.2s, transform 0.2s; }
-    .social-links a:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
-    .social-links svg { width: 18px; height: 18px; fill: var(--accent-1); }
-    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
-
     /* Admin login (footer, discreet) */
     .admin-login { display: inline-block; }
     .admin-login-trigger { background: none; border: none; color: inherit; font: inherit; cursor: pointer; padding: 0 6px; opacity: inherit; }
@@ -283,6 +230,7 @@
         <button class="nav-group-toggle" type="button" onclick="this.parentElement.classList.toggle('open')">Guides<span class="caret" aria-hidden="true">&#9662;</span></button>
         <div class="nav-group-menu">
           <a href="plant-guide.html">Plant Guide</a>
+          <a href="plant-pairings.html">Plant Pairings</a>
           <a href="food-guide.html">Market Garden</a>
           <a href="estimator.html">Bed Builder</a>
         </div>
