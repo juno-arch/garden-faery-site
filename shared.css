@@ -148,21 +148,32 @@ footer a:hover { text-decoration: underline; }
   height: 100%;
 }
 .meadow .blade,
-.meadow .flower {
+.meadow .flower-base,
+.meadow .flower-head {
   transform-box: fill-box;
   transform-origin: bottom center;
   will-change: transform;
 }
-.meadow .blade  { animation: gf-sway 5.4s ease-in-out infinite; }
-.meadow .flower { animation: gf-sway 6.8s ease-in-out infinite; }
+.meadow .blade       { animation: gf-sway 5.4s ease-in-out infinite; }
+.meadow .flower-base { animation: gf-flower-base-sway 7.2s ease-in-out infinite; }
+.meadow .flower-head { animation: gf-flower-head-sway 6.1s ease-in-out infinite; }
 
-/* Six sway variants so blades don't all rock in unison */
-.meadow .sway-2 { animation-duration: 4.2s; animation-delay: -1.0s; }
-.meadow .sway-3 { animation-duration: 5.7s; animation-delay: -2.1s; }
-.meadow .sway-4 { animation-duration: 6.4s; animation-delay: -0.4s; }
-.meadow .sway-5 { animation-duration: 4.8s; animation-delay: -2.8s; }
-.meadow .sway-6 { animation-duration: 5.3s; animation-delay: -1.6s; }
+/* Blade variants — keep the existing 6 timings */
+.meadow .blade.sway-2 { animation-duration: 4.2s; animation-delay: -1.0s; }
+.meadow .blade.sway-3 { animation-duration: 5.7s; animation-delay: -2.1s; }
+.meadow .blade.sway-4 { animation-duration: 6.4s; animation-delay: -0.4s; }
+.meadow .blade.sway-5 { animation-duration: 4.8s; animation-delay: -2.8s; }
+.meadow .blade.sway-6 { animation-duration: 5.3s; animation-delay: -1.6s; }
 .meadow .blade.windy  { animation-name: gf-sway-strong; }
+
+/* Flower stem (base) variants — gentle rocking at the ground */
+.meadow .flower-base.sway-2 { animation-duration: 8.4s; animation-delay: -1.7s; }
+.meadow .flower-base.sway-3 { animation-duration: 6.5s; animation-delay: -3.3s; }
+
+/* Flower head variants — more dramatic sway up top, out of phase with base
+   so the stem appears to bend rather than rotate rigidly */
+.meadow .flower-head.sway-h2 { animation-duration: 5.2s; animation-delay: -2.4s; }
+.meadow .flower-head.sway-h3 { animation-duration: 7.0s; animation-delay: -0.8s; }
 
 @keyframes gf-sway {
   0%, 100% { transform: rotate(-2.5deg); }
@@ -172,9 +183,30 @@ footer a:hover { text-decoration: underline; }
   0%, 100% { transform: rotate(-4.5deg); }
   50%      { transform: rotate( 4.5deg); }
 }
+/* Base rocks gently in a lazy arc, loosely asymmetric so it doesn't feel
+   like a clock pendulum. */
+@keyframes gf-flower-base-sway {
+  0%   { transform: rotate(-2deg); }
+  22%  { transform: rotate( 1deg); }
+  48%  { transform: rotate( 3deg); }
+  72%  { transform: rotate(-0.5deg); }
+  100% { transform: rotate(-2deg); }
+}
+/* Head adds a bigger, different-phase motion so the top tracks out further
+   than the base — which is what stems do in real wind. */
+@keyframes gf-flower-head-sway {
+  0%   { transform: rotate(-5deg); }
+  18%  { transform: rotate( 2deg); }
+  42%  { transform: rotate( 6deg); }
+  65%  { transform: rotate(-1deg); }
+  85%  { transform: rotate(-4deg); }
+  100% { transform: rotate(-5deg); }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .meadow .blade, .meadow .flower { animation: none; }
+  .meadow .blade,
+  .meadow .flower-base,
+  .meadow .flower-head { animation: none; }
 }
 
 /* --- Bee ---

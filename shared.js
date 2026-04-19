@@ -107,25 +107,54 @@
       parts.push(`<path class="blade sway-${b.swayN}${b.windy}" d="${d}" fill="${b.color}"/>`);
     }
 
-    // Flowers (stem + petals + center, grouped so they sway together)
+    // Flowers (stem + petals + center).
+    // Nested groups so the head can sway independently of the stem base —
+    // the outer group rocks gently from the ground, the inner group (head +
+    // upper stem + leaf) rocks more dramatically from higher up, giving an
+    // organic "bending in the wind" feel instead of a rigid lollipop swing.
     for (const f of flowers) {
       const cx = f.x;
       const cy = BASE - f.stemH;
+      const bendDir = rand() < 0.5 ? 1 : -1;
+      const bendAmt = 10 + rand() * 14;           // horizontal curve offset
+      // Pivot for the head's extra sway — a little below the head so the
+      // upper third of the stem bends with it.
+      const pivotY = cy + f.stemH * 0.30;
+
       let petalsSvg = '';
       for (let p = 0; p < f.petals; p++) {
         const angle = (p / f.petals) * 360;
         petalsSvg += `<ellipse cx="${cx}" cy="${cy - 7}" rx="3.6" ry="7.4" fill="${f.petal}" transform="rotate(${angle} ${cx} ${cy})"/>`;
       }
-      // Optional small leaf on stem
-      const leafSide = (cx % 2 < 1) ? 1 : -1;
+      // Leaf on stem, side chosen from rng so it's deterministic
+      const leafSide = rand() < 0.5 ? 1 : -1;
       const leafY = cy + f.stemH * 0.55;
       const leaf = `<path d="M${cx} ${leafY} q${10 * leafSide} -4, ${14 * leafSide} 4 q${-6 * leafSide} 2, ${-14 * leafSide} -4 z" fill="var(--spring-sage)" opacity="0.85"/>`;
+
+      // Lower stem: base to pivot, curves slightly (half the bend).
+      const lowerCtrlX = cx + bendDir * bendAmt * 0.25;
+      const lowerCtrlY = (BASE + pivotY) / 2;
+      const lowerStem =
+        `<path d="M${cx} ${BASE} Q${lowerCtrlX} ${lowerCtrlY}, ${cx + bendDir * bendAmt * 0.35} ${pivotY}" `
+        + `fill="none" stroke="var(--leaf-green)" stroke-width="2.4" stroke-linecap="round"/>`;
+
+      // Upper stem: pivot to flower head, curves more.
+      const upperBaseX = cx + bendDir * bendAmt * 0.35;
+      const upperCtrlX = cx + bendDir * bendAmt;
+      const upperCtrlY = (pivotY + cy) / 2;
+      const upperStem =
+        `<path d="M${upperBaseX} ${pivotY} Q${upperCtrlX} ${upperCtrlY}, ${cx} ${cy}" `
+        + `fill="none" stroke="var(--leaf-green)" stroke-width="2.2" stroke-linecap="round"/>`;
+
       parts.push(
-        `<g class="flower sway-${f.swayN}">`
-        + `<line x1="${cx}" y1="${BASE}" x2="${cx}" y2="${cy}" stroke="var(--leaf-green)" stroke-width="2.4" stroke-linecap="round"/>`
-        + leaf
-        + petalsSvg
-        + `<circle cx="${cx}" cy="${cy}" r="3.4" fill="${f.center}"/>`
+        `<g class="flower-base sway-${f.swayN}">`
+        +   lowerStem
+        +   leaf
+        +   `<g class="flower-head sway-h${f.swayN}">`
+        +     upperStem
+        +     petalsSvg
+        +     `<circle cx="${cx}" cy="${cy}" r="3.4" fill="${f.center}"/>`
+        +   `</g>`
         + `</g>`
       );
     }
@@ -208,6 +237,24 @@
     let pos = { x: innerWidth * 0.5, y: 80 };
     let facing = 1;
 
+    // A page can nominate an element for the bee's opening act by tagging
+    // it with [data-bee-landing] (e.g. the homepage "Book with Me" button).
+    // The bee will start below the viewport — as if rising from the meadow —
+    // and fly up to land on it for a beat before starting normal buzzing.
+    function beeLandingTargetEl() {
+      const el = document.querySelector('[data-bee-landing]');
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) return null;
+      return el;
+    }
+
+    function elementLandingPos(el) {
+      const r = el.getBoundingClientRect();
+      // Land just above the element's top-center so the bee perches on it.
+      return { x: r.left + r.width / 2, y: r.top - 4 };
+    }
+
     function pickTarget() {
       // 70% chance to visit a flower if the meadow is on screen
       if (meadowInViewport() && flowers.length && Math.random() < 0.7) {
@@ -258,8 +305,25 @@
     const sleep = ms => new Promise(r => setTimeout(r, ms));
 
     async function loop() {
-      // small initial settle
-      await sleep(800 + Math.random() * 1200);
+      // Opening act: if the page nominates a [data-bee-landing] element
+      // (the homepage "Book with Me" CTA, for example), the bee rises from
+      // just below the viewport — as if lifting off the meadow flowers —
+      // flies up, and lands on it for a long attention-grabbing beat.
+      const landingEl = beeLandingTargetEl();
+      if (landingEl) {
+        pos = { x: innerWidth * 0.35, y: innerHeight + 30 };
+        bee.style.transform =
+          'translate(' + (pos.x - 16) + 'px, ' + (pos.y - 10) + 'px) scaleX(1)';
+        await sleep(500 + Math.random() * 500);
+        await flyTo({ ...elementLandingPos(landingEl), land: true });
+        bee.classList.remove('flying');
+        bee.classList.add('landed');
+        await sleep(3200 + Math.random() * 1600);
+      } else {
+        // small initial settle
+        await sleep(800 + Math.random() * 1200);
+      }
+
       while (true) {
         const target = pickTarget();
         await flyTo(target);
