@@ -192,7 +192,7 @@
       .potm-name { font-size: 24px; }
     }
 
-    /* Sow This Week — Succession Kit teaser */
+    /* Sow This Week - Succession Kit teaser */
     .sow-week {
       max-width: 780px;
       margin: 28px auto 12px;
@@ -388,11 +388,11 @@
       <div class="nav-group">
         <button class="nav-group-toggle" type="button" onclick="this.parentElement.classList.toggle('open')">Guides<span class="caret" aria-hidden="true">&#9662;</span></button>
         <div class="nav-group-menu">
-          <a href="plant-guide.html">The Greenery</a>
-          <a href="plant-pairings.html">Plant Spells</a>
-          <a href="garden-styles.html">Lookbooks</a>
-          <a href="food-guide.html">The Edible Patch</a>
-          <a href="seed-kit.html">Seed Kit</a>
+          <a href="plant-guide.html">Plant Archive</a>
+          <a href="plant-pairings.html">Plant Pairings</a>
+          <a href="garden-styles.html">Garden Styles</a>
+          <a href="food-guide.html">Succession Planting</a>
+          <a href="seed-kit.html">Succession Planting Seed Kit</a>
           <a href="estimator.html">Bed Builder</a>
         </div>
       </div>
@@ -609,7 +609,7 @@
       document.getElementById('potm-note').textContent = spot.note;
     })();
 
-    // Sow This Week — Succession Kit teaser (links to upcoming kit page)
+    // Sow This Week - Succession Kit teaser (links to upcoming kit page)
     (function() {
       var CASES = [
         { n: 1,  when: 'Feb 1',   theme: 'Cold hardy openers',     crops: 'Snap peas, fava, spinach, mache, claytonia' },
@@ -679,12 +679,12 @@
       }
     })();
 
-    // In Season Now — curated list of 8 plants per season
+    // In Season Now - curated list of 8 plants per season
     (function() {
       var SEASONS = {
         spring: {
           label: 'this Spring',
-          subtitle: 'Long days, fog mornings, riot of bloom — these are the stars right now',
+          subtitle: 'Long days, fog mornings, riot of bloom - these are the stars right now',
           plants: [
             'california-poppy', 'ceanothus', 'oregon-grape', 'foxglove',
             'douglas-iris', 'western-bleeding-heart', 'sweet-pea', 'anemone'
@@ -692,7 +692,7 @@
         },
         summer: {
           label: 'this Summer',
-          subtitle: 'Peak color, peak pollinators — the garden is humming',
+          subtitle: 'Peak color, peak pollinators - the garden is humming',
           plants: [
             'lavender', 'dahlia', 'zinnia', 'sunflower',
             'cosmos', 'hummingbird-sage', 'bee-balm', 'echinacea'
@@ -766,12 +766,12 @@
         status.textContent = 'Hmm, something went wrong. Try again?';
       });
     }
-    /* Video loop — let it play cleanly through without a fade.
+    /* Video loop - let it play cleanly through without a fade.
        The previous crossfade relied on the 'seeked' event firing on loop restart,
        which Chrome/Safari don't reliably emit, leaving the video stuck near
        opacity 0 at the start of each loop. A clean jump reads better. */
 
-    /* Admin login — authenticate against PocketBase, hand off token to /admin via sessionStorage. */
+    /* Admin login - authenticate against PocketBase, hand off token to /admin via sessionStorage. */
     function showAdminLogin() {
       document.getElementById('admin-login-trigger').style.display = 'none';
       document.getElementById('admin-login-form').style.display = 'inline-flex';
