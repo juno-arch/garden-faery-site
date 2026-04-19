@@ -3344,28 +3344,11 @@ function renderClients() {
   const container = document.getElementById('clients-content');
   const bookings = getBookings().filter(b => b.status !== 'canceled');
 
-  // Group by client email (fall back to name)
-  const clients = {};
-  bookings.forEach(b => {
-    const key = b.clientEmail || b.clientName;
-    if (!clients[key]) {
-      clients[key] = {
-        name: b.clientName,
-        email: b.clientEmail,
-        phone: b.clientPhone,
-        address: b.clientAddress,
-        visits: []
-      };
-    }
-    clients[key].visits.push(b);
-    // Fill in missing contact info from any booking that has it
-    if (b.clientPhone && !clients[key].phone) clients[key].phone = b.clientPhone;
-    if (b.clientEmail && !clients[key].email) clients[key].email = b.clientEmail;
-    if (b.clientAddress && !clients[key].address) clients[key].address = b.clientAddress;
-  });
+  // Unique clients (merges by shared email / phone / normalized name)
+  const clients = groupBookingsByClient(bookings);
 
   // Compute totals for each client
-  Object.values(clients).forEach(c => {
+  clients.forEach(c => {
     c.visits.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     c.count = c.visits.length;
     c.lastVisit = c.visits[0] ? c.visits[0].date : '';
@@ -3375,7 +3358,7 @@ function renderClients() {
   });
 
   // Sort: outstanding balance first, then by visit count
-  const sorted = Object.values(clients).sort((a, b) => {
+  const sorted = clients.sort((a, b) => {
     if ((b.outstanding > 0) !== (a.outstanding > 0)) return b.outstanding > 0 ? 1 : -1;
     if (b.outstanding !== a.outstanding) return b.outstanding - a.outstanding;
     return b.count - a.count;
@@ -3540,37 +3523,65 @@ function openBookModal() {
   openModal('modal-book');
 }
 
-function buildExistingClientList() {
-  // Group bookings by clientEmail (fall back to clientName) to get unique clients.
-  // Prefer the most-recent booking's contact info for each client.
-  const bookings = (typeof getBookings === 'function' ? getBookings() : [])
-    .filter(b => b.status !== 'canceled' && (b.clientName || b.clientEmail))
-    .slice()
-    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  const seen = new Map();
-  bookings.forEach(b => {
-    const key = (b.clientEmail || b.clientName || '').toLowerCase().trim();
-    if (!key || seen.has(key)) return;
-    seen.set(key, {
-      key: key,
-      name: b.clientName || '',
-      email: b.clientEmail || '',
-      phone: b.clientPhone || '',
-      address: b.clientAddress || '',
-      lastDate: b.date || ''
-    });
-    // Backfill missing contact fields from any older booking for this client
+// Merge bookings into unique clients. Two bookings are treated as the same
+// client if they share any of: email, phone (digits-only), or normalized
+// name (lowercase, collapsed whitespace). Union-find so chains merge
+// transitively — e.g. booking A shares email with B, B shares phone with C,
+// all three become one client. Newest booking's non-empty value wins per
+// field; older bookings backfill any still-missing fields.
+//
+// Returns an array of { key, name, email, phone, address, visits, lastDate }.
+function groupBookingsByClient(bookings) {
+  const list = bookings.slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+  const parent = list.map((_, i) => i);
+  const find = i => { while (parent[i] !== i) { parent[i] = parent[parent[i]]; i = parent[i]; } return i; };
+  const union = (i, j) => { const ri = find(i), rj = find(j); if (ri !== rj) parent[ri] = rj; };
+
+  const normName  = s => (s || '').toLowerCase().trim().replace(/\s+/g, ' ');
+  const normEmail = s => (s || '').toLowerCase().trim();
+  const normPhone = s => (s || '').replace(/\D/g, '');
+
+  const byEmail = new Map(), byPhone = new Map(), byName = new Map();
+  list.forEach((b, i) => {
+    const e = normEmail(b.clientEmail);
+    const p = normPhone(b.clientPhone);
+    const n = normName(b.clientName);
+    if (e)             { if (byEmail.has(e)) union(i, byEmail.get(e)); byEmail.set(e, i); }
+    if (p.length >= 7) { if (byPhone.has(p)) union(i, byPhone.get(p)); byPhone.set(p, i); }
+    if (n)             { if (byName.has(n))  union(i, byName.get(n));  byName.set(n, i); }
   });
-  // Merge in any older bookings with phone/address missing on newest
-  bookings.forEach(b => {
-    const key = (b.clientEmail || b.clientName || '').toLowerCase().trim();
-    const c = seen.get(key);
-    if (!c) return;
-    if (!c.phone   && b.clientPhone)   c.phone = b.clientPhone;
-    if (!c.email   && b.clientEmail)   c.email = b.clientEmail;
+
+  const groups = new Map();
+  list.forEach((b, i) => {
+    const root = find(i);
+    if (!groups.has(root)) {
+      groups.set(root, {
+        key: 'c' + root,
+        name: '', email: '', phone: '', address: '',
+        visits: [],
+        lastDate: ''
+      });
+    }
+    const c = groups.get(root);
+    c.visits.push(b);
+    // Newest-first: first non-empty value wins, older ones only fill blanks.
+    if (!c.name    && b.clientName)    c.name    = b.clientName;
+    if (!c.email   && b.clientEmail)   c.email   = b.clientEmail;
+    if (!c.phone   && b.clientPhone)   c.phone   = b.clientPhone;
     if (!c.address && b.clientAddress) c.address = b.clientAddress;
+    if ((b.date || '') > c.lastDate)   c.lastDate = b.date || '';
   });
-  return [...seen.values()].sort((a, b) => a.name.localeCompare(b.name));
+
+  return [...groups.values()];
+}
+
+function buildExistingClientList() {
+  const bookings = (typeof getBookings === 'function' ? getBookings() : [])
+    .filter(b => b.status !== 'canceled' && (b.clientName || b.clientEmail || b.clientPhone));
+  return groupBookingsByClient(bookings)
+    .filter(c => c.name || c.email || c.phone)
+    .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 }
 
 function populateExistingClientSelect() {
@@ -3666,20 +3677,25 @@ async function saveOBO() {
   // common mistakes: double-tapping "Book It", and re-booking a slot
   // that's already on the calendar.
   try { await refreshData(); } catch (_) { /* offline: fall back to cache */ }
-  const nameKey  = name.toLowerCase();
-  const emailKey = email.toLowerCase();
+  // Match the same client-merging rules used by the picker: name OR email
+  // OR phone (digits-only). Catches dupes even if the existing booking is
+  // filed under a different name variation ("Anna" vs "Anna Peck").
+  const nameKey  = (name  || '').toLowerCase().trim().replace(/\s+/g, ' ');
+  const emailKey = (email || '').toLowerCase().trim();
+  const phoneKey = (phone || '').replace(/\D/g, '');
   const existing = (getBookings() || []).filter(b => b.status !== 'canceled');
   const dupes = [];
   const toBook = [];
   for (const t of targets) {
-    const hit = existing.find(b =>
-      b.date === t.date &&
-      b.eventType === t.eventType &&
-      (
-        (b.clientName || '').toLowerCase().trim() === nameKey ||
-        (emailKey && (b.clientEmail || '').toLowerCase().trim() === emailKey)
-      )
-    );
+    const hit = existing.find(b => {
+      if (b.date !== t.date || b.eventType !== t.eventType) return false;
+      const bName  = (b.clientName  || '').toLowerCase().trim().replace(/\s+/g, ' ');
+      const bEmail = (b.clientEmail || '').toLowerCase().trim();
+      const bPhone = (b.clientPhone || '').replace(/\D/g, '');
+      return (nameKey  && bName  === nameKey)
+          || (emailKey && bEmail === emailKey)
+          || (phoneKey.length >= 7 && bPhone === phoneKey);
+    });
     if (hit) dupes.push(t); else toBook.push(t);
   }
 
