@@ -5,18 +5,17 @@
       <circle cx="320" cy="246" r="180" fill="black"/>
     </mask>
     <radialGradient id="drop" cx="50%" cy="40%" r="60%">
-      <stop offset="0%" stop-color="#ffb3c7"/>
-      <stop offset="60%" stop-color="#ff6e8c"/>
-      <stop offset="100%" stop-color="#c12e52"/>
+      <stop offset="0%" stop-color="#e09aa3"/>
+      <stop offset="55%" stop-color="#a31366"/>
+      <stop offset="100%" stop-color="#690e0e"/>
     </radialGradient>
     <radialGradient id="moonFill" cx="35%" cy="40%" r="70%">
-      <stop offset="0%" stop-color="#e9d8ff"/>
-      <stop offset="100%" stop-color="#b58bff"/>
+      <stop offset="0%" stop-color="#f1e4dc"/>
+      <stop offset="70%" stop-color="#e5c9b9"/>
+      <stop offset="100%" stop-color="#c0a190"/>
     </radialGradient>
   </defs>
-  <!-- Waxing crescent (bulge left, opens right) -->
   <circle cx="256" cy="256" r="210" fill="url(#moonFill)" mask="url(#crescent)"/>
-  <!-- Blood drop nestled in the crescent's inner curve -->
   <path d="
     M 340 260
     C 368 302, 378 336, 360 362
@@ -24,6 +23,5 @@
     C 270 340, 290 302, 318 268
     C 324 260, 334 258, 340 260 Z"
     fill="url(#drop)"/>
-  <!-- Highlight on the drop -->
-  <ellipse cx="312" cy="320" rx="8" ry="16" fill="#ffe2ec" opacity="0.55" transform="rotate(-18 312 320)"/>
+  <ellipse cx="312" cy="320" rx="8" ry="16" fill="#f1e4dc" opacity="0.45" transform="rotate(-18 312 320)"/>
 </svg>
