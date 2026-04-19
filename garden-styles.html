@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4a1942">
+  <meta name="apple-mobile-web-app-title" content="Garden Faery">
+  <meta name="description" content="Garden style lookbooks for Humboldt County. Cottage, faery whimsy, native woodland, edible permaculture, drought Mediterranean, pollinator sanctuary, sensory kids, and coastal styles.">
+  <meta property="og:title" content="Garden Styles | Garden Faery, Arcata, CA">
+  <meta property="og:description" content="Eight garden style lookbooks for Humboldt County's coastal climate. Each style is a curated set of anchor and companion plants.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gardenfaery.love/garden-styles.html">
+  <meta property="og:image" content="https://gardenfaery.love/farm.jpg">
+  <link rel="canonical" href="https://gardenfaery.love/garden-styles.html">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <title>Garden Styles | Garden Faery, Arcata, CA</title>
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    body { background: var(--bg); color: var(--text-primary); }
+
+    /* Hero */
+    .hero {
+      padding: 64px 24px 40px;
+      text-align: center;
+      background: linear-gradient(135deg, var(--sage-light) 0%, var(--petal-pink-light) 100%);
+      border-bottom: 2px solid var(--accent-1);
+    }
+    .hero h1 {
+      font-family: 'Elsie Swash Caps', serif;
+      font-size: clamp(36px, 6vw, 56px);
+      font-weight: 900;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+    .hero .subtitle {
+      font-family: var(--font-heading);
+      font-style: italic;
+      font-size: 20px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+    .hero .subtext {
+      font-size: 14px;
+      color: var(--gray-600);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .intro {
+      max-width: 720px;
+      margin: 36px auto 24px;
+      padding: 0 24px;
+      text-align: center;
+    }
+    .intro p {
+      font-size: 16px;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+    .intro p + p { margin-top: 14px; }
+
+    /* Style grid */
+    .styles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      max-width: 1200px;
+      margin: 36px auto 80px;
+      padding: 0 24px;
+    }
+    @media (min-width: 1100px) {
+      .styles-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    .style-card {
+      position: relative;
+      aspect-ratio: 4/5;
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .style-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+    .style-card img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+    .style-card:hover img { transform: scale(1.06); }
+    .style-card::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(74,25,66,0.0) 30%, rgba(74,25,66,0.85) 100%);
+    }
+    .style-card-body {
+      position: absolute;
+      left: 16px; right: 16px; bottom: 16px;
+      z-index: 2;
+      color: white;
+    }
+    .style-card-name {
+      font-family: 'Elsie Swash Caps', serif;
+      font-size: 26px;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 6px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+    .style-card-tagline {
+      font-family: var(--font-heading);
+      font-style: italic;
+      font-size: 14px;
+      line-height: 1.4;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(74, 25, 66, 0.55);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 32px 16px;
+      overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg);
+      border-radius: var(--radius);
+      max-width: 820px;
+      width: 100%;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(74, 25, 66, 0.3);
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 14px; right: 14px;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.92);
+      border: none;
+      cursor: pointer;
+      font-size: 22px;
+      color: var(--text-primary);
+      z-index: 5;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.18s;
+    }
+    .modal-close:hover { background: var(--white); }
+
+    .modal-hero {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      display: block;
+      background: var(--sage-light);
+    }
+    .modal-body { padding: 28px 32px 36px; }
+    .modal-name {
+      font-family: 'Elsie Swash Caps', serif;
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+      line-height: 1.1;
+    }
+    .modal-tagline {
+      font-family: var(--font-heading);
+      font-style: italic;
+      font-size: 18px;
+      color: var(--text-secondary);
+      margin-bottom: 18px;
+    }
+    .modal-vibes { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 22px; }
+    .vibe-tag {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 4px;
+      background: var(--sage-light); color: var(--text-primary);
+    }
+    .modal-description {
+      font-size: 15.5px; line-height: 1.7; color: var(--text-primary);
+      margin-bottom: 26px;
+    }
+    .section-title {
+      font-family: var(--font-heading);
+      font-size: 14px; font-weight: 700;
+      letter-spacing: 1.2px; text-transform: uppercase;
+      color: var(--text-primary);
+      margin: 28px 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 1.5px solid var(--gray-200);
+    }
+    .section-title:first-child { margin-top: 0; }
+    .section-title-helper {
+      display: block;
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 13px;
+      font-style: italic;
+      font-weight: 400;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    .plant-list { display: flex; flex-direction: column; gap: 10px; }
+    .plant-row {
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 14px;
+      padding: 10px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: background 0.15s;
+    }
+    .plant-row:hover { background: var(--sage-light); }
+    .plant-thumb {
+      width: 56px; height: 56px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: var(--gray-100);
+    }
+    .plant-info { display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+    .plant-info-name { font-weight: 700; font-size: 15px; }
+    .plant-info-role { font-size: 13px; color: var(--text-secondary); font-style: italic; }
+
+    .modal-conditions {
+      background: var(--sage-light);
+      padding: 14px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-top: 20px;
+    }
+    .modal-conditions strong {
+      display: block;
+      font-family: var(--font-heading);
+      font-size: 13px;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .footer-cta {
+      max-width: 720px;
+      margin: 0 auto 80px;
+      padding: 32px 28px;
+      text-align: center;
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .footer-cta h3 { font-family: var(--font-heading); font-size: 22px; font-weight: 600; margin-bottom: 10px; }
+    .footer-cta p { font-size: 15px; color: var(--text-secondary); margin-bottom: 18px; }
+    .footer-cta .btn {
+      display: inline-block;
+      font-family: var(--font-body);
+      font-weight: 700; font-size: 14px;
+      text-decoration: none;
+      padding: 12px 28px;
+      border-radius: 999px;
+      background: var(--accent-1);
+      color: var(--white);
+      transition: background 0.18s;
+    }
+    .footer-cta .btn:hover { background: var(--plum); }
+  </style>
+</head>
+<body>
+  <nav class="site-nav">
+    <a href="index.html" class="nav-logo">
+      <img src="garden-faery-logo.png" alt="" class="nav-logo-img">
+      Garden Faery
+    </a>
+    <button class="nav-toggle" aria-label="Menu" type="button" onclick="document.querySelector('.nav-links').classList.toggle('open')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="about.html">About</a>
+      <a href="services.html">Services</a>
+      <a href="gallery.html">Gallery</a>
+      <div class="nav-group active">
+        <button class="nav-group-toggle" type="button" onclick="this.parentElement.classList.toggle('open')">Guides<span class="caret" aria-hidden="true">&#9662;</span></button>
+        <div class="nav-group-menu">
+          <a href="plant-guide.html">Plant Guide</a>
+          <a href="plant-pairings.html">Plant Pairings</a>
+          <a href="garden-styles.html" class="active">Garden Styles</a>
+          <a href="food-guide.html">Market Garden</a>
+          <a href="estimator.html">Bed Builder</a>
+        </div>
+      </div>
+      <a href="book.html">Book</a>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <h1>Garden Styles</h1>
+      <p class="subtitle">Lookbooks for the kind of garden you want</p>
+      <p class="subtext">Zone 9b · Coastal Fog Belt · Arcata, CA</p>
+    </section>
+
+    <div class="intro">
+      <p>Each lookbook gathers a full set of plants that share a feeling — anchors that define the style, plus companions that fill it out. Pick a style, build it slowly, swap plants as you go.</p>
+      <p>Want help bringing one to life? <a href="book.html" style="color:var(--accent-1);font-weight:700;">Book a visit</a> and we'll plant it together.</p>
+    </div>
+
+    <div class="styles-grid" id="styles-grid"></div>
+
+    <div class="footer-cta">
+      <h3>Mix and match</h3>
+      <p>These styles are starting points, not rules. A cottage corner inside a native garden, an edible path through a faery patch — most of the prettiest gardens borrow from several.</p>
+      <a href="plant-pairings.html" class="btn">Browse plant pairings</a>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal" id="modal">
+      <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
+      <img class="modal-hero" id="modal-hero" alt="">
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <script>
+    const STYLES = [
+      {
+        slug: 'cottage',
+        name: 'Cottage Garden',
+        hero: 'garden-styles/cottage.jpg',
+        tagline: 'Romantic, abundant, just-this-side-of-wild English-style profusion.',
+        vibes: ['Romantic', 'Abundant', 'Self-seeding', 'Pollinator-friendly'],
+        description: 'A cottage garden looks like it grew itself. The trick is layering: a backbone of long-lived shrubs and perennials, taller spires for vertical drama, and a froth of self-seeders threading the gaps. Plants tumble into each other. Paths get a little overgrown. Bouquets are constant. Most cottage flowers want full sun and decent soil — but Humboldt cottage gardens lean cool and a little shadier than the classic English ideal, which is fine: hydrangeas, fuchsias, and astilbe step in beautifully.',
+        conditions: 'Full sun for most, decent soil with compost mixed in, regular water through the dry months. Mulch keeps roots cool and reduces watering.',
+        anchors: [
+          { slug: 'hydrangea', role: 'Big mophead anchors at corners and along fences' },
+          { slug: 'peony', role: 'Long-lived backbone perennial, May/June showstoppers' },
+          { slug: 'foxglove', role: 'Tall biennial spires, self-sows once happy' }
+        ],
+        companions: [
+          { slug: 'sweet-pea', role: 'Spring vines on a tuteur or fence, endless bouquets' },
+          { slug: 'delphinium', role: 'Blue spires for vertical drama' },
+          { slug: 'lupine', role: 'Native cousin to delphinium, tougher' },
+          { slug: 'snapdragon', role: 'Cool-season cottage classic' },
+          { slug: 'hollyhock', role: 'Tallest of the spires, against a back wall' },
+          { slug: 'dianthus', role: 'Edge plant, fragrant pinks' },
+          { slug: 'iceland-poppy', role: 'Tissue-paper flowers in cream and apricot' },
+          { slug: 'sweet-william', role: 'Old-fashioned biennial, dome-shaped clusters' },
+          { slug: 'alstroemeria', role: 'Cuts and cuts, lasts in vases for two weeks' },
+          { slug: 'astilbe', role: 'Plume blooms for the shadier corners' }
+        ]
+      },
+      {
+        slug: 'faery-whimsy',
+        name: 'Faery Whimsy',
+        hero: 'garden-styles/faery-whimsy.jpg',
+        tagline: 'Soft textures, dappled light, hidden surprises around every corner.',
+        vibes: ['Whimsical', 'Soft', 'Shaded', 'Magical'],
+        description: 'The signature Garden Faery garden. Built for shade and dappled light, with soft fern textures, nodding bell flowers, jewel-toned foliage, and groundcovers that look like a green carpet. Tuck small stones, mushroom statues, or fairy doors into the bases of trees. Best when discovered slowly — make a meandering path so visitors round a corner and find another little vignette.',
+        conditions: 'Part shade to dappled shade, moisture-retentive soil rich in leaf litter, mulched with bark or leaves. Most thrive in Humboldt\'s cool fog-belt climate.',
+        anchors: [
+          { slug: 'fuchsia', role: 'Pendulous bell flowers, hummingbird magnet' },
+          { slug: 'foxglove', role: 'Tall whimsy spires in pink and white' },
+          { slug: 'hellebore', role: 'Winter-blooming evergreen, nodding flowers' }
+        ],
+        companions: [
+          { slug: 'heuchera', role: 'Burgundy and silver foliage as ground accents' },
+          { slug: 'autumn-fern', role: 'Coppery new fronds in spring' },
+          { slug: 'japanese-painted-fern', role: 'Silver-purple variegated fronds' },
+          { slug: 'hosta', role: 'Lush leaf texture in shaded pockets' },
+          { slug: 'astilbe', role: 'Plume flowers in pink and white' },
+          { slug: 'western-bleeding-heart', role: 'Lacy native, heart-shaped pink flowers' },
+          { slug: 'sword-fern', role: 'Evergreen architecture' },
+          { slug: 'redwood-sorrel', role: 'Shamrock-leafed groundcover, native' },
+          { slug: 'inside-out-flower', role: 'Native, delicate white flowers in deep shade' }
+        ]
+      },
+      {
+        slug: 'pnw-native',
+        name: 'Pacific Northwest Native',
+        hero: 'garden-styles/pnw-native.jpg',
+        tagline: 'Plants that already grow here, doing what they evolved to do.',
+        vibes: ['Native', 'Low-input', 'Wildlife', 'Year-round'],
+        description: 'A garden made of plants that already grow wild around Humboldt — under the redwoods, along stream banks, on coastal bluffs. Once established they ask for almost nothing: no fertilizer, no summer water (after year one), minimal pruning. The reward is an ecosystem: native bees, butterflies, songbirds, salamanders, and the soft layered texture you see in the surrounding forest. Plants where the forest meets the sun get the showiest flowers; plants in deeper shade get the lushest texture.',
+        conditions: 'Full sun for the meadow-edge plants, dappled shade for the woodland understory. Acidic, organic soil. Established plants do not need summer water — that\'s the point.',
+        anchors: [
+          { slug: 'ceanothus', role: 'Evergreen native shrub, blue spring flower clouds' },
+          { slug: 'oregon-grape', role: 'Holly-like leaves, yellow spring blooms, blue berries' },
+          { slug: 'sword-fern', role: 'The signature evergreen of the PNW understory' }
+        ],
+        companions: [
+          { slug: 'salal', role: 'Glossy spreading shrub, edible berries, wildlife forage' },
+          { slug: 'evergreen-huckleberry', role: 'Native berry shrub, slow but valuable' },
+          { slug: 'redwood-sorrel', role: 'Carpet groundcover for deep shade' },
+          { slug: 'pacific-aster', role: 'Native fall bloomer for late pollinator forage' },
+          { slug: 'douglas-iris', role: 'Native iris, lavender flowers in spring' },
+          { slug: 'milkweed', role: 'Host plant for monarch butterflies' },
+          { slug: 'twinberry', role: 'Native shrub, yellow tube flowers, twin black berries' },
+          { slug: 'sticky-monkey-flower', role: 'Native, orange tubular flowers all summer' },
+          { slug: 'red-flowering-currant', role: 'Pink spring bloom, hummingbird magnet' },
+          { slug: 'western-bleeding-heart', role: 'Native lacy ferny foliage and pink flowers' }
+        ]
+      },
+      {
+        slug: 'edible-permaculture',
+        name: 'Edible Permaculture',
+        hero: 'garden-styles/edible-permaculture.jpg',
+        tagline: 'Beauty and harvest from the same soil — guilds, layers, perennial food.',
+        vibes: ['Edible', 'Productive', 'Layered', 'Permaculture'],
+        description: 'Build a garden that feeds you, the bees, and the soil. Permaculture layers food production into ornamental form: a fruit tree at the center, berries and herbs underneath, edible flowers and groundcovers below that. Most things here are perennial, which means once planted, they keep producing for years with minimal input. Pair with the Market Garden guide for annual vegetables.',
+        conditions: 'Full sun for fruit and most herbs, part shade for the understory plants. Compost-rich soil, regular water during fruit development, mulched paths to suppress weeds.',
+        anchors: [
+          { slug: 'apple', role: 'Fruit tree at the center — long-lived, family staple' },
+          { slug: 'rosemary', role: 'Year-round culinary herb, evergreen structure' },
+          { slug: 'beach-strawberry', role: 'Native edible groundcover under fruit trees' }
+        ],
+        companions: [
+          { slug: 'chives', role: 'Mild oniony, purple pom-pom flowers, pollinator magnet' },
+          { slug: 'thyme', role: 'Walkable groundcover herb, fragrant when crushed' },
+          { slug: 'lemon-balm', role: 'Reliable perennial herb, lemony tea' },
+          { slug: 'calendula', role: 'Edible petals + medicinal salve ingredient' },
+          { slug: 'nasturtium', role: 'Peppery edible leaves and flowers, scrambles happily' },
+          { slug: 'parsley', role: 'Biennial herb, flat-leaf for cooking' },
+          { slug: 'sage', role: 'Culinary herb + drought-proof + bee favorite' },
+          { slug: 'mint', role: 'Contained in pots only — invasive otherwise' },
+          { slug: 'borage', role: 'Bee magnet, edible blue flowers' },
+          { slug: 'fennel', role: 'Tall feathery anise-flavored herb, attracts beneficials' }
+        ]
+      },
+      {
+        slug: 'drought-mediterranean',
+        name: 'Drought Mediterranean',
+        hero: 'garden-styles/drought-mediterranean.jpg',
+        tagline: 'Silvery foliage, aromatic herbs, gravel paths — sun-baked beauty that asks little.',
+        vibes: ['Drought-tolerant', 'Aromatic', 'Sun-baked', 'Low water'],
+        description: 'For sunny inland Humboldt sites (Willow Creek, Trinity), south-facing walls, or any spot where you want a garden that thrives on neglect. Silvery and gray-green foliage reflects the sun. Aromatic herbs deter deer and pull in pollinators. Gravel mulch stays cool and reduces watering. Once established, almost nothing needs more than the rain provides.',
+        conditions: 'Full sun all day, sharp drainage (slopes, raised beds, or amended with gravel), little to no summer water once established. Avoid wet feet.',
+        anchors: [
+          { slug: 'lavender', role: 'Backbone scent and bloom, drought-proof' },
+          { slug: 'rosemary', role: 'Evergreen herb, blue flowers in winter' },
+          { slug: 'cleveland-sage', role: 'Native salvia, heady fragrance, lavender-blue whorls' }
+        ],
+        companions: [
+          { slug: 'yarrow', role: 'Flat flower platforms for native bees' },
+          { slug: 'california-poppy', role: 'Pop of orange, reseeds gently' },
+          { slug: 'lavender-cotton', role: 'Silvery mound, yellow button flowers' },
+          { slug: 'penstemon', role: 'Tubular spires for hummingbirds' },
+          { slug: 'thyme', role: 'Walkable groundcover, drought-proof' },
+          { slug: 'hummingbird-sage', role: 'Native, deep red-pink whorls' },
+          { slug: 'naked-buckwheat', role: 'Native, cream-yellow pompom flowers, tough' },
+          { slug: 'oregano', role: 'Spreading culinary herb, purple flowers attract bees' }
+        ]
+      },
+      {
+        slug: 'pollinator-sanctuary',
+        name: 'Pollinator Sanctuary',
+        hero: 'garden-styles/pollinator-sanctuary.jpg',
+        tagline: 'Built for bees, butterflies, and hummingbirds — three full seasons of bloom.',
+        vibes: ['Pollinator', 'Wildlife', 'Three-season bloom', 'Native-friendly'],
+        description: 'A garden designed first and foremost to support pollinators. Plant in clusters of three or more so pollinators can find the patch from a distance. Stagger bloom times so something is flowering March through October. Skip pesticides entirely. Add a shallow water dish with stones for landing. Anna\'s hummingbirds overwinter in Humboldt, so include a few year-round nectar sources.',
+        conditions: 'Full sun for most, part shade for the natives. Average soil, regular water year one, less after that. No pesticides — that\'s the whole point.',
+        anchors: [
+          { slug: 'milkweed', role: 'Host plant for monarch caterpillars' },
+          { slug: 'bee-balm', role: 'Hummingbird and native bee magnet' },
+          { slug: 'ceanothus', role: 'Native, spring bloom feeds emerging bees' }
+        ],
+        companions: [
+          { slug: 'lavender', role: 'Long bloom season, all bee species visit' },
+          { slug: 'phacelia', role: 'Single best cover crop for bees, plus stunning' },
+          { slug: 'echinacea', role: 'Late-summer butterflies, finches eat the seedheads' },
+          { slug: 'goldenrod', role: 'Native, critical fall pollinator food source' },
+          { slug: 'pacific-aster', role: 'Native, late-season butterfly favorite' },
+          { slug: 'hummingbird-sage', role: 'Native, year-round hummingbird food on the coast' },
+          { slug: 'penstemon', role: 'Tubular spires, hummingbirds and bumblebees' },
+          { slug: 'yarrow', role: 'Tiny native bees and beneficial wasps' },
+          { slug: 'sticky-monkey-flower', role: 'Native, summer-long orange tubes' },
+          { slug: 'borage', role: 'Bee magnet, blooms continuously' }
+        ]
+      },
+      {
+        slug: 'sensory-kids',
+        name: 'Sensory & Kids Garden',
+        hero: 'garden-styles/sensory-kids.jpg',
+        tagline: 'Touch, smell, taste, and watch — a garden that invites curious little hands.',
+        vibes: ['Touchable', 'Edible', 'Fragrant', 'Interactive'],
+        description: 'A garden designed for kids to explore safely. Everything here is touchable without harm, most are edible, and the textures and scents range wildly. Plant in a low circle or along a kid-height bed so small hands can reach everything. Add stepping stones, a child-sized watering can, and a magnifying glass. Avoid foxglove, oleander, and other toxic favorites — every plant here is kid-safe.',
+        conditions: 'Sun to part shade depending on what you pick. Regular water. Plant where kids actually go — near the back door, next to the play area, along the path to the front door.',
+        anchors: [
+          { slug: 'lemon-balm', role: 'Crush a leaf for instant lemon scent' },
+          { slug: 'beach-strawberry', role: 'Tiny intense berries to find and eat' },
+          { slug: 'snapdragon', role: 'Pinch the flower to make it open and close' }
+        ],
+        companions: [
+          { slug: 'chives', role: 'Mild onion taste, purple pompom flowers' },
+          { slug: 'nasturtium', role: 'Edible peppery leaves and flowers' },
+          { slug: 'mint', role: 'Smell test winner, pot only — invasive otherwise' },
+          { slug: 'calendula', role: 'Edible petals on salads, easy to grow' },
+          { slug: 'borage', role: 'Cucumber-tasting blue star flowers' },
+          { slug: 'lavender', role: 'Rub between fingers for the classic scent' },
+          { slug: 'sunflower', role: 'Bigger than the kid by July, seeds in fall' },
+          { slug: 'thyme', role: 'Soft mat to step on, releases fragrance' },
+          { slug: 'lavender-cotton', role: 'Soft fuzzy silver leaves to pet' }
+        ]
+      },
+      {
+        slug: 'coastal',
+        name: 'Coastal Wind & Salt',
+        hero: 'garden-styles/coastal.jpg',
+        tagline: 'Built for bluff edges and salt spray — tough plants that look good doing it.',
+        vibes: ['Coastal', 'Wind-tough', 'Salt-tolerant', 'Native'],
+        description: 'For gardens within sight of the ocean — Trinidad bluffs, Manila beach houses, Eureka oceanfront. The wind sculpts everything, the salt browns out anything that can\'t handle it, and the soil is often sandy and lean. The trick is choosing plants that evolved for these conditions rather than fighting the site. Most of these are PNW natives that already grow on Humboldt\'s coast — they don\'t just survive, they look beautiful doing it.',
+        conditions: 'Full sun, exposed to wind, sandy or rocky soil, salt spray tolerated. Drought-tolerant once established. Plant in fall so winter rain establishes roots before summer.',
+        anchors: [
+          { slug: 'pacific-wax-myrtle', role: 'Aromatic evergreen native, fast windbreak' },
+          { slug: 'shore-pine', role: 'Wind-sculpted native conifer, almost bulletproof' },
+          { slug: 'beach-strawberry', role: 'Native edible groundcover, tolerates sand' }
+        ],
+        companions: [
+          { slug: 'ceanothus', role: 'Spring blue clouds, evergreen native' },
+          { slug: 'twinberry', role: 'Native shrub, hummingbird tubular flowers' },
+          { slug: 'cleveland-sage', role: 'Drought-proof, salt-tolerant, fragrant' },
+          { slug: 'yarrow', role: 'Tough flat flower platforms for bees' },
+          { slug: 'naked-buckwheat', role: 'Native, cream pompoms, salt-tolerant' },
+          { slug: 'seaside-daisy', role: 'Coastal native, lavender daisies all summer' },
+          { slug: 'coast-silk-tassel', role: 'Native shrub, dangling silver catkins in winter' },
+          { slug: 'hairy-manzanita', role: 'Native shrub, copper bark, urn flowers' }
+        ]
+      }
+    ];
+
+    function plantTitle(slug) {
+      return slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    }
+    function plantHref(slug) { return 'plant-guide.html?plant=' + slug; }
+    function plantThumbSrc(slug) { return 'plant-guide/' + slug + '.jpg'; }
+
+    const grid = document.getElementById('styles-grid');
+    STYLES.forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'style-card';
+      card.innerHTML = `
+        <img src="${s.hero}" alt="${s.name}" loading="lazy"
+          onerror="this.style.background='var(--sage-light)';this.removeAttribute('src');">
+        <div class="style-card-body">
+          <div class="style-card-name">${s.name}</div>
+          <div class="style-card-tagline">${s.tagline}</div>
+        </div>
+      `;
+      card.addEventListener('click', () => openModal(s));
+      grid.appendChild(card);
+    });
+
+    const overlay = document.getElementById('modal-overlay');
+    const modalHero = document.getElementById('modal-hero');
+    const modalBody = document.getElementById('modal-body');
+
+    function plantRow(p) {
+      return `<a class="plant-row" href="${plantHref(p.slug)}">
+        <img class="plant-thumb" src="${plantThumbSrc(p.slug)}" alt="" loading="lazy"
+          onerror="this.style.background='var(--sage-light)';this.removeAttribute('src');">
+        <div class="plant-info">
+          <div class="plant-info-name">${plantTitle(p.slug)}</div>
+          <div class="plant-info-role">${p.role}</div>
+        </div>
+      </a>`;
+    }
+
+    function openModal(s) {
+      modalHero.src = s.hero;
+      modalHero.alt = s.name;
+      const vibesHtml = s.vibes.map(v => `<span class="vibe-tag">${v}</span>`).join('');
+      const anchorsHtml = s.anchors.map(plantRow).join('');
+      const companionsHtml = s.companions.map(plantRow).join('');
+      modalBody.innerHTML = `
+        <h2 class="modal-name">${s.name}</h2>
+        <p class="modal-tagline">${s.tagline}</p>
+        <div class="modal-vibes">${vibesHtml}</div>
+        <p class="modal-description">${s.description}</p>
+        <div class="modal-conditions"><strong>Growing Conditions</strong>${s.conditions}</div>
+        <div class="section-title">Anchor Plants
+          <span class="section-title-helper">Build the garden around these. They define the style.</span>
+        </div>
+        <div class="plant-list">${anchorsHtml}</div>
+        <div class="section-title">Companion Plants
+          <span class="section-title-helper">Fill in around the anchors. Mix and match by your taste and conditions.</span>
+        </div>
+        <div class="plant-list">${companionsHtml}</div>
+      `;
+      overlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      overlay.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    document.getElementById('modal-close').addEventListener('click', closeModal);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+  </script>
+</body>
+</html>
