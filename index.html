@@ -192,6 +192,73 @@
       .potm-name { font-size: 24px; }
     }
 
+    /* In Season Now */
+    .season-section {
+      max-width: 980px;
+      margin: 36px auto 24px;
+      padding: 0 16px;
+    }
+    .season-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .season-title {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .season-title em {
+      font-style: italic;
+      color: var(--accent-1);
+      font-weight: 600;
+    }
+    .season-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+    .season-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    @media (min-width: 600px) { .season-grid { grid-template-columns: repeat(4, 1fr); } }
+    .season-card {
+      display: block;
+      aspect-ratio: 1;
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      text-decoration: none;
+      color: white;
+      box-shadow: 0 2px 10px rgba(74,25,66,0.08);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .season-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(74,25,66,0.18); }
+    .season-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+    .season-card:hover img { transform: scale(1.06); }
+    .season-card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(74,25,66,0.0) 30%, rgba(74,25,66,0.78) 100%); }
+    .season-card-name {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 8px;
+      z-index: 2;
+      font-family: var(--font-heading);
+      font-size: 14px;
+      font-weight: 700;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.45);
+      line-height: 1.2;
+    }
+    .season-link { text-align: right; margin-top: 12px; }
+    .season-link a { font-size: 13px; font-weight: 700; color: var(--accent-1); text-decoration: none; border-bottom: 2px solid var(--accent-1); padding-bottom: 1px; }
+    .season-link a:hover { color: var(--text-primary); border-color: var(--text-primary); }
+
     /* Newsletter */
     .newsletter { border-radius: 16px; padding: 22px 20px; margin-bottom: 32px; text-align: center; background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.6); }
     .newsletter h2 { font-size: 24px; font-weight: 900; margin-bottom: 6px; }
@@ -280,6 +347,17 @@
         <div class="potm-link">Learn how to grow it &rarr;</div>
       </div>
     </a>
+  </div>
+
+  <div class="season-section">
+    <div class="season-header">
+      <div>
+        <div class="season-title">In Season Now <em id="season-name"></em></div>
+        <div class="season-subtitle" id="season-subtitle">What's looking its best in Humboldt right now</div>
+      </div>
+    </div>
+    <div class="season-grid" id="season-grid"></div>
+    <div class="season-link"><a href="plant-guide.html">Browse the full plant guide &rarr;</a></div>
   </div>
 
   <div class="content">
@@ -433,6 +511,70 @@
       document.getElementById('potm-name').textContent = spot.name;
       document.getElementById('potm-sci').textContent = spot.scientific;
       document.getElementById('potm-note').textContent = spot.note;
+    })();
+
+    // In Season Now — curated list of 8 plants per season
+    (function() {
+      var SEASONS = {
+        spring: {
+          label: 'this Spring',
+          subtitle: 'Long days, fog mornings, riot of bloom — these are the stars right now',
+          plants: [
+            'california-poppy', 'ceanothus', 'oregon-grape', 'foxglove',
+            'douglas-iris', 'western-bleeding-heart', 'sweet-pea', 'anemone'
+          ]
+        },
+        summer: {
+          label: 'this Summer',
+          subtitle: 'Peak color, peak pollinators — the garden is humming',
+          plants: [
+            'lavender', 'dahlia', 'zinnia', 'sunflower',
+            'cosmos', 'hummingbird-sage', 'bee-balm', 'echinacea'
+          ]
+        },
+        fall: {
+          label: 'this Fall',
+          subtitle: 'Late nectar, golden grasses, the slow turn into rest',
+          plants: [
+            'pacific-aster', 'japanese-anemone', 'persimmon', 'gaura-siskiyou-pink',
+            'japanese-maple', 'smoke-bush', 'ornamental-grasses', 'witch-hazel'
+          ]
+        },
+        winter: {
+          label: 'this Winter',
+          subtitle: 'Evergreen structure, fragrant surprises, quiet beauty',
+          plants: [
+            'camellia', 'hellebore', 'daphne', 'witch-hazel',
+            'rosemary', 'sword-fern', 'autumn-fern', 'hinoki-false-cypress'
+          ]
+        }
+      };
+
+      function currentSeason() {
+        var m = new Date().getMonth();
+        if (m >= 2 && m <= 4) return 'spring';
+        if (m >= 5 && m <= 7) return 'summer';
+        if (m >= 8 && m <= 10) return 'fall';
+        return 'winter';
+      }
+
+      function plantTitle(slug) {
+        return slug.split('-').map(function(w){return w.charAt(0).toUpperCase()+w.slice(1);}).join(' ');
+      }
+
+      var grid = document.getElementById('season-grid');
+      if (!grid) return;
+      var season = SEASONS[currentSeason()];
+      document.getElementById('season-name').textContent = season.label;
+      document.getElementById('season-subtitle').textContent = season.subtitle;
+
+      grid.innerHTML = season.plants.map(function(slug) {
+        return '<a class="season-card" href="plant-guide.html?plant=' + slug + '">' +
+          '<img src="plant-guide/' + slug + '.jpg" alt="' + plantTitle(slug) + '" loading="lazy" ' +
+          'onerror="this.style.display=\'none\';this.parentElement.style.background=\'#e8d4dc\';">' +
+          '<div class="season-card-name">' + plantTitle(slug) + '</div>' +
+          '</a>';
+      }).join('');
     })();
 
     function subscribeNewsletter() {
