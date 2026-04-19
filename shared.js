@@ -1,6 +1,7 @@
 /* Garden Faery — shared script.
    1. Inlines botanicals.svg so <use href="#id"> resolves cross-browser.
-   2. Generates a wind-blown grass + flower meadow above the page footer. */
+   2. Generates a wind-blown grass + flower meadow above the page footer.
+   3. Adds a little bee that buzzes around and lands on meadow flowers. */
 
 (function gfShared() {
   const ready = (fn) =>
@@ -137,7 +138,149 @@
       + parts.join('')
       + `</svg>`;
     footer.parentNode.insertBefore(div, footer);
+    return { meadowEl: div, flowers, VW, VH };
   }
 
-  ready(() => { injectBotanicals(); injectMeadow(); });
+  // --- 3. Bee ---
+  // A small bee that buzzes around the viewport and periodically lands on
+  // a meadow flower. Uses position:fixed so it drifts in viewport space
+  // regardless of scroll. Skipped when prefers-reduced-motion is set.
+  function injectBee(meadowInfo) {
+    if (!meadowInfo) return;
+    if (document.querySelector('.gf-bee')) return;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const { meadowEl, flowers, VW } = meadowInfo;
+
+    const bee = document.createElement('div');
+    bee.className = 'gf-bee';
+    bee.setAttribute('aria-hidden', 'true');
+    bee.innerHTML =
+      '<svg viewBox="-12 -10 24 20" xmlns="http://www.w3.org/2000/svg">'
+      // wings (drawn first so they sit behind the body)
+      + '<ellipse class="wing wing-l" cx="-3" cy="-7" rx="6" ry="3.5"'
+      +   ' fill="rgba(255,255,255,0.65)" stroke="rgba(80,60,30,0.45)" stroke-width="0.5"/>'
+      + '<ellipse class="wing wing-r" cx="3" cy="-7" rx="6" ry="3.5"'
+      +   ' fill="rgba(255,255,255,0.65)" stroke="rgba(80,60,30,0.45)" stroke-width="0.5"/>'
+      // fuzzy body
+      + '<ellipse cx="0" cy="0" rx="7.5" ry="4.5" fill="#f4c430"/>'
+      // stripes
+      + '<rect x="-6" y="-4.5" width="2" height="9" fill="#2c1810" rx="0.8"/>'
+      + '<rect x="-1.5" y="-4.5" width="2" height="9" fill="#2c1810" rx="0.8"/>'
+      + '<rect x="3" y="-4.5" width="2" height="9" fill="#2c1810" rx="0.8"/>'
+      // head
+      + '<circle cx="6.5" cy="0" r="2.8" fill="#2c1810"/>'
+      + '<circle cx="7.3" cy="-1" r="0.7" fill="#fff"/>'
+      + '</svg>';
+    document.body.appendChild(bee);
+
+    // Compute a landing point (page-unit coords in the meadow SVG viewBox,
+    // converted to viewport px) for a given flower.
+    function flowerViewportPos(f) {
+      const rect = meadowEl.getBoundingClientRect();
+      // meadow uses preserveAspectRatio="xMidYMax slice" on a viewBox
+      // 0 0 VW VH, rendered into rect.width x rect.height.
+      const scale = Math.max(rect.width / VW, rect.height / 200);
+      const renderedW = VW * scale;
+      const renderedH = 200 * scale;
+      const offsetX = rect.left + (rect.width - renderedW) / 2;  // xMid
+      const offsetY = rect.bottom - renderedH;                   // YMax
+      return {
+        x: offsetX + f.x * scale,
+        y: offsetY + (200 - f.stemH - 4) * scale  // a smidge above petals
+      };
+    }
+
+    function meadowInViewport() {
+      const r = meadowEl.getBoundingClientRect();
+      return r.top < innerHeight && r.bottom > 0;
+    }
+
+    function randomCruisePoint() {
+      // Keep the bee comfortably within viewport padding
+      const pad = 60;
+      return {
+        x: pad + Math.random() * (innerWidth - pad * 2),
+        y: pad + Math.random() * (Math.min(innerHeight, 500) - pad * 2)
+      };
+    }
+
+    let pos = { x: innerWidth * 0.5, y: 80 };
+    let facing = 1;
+
+    function pickTarget() {
+      // 70% chance to visit a flower if the meadow is on screen
+      if (meadowInViewport() && flowers.length && Math.random() < 0.7) {
+        const f = flowers[Math.floor(Math.random() * flowers.length)];
+        const p = flowerViewportPos(f);
+        return { ...p, land: true };
+      }
+      return { ...randomCruisePoint(), land: false };
+    }
+
+    async function flyTo(target) {
+      const dx = target.x - pos.x;
+      const dy = target.y - pos.y;
+      const dist = Math.hypot(dx, dy);
+      const duration = Math.max(900, Math.min(2800, dist * 3 + 400));
+      // direction for mirroring the bee so the head leads
+      if (Math.abs(dx) > 30) facing = dx > 0 ? 1 : -1;
+
+      // Wavy waypoints — sine-wave jitter perpendicular to the flight path
+      const steps = 26;
+      const perpX = -dy / (dist || 1);
+      const perpY =  dx / (dist || 1);
+      const keyframes = [];
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const baseX = pos.x + dx * t;
+        const baseY = pos.y + dy * t;
+        const fade  = Math.sin(t * Math.PI);
+        const wiggle = Math.sin(t * Math.PI * 3.2) * 18 * fade;
+        const bob    = Math.sin(t * Math.PI * 6) * 6 * fade;
+        const x = baseX + perpX * wiggle;
+        const y = baseY + perpY * wiggle + bob;
+        keyframes.push({
+          transform: 'translate(' + (x - 16) + 'px, ' + (y - 10) + 'px) scaleX(' + facing + ')'
+        });
+      }
+      bee.classList.add('flying');
+      bee.classList.remove('landed');
+      const anim = bee.animate(keyframes, {
+        duration,
+        easing: 'ease-in-out',
+        fill: 'forwards'
+      });
+      await anim.finished.catch(() => {});
+      pos = { x: target.x, y: target.y };
+    }
+
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    async function loop() {
+      // small initial settle
+      await sleep(800 + Math.random() * 1200);
+      while (true) {
+        const target = pickTarget();
+        await flyTo(target);
+        if (target.land) {
+          bee.classList.remove('flying');
+          bee.classList.add('landed');
+          await sleep(1800 + Math.random() * 3200);
+        } else {
+          await sleep(300 + Math.random() * 600);
+        }
+      }
+    }
+    loop().catch(() => {});
+
+    // If the meadow changes size (resize, font loading) the cached rect
+    // is fine because we recompute each flight — nothing to do here.
+  }
+
+  ready(() => {
+    injectBotanicals();
+    const meadowInfo = injectMeadow();
+    injectBee(meadowInfo);
+  });
 })();

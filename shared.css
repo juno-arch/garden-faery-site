@@ -176,3 +176,48 @@ footer a:hover { text-decoration: underline; }
 @media (prefers-reduced-motion: reduce) {
   .meadow .blade, .meadow .flower { animation: none; }
 }
+
+/* --- Bee ---
+   A small friendly bee that buzzes around the viewport and periodically
+   lands on a meadow flower. Driven by shared.js (Web Animations API).
+   Skipped entirely if prefers-reduced-motion is set. */
+.gf-bee {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 20px;
+  pointer-events: none;
+  z-index: 9;
+  transform: translate(-100px, -100px);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.18));
+  will-change: transform;
+}
+.gf-bee svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.gf-bee .wing {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+.gf-bee.flying .wing {
+  animation: gf-wing-beat 80ms linear infinite;
+}
+.gf-bee.landed .wing {
+  animation: gf-wing-rest 2.4s ease-in-out infinite;
+}
+@keyframes gf-wing-beat {
+  0%, 100% { transform: scaleY(1); }
+  50%      { transform: scaleY(0.25); }
+}
+@keyframes gf-wing-rest {
+  0%, 92%, 100% { transform: scaleY(1); }
+  94%, 96%      { transform: scaleY(0.4); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gf-bee { display: none !important; }
+}
