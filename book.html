@@ -45,26 +45,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
 <style>
-:root {
-  --plum: #4a1942;
-  --cream: #f8f4ed;
-  --petal-pink: #c48bb0;
-  --petal-pink-light: #e8d0df;
-  --spring-sage: #a3b88c;
-  --pollen-gold: #d4c27a;
-  --sage-light: #dfe8d4;
-  --white: #ffffff;
-  --gray-100: #f2efe8;
-  --gray-200: #e0dbd3;
-  --gray-400: #a89e96;
-  --gray-600: #6b5f56;
-  --radius: 12px;
-  --shadow: 0 2px 12px rgba(74,25,66,0.08);
-}
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
 body {
   font-family: 'Nunito', sans-serif;
   background: var(--cream);
@@ -754,6 +736,37 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   .contact-plug-actions { flex-direction: column; }
   .contact-plug-btn { justify-content: center; }
 }
+
+/* Returning-client login card (email OTP, top of step-0) */
+.client-login {
+  background: rgba(255,255,255,0.55);
+  border: 1px solid rgba(255,255,255,0.7);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: 0.92rem;
+}
+.client-login-summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.client-login-toggle {
+  background: none; border: none; color: var(--plum); font: inherit;
+  font-weight: 600; cursor: pointer; padding: 4px 0; text-decoration: underline;
+}
+.client-login-body { margin-top: 10px; }
+.client-login-row { display: flex; gap: 6px; align-items: stretch; margin-top: 6px; flex-wrap: wrap; }
+.client-login-row input {
+  flex: 1; min-width: 140px; padding: 8px 10px; border: 1px solid rgba(74,25,66,0.2);
+  border-radius: 8px; font: inherit; font-size: 0.92rem; background: var(--white);
+}
+.client-login-row button {
+  padding: 8px 14px; border: none; border-radius: 8px; cursor: pointer;
+  background: var(--plum); color: var(--white); font: inherit; font-weight: 600; font-size: 0.92rem;
+}
+.client-login-row button:disabled { opacity: 0.5; cursor: wait; }
+.client-login-row button.secondary { background: none; color: var(--plum); border: 1px solid var(--plum); }
+.client-login-msg { margin-top: 6px; font-size: 0.85rem; color: var(--gray-600); min-height: 1.1em; }
+.client-login-msg.error { color: var(--red); }
+.client-login-msg.success { color: var(--plum); font-weight: 600; }
+.client-login.logged-in { background: rgba(155,189,133,0.18); border-color: rgba(155,189,133,0.5); }
 </style>
 </head>
 <body>
@@ -777,6 +790,33 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
 
   <!-- Step 1: Choose event type -->
   <div class="step-panel active" id="step-0">
+
+    <!-- Returning-client login (optional). Auto-fills Step 3 via email OTP. -->
+    <div class="client-login" id="client-login">
+      <div class="client-login-summary">
+        <span id="client-login-title">Booked with me before?</span>
+        <button type="button" class="client-login-toggle" id="client-login-toggle" onclick="toggleClientLogin()">Log in</button>
+      </div>
+      <div class="client-login-body" id="client-login-body" style="display:none;">
+        <!-- Step 1: enter email -->
+        <div id="client-login-step-email">
+          <div class="client-login-row">
+            <input type="email" id="client-login-email" placeholder="your@email.com" autocomplete="email">
+            <button type="button" id="client-login-send" onclick="sendLoginCode()">Send code</button>
+          </div>
+        </div>
+        <!-- Step 2: enter code -->
+        <div id="client-login-step-code" style="display:none;">
+          <div class="client-login-row">
+            <input type="text" id="client-login-code" placeholder="6-digit code" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+            <button type="button" id="client-login-verify" onclick="verifyLoginCode()">Log in</button>
+            <button type="button" class="secondary" onclick="resetLoginFlow()">Start over</button>
+          </div>
+        </div>
+        <div class="client-login-msg" id="client-login-msg" aria-live="polite"></div>
+      </div>
+    </div>
+
     <div class="event-types">
       <button class="event-type-btn" data-event="morning">
         <div class="event-icon morning">AM</div>
@@ -2026,6 +2066,176 @@ function formatDate(date) {
 
 // --- Init: preload data ---
 refreshData();
+
+// ============================================
+// Returning-client login (email OTP)
+// On verified OTP, we cache the client's profile (name/email/phone/address)
+// in localStorage so the same browser skips the form next time. Logout
+// clears it.
+// ============================================
+const CLIENT_PROFILE_KEY = 'gf_client_profile_v1';
+
+function getSavedClientProfile() {
+  try { return JSON.parse(localStorage.getItem(CLIENT_PROFILE_KEY) || 'null'); }
+  catch { return null; }
+}
+function setSavedClientProfile(p) {
+  try { localStorage.setItem(CLIENT_PROFILE_KEY, JSON.stringify(p)); }
+  catch {}
+}
+function clearSavedClientProfile() {
+  try { localStorage.removeItem(CLIENT_PROFILE_KEY); } catch {}
+}
+
+function applyPrefillToForm(p) {
+  if (!p) return;
+  const name = document.getElementById('f-name');
+  const email = document.getElementById('f-email');
+  const phone = document.getElementById('f-phone');
+  const addr = document.getElementById('f-address');
+  if (name && p.name) name.value = p.name;
+  if (email && p.email) email.value = p.email;
+  if (phone && p.phone) phone.value = p.phone;
+  if (addr && p.address) addr.value = p.address;
+}
+
+function renderClientLoginCard() {
+  const profile = getSavedClientProfile();
+  const card = document.getElementById('client-login');
+  const title = document.getElementById('client-login-title');
+  const toggle = document.getElementById('client-login-toggle');
+  const body = document.getElementById('client-login-body');
+  if (!card) return;
+  if (profile && profile.email) {
+    card.classList.add('logged-in');
+    const niceName = (profile.name || '').split(' ')[0] || 'friend';
+    title.textContent = 'Welcome back, ' + niceName + '. Your details will pre-fill.';
+    toggle.textContent = 'Log out';
+    toggle.setAttribute('onclick', 'clientLogout()');
+    body.style.display = 'none';
+    applyPrefillToForm(profile);
+  } else {
+    card.classList.remove('logged-in');
+    title.textContent = 'Booked with me before?';
+    toggle.textContent = 'Log in';
+    toggle.setAttribute('onclick', 'toggleClientLogin()');
+  }
+}
+
+function toggleClientLogin() {
+  const body = document.getElementById('client-login-body');
+  const hidden = body.style.display === 'none' || !body.style.display;
+  body.style.display = hidden ? 'block' : 'none';
+  if (hidden) {
+    resetLoginFlow();
+    const email = document.getElementById('client-login-email');
+    if (email) setTimeout(() => email.focus(), 30);
+  }
+}
+
+function resetLoginFlow() {
+  document.getElementById('client-login-step-email').style.display = 'block';
+  document.getElementById('client-login-step-code').style.display = 'none';
+  document.getElementById('client-login-msg').textContent = '';
+  document.getElementById('client-login-msg').className = 'client-login-msg';
+  document.getElementById('client-login-send').disabled = false;
+  document.getElementById('client-login-verify').disabled = false;
+}
+
+function setLoginMsg(text, kind) {
+  const el = document.getElementById('client-login-msg');
+  el.textContent = text || '';
+  el.className = 'client-login-msg' + (kind ? ' ' + kind : '');
+}
+
+async function sendLoginCode() {
+  const email = (document.getElementById('client-login-email').value || '').trim().toLowerCase();
+  const btn = document.getElementById('client-login-send');
+  if (!email || email.indexOf('@') < 0) {
+    setLoginMsg('Enter a valid email.', 'error');
+    return;
+  }
+  btn.disabled = true;
+  setLoginMsg('Sending code…');
+  try {
+    const resp = await fetch(PB_URL + '/api/booking/request-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      setLoginMsg(data.error || 'Could not send code. Try again.', 'error');
+      btn.disabled = false;
+      return;
+    }
+    document.getElementById('client-login-step-email').style.display = 'none';
+    document.getElementById('client-login-step-code').style.display = 'block';
+    setLoginMsg('Code sent to ' + email + '. Check your inbox.', 'success');
+    setTimeout(() => {
+      const codeEl = document.getElementById('client-login-code');
+      if (codeEl) codeEl.focus();
+    }, 30);
+  } catch (err) {
+    setLoginMsg('Network error. Try again.', 'error');
+    btn.disabled = false;
+  }
+}
+
+async function verifyLoginCode() {
+  const email = (document.getElementById('client-login-email').value || '').trim().toLowerCase();
+  const code = (document.getElementById('client-login-code').value || '').trim();
+  const btn = document.getElementById('client-login-verify');
+  if (!email || !code) {
+    setLoginMsg('Enter the 6-digit code.', 'error');
+    return;
+  }
+  btn.disabled = true;
+  setLoginMsg('Checking…');
+  try {
+    const resp = await fetch(PB_URL + '/api/booking/verify-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, code: code }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      setLoginMsg(data.error || 'Wrong code.', 'error');
+      btn.disabled = false;
+      return;
+    }
+    const profile = {
+      email: data.email || email,
+      name: (data.prefill && data.prefill.name) || '',
+      phone: (data.prefill && data.prefill.phone) || '',
+      address: (data.prefill && data.prefill.address) || '',
+    };
+    setSavedClientProfile(profile);
+    renderClientLoginCard();
+    setLoginMsg('Logged in. Your details will pre-fill.', 'success');
+  } catch (err) {
+    setLoginMsg('Network error. Try again.', 'error');
+    btn.disabled = false;
+  }
+}
+
+function clientLogout() {
+  clearSavedClientProfile();
+  ['f-name', 'f-email', 'f-phone', 'f-address'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  renderClientLoginCard();
+}
+
+// Enter-key submit handlers + initial render.
+document.addEventListener('DOMContentLoaded', () => {
+  const emailEl = document.getElementById('client-login-email');
+  const codeEl = document.getElementById('client-login-code');
+  if (emailEl) emailEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendLoginCode(); });
+  if (codeEl) codeEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') verifyLoginCode(); });
+  renderClientLoginCard();
+});
 </script>
 
 <footer class="site-footer">
