@@ -2,93 +2,304 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Moon Cycle | Garden Faery</title>
 <link rel="apple-touch-icon" href="/icon-moon.png">
 <link rel="icon" type="image/png" href="/icon-moon.png">
 <meta name="apple-mobile-web-app-title" content="Moon">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1a1036">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
 <style>
 :root {
-  --plum: #4a1942;
-  --cream: #f8f4ed;
-  --petal-pink: #c48bb0;
-  --petal-pink-light: #e8d0df;
-  --pollen-gold: #d4c27a;
-  --sage: #a3b88c;
-  --white: #ffffff;
-  --gray-100: #f2efe8;
-  --gray-200: #e0dbd3;
-  --gray-400: #a89e96;
-  --gray-600: #6b5f56;
-  --red-light: #f0d4d4;
-  --red: #a03020;
-  --moon: #8a6b9e;
-  --moon-light: #d5c6df;
-  --radius: 12px;
-  --shadow: 0 2px 12px rgba(74,25,66,0.08);
+  --moon-bg:     #140a2e;
+  --moon-bg2:    #251647;
+  --moon-card:   #1f1340;
+  --moon-card2:  #2a1b56;
+  --moon-line:   #3a2a6b;
+  --moon-text:   #f4ecff;
+  --moon-dim:    #b9a8de;
+  --moon-accent: #e9d8ff;
+  --moon-glow:   #b58bff;
+  --moon-pink:   #ff8fb1;
+  --moon-pink2:  #ffb3c7;
+  --moon-gold:   #ffd98b;
+  --moon-teal:   #8fe3d4;
+  --moon-red:    #ff6e8c;
 }
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Nunito',sans-serif; background:var(--cream); color:var(--plum); min-height:100vh; padding-bottom:60px; }
-h1,h2,h3 { font-family:'Lora',serif; font-weight:400; }
-.container { max-width:560px; margin:0 auto; padding:16px; }
-.top-bar { display:flex; align-items:center; justify-content:space-between; padding:16px 0 8px; }
-.top-bar h1 { font-size:1.5rem; }
-.btn { padding:10px 16px; border:none; border-radius:10px; background:var(--plum); color:var(--white); font-family:'Nunito',sans-serif; font-weight:600; cursor:pointer; font-size:0.9rem; }
-.btn.secondary { background:var(--gray-200); color:var(--plum); }
-.btn.danger { background:var(--red-light); color:var(--red); }
-.btn:disabled { opacity:0.5; cursor:not-allowed; }
-.card { background:var(--white); border-radius:var(--radius); padding:16px; margin-bottom:12px; box-shadow:var(--shadow); }
-.card h3 { font-size:1.1rem; margin-bottom:10px; }
-.row { display:flex; gap:8px; align-items:center; }
-.row.wrap { flex-wrap:wrap; }
-.stat { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--gray-100); }
-.stat:last-child { border-bottom:none; }
-.stat .label { color:var(--gray-600); font-size:0.9rem; }
-.stat .value { font-weight:700; }
-label { display:block; font-size:0.85rem; color:var(--gray-600); margin-bottom:4px; }
-input[type=date], input[type=password], input[type=text] {
-  width:100%; padding:10px 12px; border:1px solid var(--gray-200); border-radius:10px;
-  font-family:'Nunito',sans-serif; font-size:0.95rem; background:var(--white); color:var(--plum);
+* { box-sizing: border-box; }
+html, body { margin:0; padding:0; }
+body {
+  font-family: 'Nunito', sans-serif;
+  background: radial-gradient(ellipse at top, var(--moon-bg2) 0%, var(--moon-bg) 60%);
+  color: var(--moon-text);
+  min-height: 100vh;
+  padding-bottom: 80px;
+  -webkit-font-smoothing: antialiased;
 }
-.form-field { margin-bottom:10px; flex:1; }
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 23% 18%, #fff 50%, transparent),
+    radial-gradient(1px 1px at 62% 42%, #fff 50%, transparent),
+    radial-gradient(1px 1px at 81% 12%, #fff 50%, transparent),
+    radial-gradient(1px 1px at 12% 68%, #fff 50%, transparent),
+    radial-gradient(1px 1px at 42% 82%, #fff 50%, transparent),
+    radial-gradient(1px 1px at 88% 74%, #fff 50%, transparent),
+    radial-gradient(1px 1px at 34% 38%, #fff 50%, transparent),
+    radial-gradient(1px 1px at 71% 28%, #fff 50%, transparent),
+    radial-gradient(1px 1px at 55% 62%, #fff 50%, transparent);
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 0;
+}
+h1, h2, h3 { font-family: 'Lora', serif; font-weight: 600; margin: 0; color: var(--moon-text); }
+.container { max-width: 560px; margin: 0 auto; padding: 16px; position: relative; z-index: 1; }
 
-/* Login */
-#login { max-width:360px; margin:80px auto; padding:24px; }
-#login .card { text-align:center; }
-#login-error { color:var(--red); font-size:0.85rem; margin-top:8px; display:none; }
+.top-bar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 14px 4px 18px;
+}
+.top-bar h1 { font-size: 1.4rem; letter-spacing: 0.5px; }
+.top-bar .exit-btn {
+  background: rgba(255,255,255,0.08); border: 1px solid var(--moon-line);
+  color: var(--moon-dim); border-radius: 20px; padding: 6px 14px;
+  font-family: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+}
+.top-bar .exit-btn:hover { background: rgba(255,255,255,0.14); }
+
+.card {
+  background: linear-gradient(160deg, var(--moon-card) 0%, var(--moon-card2) 100%);
+  border: 1px solid var(--moon-line);
+  border-radius: 20px;
+  padding: 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+}
+.card h3 { font-size: 1.05rem; margin-bottom: 12px; letter-spacing: 0.3px; }
+
+/* Today moon card */
+.today-card {
+  text-align: center;
+  padding: 28px 20px 22px;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(181,139,255,0.22) 0%, transparent 55%),
+    linear-gradient(160deg, var(--moon-card) 0%, var(--moon-card2) 100%);
+}
+.today-phase {
+  font-size: 5rem;
+  line-height: 1;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 0 22px rgba(181,139,255,0.55));
+}
+.today-date { font-size: 0.8rem; color: var(--moon-dim); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+.today-name { font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 600; margin-bottom: 6px; }
+.today-illum { font-size: 0.8rem; color: var(--moon-dim); margin-bottom: 14px; }
+.today-cycle {
+  display: inline-flex; flex-direction: column; gap: 2px;
+  padding: 10px 18px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid var(--moon-line);
+  border-radius: 14px;
+}
+.today-cycle .day { font-size: 1.5rem; font-weight: 700; font-family: 'Lora', serif; color: var(--moon-accent); }
+.today-cycle .season { font-size: 0.75rem; color: var(--moon-dim); letter-spacing: 0.5px; text-transform: uppercase; }
+
+/* Quick-log button on today card */
+.log-today-btn {
+  display: block; width: 100%; margin-top: 14px;
+  background: linear-gradient(135deg, var(--moon-glow) 0%, var(--moon-pink) 100%);
+  color: var(--moon-bg);
+  border: none; border-radius: 14px; padding: 12px;
+  font-family: inherit; font-weight: 700; font-size: 0.95rem;
+  cursor: pointer; box-shadow: 0 4px 18px rgba(181,139,255,0.4);
+}
+.log-today-btn:hover { filter: brightness(1.05); }
 
 /* Calendar */
-.cal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
-.cal-header h3 { font-size:1.05rem; }
-.cal-nav { display:flex; gap:4px; }
-.cal-nav button { background:var(--gray-100); border:none; border-radius:8px; width:30px; height:30px; font-weight:700; color:var(--plum); cursor:pointer; font-size:1rem; }
-.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
-.cal-dow { text-align:center; font-size:0.7rem; color:var(--gray-600); font-weight:700; padding:4px 0; }
-.cal-day { aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:8px; font-size:0.85rem; background:var(--gray-100); position:relative; }
-.cal-day.muted { color:var(--gray-400); background:transparent; }
-.cal-day.today { outline:2px solid var(--plum); font-weight:700; }
-.cal-day.period { background:var(--red-light); color:var(--red); font-weight:700; }
-.cal-day.projected { background:repeating-linear-gradient(45deg,var(--red-light),var(--red-light) 4px,var(--cream) 4px,var(--cream) 8px); color:var(--red); font-weight:700; }
-.cal-day.fertile { background:var(--pollen-gold); color:var(--plum); font-weight:700; }
-.cal-day .mark { font-size:0.6rem; position:absolute; bottom:2px; }
+.cal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; }
+.cal-header h3 { font-size: 1rem; font-family: 'Lora', serif; }
+.cal-nav { display: flex; gap: 4px; }
+.cal-nav button {
+  background: rgba(255,255,255,0.07); border: 1px solid var(--moon-line);
+  border-radius: 10px; width: 32px; height: 32px;
+  color: var(--moon-text); cursor: pointer; font-size: 1.1rem; font-weight: 700;
+}
+.cal-nav button:hover { background: rgba(255,255,255,0.14); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-dow { text-align: center; font-size: 0.65rem; color: var(--moon-dim); font-weight: 700; padding: 6px 0; letter-spacing: 0.5px; }
+.cal-day {
+  aspect-ratio: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  background: rgba(255,255,255,0.03);
+  position: relative;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+.cal-day:hover { background: rgba(255,255,255,0.1); }
+.cal-day.muted { color: rgba(244,236,255,0.25); background: transparent; cursor: default; }
+.cal-day.muted:hover { background: transparent; }
+.cal-day.today { border-color: var(--moon-glow); font-weight: 700; }
+.cal-day .num { line-height: 1; }
+.cal-day .moon { font-size: 0.8rem; margin-top: 2px; filter: drop-shadow(0 0 4px rgba(181,139,255,0.45)); }
+.cal-day.period { background: rgba(255,110,140,0.28); color: #fff; font-weight: 700; }
+.cal-day.projected {
+  background: repeating-linear-gradient(45deg, rgba(255,110,140,0.22), rgba(255,110,140,0.22) 3px, transparent 3px, transparent 7px);
+  color: var(--moon-pink2); font-weight: 700;
+}
+.cal-day.fertile { background: rgba(255,217,139,0.22); color: var(--moon-gold); font-weight: 700; }
+.cal-day .dots {
+  position: absolute; bottom: 3px; left: 0; right: 0;
+  display: flex; justify-content: center; gap: 2px;
+}
+.cal-day .dot { width: 4px; height: 4px; border-radius: 50%; }
+.cal-day .dot.flow { background: var(--moon-red); }
+.cal-day .dot.sym { background: var(--moon-gold); }
+.cal-day .dot.mood { background: var(--moon-teal); }
+.cal-day .dot.sex { background: var(--moon-pink); }
+.cal-day .dot.note { background: var(--moon-accent); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.7rem; color: var(--moon-dim); margin-top: 12px; }
+.legend span { display: flex; align-items: center; gap: 4px; }
+.legend .sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+/* Stats card */
+.stat { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--moon-line); font-size: 0.88rem; }
+.stat:last-child { border-bottom: none; }
+.stat .label { color: var(--moon-dim); }
+.stat .value { font-weight: 700; color: var(--moon-accent); }
+.sync-status { font-size: 0.78rem; color: var(--moon-dim); margin-top: 10px; }
+.sync-status.ok { color: var(--moon-teal); }
+.sync-status.err { color: var(--moon-red); }
+
+/* Forms */
+label { display: block; font-size: 0.78rem; color: var(--moon-dim); margin-bottom: 4px; letter-spacing: 0.3px; }
+input[type=date], input[type=password], input[type=number], input[type=text], textarea {
+  width: 100%; padding: 11px 13px;
+  border: 1px solid var(--moon-line); border-radius: 12px;
+  background: rgba(0,0,0,0.2); color: var(--moon-text);
+  font-family: 'Nunito', sans-serif; font-size: 0.95rem;
+}
+input:focus, textarea:focus { outline: none; border-color: var(--moon-glow); }
+textarea { min-height: 80px; resize: vertical; font-family: 'Nunito', sans-serif; }
+.form-field { margin-bottom: 10px; flex: 1; }
+.row { display: flex; gap: 8px; }
+.row.wrap { flex-wrap: wrap; }
+
+.btn {
+  padding: 11px 18px; border: none; border-radius: 12px;
+  background: var(--moon-glow); color: var(--moon-bg);
+  font-family: 'Nunito', sans-serif; font-weight: 700; cursor: pointer; font-size: 0.9rem;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn.secondary { background: rgba(255,255,255,0.08); color: var(--moon-text); border: 1px solid var(--moon-line); }
+.btn.danger { background: rgba(255,110,140,0.15); color: var(--moon-red); border: 1px solid rgba(255,110,140,0.3); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* Period list */
-.period-item { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--gray-100); font-size:0.9rem; }
-.period-item:last-child { border-bottom:none; }
-.period-item .dates { color:var(--plum); }
-.period-item .len { color:var(--gray-600); font-size:0.8rem; }
-.period-item .del { background:none; border:none; color:var(--red); cursor:pointer; font-size:0.85rem; }
+.period-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--moon-line); font-size: 0.88rem;
+}
+.period-item:last-child { border-bottom: none; }
+.period-item .dates { color: var(--moon-text); font-weight: 600; }
+.period-item .len { color: var(--moon-dim); font-size: 0.78rem; margin-top: 2px; }
+.period-item .del {
+  background: none; border: none; color: var(--moon-red);
+  cursor: pointer; font-size: 0.8rem; font-family: inherit;
+}
 
-.legend { display:flex; flex-wrap:wrap; gap:10px; font-size:0.75rem; color:var(--gray-600); margin-top:8px; }
-.legend span { display:flex; align-items:center; gap:4px; }
-.legend .sw { width:12px; height:12px; border-radius:3px; display:inline-block; }
+/* Login */
+#login { max-width: 380px; margin: 90px auto 0; padding: 24px; }
+#login .card { text-align: center; }
+#login-error { color: var(--moon-red); font-size: 0.85rem; margin-top: 8px; display: none; }
 
-.sync-status { font-size:0.8rem; color:var(--gray-600); margin-top:8px; }
-.sync-status.ok { color:var(--sage); }
-.sync-status.err { color:var(--red); }
+/* Day log sheet */
+.sheet-backdrop {
+  position: fixed; inset: 0; background: rgba(10,5,25,0.75);
+  z-index: 50; display: none; align-items: flex-end; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.sheet-backdrop.open { display: flex; }
+.sheet {
+  background: linear-gradient(160deg, var(--moon-card) 0%, var(--moon-bg) 100%);
+  border: 1px solid var(--moon-line);
+  border-radius: 24px 24px 0 0;
+  width: 100%; max-width: 560px;
+  max-height: 92vh; overflow-y: auto;
+  padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0));
+  animation: slideUp 0.22s ease-out;
+}
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.sheet-grip {
+  width: 40px; height: 4px; background: var(--moon-line);
+  border-radius: 2px; margin: 0 auto 12px;
+}
+.sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.sheet-head .left { display: flex; align-items: center; gap: 12px; }
+.sheet-head .phase { font-size: 2rem; filter: drop-shadow(0 0 10px rgba(181,139,255,0.5)); }
+.sheet-head .info { line-height: 1.2; }
+.sheet-head .info .d { font-family: 'Lora', serif; font-size: 1.15rem; font-weight: 600; }
+.sheet-head .info .p { font-size: 0.75rem; color: var(--moon-dim); }
+.sheet-head .close {
+  background: rgba(255,255,255,0.07); border: 1px solid var(--moon-line);
+  color: var(--moon-text); border-radius: 50%; width: 32px; height: 32px;
+  cursor: pointer; font-size: 1.1rem; line-height: 1;
+}
+
+.section { margin-bottom: 18px; }
+.section-title {
+  font-size: 0.75rem; font-weight: 700; color: var(--moon-dim);
+  letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;
+}
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--moon-line);
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-family: inherit; font-size: 0.82rem; font-weight: 600;
+  color: var(--moon-text); cursor: pointer;
+  transition: all 0.12s;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.chip:hover { background: rgba(255,255,255,0.12); }
+.chip.on {
+  background: rgba(181,139,255,0.28);
+  border-color: var(--moon-glow);
+  color: var(--moon-accent);
+  box-shadow: 0 2px 12px rgba(181,139,255,0.35);
+}
+.chip.flow.on { background: rgba(255,110,140,0.28); border-color: var(--moon-red); color: var(--moon-pink2); box-shadow: 0 2px 12px rgba(255,110,140,0.35); }
+.chip.sym.on  { background: rgba(255,217,139,0.2);  border-color: var(--moon-gold); color: var(--moon-gold); box-shadow: 0 2px 12px rgba(255,217,139,0.28); }
+.chip.mood.on { background: rgba(143,227,212,0.18); border-color: var(--moon-teal); color: var(--moon-teal); box-shadow: 0 2px 12px rgba(143,227,212,0.28); }
+.chip.sex.on  { background: rgba(255,143,177,0.2);  border-color: var(--moon-pink); color: var(--moon-pink2); box-shadow: 0 2px 12px rgba(255,143,177,0.28); }
+
+.number-input { display: flex; align-items: center; gap: 8px; }
+.number-input input { width: 90px; }
+
+.sheet-actions {
+  display: flex; gap: 8px; margin-top: 20px;
+  padding-top: 14px; border-top: 1px solid var(--moon-line);
+}
+.sheet-actions .btn { flex: 1; }
+
+/* Charts */
+#charts-card svg { width: 100%; height: 100px; }
+
+/* Muted info box */
+.info-box {
+  background: rgba(255,255,255,0.04); border: 1px solid var(--moon-line);
+  border-radius: 12px; padding: 12px 14px;
+  font-size: 0.82rem; color: var(--moon-dim); line-height: 1.5;
+}
+.info-box a { color: var(--moon-glow); text-decoration: none; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -96,7 +307,8 @@ input[type=date], input[type=password], input[type=text] {
 <!-- Login -->
 <div id="login" style="display:none;">
   <div class="card">
-    <h2 style="margin-bottom:16px;">🌙 Moon Cycle</h2>
+    <div style="font-size:3rem;margin-bottom:6px;filter:drop-shadow(0 0 18px rgba(181,139,255,0.6));">🌙</div>
+    <h2 style="margin-bottom:18px;font-size:1.2rem;letter-spacing:0.5px;">Moon Cycle</h2>
     <div class="form-field" style="text-align:left;">
       <label>Password</label>
       <input type="password" id="login-pass" onkeypress="if(event.key==='Enter') doLogin()">
@@ -110,60 +322,79 @@ input[type=date], input[type=password], input[type=text] {
 <div id="app" class="container" style="display:none;">
   <div class="top-bar">
     <h1>🌙 Moon Cycle</h1>
-    <button class="btn secondary" onclick="logout()">Exit</button>
+    <button class="exit-btn" onclick="logout()">Exit</button>
   </div>
 
-  <!-- Current cycle stats -->
-  <div class="card">
-    <h3>Current cycle</h3>
-    <div class="stat"><span class="label">Last period started</span><span class="value" id="s-last">-</span></div>
-    <div class="stat"><span class="label">Cycle day (today)</span><span class="value" id="s-day">-</span></div>
-    <div class="stat"><span class="label">Avg cycle length</span><span class="value" id="s-avg">-</span></div>
-    <div class="stat"><span class="label">Avg period length</span><span class="value" id="s-plen">-</span></div>
-    <div class="stat"><span class="label">Next projected</span><span class="value" id="s-next">-</span></div>
-    <div class="stat"><span class="label">Fertile day (day 14)</span><span class="value" id="s-fertile">-</span></div>
-    <div id="sync-status" class="sync-status">-</div>
+  <!-- Today card -->
+  <div class="card today-card">
+    <div class="today-date" id="t-date">—</div>
+    <div class="today-phase" id="t-phase">🌑</div>
+    <div class="today-name" id="t-name">—</div>
+    <div class="today-illum" id="t-illum">—</div>
+    <div class="today-cycle">
+      <span class="day" id="t-cycleday">—</span>
+      <span class="season" id="t-season">—</span>
+    </div>
+    <button class="log-today-btn" onclick="openLogToday()">+ Log today</button>
   </div>
 
   <!-- Calendar -->
   <div class="card">
     <div class="cal-header">
-      <h3 id="cal-title">-</h3>
+      <h3 id="cal-title">—</h3>
       <div class="cal-nav">
-        <button onclick="calPrev()">‹</button>
-        <button onclick="calToday()">•</button>
-        <button onclick="calNext()">›</button>
+        <button onclick="calPrev()" aria-label="Previous month">‹</button>
+        <button onclick="calToday()" aria-label="This month">•</button>
+        <button onclick="calNext()" aria-label="Next month">›</button>
       </div>
     </div>
     <div class="cal-grid" id="cal-grid"></div>
     <div class="legend">
-      <span><span class="sw" style="background:var(--red-light);"></span>Period</span>
-      <span><span class="sw" style="background:repeating-linear-gradient(45deg,var(--red-light),var(--red-light) 4px,var(--cream) 4px,var(--cream) 8px);"></span>Projected</span>
-      <span><span class="sw" style="background:var(--pollen-gold);"></span>Fertile (day 14)</span>
+      <span><span class="sw" style="background:rgba(255,110,140,0.5);"></span>Period</span>
+      <span><span class="sw" style="background:repeating-linear-gradient(45deg,rgba(255,110,140,0.5),rgba(255,110,140,0.5) 3px,transparent 3px,transparent 7px);"></span>Projected</span>
+      <span><span class="sw" style="background:rgba(255,217,139,0.5);"></span>Fertile</span>
+      <span><span class="sw" style="background:var(--moon-red);border-radius:50%;width:6px;height:6px;"></span>Flow</span>
+      <span><span class="sw" style="background:var(--moon-gold);border-radius:50%;width:6px;height:6px;"></span>Symptom</span>
+      <span><span class="sw" style="background:var(--moon-teal);border-radius:50%;width:6px;height:6px;"></span>Mood</span>
+      <span><span class="sw" style="background:var(--moon-pink);border-radius:50%;width:6px;height:6px;"></span>Sex</span>
     </div>
   </div>
 
-  <!-- Moon-day booking conflicts now live in /admin (Upcoming tab). -->
-  <div class="card" style="font-size:0.85rem;color:var(--gray-600);">
-    <p>Booking conflicts on moon days are now handled in <a href="/admin" style="color:var(--plum);">admin → Upcoming</a>. Logging a period here still auto-blocks those dates on the booking calendar.</p>
+  <!-- Cycle stats -->
+  <div class="card">
+    <h3>Current cycle</h3>
+    <div class="stat"><span class="label">Last period started</span><span class="value" id="s-last">—</span></div>
+    <div class="stat"><span class="label">Cycle day (today)</span><span class="value" id="s-day">—</span></div>
+    <div class="stat"><span class="label">Avg cycle length</span><span class="value" id="s-avg">—</span></div>
+    <div class="stat"><span class="label">Avg period length</span><span class="value" id="s-plen">—</span></div>
+    <div class="stat"><span class="label">Next projected</span><span class="value" id="s-next">—</span></div>
+    <div class="stat"><span class="label">Fertile day (day 14)</span><span class="value" id="s-fertile">—</span></div>
+    <div id="sync-status" class="sync-status">—</div>
+  </div>
+
+  <!-- Info about auto-blocks -->
+  <div class="card" style="padding:14px;">
+    <div class="info-box">
+      Booking conflicts on moon days are handled in <a href="/admin">admin → Upcoming</a>. Logging a period here still auto-blocks those dates on the booking calendar.
+    </div>
   </div>
 
   <!-- Charts -->
   <div class="card" id="charts-card">
     <h3>Trends</h3>
     <div style="margin-bottom:14px;">
-      <div style="font-size:0.85rem;color:var(--gray-600);margin-bottom:4px;">Cycle length (days between period starts)</div>
-      <svg id="chart-cycle" viewBox="0 0 320 100" preserveAspectRatio="none" style="width:100%;height:100px;"></svg>
-      <div id="chart-cycle-legend" style="font-size:0.7rem;color:var(--gray-600);text-align:center;"></div>
+      <div style="font-size:0.82rem;color:var(--moon-dim);margin-bottom:4px;">Cycle length</div>
+      <svg id="chart-cycle" viewBox="0 0 320 100" preserveAspectRatio="none"></svg>
+      <div id="chart-cycle-legend" style="font-size:0.72rem;color:var(--moon-dim);text-align:center;"></div>
     </div>
     <div>
-      <div style="font-size:0.85rem;color:var(--gray-600);margin-bottom:4px;">Period length (days of bleed)</div>
-      <svg id="chart-plen" viewBox="0 0 320 100" preserveAspectRatio="none" style="width:100%;height:100px;"></svg>
-      <div id="chart-plen-legend" style="font-size:0.7rem;color:var(--gray-600);text-align:center;"></div>
+      <div style="font-size:0.82rem;color:var(--moon-dim);margin-bottom:4px;">Period length</div>
+      <svg id="chart-plen" viewBox="0 0 320 100" preserveAspectRatio="none"></svg>
+      <div id="chart-plen-legend" style="font-size:0.72rem;color:var(--moon-dim);text-align:center;"></div>
     </div>
   </div>
 
-  <!-- Log new period -->
+  <!-- Log a period -->
   <div class="card">
     <h3>Log a period</h3>
     <div class="row wrap">
@@ -175,19 +406,192 @@ input[type=date], input[type=password], input[type=text] {
 
   <!-- History -->
   <div class="card">
-    <h3>History</h3>
+    <h3>Period history</h3>
     <div id="period-list"></div>
+  </div>
+</div>
+
+<!-- Day log sheet -->
+<div class="sheet-backdrop" id="sheet-backdrop" onclick="if(event.target===this) closeLog()">
+  <div class="sheet" role="dialog" aria-label="Log a day">
+    <div class="sheet-grip"></div>
+    <div class="sheet-head">
+      <div class="left">
+        <div class="phase" id="sheet-phase">🌑</div>
+        <div class="info">
+          <div class="d" id="sheet-date">—</div>
+          <div class="p" id="sheet-phase-name">—</div>
+        </div>
+      </div>
+      <button class="close" onclick="closeLog()" aria-label="Close">✕</button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Flow</div>
+      <div class="chips" id="chips-flow"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Symptoms</div>
+      <div class="chips" id="chips-symptoms"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Mood</div>
+      <div class="chips" id="chips-moods"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Sex</div>
+      <div class="chips" id="chips-sex"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Discharge</div>
+      <div class="chips" id="chips-discharge"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Energy & Sleep</div>
+      <div class="row" style="gap:12px;align-items:flex-end;">
+        <div class="form-field">
+          <label>Energy (1–5)</label>
+          <input type="number" id="f-energy" min="0" max="5" step="1" placeholder="0">
+        </div>
+        <div class="form-field">
+          <label>Sleep (hours)</label>
+          <input type="number" id="f-sleep" min="0" max="24" step="0.5" placeholder="0">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Notes</div>
+      <textarea id="f-notes" placeholder="Anything else on your mind…"></textarea>
+    </div>
+
+    <div class="sheet-actions">
+      <button class="btn secondary" onclick="closeLog()">Cancel</button>
+      <button class="btn danger" id="btn-delete-log" onclick="deleteLog()" style="display:none;">Delete</button>
+      <button class="btn" onclick="saveLog()">Save</button>
+    </div>
   </div>
 </div>
 
 <script>
 const PB_URL = 'https://bookings.gardenfaery.love';
 let PB_TOKEN = sessionStorage.getItem('moon_token') || '';
-let periods = []; // [{id, start, end}]
-let calDate = new Date(); // month being viewed
+let periods = [];   // [{id, start, end}]
+let dayLogs = {};   // { 'YYYY-MM-DD': {id, flow, symptoms[], moods[], sex[], discharge, energy, sleep_hours, notes} }
+let calDate = new Date();
+let logDate = null; // date currently open in the sheet
 const AUTO_BLOCK_TAG = 'Moon days';
 
-// --- Login ---
+/* ---------- Catalog of options (all chip labels) ---------- */
+const FLOW_OPTIONS = [
+  { v: 'none',     l: 'None',     e: '·'  },
+  { v: 'spotting', l: 'Spotting', e: '·'  },
+  { v: 'light',    l: 'Light',    e: '💧' },
+  { v: 'medium',   l: 'Medium',   e: '💧💧' },
+  { v: 'heavy',    l: 'Heavy',    e: '🩸' }
+];
+const SYMPTOM_OPTIONS = [
+  { v: 'cramps',         l: 'Cramps',          e: '🌀' },
+  { v: 'breast_tender',  l: 'Breast tender',   e: '🤍' },
+  { v: 'headache',       l: 'Headache',        e: '🤕' },
+  { v: 'bloating',       l: 'Bloated',         e: '🎈' },
+  { v: 'back_pain',      l: 'Back pain',       e: '🦴' },
+  { v: 'fatigue',        l: 'Fatigue',         e: '😴' },
+  { v: 'nausea',         l: 'Nausea',          e: '🤢' },
+  { v: 'acne',           l: 'Acne',            e: '🫧' },
+  { v: 'cravings',       l: 'Cravings',        e: '🍫' },
+  { v: 'hot_flashes',    l: 'Hot flashes',     e: '🔥' },
+  { v: 'dizzy',          l: 'Dizzy',           e: '💫' },
+  { v: 'insomnia',       l: 'Insomnia',        e: '🌙' }
+];
+const MOOD_OPTIONS = [
+  { v: 'happy',        l: 'Happy',        e: '😊' },
+  { v: 'calm',         l: 'Calm',         e: '🌿' },
+  { v: 'loved',        l: 'Loved',        e: '🥰' },
+  { v: 'energetic',    l: 'Energetic',    e: '⚡' },
+  { v: 'focused',      l: 'Focused',      e: '🎯' },
+  { v: 'anxious',      l: 'Anxious',      e: '😰' },
+  { v: 'irritable',    l: 'Irritable',    e: '😤' },
+  { v: 'sad',          l: 'Sad',          e: '😢' },
+  { v: 'low',          l: 'Low',          e: '🪫' },
+  { v: 'angry',        l: 'Angry',        e: '😠' },
+  { v: 'emotional',    l: 'Emotional',    e: '🫠' },
+  { v: 'overwhelmed',  l: 'Overwhelmed',  e: '🌊' }
+];
+const SEX_OPTIONS = [
+  { v: 'solo',          l: 'Solo',          e: '💜' },
+  { v: 'partner',       l: 'Partner',       e: '💞' },
+  { v: 'protected',     l: 'Protected',     e: '🛡️' },
+  { v: 'unprotected',   l: 'Unprotected',   e: '🌱' },
+  { v: 'orgasm',        l: 'Orgasm',        e: '✨' },
+  { v: 'high_libido',   l: 'High libido',   e: '🔥' },
+  { v: 'low_libido',    l: 'Low libido',    e: '🌧️' }
+];
+const DISCHARGE_OPTIONS = [
+  { v: 'dry',       l: 'Dry',        e: '·' },
+  { v: 'sticky',    l: 'Sticky',     e: '·' },
+  { v: 'creamy',    l: 'Creamy',     e: '·' },
+  { v: 'watery',    l: 'Watery',     e: '·' },
+  { v: 'egg_white', l: 'Egg white',  e: '·' }
+];
+
+/* ---------- Moon phase math ---------- */
+// Reference new moon: 2000-01-06 18:14 UTC (Julian Day 2451549.26)
+// Synodic period: 29.530588853 days
+const SYNODIC = 29.530588853;
+const REF_NEW_MOON = Date.UTC(2000, 0, 6, 18, 14) / 1000; // seconds since epoch
+
+function moonPhase(date) {
+  // Returns 0..1, where 0 = new, 0.25 = first quarter, 0.5 = full, 0.75 = last quarter
+  const t = date.getTime() / 1000;
+  const days = (t - REF_NEW_MOON) / 86400;
+  let p = (days / SYNODIC) % 1;
+  if (p < 0) p += 1;
+  return p;
+}
+
+function moonIllumination(phase) {
+  return (1 - Math.cos(2 * Math.PI * phase)) / 2; // 0..1
+}
+
+function moonGlyph(phase) {
+  if (phase < 0.03125 || phase >= 0.96875) return '🌑';
+  if (phase < 0.21875) return '🌒';
+  if (phase < 0.28125) return '🌓';
+  if (phase < 0.46875) return '🌔';
+  if (phase < 0.53125) return '🌕';
+  if (phase < 0.71875) return '🌖';
+  if (phase < 0.78125) return '🌗';
+  return '🌘';
+}
+
+function moonName(phase) {
+  if (phase < 0.03125 || phase >= 0.96875) return 'New moon';
+  if (phase < 0.21875) return 'Waxing crescent';
+  if (phase < 0.28125) return 'First quarter';
+  if (phase < 0.46875) return 'Waxing gibbous';
+  if (phase < 0.53125) return 'Full moon';
+  if (phase < 0.71875) return 'Waning gibbous';
+  if (phase < 0.78125) return 'Last quarter';
+  return 'Waning crescent';
+}
+
+/* ---------- Inner-season (cycle phase) correspondence ---------- */
+function innerSeason(cycleDay, avgCycle) {
+  if (cycleDay == null) return '';
+  if (cycleDay <= 5) return 'Inner winter · menstrual';
+  if (cycleDay <= 13) return 'Inner spring · follicular';
+  if (cycleDay <= 16) return 'Inner summer · ovulation';
+  if (cycleDay <= (avgCycle || 28)) return 'Inner autumn · luteal';
+  return 'New cycle arriving';
+}
+
+/* ---------- Auth ---------- */
 async function doLogin() {
   const pass = document.getElementById('login-pass').value;
   const btn = document.getElementById('login-btn');
@@ -196,8 +600,8 @@ async function doLogin() {
   btn.disabled = true; err.style.display = 'none';
   try {
     const r = await fetch(PB_URL + '/api/collections/_superusers/auth-with-password', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ identity:'taya@gardenfaery.love', password: pass })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identity: 'taya@gardenfaery.love', password: pass })
     });
     if (!r.ok) throw new Error('auth failed');
     const d = await r.json();
@@ -216,13 +620,13 @@ function logout() {
   location.reload();
 }
 
-async function pb(path, opts={}) {
+async function pb(path, opts = {}) {
   const r = await fetch(PB_URL + path, {
     ...opts,
     headers: {
-      'Content-Type':'application/json',
+      'Content-Type': 'application/json',
       'Authorization': PB_TOKEN,
-      ...(opts.headers||{})
+      ...(opts.headers || {})
     }
   });
   if (r.status === 401) { logout(); throw new Error('unauth'); }
@@ -230,23 +634,46 @@ async function pb(path, opts={}) {
 }
 
 async function showApp() {
-  document.getElementById('login').style.display='none';
-  document.getElementById('app').style.display='block';
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
   document.getElementById('f-start').value = todayStr();
+  buildChips();
   await loadPeriods();
+  await loadDayLogs();
   render();
-  await syncAutoBlocks();
+  syncAutoBlocks();
 }
 
-// --- Data ---
+/* ---------- Data loading ---------- */
 async function loadPeriods() {
   const r = await pb('/api/collections/cycle_periods/records?sort=-start_date&perPage=200');
   const d = await r.json();
-  periods = (d.items||[]).map(p => ({
+  periods = (d.items || []).map(p => ({
     id: p.id,
-    start: p.start_date.slice(0,10),
-    end: p.end_date ? p.end_date.slice(0,10) : ''
-  })).sort((a,b) => a.start.localeCompare(b.start));
+    start: p.start_date.slice(0, 10),
+    end: p.end_date ? p.end_date.slice(0, 10) : ''
+  })).sort((a, b) => a.start.localeCompare(b.start));
+}
+
+async function loadDayLogs() {
+  const r = await pb('/api/collections/cycle_day_logs/records?sort=-date&perPage=500');
+  const d = await r.json();
+  dayLogs = {};
+  (d.items || []).forEach(row => {
+    const ds = (row.date || '').slice(0, 10);
+    if (!ds) return;
+    dayLogs[ds] = {
+      id: row.id,
+      flow: row.flow || '',
+      symptoms: Array.isArray(row.symptoms) ? row.symptoms : [],
+      moods: Array.isArray(row.moods) ? row.moods : [],
+      sex: Array.isArray(row.sex) ? row.sex : [],
+      discharge: row.discharge || '',
+      energy: Number(row.energy) || 0,
+      sleep_hours: Number(row.sleep_hours) || 0,
+      notes: row.notes || ''
+    };
+  });
 }
 
 async function addPeriod() {
@@ -255,7 +682,7 @@ async function addPeriod() {
   if (!s) return alert('Start date required');
   const body = { start_date: s + ' 00:00:00.000Z' };
   if (e) body.end_date = e + ' 00:00:00.000Z';
-  const r = await pb('/api/collections/cycle_periods/records', { method:'POST', body: JSON.stringify(body) });
+  const r = await pb('/api/collections/cycle_periods/records', { method: 'POST', body: JSON.stringify(body) });
   if (!r.ok) { alert('Save failed: ' + await r.text()); return; }
   document.getElementById('f-end').value = '';
   await loadPeriods();
@@ -265,71 +692,81 @@ async function addPeriod() {
 
 async function deletePeriod(id) {
   if (!confirm('Delete this period?')) return;
-  const r = await pb('/api/collections/cycle_periods/records/' + id, { method:'DELETE' });
+  const r = await pb('/api/collections/cycle_periods/records/' + id, { method: 'DELETE' });
   if (!r.ok) { alert('Delete failed'); return; }
   await loadPeriods();
   render();
   syncAutoBlocks();
 }
 
-// --- Date math ---
+/* ---------- Date helpers ---------- */
 function todayStr() {
-  const d = new Date(); d.setHours(0,0,0,0);
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const d = new Date(); d.setHours(0, 0, 0, 0);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
-function parseDate(s) { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); }
-function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate()+n); return r; }
-function dateStr(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function parseDate(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
+function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
+function dateStr(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
 function daysBetween(a, b) { return Math.round((parseDate(b) - parseDate(a)) / 86400000); }
 
-// rolling average cycle length using last N starts
-function avgCycle(n=6) {
+function avgCycle(n = 6) {
   if (periods.length < 2) return 28;
-  const recent = periods.slice(-n-1);
+  const recent = periods.slice(-n - 1);
   const gaps = [];
-  for (let i=1; i<recent.length; i++) gaps.push(daysBetween(recent[i-1].start, recent[i].start));
-  return Math.round(gaps.reduce((a,b)=>a+b,0) / gaps.length);
+  for (let i = 1; i < recent.length; i++) gaps.push(daysBetween(recent[i - 1].start, recent[i].start));
+  return Math.round(gaps.reduce((a, b) => a + b, 0) / gaps.length);
 }
 
 function avgPeriodLen() {
   const withEnd = periods.filter(p => p.end);
   if (!withEnd.length) return 6;
   const lens = withEnd.map(p => daysBetween(p.start, p.end) + 1);
-  return Math.round(lens.reduce((a,b)=>a+b,0) / lens.length);
+  return Math.round(lens.reduce((a, b) => a + b, 0) / lens.length);
 }
 
-function projectedStarts(count=6) {
+function projectedStarts(count = 6) {
   if (!periods.length) return [];
   const avg = avgCycle();
-  const last = parseDate(periods[periods.length-1].start);
+  const last = parseDate(periods[periods.length - 1].start);
   const out = [];
   let cur = addDays(last, avg);
-  // If the most recent logged period hasn't happened yet according to data,
-  // project forward from actual last start regardless.
-  for (let i=0; i<count; i++) {
+  for (let i = 0; i < count; i++) {
     out.push(dateStr(cur));
     cur = addDays(cur, avg);
   }
   return out;
 }
 
-// --- Render ---
+/* ---------- Rendering ---------- */
 function render() {
   const avg = avgCycle();
   const plen = avgPeriodLen();
-  const last = periods.length ? periods[periods.length-1] : null;
+  const last = periods.length ? periods[periods.length - 1] : null;
   const today = todayStr();
+  const now = new Date();
 
-  document.getElementById('s-last').textContent = last ? last.start : '-';
-  document.getElementById('s-day').textContent = last ? (daysBetween(last.start, today) + 1) : '-';
+  // Today card
+  const phase = moonPhase(now);
+  document.getElementById('t-date').textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  document.getElementById('t-phase').textContent = moonGlyph(phase);
+  document.getElementById('t-name').textContent = moonName(phase);
+  document.getElementById('t-illum').textContent = Math.round(moonIllumination(phase) * 100) + '% illuminated';
+  const cycleDay = last ? (daysBetween(last.start, today) + 1) : null;
+  document.getElementById('t-cycleday').textContent = cycleDay ? 'Cycle day ' + cycleDay : 'No cycle logged';
+  document.getElementById('t-season').textContent = cycleDay ? innerSeason(cycleDay, avg) : 'Log a period to begin';
+
+  // Stats
+  document.getElementById('s-last').textContent = last ? last.start : '—';
+  document.getElementById('s-day').textContent = cycleDay || '—';
   document.getElementById('s-avg').textContent = avg + ' days';
   document.getElementById('s-plen').textContent = plen + ' days';
-
   const proj = projectedStarts(1);
-  document.getElementById('s-next').textContent = proj[0] || '-';
+  document.getElementById('s-next').textContent = proj[0] || '—';
   if (last) {
     const fertile = dateStr(addDays(parseDate(last.start), 13));
     document.getElementById('s-fertile').textContent = fertile;
+  } else {
+    document.getElementById('s-fertile').textContent = '—';
   }
 
   renderList();
@@ -337,76 +774,9 @@ function render() {
   renderCharts();
 }
 
-function renderCharts() {
-  const W = 320, H = 100, PAD_L = 28, PAD_R = 8, PAD_T = 10, PAD_B = 20;
-
-  // Cycle lengths - gap from each start to the next (last 12)
-  const gaps = [];
-  for (let i = 1; i < periods.length; i++) {
-    gaps.push({ label: periods[i].start.slice(5), value: daysBetween(periods[i-1].start, periods[i].start) });
-  }
-  const cycleData = gaps.slice(-12);
-  renderLineChart('chart-cycle', 'chart-cycle-legend', cycleData, 'days', W, H, PAD_L, PAD_R, PAD_T, PAD_B);
-
-  // Period lengths (last 12 with end dates)
-  const plens = periods.filter(p => p.end).slice(-12).map(p => ({
-    label: p.start.slice(5),
-    value: daysBetween(p.start, p.end) + 1
-  }));
-  renderBarChart('chart-plen', 'chart-plen-legend', plens, 'days', W, H, PAD_L, PAD_R, PAD_T, PAD_B);
-}
-
-function renderLineChart(svgId, legendId, data, unit, W, H, PL, PR, PT, PB) {
-  const svg = document.getElementById(svgId);
-  const legend = document.getElementById(legendId);
-  if (!data.length) { svg.innerHTML = ''; legend.textContent = 'Need at least 2 periods logged.'; return; }
-  const min = Math.min(...data.map(d => d.value));
-  const max = Math.max(...data.map(d => d.value));
-  const avg = data.reduce((s,d) => s + d.value, 0) / data.length;
-  const lo = Math.floor(min - 1), hi = Math.ceil(max + 1);
-  const x = i => PL + (data.length === 1 ? (W - PL - PR)/2 : i * (W - PL - PR) / (data.length - 1));
-  const y = v => PT + (H - PT - PB) * (1 - (v - lo) / (hi - lo || 1));
-  const path = data.map((d,i) => (i===0?'M':'L') + x(i).toFixed(1) + ',' + y(d.value).toFixed(1)).join(' ');
-  const avgY = y(avg).toFixed(1);
-  const dots = data.map((d,i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(d.value).toFixed(1)}" r="3" fill="var(--moon)"></circle>`).join('');
-  const yTicks = [lo, Math.round((lo+hi)/2), hi].map(t => `<text x="${PL-4}" y="${y(t)+3}" text-anchor="end" font-size="8" fill="var(--gray-400)">${t}</text>`).join('');
-  svg.innerHTML = `
-    <line x1="${PL}" y1="${avgY}" x2="${W-PR}" y2="${avgY}" stroke="var(--moon-light)" stroke-dasharray="3,3" stroke-width="1"></line>
-    ${yTicks}
-    <path d="${path}" fill="none" stroke="var(--moon)" stroke-width="2"></path>
-    ${dots}
-  `;
-  legend.textContent = `${data.length} cycles · avg ${avg.toFixed(1)} ${unit} · range ${min}–${max}`;
-}
-
-function renderBarChart(svgId, legendId, data, unit, W, H, PL, PR, PT, PB) {
-  const svg = document.getElementById(svgId);
-  const legend = document.getElementById(legendId);
-  if (!data.length) { svg.innerHTML = ''; legend.textContent = 'No periods with end dates yet.'; return; }
-  const max = Math.max(...data.map(d => d.value));
-  const avg = data.reduce((s,d) => s + d.value, 0) / data.length;
-  const hi = Math.ceil(max + 1);
-  const bw = (W - PL - PR) / data.length;
-  const y = v => PT + (H - PT - PB) * (1 - v / (hi || 1));
-  const bars = data.map((d,i) => {
-    const bx = PL + i * bw + 1.5;
-    const by = y(d.value);
-    const bh = H - PB - by;
-    return `<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${(bw-3).toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="var(--petal-pink)"></rect>`;
-  }).join('');
-  const avgY = y(avg).toFixed(1);
-  const yTicks = [0, Math.round(hi/2), hi].map(t => `<text x="${PL-4}" y="${y(t)+3}" text-anchor="end" font-size="8" fill="var(--gray-400)">${t}</text>`).join('');
-  svg.innerHTML = `
-    <line x1="${PL}" y1="${avgY}" x2="${W-PR}" y2="${avgY}" stroke="var(--petal-pink-light)" stroke-dasharray="3,3" stroke-width="1"></line>
-    ${yTicks}
-    ${bars}
-  `;
-  legend.textContent = `${data.length} periods · avg ${avg.toFixed(1)} ${unit} · longest ${max}`;
-}
-
 function renderList() {
   const el = document.getElementById('period-list');
-  if (!periods.length) { el.innerHTML = '<div style="color:var(--gray-600);font-size:0.9rem;">No periods logged yet.</div>'; return; }
+  if (!periods.length) { el.innerHTML = '<div style="color:var(--moon-dim);font-size:0.88rem;">No periods logged yet.</div>'; return; }
   const recent = [...periods].reverse().slice(0, 12);
   el.innerHTML = recent.map(p => {
     const len = p.end ? (daysBetween(p.start, p.end) + 1) + ' days' : 'ongoing';
@@ -421,99 +791,291 @@ function renderList() {
 function renderCal() {
   const y = calDate.getFullYear();
   const m = calDate.getMonth();
-  const monthName = calDate.toLocaleString('en-US', { month:'long', year:'numeric' });
+  const monthName = calDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
   document.getElementById('cal-title').textContent = monthName;
 
   const first = new Date(y, m, 1);
-  const startDow = first.getDay(); // 0=Sun
-  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const startDow = first.getDay();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
   const prevDays = new Date(y, m, 0).getDate();
 
-  // Build sets
+  // Build period/projected/fertile sets
   const periodDays = new Set();
   periods.forEach(p => {
     if (!p.end) { periodDays.add(p.start); return; }
     let d = parseDate(p.start); const e = parseDate(p.end);
-    while (d <= e) { periodDays.add(dateStr(d)); d = addDays(d,1); }
+    while (d <= e) { periodDays.add(dateStr(d)); d = addDays(d, 1); }
   });
   const projected = new Set();
   const fertile = new Set();
   const plen = avgPeriodLen();
   projectedStarts(6).forEach(s => {
     const d = parseDate(s);
-    for (let i=0; i<plen; i++) projected.add(dateStr(addDays(d,i)));
+    for (let i = 0; i < plen; i++) projected.add(dateStr(addDays(d, i)));
   });
-  // fertile = day 14 of cycle from each actual + projected start
-  const starts = [...periods.map(p=>p.start), ...projectedStarts(6)];
+  const starts = [...periods.map(p => p.start), ...projectedStarts(6)];
   starts.forEach(s => { fertile.add(dateStr(addDays(parseDate(s), 13))); });
 
   const today = todayStr();
   const dows = ['S','M','T','W','T','F','S'];
-  let html = dows.map(d => '<div class="cal-dow">'+d+'</div>').join('');
+  let html = dows.map(d => '<div class="cal-dow">' + d + '</div>').join('');
 
-  // prev month pad
-  for (let i = startDow-1; i >= 0; i--) {
-    html += '<div class="cal-day muted">' + (prevDays - i) + '</div>';
+  for (let i = startDow - 1; i >= 0; i--) {
+    html += '<div class="cal-day muted"><span class="num">' + (prevDays - i) + '</span></div>';
   }
   for (let d = 1; d <= daysInMonth; d++) {
-    const ds = y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const ds = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    const cellDate = new Date(y, m, d);
+    const phase = moonPhase(cellDate);
+    const glyph = moonGlyph(phase);
+
     let cls = 'cal-day';
     if (ds === today) cls += ' today';
     if (periodDays.has(ds)) cls += ' period';
     else if (projected.has(ds)) cls += ' projected';
     else if (fertile.has(ds)) cls += ' fertile';
-    html += '<div class="'+cls+'">'+d+'</div>';
+
+    // Dots for logged data
+    const log = dayLogs[ds];
+    let dots = '';
+    if (log) {
+      let dotHtml = '';
+      if (log.flow && log.flow !== 'none') dotHtml += '<span class="dot flow"></span>';
+      if (log.symptoms && log.symptoms.length) dotHtml += '<span class="dot sym"></span>';
+      if (log.moods && log.moods.length) dotHtml += '<span class="dot mood"></span>';
+      if (log.sex && log.sex.length) dotHtml += '<span class="dot sex"></span>';
+      if (dotHtml) dots = '<div class="dots">' + dotHtml + '</div>';
+    }
+
+    html += '<div class="' + cls + '" onclick="openLog(\'' + ds + '\')">' +
+      '<span class="num">' + d + '</span>' +
+      '<span class="moon">' + glyph + '</span>' +
+      dots +
+    '</div>';
   }
-  // trailing pad to fill grid
   const total = startDow + daysInMonth;
   const trail = (7 - (total % 7)) % 7;
-  for (let i = 1; i <= trail; i++) html += '<div class="cal-day muted">'+i+'</div>';
+  for (let i = 1; i <= trail; i++) html += '<div class="cal-day muted"><span class="num">' + i + '</span></div>';
 
   document.getElementById('cal-grid').innerHTML = html;
 }
 
-function calPrev() { calDate = new Date(calDate.getFullYear(), calDate.getMonth()-1, 1); renderCal(); }
-function calNext() { calDate = new Date(calDate.getFullYear(), calDate.getMonth()+1, 1); renderCal(); }
+function calPrev() { calDate = new Date(calDate.getFullYear(), calDate.getMonth() - 1, 1); renderCal(); }
+function calNext() { calDate = new Date(calDate.getFullYear(), calDate.getMonth() + 1, 1); renderCal(); }
 function calToday() { calDate = new Date(); renderCal(); }
 
-// --- Auto-block sync ---
-// For the next 6 projected periods, block: (start - 1 day), start, start + 1 day (3 days each)
-// Tags blocks with reason = AUTO_BLOCK_TAG so we can reconcile without touching manual blocks.
+/* ---------- Charts (kept from prior version, restyled) ---------- */
+function renderCharts() {
+  const W = 320, H = 100, PL = 28, PR = 8, PT = 10, PB_CHART = 20;
+  const gaps = [];
+  for (let i = 1; i < periods.length; i++) {
+    gaps.push({ label: periods[i].start.slice(5), value: daysBetween(periods[i - 1].start, periods[i].start) });
+  }
+  renderLineChart('chart-cycle', 'chart-cycle-legend', gaps.slice(-12), 'days', W, H, PL, PR, PT, PB_CHART);
+  const plens = periods.filter(p => p.end).slice(-12).map(p => ({
+    label: p.start.slice(5),
+    value: daysBetween(p.start, p.end) + 1
+  }));
+  renderBarChart('chart-plen', 'chart-plen-legend', plens, 'days', W, H, PL, PR, PT, PB_CHART);
+}
+
+function renderLineChart(svgId, legendId, data, unit, W, H, PL, PR, PT, PB) {
+  const svg = document.getElementById(svgId);
+  const legend = document.getElementById(legendId);
+  if (!data.length) { svg.innerHTML = ''; legend.textContent = 'Need at least 2 periods logged.'; return; }
+  const min = Math.min(...data.map(d => d.value));
+  const max = Math.max(...data.map(d => d.value));
+  const avg = data.reduce((s, d) => s + d.value, 0) / data.length;
+  const lo = Math.floor(min - 1), hi = Math.ceil(max + 1);
+  const x = i => PL + (data.length === 1 ? (W - PL - PR) / 2 : i * (W - PL - PR) / (data.length - 1));
+  const y = v => PT + (H - PT - PB) * (1 - (v - lo) / (hi - lo || 1));
+  const path = data.map((d, i) => (i === 0 ? 'M' : 'L') + x(i).toFixed(1) + ',' + y(d.value).toFixed(1)).join(' ');
+  const avgY = y(avg).toFixed(1);
+  const dots = data.map((d, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(d.value).toFixed(1)}" r="3" fill="var(--moon-glow)"></circle>`).join('');
+  const yTicks = [lo, Math.round((lo + hi) / 2), hi].map(t => `<text x="${PL - 4}" y="${y(t) + 3}" text-anchor="end" font-size="8" fill="var(--moon-dim)">${t}</text>`).join('');
+  svg.innerHTML = `
+    <line x1="${PL}" y1="${avgY}" x2="${W - PR}" y2="${avgY}" stroke="var(--moon-line)" stroke-dasharray="3,3" stroke-width="1"></line>
+    ${yTicks}
+    <path d="${path}" fill="none" stroke="var(--moon-glow)" stroke-width="2"></path>
+    ${dots}
+  `;
+  legend.textContent = `${data.length} cycles · avg ${avg.toFixed(1)} ${unit} · range ${min}–${max}`;
+}
+
+function renderBarChart(svgId, legendId, data, unit, W, H, PL, PR, PT, PB) {
+  const svg = document.getElementById(svgId);
+  const legend = document.getElementById(legendId);
+  if (!data.length) { svg.innerHTML = ''; legend.textContent = 'No periods with end dates yet.'; return; }
+  const max = Math.max(...data.map(d => d.value));
+  const avg = data.reduce((s, d) => s + d.value, 0) / data.length;
+  const hi = Math.ceil(max + 1);
+  const bw = (W - PL - PR) / data.length;
+  const y = v => PT + (H - PT - PB) * (1 - v / (hi || 1));
+  const bars = data.map((d, i) => {
+    const bx = PL + i * bw + 1.5;
+    const by = y(d.value);
+    const bh = H - PB - by;
+    return `<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${(bw - 3).toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="var(--moon-pink)"></rect>`;
+  }).join('');
+  const avgY = y(avg).toFixed(1);
+  const yTicks = [0, Math.round(hi / 2), hi].map(t => `<text x="${PL - 4}" y="${y(t) + 3}" text-anchor="end" font-size="8" fill="var(--moon-dim)">${t}</text>`).join('');
+  svg.innerHTML = `
+    <line x1="${PL}" y1="${avgY}" x2="${W - PR}" y2="${avgY}" stroke="var(--moon-line)" stroke-dasharray="3,3" stroke-width="1"></line>
+    ${yTicks}
+    ${bars}
+  `;
+  legend.textContent = `${data.length} periods · avg ${avg.toFixed(1)} ${unit} · longest ${max}`;
+}
+
+/* ---------- Day-log sheet ---------- */
+function buildChips() {
+  const mk = (containerId, options, kind, multi) => {
+    const c = document.getElementById(containerId);
+    c.innerHTML = options.map(o => {
+      return '<button type="button" class="chip ' + kind + '" data-v="' + o.v + '" data-kind="' + kind + '" data-multi="' + (multi ? '1' : '0') + '">' +
+        (o.e && o.e !== '·' ? '<span>' + o.e + '</span>' : '') +
+        '<span>' + o.l + '</span>' +
+      '</button>';
+    }).join('');
+    c.querySelectorAll('.chip').forEach(btn => btn.addEventListener('click', onChipTap));
+  };
+  mk('chips-flow',      FLOW_OPTIONS,      'flow',  false);
+  mk('chips-symptoms',  SYMPTOM_OPTIONS,   'sym',   true);
+  mk('chips-moods',     MOOD_OPTIONS,      'mood',  true);
+  mk('chips-sex',       SEX_OPTIONS,       'sex',   true);
+  mk('chips-discharge', DISCHARGE_OPTIONS, 'disch', false);
+}
+
+function onChipTap(e) {
+  const btn = e.currentTarget;
+  const multi = btn.dataset.multi === '1';
+  if (multi) {
+    btn.classList.toggle('on');
+  } else {
+    // single-select: clear siblings first
+    btn.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+    btn.classList.add('on');
+  }
+}
+
+function setChipState(containerId, selected) {
+  const c = document.getElementById(containerId);
+  const wanted = new Set(Array.isArray(selected) ? selected : [selected]);
+  c.querySelectorAll('.chip').forEach(btn => {
+    btn.classList.toggle('on', wanted.has(btn.dataset.v));
+  });
+}
+function getChipState(containerId, multi) {
+  const c = document.getElementById(containerId);
+  const vals = [...c.querySelectorAll('.chip.on')].map(b => b.dataset.v);
+  return multi ? vals : (vals[0] || '');
+}
+
+function openLogToday() { openLog(todayStr()); }
+
+function openLog(ds) {
+  logDate = ds;
+  const d = parseDate(ds);
+  const phase = moonPhase(d);
+  document.getElementById('sheet-phase').textContent = moonGlyph(phase);
+  document.getElementById('sheet-phase-name').textContent = moonName(phase) + ' · ' + Math.round(moonIllumination(phase) * 100) + '%';
+  document.getElementById('sheet-date').textContent = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+  const log = dayLogs[ds] || {};
+  setChipState('chips-flow',      log.flow || '');
+  setChipState('chips-symptoms',  log.symptoms || []);
+  setChipState('chips-moods',     log.moods || []);
+  setChipState('chips-sex',       log.sex || []);
+  setChipState('chips-discharge', log.discharge || '');
+  document.getElementById('f-energy').value = log.energy || '';
+  document.getElementById('f-sleep').value = log.sleep_hours || '';
+  document.getElementById('f-notes').value = log.notes || '';
+  document.getElementById('btn-delete-log').style.display = log.id ? 'block' : 'none';
+
+  document.getElementById('sheet-backdrop').classList.add('open');
+}
+
+function closeLog() {
+  document.getElementById('sheet-backdrop').classList.remove('open');
+  logDate = null;
+}
+
+async function saveLog() {
+  if (!logDate) return;
+  const body = {
+    date: logDate + ' 00:00:00.000Z',
+    flow: getChipState('chips-flow', false),
+    symptoms: getChipState('chips-symptoms', true),
+    moods: getChipState('chips-moods', true),
+    sex: getChipState('chips-sex', true),
+    discharge: getChipState('chips-discharge', false),
+    energy: Number(document.getElementById('f-energy').value) || 0,
+    sleep_hours: Number(document.getElementById('f-sleep').value) || 0,
+    notes: document.getElementById('f-notes').value.trim()
+  };
+  const existing = dayLogs[logDate];
+  let r;
+  try {
+    if (existing && existing.id) {
+      r = await pb('/api/collections/cycle_day_logs/records/' + existing.id, { method: 'PATCH', body: JSON.stringify(body) });
+    } else {
+      r = await pb('/api/collections/cycle_day_logs/records', { method: 'POST', body: JSON.stringify(body) });
+    }
+    if (!r.ok) throw new Error(await r.text());
+    await loadDayLogs();
+    renderCal();
+    closeLog();
+  } catch (e) {
+    alert('Save failed: ' + e.message);
+  }
+}
+
+async function deleteLog() {
+  if (!logDate) return;
+  const existing = dayLogs[logDate];
+  if (!existing || !existing.id) { closeLog(); return; }
+  if (!confirm('Delete this day log?')) return;
+  try {
+    const r = await pb('/api/collections/cycle_day_logs/records/' + existing.id, { method: 'DELETE' });
+    if (!r.ok) throw new Error(await r.text());
+    delete dayLogs[logDate];
+    renderCal();
+    closeLog();
+  } catch (e) {
+    alert('Delete failed: ' + e.message);
+  }
+}
+
+/* ---------- Auto-block sync (unchanged from prior version) ---------- */
 async function syncAutoBlocks() {
   const status = document.getElementById('sync-status');
   status.className = 'sync-status';
   status.textContent = 'Syncing auto-blocks…';
   try {
-    // desired block dates
     const wanted = new Set();
     projectedStarts(6).forEach(s => {
       const d = parseDate(s);
-      wanted.add(dateStr(addDays(d,-1)));
+      wanted.add(dateStr(addDays(d, -1)));
       wanted.add(dateStr(d));
-      wanted.add(dateStr(addDays(d,1)));
+      wanted.add(dateStr(addDays(d, 1)));
     });
-
-    // existing auto blocks
     const filter = encodeURIComponent('reason = "' + AUTO_BLOCK_TAG + '"');
     const r = await pb('/api/collections/blocked_times/records?filter=' + filter + '&perPage=500');
     const d = await r.json();
-    const existing = {}; // date -> id
-    (d.items||[]).forEach(b => { existing[b.date ? b.date.slice(0,10) : ''] = b.id; });
-
-    // create missing
+    const existing = {};
+    (d.items || []).forEach(b => { existing[b.date ? b.date.slice(0, 10) : ''] = b.id; });
     let added = 0, removed = 0;
     for (const ds of wanted) {
       if (!existing[ds]) {
         const body = { date: ds, allDay: true, reason: AUTO_BLOCK_TAG };
-        const cr = await pb('/api/collections/blocked_times/records', { method:'POST', body: JSON.stringify(body) });
+        const cr = await pb('/api/collections/blocked_times/records', { method: 'POST', body: JSON.stringify(body) });
         if (cr.ok) added++;
       }
     }
-    // remove auto blocks not in wanted (only future ones, keep history)
     const today = todayStr();
     for (const ds in existing) {
       if (ds >= today && !wanted.has(ds)) {
-        const dr = await pb('/api/collections/blocked_times/records/' + existing[ds], { method:'DELETE' });
+        const dr = await pb('/api/collections/blocked_times/records/' + existing[ds], { method: 'DELETE' });
         if (dr.ok) removed++;
       }
     }
@@ -525,14 +1087,13 @@ async function syncAutoBlocks() {
   }
 }
 
-// --- Boot ---
+/* ---------- Boot ---------- */
 (async () => {
   if (PB_TOKEN) {
-    // verify token still valid
     try {
       const r = await pb('/api/collections/cycle_periods/records?perPage=1');
       if (r.ok) { showApp(); return; }
-    } catch(e) {}
+    } catch (e) {}
   }
   document.getElementById('login').style.display = 'block';
 })();
