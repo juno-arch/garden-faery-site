@@ -729,9 +729,10 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
         <select id="exp-card" onchange="onExpCardChange()">
           <option value="">-</option>
           <optgroup label="Business">
-            <option value="coast_central">Coast Central Bank</option>
+            <option value="coast_central_biz">Coast Central (business)</option>
           </optgroup>
           <optgroup label="Personal">
+            <option value="coast_central_personal">Coast Central (personal)</option>
             <option value="columbia">Columbia Bank</option>
             <option value="northrim">Northrim Bank</option>
             <option value="skyla_debit">Skyla debit</option>
@@ -1941,16 +1942,17 @@ async function renderExpenses() {
 
 // Friendly display label for a stored card value + optional last-4.
 const CARD_LABELS = {
-  coast_central: 'Coast Central',
-  columbia:      'Columbia',
-  northrim:      'Northrim',
-  skyla_debit:   'Skyla debit',
-  skyla_credit:  'Skyla credit',
-  bofa_debit:    'BofA debit',
-  bofa_credit:   'BofA credit',
-  cash:          'Cash',
-  venmo:         'Venmo',
-  other:         'Other'
+  coast_central_biz:      'Coast Central (biz)',
+  coast_central_personal: 'Coast Central (personal)',
+  columbia:               'Columbia',
+  northrim:               'Northrim',
+  skyla_debit:            'Skyla debit',
+  skyla_credit:           'Skyla credit',
+  bofa_debit:             'BofA debit',
+  bofa_credit:            'BofA credit',
+  cash:                   'Cash',
+  venmo:                  'Venmo',
+  other:                  'Other'
 };
 function cardDisplayLabel(card, last4) {
   const base = CARD_LABELS[card] || (card ? String(card).replace(/_/g, ' ') : '');
@@ -1967,7 +1969,9 @@ function cardDisplayLabel(card, last4) {
 // the pairing so future receipts with that last-4 auto-select this bank.
 function onExpCardChange() {
   const card = document.getElementById('exp-card').value;
-  if (card === 'coast_central') {
+  // Only the business Coast Central account auto-ticks "On business account".
+  // The personal Coast Central account leaves the checkbox alone.
+  if (card === 'coast_central_biz') {
     document.getElementById('exp-biz').checked = true;
   }
   const last4 = (document.getElementById('exp-card-last4').value || '').trim();
