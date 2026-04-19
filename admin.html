@@ -3749,6 +3749,29 @@ document.getElementById('obo-recurring').addEventListener('change', function() {
   document.getElementById('obo-weeks-group').style.display = this.value === 'none' ? 'none' : 'block';
 });
 
+// Format a US phone as "(707) 555-1234". 10 digits formats; 11 digits
+// starting with 1 strips the country code and formats; anything else is
+// returned trimmed. Used on blur and again on save so stored phone numbers
+// are consistent regardless of how they were typed.
+function formatPhoneNumber(raw) {
+  if (!raw) return '';
+  let digits = String(raw).replace(/\D/g, '');
+  if (digits.length === 11 && digits[0] === '1') digits = digits.slice(1);
+  if (digits.length === 10) {
+    return '(' + digits.slice(0, 3) + ') ' + digits.slice(3, 6) + '-' + digits.slice(6);
+  }
+  return String(raw).trim();
+}
+
+(function wirePhoneFormat() {
+  const phoneEl = document.getElementById('obo-phone');
+  if (phoneEl) {
+    phoneEl.addEventListener('blur', () => {
+      phoneEl.value = formatPhoneNumber(phoneEl.value);
+    });
+  }
+})();
+
 async function saveBlock() {
   const date = document.getElementById('block-date').value;
   const type = document.getElementById('block-type').value;
@@ -3782,7 +3805,7 @@ async function saveOBO() {
   const lastName  = document.getElementById('obo-last-name').value.trim().replace(/\s+/g, ' ');
   const name = (firstName + ' ' + lastName).trim();
   const email = document.getElementById('obo-email').value.trim();
-  const phone = document.getElementById('obo-phone').value.trim();
+  const phone = formatPhoneNumber(document.getElementById('obo-phone').value);
   const address = document.getElementById('obo-address').value.trim();
   const notes = document.getElementById('obo-notes').value.trim();
   const recurring = document.getElementById('obo-recurring').value;

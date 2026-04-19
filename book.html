@@ -972,8 +972,12 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
     </div>
     <div class="card">
       <div class="form-group">
-        <label for="f-name">Your name <span class="required">*</span></label>
-        <input type="text" id="f-name" name="name" placeholder="First and last name" autocomplete="name" required>
+        <label for="f-first-name">First name <span class="required">*</span></label>
+        <input type="text" id="f-first-name" name="first-name" placeholder="Anna" autocomplete="given-name" autocapitalize="words" required>
+      </div>
+      <div class="form-group">
+        <label for="f-last-name">Last name <span class="required">*</span></label>
+        <input type="text" id="f-last-name" name="last-name" placeholder="Peck" autocomplete="family-name" autocapitalize="words" required>
       </div>
       <div class="form-group">
         <label for="f-email">Email <span class="required">*</span></label>
@@ -1649,14 +1653,26 @@ function renderSummary() {
 
 // --- Submit ---
 async function submitBooking() {
-  const name = document.getElementById('f-name').value.trim();
+  const firstName = document.getElementById('f-first-name').value.trim().replace(/\s+/g, ' ');
+  const lastName  = document.getElementById('f-last-name').value.trim().replace(/\s+/g, ' ');
+  const name = (firstName + ' ' + lastName).trim();
   const email = document.getElementById('f-email').value.trim();
-  const phone = document.getElementById('f-phone').value.trim();
+  const phone = formatPhoneNumber(document.getElementById('f-phone').value);
   const address = document.getElementById('f-address').value.trim();
   const notes = document.getElementById('f-notes').value.trim();
 
-  if (!name || !email || !phone) {
-    alert('Please fill in your name, email, and phone number.');
+  if (!firstName) {
+    alert('Please enter your first name.');
+    document.getElementById('f-first-name').focus();
+    return;
+  }
+  if (!lastName) {
+    alert('Please enter your last name.');
+    document.getElementById('f-last-name').focus();
+    return;
+  }
+  if (!email || !phone) {
+    alert('Please fill in your email and phone number.');
     return;
   }
 
@@ -1749,7 +1765,9 @@ function showRecurringConfirmation(et, okDates, seriesId) {
   const lastDate = new Date(lastParts[0], lastParts[1]-1, lastParts[2]);
   const firstStr = dayNames[firstDate.getDay()] + ', ' + monthNames[firstDate.getMonth()] + ' ' + firstDate.getDate() + ', ' + firstDate.getFullYear();
   const lastStr = monthNames[lastDate.getMonth()] + ' ' + lastDate.getDate() + ', ' + lastDate.getFullYear();
-  const name = document.getElementById('f-name').value.trim();
+  const fnameEl = document.getElementById('f-first-name');
+  const lnameEl = document.getElementById('f-last-name');
+  const name = ((fnameEl && fnameEl.value || '').trim() + ' ' + (lnameEl && lnameEl.value || '').trim()).trim();
   const address = document.getElementById('f-address').value.trim();
 
   const el = document.getElementById('confirm-details');
@@ -2004,7 +2022,9 @@ function _calEventParams() {
   const dtStart = y + m + d + 'T' + startH + startM + '00';
   const dtEnd = y + m + d + 'T' + endH + endM + '00';
   const address = document.getElementById('f-address').value.trim();
-  const name = document.getElementById('f-name').value.trim();
+  const fnameEl = document.getElementById('f-first-name');
+  const lnameEl = document.getElementById('f-last-name');
+  const name = ((fnameEl && fnameEl.value || '').trim() + ' ' + (lnameEl && lnameEl.value || '').trim()).trim();
   return { et, dtStart, dtEnd, address, name };
 }
 
@@ -2276,11 +2296,21 @@ function clearSavedClientProfile() {
 
 function applyPrefillToForm(p) {
   if (!p) return;
-  const name = document.getElementById('f-name');
+  const first = document.getElementById('f-first-name');
+  const last  = document.getElementById('f-last-name');
   const email = document.getElementById('f-email');
   const phone = document.getElementById('f-phone');
-  const addr = document.getElementById('f-address');
-  if (name && p.name) name.value = p.name;
+  const addr  = document.getElementById('f-address');
+  if (p.name) {
+    // Split cached "full name" on the first space so returning clients see
+    // their saved name already broken into the two required fields.
+    const trimmed = (p.name || '').trim().replace(/\s+/g, ' ');
+    const idx = trimmed.indexOf(' ');
+    const f = idx === -1 ? trimmed : trimmed.slice(0, idx);
+    const l = idx === -1 ? ''      : trimmed.slice(idx + 1);
+    if (first) first.value = f;
+    if (last)  last.value  = l;
+  }
   if (email && p.email) email.value = p.email;
   if (phone && p.phone) phone.value = p.phone;
   if (addr && p.address) addr.value = p.address;
@@ -2408,7 +2438,7 @@ async function verifyLoginCode() {
 
 function clientLogout() {
   clearSavedClientProfile();
-  ['f-name', 'f-email', 'f-phone', 'f-address'].forEach(id => {
+  ['f-first-name', 'f-last-name', 'f-email', 'f-phone', 'f-address'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -2416,11 +2446,32 @@ function clientLogout() {
 }
 
 // Enter-key submit handlers + initial render.
+// Format a US phone as "(707) 555-1234". 10 digits formats; 11 digits
+// starting with 1 strips the country code and formats; anything else is
+// returned trimmed (could be international or mid-typing). Digits-only
+// dedup matching keeps working regardless of format, but a consistent
+// stored format is nicer for display and SMS.
+function formatPhoneNumber(raw) {
+  if (!raw) return '';
+  let digits = String(raw).replace(/\D/g, '');
+  if (digits.length === 11 && digits[0] === '1') digits = digits.slice(1);
+  if (digits.length === 10) {
+    return '(' + digits.slice(0, 3) + ') ' + digits.slice(3, 6) + '-' + digits.slice(6);
+  }
+  return String(raw).trim();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const emailEl = document.getElementById('client-login-email');
   const codeEl = document.getElementById('client-login-code');
   if (emailEl) emailEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendLoginCode(); });
   if (codeEl) codeEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') verifyLoginCode(); });
+  const phoneEl = document.getElementById('f-phone');
+  if (phoneEl) {
+    phoneEl.addEventListener('blur', () => {
+      phoneEl.value = formatPhoneNumber(phoneEl.value);
+    });
+  }
   renderClientLoginCard();
 });
 </script>
