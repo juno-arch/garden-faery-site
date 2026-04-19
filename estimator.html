@@ -551,10 +551,10 @@
     <div class="nav-group active">
       <button class="nav-group-toggle" type="button" onclick="this.parentElement.classList.toggle('open')">Guides<span class="caret" aria-hidden="true">&#9662;</span></button>
       <div class="nav-group-menu">
-        <a href="plant-guide.html">Plant Guide</a>
-        <a href="plant-pairings.html">Plant Pairings</a>
-        <a href="garden-styles.html">Garden Styles</a>
-        <a href="food-guide.html">Market Garden</a>
+        <a href="plant-guide.html">The Greenery</a>
+        <a href="plant-pairings.html">Plant Spells</a>
+        <a href="garden-styles.html">Lookbooks</a>
+        <a href="food-guide.html">The Edible Patch</a>
         <a href="estimator.html" class="active">Bed Builder</a>
       </div>
     </div>
@@ -871,7 +871,7 @@
       if (favBtn) favBtn.textContent = 'From My Garden (' + favFood.length + ')';
 
       if (favsOnly && favFood.length === 0) {
-        palette.innerHTML = '<div class="bp-empty-hint">No saved crops yet. Switch to All crops, or save some hearts on the Plant Guide and Market Garden first.</div>';
+        palette.innerHTML = '<div class="bp-empty-hint">No saved crops yet. Switch to All crops, or save some hearts on the The Greenery and The Edible Patch first.</div>';
         return;
       }
 

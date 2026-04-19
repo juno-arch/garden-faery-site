@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#4a1942">
   <meta name="apple-mobile-web-app-title" content="Garden Faery">
-  <meta name="description" content="Garden Faery's complete plant guide for Humboldt County's coastal climate. 256 plants chosen for Zone 9b, including pollinators, native plants, herbs, flowers, and ornamentals. Food plants have their own Market Garden guide.">
-  <meta property="og:title" content="Humboldt County Plant Guide | Garden Faery, Arcata, CA">
+  <meta name="description" content="Garden Faery's complete plant guide for Humboldt County's coastal climate. 256 plants chosen for Zone 9b, including pollinators, native plants, herbs, flowers, and ornamentals. Food plants have their own Edible Patch guide.">
+  <meta property="og:title" content="The Greenery — Humboldt County Plant Guide | Garden Faery, Arcata, CA">
   <meta property="og:description" content="256 plants chosen for Humboldt County's coastal climate. Growing guides for pollinators, natives, herbs, flowers, and ornamentals by your local Arcata gardener.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://gardenfaery.love/plant-guide.html">
   <meta property="og:image" content="https://gardenfaery.love/farm.jpg">
   <meta property="og:image:alt" content="Garden Faery plant guide for Humboldt County">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Humboldt County Plant Guide | Garden Faery, Arcata, CA">
+  <meta name="twitter:title" content="The Greenery — Humboldt County Plant Guide | Garden Faery, Arcata, CA">
   <meta name="twitter:description" content="256 plants for Humboldt County's coastal climate, by your local Arcata gardener.">
   <link rel="canonical" href="https://gardenfaery.love/plant-guide.html">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-  <title>Humboldt County Plant Guide | Garden Faery, Arcata, CA</title>
+  <title>The Greenery — Humboldt County Plant Guide | Garden Faery, Arcata, CA</title>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -1501,10 +1501,10 @@
       <div class="nav-group active">
         <button class="nav-group-toggle" type="button" onclick="this.parentElement.classList.toggle('open')">Guides<span class="caret" aria-hidden="true">&#9662;</span></button>
         <div class="nav-group-menu">
-          <a href="plant-guide.html" class="active">Plant Guide</a>
-          <a href="plant-pairings.html">Plant Pairings</a>
-          <a href="garden-styles.html">Garden Styles</a>
-          <a href="food-guide.html">Market Garden</a>
+          <a href="plant-guide.html" class="active">The Greenery</a>
+          <a href="plant-pairings.html">Plant Spells</a>
+          <a href="garden-styles.html">Lookbooks</a>
+          <a href="food-guide.html">The Edible Patch</a>
           <a href="estimator.html">Bed Builder</a>
         </div>
       </div>
@@ -1515,8 +1515,8 @@
   <main>
   <!-- Hero Section -->
   <section class="hero">
-    <h1>Garden Plant Guide</h1>
-    <p class="subtitle">Humboldt County Edition</p>
+    <h1>The Greenery</h1>
+    <p class="subtitle">Garden Faery's plant guide for Humboldt County</p>
     <p class="subtext">Zone 9b | Coastal Fog Belt | Arcata, CA</p>
   </section>
 
@@ -4698,12 +4698,12 @@
 
       if (foodFavs.length > 0) {
         html += '<div class="fav-group">' +
-          '<div class="fav-group-title" style="background:#c48bb030">From Market Garden (' + foodFavs.length + ')</div>' +
+          '<div class="fav-group-title" style="background:#c48bb030">From The Edible Patch (' + foodFavs.length + ')</div>' +
           foodFavs.map(slug =>
             '<div class="fav-item">' +
               '<a class="fav-item-main" href="food-guide.html?plant=' + slug + '" style="text-decoration:none;">' +
                 '<div class="fav-item-name">' + escapeHtml(slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())) + '</div>' +
-                '<div class="fav-item-scientific">View on Market Garden page</div>' +
+                '<div class="fav-item-scientific">View on The Edible Patch</div>' +
               '</a>' +
               '<button class="fav-remove" data-remove-food="' + slug + '" aria-label="Remove">&times;</button>' +
             '</div>'
@@ -4756,7 +4756,7 @@
         body += '\n';
       });
       if (foodFavs.length > 0) {
-        body += 'FROM MARKET GARDEN\n';
+        body += 'FROM THE EDIBLE PATCH\n';
         foodFavs.forEach(s => { body += '  - ' + s.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) + '\n'; });
         body += '\n';
       }
