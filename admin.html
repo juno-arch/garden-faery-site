@@ -3536,6 +3536,7 @@ function renderClients() {
     card += '<div class="booking-actions">' +
       (c.phone ? '<button class="action-btn" onclick="callClient(\'' + esc(c.phone) + '\')">Call</button>' +
                  '<button class="action-btn" onclick="textClient(\'' + esc(c.phone) + '\')">Text</button>' : '') +
+      '<button class="action-btn" data-name="' + escAttr(c.name || '') + '" onclick="renameClientByName(this.dataset.name)">Rename</button>' +
       '</div>';
 
     // Visit history
@@ -3790,6 +3791,62 @@ function buildNameNormalizationPlan() {
     });
   }
   return plan;
+}
+
+// Rename (and effectively merge) a client by rewriting every booking in
+// their merged group. Used from the Rename button on each Clients-tab
+// card. Useful when two names are the same person but don't share an
+// email/phone so the automatic merge can't link them — e.g. renaming
+// "Elizabeth" to "Elizabeth Okin" collapses both cards into one.
+async function renameClientByName(currentName) {
+  const name = (currentName || '').trim();
+  if (!name) return;
+
+  try { await refreshData(); } catch (_) { /* proceed with cached data */ }
+
+  // Find the merged group whose canonical name matches (non-canceled only,
+  // matching how the Clients tab renders).
+  const bookings = (getBookings() || []).filter(b => b.status !== 'canceled');
+  const groups = groupBookingsByClient(bookings);
+  const group = groups.find(g => (g.name || '').trim() === name);
+  if (!group || group.visits.length === 0) {
+    alert('Could not find "' + name + '". Try refreshing the page.');
+    return;
+  }
+
+  const promptMsg = 'Rename "' + name + '" to:\n\n' +
+    '(Use full first + last name. This rewrites every booking for this client. ' +
+    'Useful for merging duplicates: rename the short version to the full name ' +
+    'of the duplicate you want to keep.)';
+  const proposed = prompt(promptMsg, name);
+  if (proposed === null) return;
+  const newName = proposed.trim().replace(/\s+/g, ' ');
+  if (!newName || newName === name) return;
+
+  if (!newName.includes(' ')) {
+    if (!confirm('"' + newName + '" has no last name. Continue anyway?')) return;
+  }
+
+  const count = group.visits.length;
+  const confirmMsg = 'Rename ' + count + ' booking' + (count === 1 ? '' : 's') +
+    ' from "' + name + '" to "' + newName + '"?';
+  if (!confirm(confirmMsg)) return;
+
+  let ok = 0, fail = 0;
+  for (const v of group.visits) {
+    try {
+      await DB.updateBooking(v.id, { clientName: newName });
+      ok++;
+    } catch (e) {
+      console.error('Failed to update booking', v.id, e);
+      fail++;
+    }
+  }
+
+  alert('Renamed ' + ok + ' booking' + (ok === 1 ? '' : 's') +
+        (fail > 0 ? '. ' + fail + ' failed (see console).' : '.'));
+  await refreshData();
+  renderAll();
 }
 
 async function runNameCleanup() {
