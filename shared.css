@@ -78,7 +78,11 @@ h1, h2, h3, h4 { font-family: var(--font-heading); color: var(--text-primary); l
 .nav-group { position: relative; }
 .nav-group-toggle .caret { display: inline-block; margin-left: 4px; font-size: 10px; transition: transform 0.2s; }
 .nav-group:hover .caret, .nav-group.open .caret { transform: rotate(180deg); }
-.nav-group-menu { display: none; position: absolute; top: 100%; left: 0; background: var(--bg); border: 1px solid var(--accent-1); border-radius: 10px; padding: 4px 0; min-width: 170px; box-shadow: 0 8px 20px rgba(74,25,66,0.15); z-index: 101; }
+/* Anchor the menu to the right edge of the nav-group so it grows leftward —
+   important because the Guides dropdown lives on the right side of the nav
+   and its longest item ("Succession Planting Seed Kit") would otherwise be
+   clipped by the viewport. */
+.nav-group-menu { display: none; position: absolute; top: 100%; right: 0; left: auto; background: var(--bg); border: 1px solid var(--accent-1); border-radius: 10px; padding: 4px 0; min-width: 200px; box-shadow: 0 8px 20px rgba(74,25,66,0.15); z-index: 101; }
 /* Bridge the click-target to the menu so the cursor doesn't drop the :hover state crossing the gap. */
 .nav-group::after { content: ''; position: absolute; top: 100%; left: 0; right: 0; height: 12px; }
 .nav-group:hover .nav-group-menu, .nav-group.open .nav-group-menu, .nav-group:focus-within .nav-group-menu { display: block; }
