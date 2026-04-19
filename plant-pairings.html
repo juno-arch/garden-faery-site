@@ -10,7 +10,12 @@
   <meta property="og:description" content="Curated plant combinations for Humboldt County's coastal climate. Each pairing is a ready-to-plant recipe using plants from our guide.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://gardenfaery.love/plant-pairings.html">
-  <meta property="og:image" content="https://gardenfaery.love/farm.jpg">
+  <meta property="og:image" content="https://gardenfaery.love/plant-pairings/foggy-coast-cottage.jpg">
+  <meta property="og:image:alt" content="A romantic cottage garden border representing one of Garden Faery's plant pairing recipes">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Plant Pairings | Garden Faery, Arcata, CA">
+  <meta name="twitter:description" content="Curated plant combinations for Humboldt County's coastal climate.">
+  <meta name="twitter:image" content="https://gardenfaery.love/plant-pairings/foggy-coast-cottage.jpg">
   <link rel="canonical" href="https://gardenfaery.love/plant-pairings.html">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
   <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
@@ -659,6 +664,16 @@
 
     // Initial render
     renderGrid('all');
+
+    // Deep link: #slug opens that pairing's modal
+    function openFromHash() {
+      const slug = location.hash.replace(/^#/, '');
+      if (!slug) return;
+      const p = PAIRINGS.find(x => x.slug === slug);
+      if (p) openModal(p);
+    }
+    openFromHash();
+    window.addEventListener('hashchange', openFromHash);
   </script>
 </body>
 </html>

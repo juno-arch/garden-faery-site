@@ -29,6 +29,14 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://gardenfaery.love/plant-pairings.html</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://gardenfaery.love/garden-styles.html</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://gardenfaery.love/contact.html</loc>
     <priority>0.8</priority>
   </url>

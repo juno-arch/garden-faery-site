@@ -10,7 +10,12 @@
   <meta property="og:description" content="Eight garden style lookbooks for Humboldt County's coastal climate. Each style is a curated set of anchor and companion plants.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://gardenfaery.love/garden-styles.html">
-  <meta property="og:image" content="https://gardenfaery.love/farm.jpg">
+  <meta property="og:image" content="https://gardenfaery.love/garden-styles/cottage.jpg">
+  <meta property="og:image:alt" content="A cottage garden border in full bloom representing Garden Faery's garden style lookbooks">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Garden Styles | Garden Faery, Arcata, CA">
+  <meta name="twitter:description" content="Eight garden style lookbooks for Humboldt County's coastal climate.">
+  <meta name="twitter:image" content="https://gardenfaery.love/garden-styles/cottage.jpg">
   <link rel="canonical" href="https://gardenfaery.love/garden-styles.html">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
   <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
@@ -614,6 +619,16 @@
     document.getElementById('modal-close').addEventListener('click', closeModal);
     overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    // Deep link: #slug opens that style's modal
+    function openFromHash() {
+      const slug = location.hash.replace(/^#/, '');
+      if (!slug) return;
+      const s = STYLES.find(x => x.slug === slug);
+      if (s) openModal(s);
+    }
+    openFromHash();
+    window.addEventListener('hashchange', openFromHash);
   </script>
 </body>
 </html>

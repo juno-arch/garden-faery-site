@@ -1423,6 +1423,46 @@
     }
     .companion-chip.unknown:hover { background: white; }
 
+    /* Featured-in chips: links to plant pairings + garden styles */
+    .feature-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      font-size: 12.5px;
+      font-weight: 600;
+      font-family: var(--font-body);
+      border-radius: 13px;
+      border: 1.5px solid;
+      text-decoration: none;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .feature-chip.pairing {
+      background: var(--petal-pink-light);
+      border-color: rgba(212, 152, 182, 0.5);
+      color: var(--text-primary);
+    }
+    .feature-chip.pairing:hover {
+      background: var(--accent-1);
+      color: white;
+      border-color: var(--accent-1);
+    }
+    .feature-chip.style {
+      background: var(--sage-light);
+      border-color: rgba(155, 189, 133, 0.5);
+      color: var(--text-primary);
+    }
+    .feature-chip.style:hover {
+      background: var(--spring-sage);
+      color: white;
+      border-color: var(--spring-sage);
+    }
+    .feature-chip-icon {
+      font-size: 11px;
+      opacity: 0.8;
+    }
+
     /* Print styles for My Garden list */
     @media print {
       nav, .hero, .top-actions, .filter-section, #plants-container, .directory-section,
@@ -1700,6 +1740,10 @@
   </footer>
 
   <script>
+    // Reverse index: which plant pairings/styles include each plant.
+    // t = type ('p' = pairing, 's' = style), s = recipe slug, n = recipe display name.
+    const FEATURED_IN = {"alstroemeria":[{"t":"s","s":"cottage","n":"Cottage Garden"}],"anemone":[{"t":"p","s":"moon-garden","n":"Moon Garden"}],"apple":[{"t":"s","s":"edible-permaculture","n":"Edible Permaculture"}],"astilbe":[{"t":"p","s":"foggy-coast-cottage","n":"Foggy Coast Cottage Border"},{"t":"s","s":"cottage","n":"Cottage Garden"},{"t":"s","s":"faery-whimsy","n":"Faery Whimsy"}],"autumn-fern":[{"t":"p","s":"foggy-coast-cottage","n":"Foggy Coast Cottage Border"},{"t":"s","s":"faery-whimsy","n":"Faery Whimsy"}],"beach-strawberry":[{"t":"p","s":"edible-faery-path","n":"Edible Faery Path"},{"t":"s","s":"edible-permaculture","n":"Edible Permaculture"},{"t":"s","s":"sensory-kids","n":"Sensory & Kids Garden"},{"t":"s","s":"coastal","n":"Coastal Wind & Salt"}],"bee-balm":[{"t":"p","s":"hummingbird-buffet","n":"Hummingbird & Bee Buffet"},{"t":"s","s":"pollinator-sanctuary","n":"Pollinator Sanctuary"}],"borage":[{"t":"s","s":"edible-permaculture","n":"Edible Permaculture"},{"t":"s","s":"pollinator-sanctuary","n":"Pollinator Sanctuary"},{"t":"s","s":"sensory-kids","n":"Sensory & Kids Garden"}],"calendula":[{"t":"p","s":"edible-faery-path","n":"Edible Faery Path"},{"t":"p","s":"cut-flower-patch","n":"Cut Flower Patch"},{"t":"s","s":"edible-permaculture","n":"Edible Permaculture"},{"t":"s","s":"sensory-kids","n":"Sensory & Kids Garden"}],"california-poppy":[{"t":"p","s":"deer-resistant-pollinator","n":"Deer-Resistant Pollinator Patch"},{"t":"s","s":"drought-mediterranean","n":"Drought Mediterranean"}],"ceanothus":[{"t":"p","s":"coastal-wind-hedge","n":"Coastal Wind & Salt Hedge"},{"t":"s","s":"pnw-native","n":"Pacific Northwest Native"},{"t":"s","s":"pollinator-sanctuary","n":"Pollinator Sanctuary"},{"t":"s","s":"coastal","n":"Coastal Wind & Salt"}],"chives":[{"t":"p","s":"edible-faery-path","n":"Edible Faery Path"},{"t":"s","s":"edible-permaculture","n":"Edible Permaculture"},{"t":"s","s":"sensory-kids","n":"Sensory & Kids Garden"}],"cleveland-sage":[{"t":"p","s":"deer-resistant-pollinator","n":"Deer-Resistant Pollinator Patch"},{"t":"p","s":"hummingbird-buffet","n":"Hummingbird & Bee Buffet"},{"t":"s","s":"drought-mediterranean","n":"Drought Mediterranean"},{"t":"s","s":"coastal","n":"Coastal Wind & Salt"}],"coast-silk-tassel":[{"t":"s","s":"coastal","n":"Coastal Wind & Salt"}],"cosmos":[{"t":"p","s":"cut-flower-patch","n":"Cut Flower Patch"}],"daffodil":[{"t":"p","s":"moon-garden","n":"Moon Garden"}],"dahlia":[{"t":"p","s":"cut-flower-patch","n":"Cut Flower Patch"}],"delphinium":[{"t":"s","s":"cottage","n":"Cottage Garden"}],"dianthus":[{"t":"s","s":"cottage","n":"Cottage Garden"}],"douglas-iris":[{"t":"s","s":"pnw-native","n":"Pacific Northwest Native"}],"echinacea":[{"t":"s","s":"pollinator-sanctuary","n":"Pollinator Sanctuary"}],"evergreen-huckleberry":[{"t":"p","s":"pnw-native-woodland","n":"Pacific Northwest Native Woodland Edge"},{"t":"s","s":"pnw-native","n":"Pacific Northwest Native"}],"fennel":[{"t":"s","s":"edible-permaculture","n":"Edible Permaculture"}],"foxglove":[{"t":"s","s":"cottage","n":"Cottage Garden"},{"t":"s","s":"faery-whimsy","n":"Faery Whimsy"}],"fuchsia":[{"t":"p","s":"foggy-coast-cottage","n":"Foggy Coast Cottage Border"},{"t":"p","s":"hummingbird-buffet","n":"Hummingbird & Bee Buffet"},{"t":"s","s":"faery-whimsy","n":"Faery Whimsy"}],"goldenrod":[{"t":"s","s":"pollinator-sanctuary","n":"Pollinator Sanctuary"}],"hairy-manzanita":[{"t":"s","s":"coastal","n":"Coastal Wind & Salt"}],"hellebore":[{"t":"s","s":"faery-whimsy","n":"Faery Whimsy"}],"heuchera":[{"t":"p","s":"foggy-coast-cottage","n":"Foggy Coast Cottage Border"},{"t":"s","s":"faery-whimsy","n":"Faery Whimsy"}],"hollyhock":[{"t":"s","s":"cottage","n":"Cottage Garden"}],"hosta":[{"t":"p","s":"foggy-coast-cottage","n":"Foggy Coast Cottage Border"},{"t":"s","s":"faery-whimsy","n":"Faery Whimsy"}],"hummingbird-sage":[{"t":"p","s":"hummingbird-buffet","n":"Hummingbird & Bee Buffet"},{"t":"s","s":"drought-mediterranean","n":"Drought Mediterranean"},{"t":"s","s":"pollinator-sanctuary","n":"Pollinator Sanctuary"}],"hydrangea":[{"t":"p","s":"foggy-coast-cottage","n":"Foggy Coast Cottage Border"},{"t":"s","s":"cottage","n":"Cottage Garden"}],"iceland-poppy":[{"t":"p","s":"moon-garden","n":"Moon Garden"},{"t":"s","s":"cottage","n":"Cottage Garden"}],"inside-out-flower":[{"t":"s","s":"faery-whimsy","n":"Faery Whimsy"}],"japanese-painted-fern":[{"t":"s","s":"faery-whimsy","n":"Faery Whimsy"}],"lavender":[{"t":"p","s":"deer-resistant-pollinator","n":"Deer-Resistant Pollinator Patch"},{"t":"s","s":"drought-mediterranean","n":"Drought Mediterranean"},{"t":"s","s":"pollinator-sanctuary","n":"Pollinator Sanctuary"},{"t":"s","s":"sensory-kids","n":"Sensory & Kids Garden"}],"lavender-cotton":[{"t":"p","s":"moon-garden","n":"Moon Garden"},{"t":"s","s":"drought-mediterranean","n":"Drought Mediterranean"},{"t":"s","s":"sensory-kids","n":"Sensory & Kids Garden"}],"lemon-balm":[{"t":"p","s":"edible-faery-path","n":"Edible Faery Path"},{"t":"s","s":"edible-permaculture","n":"Edible Permaculture"},{"t":"s","s":"sensory-kids","n":"Sensory & Kids Garden"}],"lupine":[{"t":"s","s":"cottage","n":"Cottage Garden"}],"milkweed":[{"t":"s","s":"pnw-native","n":"Pacific Northwest Native"},{"t":"s","s":"pollinator-sanctuary","n":"Pollinator Sanctuary"}],"mint":[{"t":"s","s":"edible-permaculture","n":"Edible Permaculture"},{"t":"s","s":"sensory-kids","n":"Sensory & Kids Garden"}],"naked-buckwheat":[{"t":"s","s":"drought-mediterranean","n":"Drought Mediterranean"},{"t":"s","s":"coastal","n":"Coastal Wind & Salt"}],"nasturtium":[{"t":"p","s":"edible-faery-path","n":"Edible Faery Path"},{"t":"s","s":"edible-permaculture","n":"Edible Permaculture"},{"t":"s","s":"sensory-kids","n":"Sensory & Kids Garden"}],"oregano":[{"t":"s","s":"drought-mediterranean","n":"Drought Mediterranean"}],"oregon-grape":[{"t":"p","s":"pnw-native-woodland","n":"Pacific Northwest Native Woodland Edge"},{"t":"s","s":"pnw-native","n":"Pacific Northwest Native"}],"pacific-aster":[{"t":"p","s":"deer-resistant-pollinator","n":"Deer-Resistant Pollinator Patch"},{"t":"s","s":"pnw-native","n":"Pacific Northwest Native"},{"t":"s","s":"pollinator-sanctuary","n":"Pollinator Sanctuary"}],"pacific-wax-myrtle":[{"t":"p","s":"coastal-wind-hedge","n":"Coastal Wind & Salt Hedge"},{"t":"s","s":"coastal","n":"Coastal Wind & Salt"}],"parsley":[{"t":"p","s":"edible-faery-path","n":"Edible Faery Path"},{"t":"s","s":"edible-permaculture","n":"Edible Permaculture"}],"penstemon":[{"t":"p","s":"hummingbird-buffet","n":"Hummingbird & Bee Buffet"},{"t":"s","s":"drought-mediterranean","n":"Drought Mediterranean"},{"t":"s","s":"pollinator-sanctuary","n":"Pollinator Sanctuary"}],"peony":[{"t":"s","s":"cottage","n":"Cottage Garden"}],"phacelia":[{"t":"s","s":"pollinator-sanctuary","n":"Pollinator Sanctuary"}],"red-flowering-currant":[{"t":"s","s":"pnw-native","n":"Pacific Northwest Native"}],"redwood-sorrel":[{"t":"p","s":"pnw-native-woodland","n":"Pacific Northwest Native Woodland Edge"},{"t":"s","s":"faery-whimsy","n":"Faery Whimsy"},{"t":"s","s":"pnw-native","n":"Pacific Northwest Native"}],"rosemary":[{"t":"p","s":"deer-resistant-pollinator","n":"Deer-Resistant Pollinator Patch"},{"t":"s","s":"edible-permaculture","n":"Edible Permaculture"},{"t":"s","s":"drought-mediterranean","n":"Drought Mediterranean"}],"sage":[{"t":"s","s":"edible-permaculture","n":"Edible Permaculture"}],"salal":[{"t":"p","s":"pnw-native-woodland","n":"Pacific Northwest Native Woodland Edge"},{"t":"s","s":"pnw-native","n":"Pacific Northwest Native"}],"seaside-daisy":[{"t":"s","s":"coastal","n":"Coastal Wind & Salt"}],"shasta-daisy-becky":[{"t":"p","s":"moon-garden","n":"Moon Garden"}],"shore-pine":[{"t":"p","s":"coastal-wind-hedge","n":"Coastal Wind & Salt Hedge"},{"t":"s","s":"coastal","n":"Coastal Wind & Salt"}],"snapdragon":[{"t":"p","s":"cut-flower-patch","n":"Cut Flower Patch"},{"t":"s","s":"cottage","n":"Cottage Garden"},{"t":"s","s":"sensory-kids","n":"Sensory & Kids Garden"}],"sticky-monkey-flower":[{"t":"p","s":"hummingbird-buffet","n":"Hummingbird & Bee Buffet"},{"t":"s","s":"pnw-native","n":"Pacific Northwest Native"},{"t":"s","s":"pollinator-sanctuary","n":"Pollinator Sanctuary"}],"sunflower":[{"t":"s","s":"sensory-kids","n":"Sensory & Kids Garden"}],"sweet-alyssum-pimpernel":[{"t":"p","s":"moon-garden","n":"Moon Garden"}],"sweet-pea":[{"t":"p","s":"cut-flower-patch","n":"Cut Flower Patch"},{"t":"s","s":"cottage","n":"Cottage Garden"}],"sweet-william":[{"t":"s","s":"cottage","n":"Cottage Garden"}],"sword-fern":[{"t":"p","s":"pnw-native-woodland","n":"Pacific Northwest Native Woodland Edge"},{"t":"s","s":"faery-whimsy","n":"Faery Whimsy"},{"t":"s","s":"pnw-native","n":"Pacific Northwest Native"}],"thyme":[{"t":"s","s":"edible-permaculture","n":"Edible Permaculture"},{"t":"s","s":"drought-mediterranean","n":"Drought Mediterranean"},{"t":"s","s":"sensory-kids","n":"Sensory & Kids Garden"}],"twinberry":[{"t":"p","s":"coastal-wind-hedge","n":"Coastal Wind & Salt Hedge"},{"t":"s","s":"pnw-native","n":"Pacific Northwest Native"},{"t":"s","s":"coastal","n":"Coastal Wind & Salt"}],"western-bleeding-heart":[{"t":"p","s":"pnw-native-woodland","n":"Pacific Northwest Native Woodland Edge"},{"t":"s","s":"faery-whimsy","n":"Faery Whimsy"},{"t":"s","s":"pnw-native","n":"Pacific Northwest Native"}],"yarrow":[{"t":"p","s":"deer-resistant-pollinator","n":"Deer-Resistant Pollinator Patch"},{"t":"s","s":"drought-mediterranean","n":"Drought Mediterranean"},{"t":"s","s":"pollinator-sanctuary","n":"Pollinator Sanctuary"},{"t":"s","s":"coastal","n":"Coastal Wind & Salt"}],"zinnia":[{"t":"p","s":"cut-flower-patch","n":"Cut Flower Patch"}]};
+
     // Plant data
     const plants = {
       pollinator: {
@@ -4539,7 +4583,8 @@
         '<div class="modal-section"><h4>Growth</h4><p>' + escapeHtml(p.growth || '') + '</p></div>' +
         '<div class="modal-section"><h4>Care</h4><p>' + escapeHtml(p.care || '') + '</p></div>' +
         '<div class="modal-section"><h4>Planting</h4><p>' + escapeHtml(p.planting || '') + '</p></div>' +
-        renderCompanions(p.slug);
+        renderCompanions(p.slug) +
+        renderFeaturedIn(p.slug);
 
       wireCompanionChips(body);
 
@@ -4772,6 +4817,21 @@
       }
       html += '</div>';
       return html;
+    }
+
+    function renderFeaturedIn(slug) {
+      const refs = (typeof FEATURED_IN !== 'undefined' && FEATURED_IN[slug]) || [];
+      if (refs.length === 0) return '';
+      const chips = refs.map(r => {
+        const page = r.t === 'p' ? 'plant-pairings.html' : 'garden-styles.html';
+        const cls = r.t === 'p' ? 'pairing' : 'style';
+        const icon = r.t === 'p' ? '&#9752;' : '&#10047;'; // sun + sparkle-ish
+        return '<a class="feature-chip ' + cls + '" href="' + page + '#' + r.s + '">' +
+          '<span class="feature-chip-icon" aria-hidden="true">' + icon + '</span>' +
+          escapeHtml(r.n) + '</a>';
+      }).join('');
+      return '<div class="modal-section companions"><h4>Featured in</h4>' +
+        '<div class="companion-row" style="padding-left:0;">' + chips + '</div></div>';
     }
 
     function wireCompanionChips(root) {
