@@ -653,13 +653,6 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
 
   <!-- Clients view -->
   <div class="tab-panel" id="tab-clients" style="display:none;">
-    <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
-      <button type="button"
-              onclick="runNameCleanup()"
-              style="background:none;border:1px solid var(--gray-200);color:var(--gray-600);font-family:'Nunito',sans-serif;font-size:0.8rem;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;">
-        Normalize names
-      </button>
-    </div>
     <div id="clients-content"></div>
   </div>
 
@@ -2743,6 +2736,23 @@ function setIncomeStatus(s)  { incomeFilterStatus = s; rerenderIncome(); }
 function setIncomeClient(n)  { incomeFilterClient = n || ''; rerenderIncome(); }
 function clearIncomeFilters(){ incomeFilterStatus = 'all'; incomeFilterClient = ''; incomeSearch = ''; rerenderIncome(); }
 
+// --- Clients tab filter state ---
+let clientsSearch = '';
+let clientsFilterStatus = 'all';  // 'all' | 'outstanding' | 'paid'
+
+function rerenderClients() {
+  renderClients();
+  const el = document.getElementById('clients-search');
+  if (el) {
+    el.focus();
+    const v = el.value;
+    try { el.setSelectionRange(v.length, v.length); } catch (_) {}
+  }
+}
+
+function setClientsStatus(s)   { clientsFilterStatus = s; rerenderClients(); }
+function clearClientsFilters() { clientsFilterStatus = 'all'; clientsSearch = ''; rerenderClients(); }
+
 function renderIncome() {
   const el = document.getElementById('income-content');
   const all = getBookings().filter(b => b.status !== 'canceled');
@@ -3502,8 +3512,67 @@ function renderClients() {
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const today = formatDate(new Date());
 
+  // Apply filters — search matches name / email / phone (digits-only compare
+  // for phone so Taya can paste any format), status pill filters by balance.
+  const q = (clientsSearch || '').toLowerCase().trim();
+  const qDigits = q.replace(/\D/g, '');
+  const filtered = sorted.filter(c => {
+    if (clientsFilterStatus === 'outstanding' && !(c.outstanding > 0)) return false;
+    if (clientsFilterStatus === 'paid'        &&  (c.outstanding > 0)) return false;
+    if (q) {
+      const name  = (c.name  || '').toLowerCase();
+      const email = (c.email || '').toLowerCase();
+      const phone = (c.phone || '').replace(/\D/g, '');
+      const matchesName  = name.includes(q);
+      const matchesEmail = email.includes(q);
+      const matchesPhone = qDigits.length >= 3 && phone.includes(qDigits);
+      if (!matchesName && !matchesEmail && !matchesPhone) return false;
+    }
+    return true;
+  });
+  const filterActive = clientsFilterStatus !== 'all' || !!q;
+
+  // --- Filter bar (search + status pills) ---
+  const pill = (label, value) => {
+    const active = clientsFilterStatus === value;
+    return '<button onclick="setClientsStatus(\'' + value + '\')" style="' +
+      'border:1px solid ' + (active ? 'var(--plum)' : 'var(--gray-200)') + ';' +
+      'background:' + (active ? 'var(--plum)' : 'transparent') + ';' +
+      'color:' + (active ? 'var(--white)' : 'var(--gray-600)') + ';' +
+      'font-family:Nunito,sans-serif;font-weight:600;font-size:0.8rem;' +
+      'padding:6px 12px;border-radius:999px;cursor:pointer;' +
+      '">' + label + '</button>';
+  };
+
   let html = '';
-  sorted.forEach(c => {
+  html += '<div style="background:var(--white);border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:var(--shadow);">' +
+    '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;">' +
+      '<span style="font-size:0.8rem;color:var(--gray-600);font-weight:600;">Clients</span>' +
+      '<span style="font-size:0.8rem;color:var(--gray-600);">' +
+        filtered.length + ' of ' + sorted.length +
+      '</span>' +
+    '</div>' +
+    '<input type="search" id="clients-search" value="' + escapeHtml(clientsSearch) + '"' +
+      ' oninput="clientsSearch=this.value;rerenderClients()"' +
+      ' placeholder="Search by name, email, or phone..."' +
+      ' autocomplete="off" style="width:100%;padding:8px 10px;border-radius:8px;' +
+      'border:1px solid var(--gray-200);font-family:Nunito,sans-serif;font-size:0.9rem;margin-bottom:8px;">' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">' +
+      pill('All', 'all') + pill('Outstanding', 'outstanding') + pill('Paid up', 'paid') +
+      (filterActive
+        ? '<button onclick="clearClientsFilters()" style="border:none;background:none;color:var(--gray-600);' +
+          'font-size:0.8rem;text-decoration:underline;cursor:pointer;padding:0 4px;margin-left:auto;">Clear</button>'
+        : '') +
+    '</div>' +
+  '</div>';
+
+  if (filtered.length === 0) {
+    html += '<div class="empty-day"><p>No clients match these filters.</p></div>';
+    container.innerHTML = html;
+    return;
+  }
+
+  filtered.forEach(c => {
     const borderColor = c.outstanding > 0 ? 'var(--red)' : 'var(--plum)';
 
     // Header: name, visit count, last visit
@@ -3733,66 +3802,6 @@ function buildExistingClientList() {
 }
 
 // --- Name normalization migration ---
-// For each merged client group, pick a canonical "first last" name and
-// rewrite every booking in the group that uses a different variation.
-// Canonical name preference:
-//   1. Names with 2+ whitespace-separated parts (first + last) beat single-
-//      word names.
-//   2. Among those, longer name wins (more specific).
-//   3. Tie break by most-recent booking date.
-// Only touches client_name. Does not rewrite email/phone/address (those are
-// already backfilled in the merged view, and rewriting them would lose any
-// historical record of what was captured at booking time).
-function buildNameNormalizationPlan() {
-  const bookings = (getBookings() || []).filter(b => b.status !== 'canceled');
-  const groups = groupBookingsByClient(bookings);
-  const plan = []; // { to, froms: [name...], bookingIds: [id...] }
-
-  for (const g of groups) {
-    // Collect all distinct name variations seen in this group
-    const variants = new Map();
-    for (const v of g.visits) {
-      const n = (v.clientName || '').trim().replace(/\s+/g, ' ');
-      if (!n) continue;
-      if (!variants.has(n)) {
-        variants.set(n, { name: n, parts: n.split(' ').length, lastDate: '' });
-      }
-      const entry = variants.get(n);
-      if ((v.date || '') > entry.lastDate) entry.lastDate = v.date || '';
-    }
-    if (variants.size === 0) continue;
-
-    const ranked = [...variants.values()].sort((a, b) => {
-      const aHasLast = a.parts >= 2 ? 1 : 0;
-      const bHasLast = b.parts >= 2 ? 1 : 0;
-      if (aHasLast !== bHasLast) return bHasLast - aHasLast;
-      if (b.name.length !== a.name.length) return b.name.length - a.name.length;
-      return (b.lastDate || '').localeCompare(a.lastDate || '');
-    });
-    const canonical = ranked[0].name;
-
-    // If the winning name has no last name, skip — we refuse to "normalize"
-    // onto a first-name-only record because that just masks a missing last
-    // name. Taya should edit those bookings by hand (or book the client
-    // again with the full name).
-    if (ranked[0].parts < 2) continue;
-
-    // Every booking whose name differs from canonical goes in the plan
-    const toUpdate = g.visits.filter(v =>
-      (v.clientName || '').trim().replace(/\s+/g, ' ') !== canonical
-    );
-    if (toUpdate.length === 0) continue;
-
-    const froms = [...new Set(toUpdate.map(v => (v.clientName || '').trim() || '(blank)'))];
-    plan.push({
-      to: canonical,
-      froms: froms,
-      bookingIds: toUpdate.map(v => v.id)
-    });
-  }
-  return plan;
-}
-
 // Rename (and effectively merge) a client by rewriting every booking in
 // their merged group. Used from the Rename button on each Clients-tab
 // card. Useful when two names are the same person but don't share an
@@ -3845,45 +3854,6 @@ async function renameClientByName(currentName) {
 
   alert('Renamed ' + ok + ' booking' + (ok === 1 ? '' : 's') +
         (fail > 0 ? '. ' + fail + ' failed (see console).' : '.'));
-  await refreshData();
-  renderAll();
-}
-
-async function runNameCleanup() {
-  try { await refreshData(); } catch (_) { /* proceed with cached data */ }
-  const plan = buildNameNormalizationPlan();
-  if (plan.length === 0) {
-    alert('No duplicate names found. Everything is already consistent.');
-    return;
-  }
-
-  const totalBookings = plan.reduce((s, p) => s + p.bookingIds.length, 0);
-  const preview = plan
-    .map(p => '  ' + p.froms.join(' / ') + '  =>  ' + p.to + '   (' + p.bookingIds.length + ')')
-    .join('\n');
-  const msg = 'Normalize ' + totalBookings + ' booking' + (totalBookings === 1 ? '' : 's') +
-              ' across ' + plan.length + ' client' + (plan.length === 1 ? '' : 's') + '?\n\n' +
-              preview + '\n\n' +
-              'The right-hand name will replace the others. ' +
-              'Bookings with only a first name are left alone so you can fix them by hand.';
-  if (!confirm(msg)) return;
-
-  let updated = 0;
-  let failed = 0;
-  for (const p of plan) {
-    for (const id of p.bookingIds) {
-      try {
-        await DB.updateBooking(id, { clientName: p.to });
-        updated++;
-      } catch (err) {
-        console.error('Failed to update booking', id, err);
-        failed++;
-      }
-    }
-  }
-
-  alert('Updated ' + updated + ' booking' + (updated === 1 ? '' : 's') +
-        (failed > 0 ? '. ' + failed + ' failed (see console).' : '.'));
   await refreshData();
   renderAll();
 }
