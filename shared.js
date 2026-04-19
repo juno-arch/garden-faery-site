@@ -183,9 +183,14 @@
 
     const bee = document.createElement('div');
     bee.className = 'gf-bee';
-    bee.setAttribute('aria-hidden', 'true');
+    bee.setAttribute('role', 'button');
+    bee.setAttribute('tabindex', '0');
+    bee.setAttribute('aria-label', 'friendly bee');
     bee.innerHTML =
-      '<svg viewBox="-12 -10 24 20" xmlns="http://www.w3.org/2000/svg">'
+      // wrapper is what gets the facing flip + wiggle-on-click transform,
+      // so the outer div's translate (from WAAPI) doesn't get clobbered
+      '<div class="gf-bee-wrap">'
+      + '<svg viewBox="-12 -10 24 20" xmlns="http://www.w3.org/2000/svg">'
       // wings (drawn first so they sit behind the body)
       + '<ellipse class="wing wing-l" cx="-3" cy="-7" rx="6" ry="3.5"'
       +   ' fill="rgba(255,255,255,0.65)" stroke="rgba(80,60,30,0.45)" stroke-width="0.5"/>'
@@ -200,8 +205,88 @@
       // head
       + '<circle cx="6.5" cy="0" r="2.8" fill="#2c1810"/>'
       + '<circle cx="7.3" cy="-1" r="0.7" fill="#fff"/>'
-      + '</svg>';
+      + '</svg>'
+      + '</div>';
     document.body.appendChild(bee);
+    const beeWrap = bee.querySelector('.gf-bee-wrap');
+
+    // --- Click interaction: speech bubble + petal puff + happy wiggle ---
+    const beeMessages = [
+      'bzzzzz!',
+      'hi there!',
+      'thanks!',
+      'bzz-bzz!',
+      'tickles!',
+      'hello!',
+      'xo',
+      'pollen time!'
+    ];
+    const petalColors = [
+      'var(--petal-pink, #e9b8d6)',
+      'var(--petal-pink-light, #f4cfe3)',
+      'var(--pollen-gold, #f4c430)',
+      '#ffffff'
+    ];
+    let beeMsgIdx = Math.floor(Math.random() * beeMessages.length);
+
+    function showBeeTip(text) {
+      const rect = bee.getBoundingClientRect();
+      const tip = document.createElement('div');
+      tip.className = 'gf-bee-tip';
+      tip.textContent = text;
+      tip.style.left = (rect.left + rect.width / 2) + 'px';
+      tip.style.top  = rect.top + 'px';
+      document.body.appendChild(tip);
+      setTimeout(() => tip.remove(), 1800);
+    }
+
+    function spawnPetals() {
+      const rect = bee.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const n = 7;
+      for (let i = 0; i < n; i++) {
+        const p = document.createElement('div');
+        p.className = 'gf-bee-particle';
+        // Spread in a fan, biased upward
+        const angle = (-Math.PI / 2) + (i - (n - 1) / 2) * (Math.PI / (n + 1)) * 0.9
+                    + (Math.random() - 0.5) * 0.3;
+        const dist = 40 + Math.random() * 30;
+        const dx = Math.cos(angle) * dist;
+        const dy = Math.sin(angle) * dist;
+        const rot = (Math.random() * 540 - 270);
+        const color = petalColors[Math.floor(Math.random() * petalColors.length)];
+        p.style.setProperty('--dx', dx + 'px');
+        p.style.setProperty('--dy', dy + 'px');
+        p.style.setProperty('--rot', rot + 'deg');
+        p.style.left = cx + 'px';
+        p.style.top  = cy + 'px';
+        p.style.animationDelay = (i * 30) + 'ms';
+        p.innerHTML = '<svg viewBox="-10 -10 20 20"><ellipse cx="0" cy="-2" rx="4" ry="7"'
+                    + ' fill="' + color + '" stroke="rgba(80,60,30,0.15)" stroke-width="0.5"/></svg>';
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 1500);
+      }
+    }
+
+    function onBeeClick(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      showBeeTip(beeMessages[beeMsgIdx % beeMessages.length]);
+      beeMsgIdx++;
+      spawnPetals();
+      // retrigger the wiggle animation
+      beeWrap.classList.remove('wiggling');
+      void beeWrap.offsetWidth;
+      beeWrap.classList.add('wiggling');
+    }
+    bee.addEventListener('click', onBeeClick);
+    bee.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') onBeeClick(e);
+    });
+    beeWrap.addEventListener('animationend', () => {
+      beeWrap.classList.remove('wiggling');
+    });
 
     // Compute a landing point (page-unit coords in the meadow SVG viewBox,
     // converted to viewport px) for a given flower.
@@ -265,13 +350,19 @@
       return { ...randomCruisePoint(), land: false };
     }
 
+    function setFacing(newFacing) {
+      if (newFacing === facing) return;
+      facing = newFacing;
+      beeWrap.style.setProperty('--face', facing);
+    }
+
     async function flyTo(target) {
       const dx = target.x - pos.x;
       const dy = target.y - pos.y;
       const dist = Math.hypot(dx, dy);
       const duration = Math.max(900, Math.min(2800, dist * 3 + 400));
       // direction for mirroring the bee so the head leads
-      if (Math.abs(dx) > 30) facing = dx > 0 ? 1 : -1;
+      if (Math.abs(dx) > 30) setFacing(dx > 0 ? 1 : -1);
 
       // Wavy waypoints — sine-wave jitter perpendicular to the flight path
       const steps = 26;
@@ -288,7 +379,7 @@
         const x = baseX + perpX * wiggle;
         const y = baseY + perpY * wiggle + bob;
         keyframes.push({
-          transform: 'translate(' + (x - 16) + 'px, ' + (y - 10) + 'px) scaleX(' + facing + ')'
+          transform: 'translate(' + (x - 16) + 'px, ' + (y - 10) + 'px)'
         });
       }
       bee.classList.add('flying');
@@ -313,12 +404,14 @@
       if (landingEl) {
         pos = { x: innerWidth * 0.35, y: innerHeight + 30 };
         bee.style.transform =
-          'translate(' + (pos.x - 16) + 'px, ' + (pos.y - 10) + 'px) scaleX(1)';
+          'translate(' + (pos.x - 16) + 'px, ' + (pos.y - 10) + 'px)';
         await sleep(500 + Math.random() * 500);
+        bee.classList.add('on-cta');
         await flyTo({ ...elementLandingPos(landingEl), land: true });
         bee.classList.remove('flying');
         bee.classList.add('landed');
         await sleep(3200 + Math.random() * 1600);
+        bee.classList.remove('on-cta');
       } else {
         // small initial settle
         await sleep(800 + Math.random() * 1200);
