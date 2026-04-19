@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4a1942">
+  <meta name="apple-mobile-web-app-title" content="Garden Faery">
+  <meta name="description" content="Plant pairing recipes for Humboldt County gardens. Curated combinations for fog-belt cottages, deer-resistant borders, native woodland edges, and more.">
+  <meta property="og:title" content="Plant Pairings | Garden Faery, Arcata, CA">
+  <meta property="og:description" content="Curated plant combinations for Humboldt County's coastal climate. Each pairing is a ready-to-plant recipe using plants from our guide.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gardenfaery.love/plant-pairings.html">
+  <meta property="og:image" content="https://gardenfaery.love/farm.jpg">
+  <link rel="canonical" href="https://gardenfaery.love/plant-pairings.html">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <title>Plant Pairings | Garden Faery, Arcata, CA</title>
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    body { background: var(--bg); color: var(--text-primary); }
+
+    /* Hero */
+    .hero {
+      padding: 64px 24px 40px;
+      text-align: center;
+      background: linear-gradient(135deg, var(--petal-pink-light) 0%, var(--sage-light) 100%);
+      border-bottom: 2px solid var(--accent-1);
+    }
+    .hero h1 {
+      font-family: 'Elsie Swash Caps', serif;
+      font-size: clamp(36px, 6vw, 56px);
+      font-weight: 900;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+    .hero .subtitle {
+      font-family: var(--font-heading);
+      font-style: italic;
+      font-size: 20px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+    .hero .subtext {
+      font-size: 14px;
+      color: var(--gray-600);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* Intro band */
+    .intro {
+      max-width: 720px;
+      margin: 36px auto 24px;
+      padding: 0 24px;
+      text-align: center;
+    }
+    .intro p {
+      font-size: 16px;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+    .intro p + p { margin-top: 14px; }
+
+    /* Filter chips */
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      max-width: 920px;
+      margin: 28px auto 32px;
+      padding: 0 24px;
+    }
+    .filter-chip {
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: var(--white);
+      border: 1.5px solid var(--gray-200);
+      border-radius: 999px;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .filter-chip:hover {
+      border-color: var(--accent-1);
+      color: var(--text-primary);
+    }
+    .filter-chip.active {
+      background: var(--accent-1);
+      border-color: var(--accent-1);
+      color: var(--white);
+    }
+
+    /* Grid */
+    .pairings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto 80px;
+      padding: 0 24px;
+    }
+    @media (min-width: 1100px) {
+      .pairings-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .pairing-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: transform 0.22s ease, box-shadow 0.22s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .pairing-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .pairing-img {
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: var(--sage-light);
+      object-fit: cover;
+      display: block;
+    }
+
+    .pairing-body {
+      padding: 18px 20px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+    }
+    .pairing-name {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.25;
+    }
+    .pairing-tagline {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      flex: 1;
+    }
+    .pairing-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .pairing-tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      padding: 4px 9px;
+      border-radius: 4px;
+      background: var(--sage-light);
+      color: var(--text-primary);
+    }
+    .pairing-tag.style { background: var(--petal-pink-light); }
+    .pairing-tag.season { background: rgba(222, 188, 93, 0.25); }
+
+    .pairing-plant-count {
+      font-size: 12px;
+      color: var(--gray-600);
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(74, 25, 66, 0.55);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 16px;
+      overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg);
+      border-radius: var(--radius);
+      max-width: 760px;
+      width: 100%;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(74, 25, 66, 0.3);
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.92);
+      border: none;
+      cursor: pointer;
+      font-size: 22px;
+      line-height: 1;
+      color: var(--text-primary);
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.18s;
+    }
+    .modal-close:hover { background: var(--white); }
+
+    .modal-hero {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      display: block;
+      background: var(--sage-light);
+    }
+    .modal-body {
+      padding: 28px 32px 36px;
+    }
+    .modal-name {
+      font-family: 'Elsie Swash Caps', serif;
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+      line-height: 1.15;
+    }
+    .modal-tagline {
+      font-family: var(--font-heading);
+      font-style: italic;
+      font-size: 17px;
+      color: var(--text-secondary);
+      margin-bottom: 18px;
+    }
+    .modal-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 22px; }
+    .modal-description {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text-primary);
+      margin-bottom: 28px;
+    }
+    .modal-section-title {
+      font-family: var(--font-heading);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1.5px solid var(--gray-200);
+    }
+    .plant-list { display: flex; flex-direction: column; gap: 10px; }
+    .plant-row {
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 14px;
+      padding: 10px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: background 0.15s;
+    }
+    .plant-row:hover { background: var(--sage-light); }
+    .plant-thumb {
+      width: 56px;
+      height: 56px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: var(--gray-100);
+    }
+    .plant-info {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+    }
+    .plant-info-name {
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .plant-info-role {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+
+    .footer-cta {
+      max-width: 720px;
+      margin: 24px auto 80px;
+      padding: 32px 28px;
+      text-align: center;
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .footer-cta h3 {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .footer-cta p { font-size: 15px; color: var(--text-secondary); margin-bottom: 18px; }
+    .footer-cta .btn {
+      display: inline-block;
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 14px;
+      text-decoration: none;
+      padding: 12px 28px;
+      border-radius: 999px;
+      background: var(--accent-1);
+      color: var(--white);
+      transition: background 0.18s;
+    }
+    .footer-cta .btn:hover { background: var(--plum); }
+  </style>
+</head>
+<body>
+  <nav class="site-nav">
+    <a href="index.html" class="nav-logo">
+      <img src="garden-faery-logo.png" alt="" class="nav-logo-img">
+      Garden Faery
+    </a>
+    <button class="nav-toggle" aria-label="Menu" type="button" onclick="document.querySelector('.nav-links').classList.toggle('open')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="about.html">About</a>
+      <a href="services.html">Services</a>
+      <a href="gallery.html">Gallery</a>
+      <div class="nav-group active">
+        <button class="nav-group-toggle" type="button" onclick="this.parentElement.classList.toggle('open')">Guides<span class="caret" aria-hidden="true">&#9662;</span></button>
+        <div class="nav-group-menu">
+          <a href="plant-guide.html">Plant Guide</a>
+          <a href="plant-pairings.html" class="active">Plant Pairings</a>
+          <a href="food-guide.html">Market Garden</a>
+          <a href="estimator.html">Bed Builder</a>
+        </div>
+      </div>
+      <a href="book.html">Book</a>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <h1>Plant Pairings</h1>
+      <p class="subtitle">Garden recipes for Humboldt County</p>
+      <p class="subtext">Zone 9b · Coastal Fog Belt · Arcata, CA</p>
+    </section>
+
+    <div class="intro">
+      <p>Each pairing is a ready-to-plant recipe — a small group of plants that look beautiful together and thrive in the same conditions. Start with one, scale to your space, swap a plant for another in the same role.</p>
+      <p>Click any recipe to see its full plant list, with each plant linking back to growing details in the Plant Guide.</p>
+    </div>
+
+    <div class="filter-row" id="filter-row">
+      <button class="filter-chip active" data-filter="all">All Recipes</button>
+      <button class="filter-chip" data-filter="cottage">Cottage</button>
+      <button class="filter-chip" data-filter="native">Native</button>
+      <button class="filter-chip" data-filter="pollinator">Pollinator</button>
+      <button class="filter-chip" data-filter="edible">Edible</button>
+      <button class="filter-chip" data-filter="deer-resistant">Deer-Resistant</button>
+      <button class="filter-chip" data-filter="coastal">Coastal</button>
+      <button class="filter-chip" data-filter="moon">Moon Garden</button>
+      <button class="filter-chip" data-filter="cut-flower">Cut Flower</button>
+    </div>
+
+    <div class="pairings-grid" id="pairings-grid"></div>
+
+    <div class="footer-cta">
+      <h3>Want help bringing a recipe to life?</h3>
+      <p>I plant, prune, and tend gardens across Arcata, McKinleyville, and Eureka. Let's pick a recipe together.</p>
+      <a href="book.html" class="btn">Book a visit</a>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal" id="modal">
+      <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
+      <img class="modal-hero" id="modal-hero" alt="">
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <script>
+    // --- Recipe data ---
+    // Hero photos in plant-pairings/{slug}.jpg
+    // Plants reference slugs in plant-guide.html (each links to #plant-{slug})
+    const PAIRINGS = [
+      {
+        slug: 'foggy-coast-cottage',
+        name: 'Foggy Coast Cottage Border',
+        hero: 'plant-pairings/foggy-coast-cottage.jpg',
+        tagline: 'Soft pastels and lush textures that look romantic even on gray fog days.',
+        tags: ['cottage', 'coastal'],
+        style: 'Cottage',
+        season: 'Spring through summer',
+        conditions: ['Part shade', 'Acidic soil', 'Coastal fog belt'],
+        description: 'Designed for the Eureka and Arcata fog belt where direct sun is rare and the air stays moist all day. Big mophead hydrangeas anchor the back, fuchsias dangle their bell flowers in front, and a foreground of leafy textures keeps it lush even when nothing is blooming. Acid soil suits all of these.',
+        plants: [
+          { slug: 'hydrangea', role: 'Anchor — big mophead blooms in blue, pink, or white' },
+          { slug: 'fuchsia', role: 'Pendulous bell flowers, hummingbird magnet' },
+          { slug: 'astilbe', role: 'Plume flowers in pink and white, loves the moisture' },
+          { slug: 'hosta', role: 'Lush leaf texture, classic shade plant' },
+          { slug: 'autumn-fern', role: 'Coppery new fronds, evergreen structure' },
+          { slug: 'heuchera', role: 'Burgundy or silver foliage as a low edge' }
+        ]
+      },
+      {
+        slug: 'deer-resistant-pollinator',
+        name: 'Deer-Resistant Pollinator Patch',
+        hero: 'plant-pairings/deer-resistant-pollinator.jpg',
+        tagline: 'Aromatic, fuzzy, or just plain unpalatable — bees love it, deer pass it by.',
+        tags: ['pollinator', 'deer-resistant'],
+        style: 'Mediterranean',
+        season: 'Late spring through fall',
+        conditions: ['Full sun', 'Well-drained soil', 'Drought-tolerant once established'],
+        description: 'Deer hate strong herbal scents and fuzzy leaves. This patch packs both into one bee-friendly mosaic. Drop it along a sunny driveway, against a south wall, or anywhere deer have been treating your other beds like a salad bar.',
+        plants: [
+          { slug: 'lavender', role: 'Backbone scent and bloom, deer skip it cold' },
+          { slug: 'rosemary', role: 'Evergreen herb, blue flowers in winter' },
+          { slug: 'yarrow', role: 'Flat flower platforms for native bees' },
+          { slug: 'california-poppy', role: 'Pop of orange, reseeds gently' },
+          { slug: 'pacific-aster', role: 'Native fall bloomer for late pollinator forage' },
+          { slug: 'cleveland-sage', role: 'Heady fragrance, drought-proof' }
+        ]
+      },
+      {
+        slug: 'pnw-native-woodland',
+        name: 'Pacific Northwest Native Woodland Edge',
+        hero: 'plant-pairings/pnw-native-woodland.jpg',
+        tagline: 'A whole ecosystem under your redwoods, douglas firs, or shade-cast fence line.',
+        tags: ['native', 'coastal'],
+        style: 'Naturalistic',
+        season: 'Year-round interest',
+        conditions: ['Full to dappled shade', 'Acidic, organic soil', 'Cool roots'],
+        description: 'Most of these plants grow wild in the woods around Humboldt — they want exactly what your shaded property edges already offer. Once established they ask for almost nothing. Birds, native bees, and small mammals all benefit.',
+        plants: [
+          { slug: 'sword-fern', role: 'Evergreen architecture under conifers' },
+          { slug: 'salal', role: 'Glossy spreading shrub, edible berries' },
+          { slug: 'redwood-sorrel', role: 'Carpet groundcover under deep shade' },
+          { slug: 'evergreen-huckleberry', role: 'Native berry shrub, slow but worthwhile' },
+          { slug: 'oregon-grape', role: 'Holly-like leaves, yellow spring flowers, blue fruit' },
+          { slug: 'western-bleeding-heart', role: 'Lacy ferny foliage, pink heart-shaped flowers' }
+        ]
+      },
+      {
+        slug: 'edible-faery-path',
+        name: 'Edible Faery Path',
+        hero: 'plant-pairings/edible-faery-path.jpg',
+        tagline: 'Pinch a leaf, pick a flower, snap a strawberry — every step rewards a little hand or curious mouth.',
+        tags: ['edible', 'pollinator'],
+        style: 'Whimsical · Kitchen garden',
+        season: 'Spring through fall',
+        conditions: ['Sun to part shade', 'Well-drained soil', 'Regular water'],
+        description: 'Designed for the kind of garden where someone wanders in barefoot and snacks their way through. Everything here is edible, kid-safe, and beautiful. Tuck it along a path, around a kid-height table, or as the front edge of a vegetable bed.',
+        plants: [
+          { slug: 'chives', role: 'Mild oniony, purple pom-pom flowers' },
+          { slug: 'calendula', role: 'Edible petals for salads and cakes' },
+          { slug: 'nasturtium', role: 'Peppery leaves and flowers, scrambles happily' },
+          { slug: 'lemon-balm', role: 'Crush a leaf for instant lemon scent' },
+          { slug: 'beach-strawberry', role: 'Tiny intense berries, native groundcover' },
+          { slug: 'parsley', role: 'Bright green ruffled foliage, snack as you pass' }
+        ]
+      },
+      {
+        slug: 'hummingbird-buffet',
+        name: 'Hummingbird & Bee Buffet',
+        hero: 'plant-pairings/hummingbird-buffet.jpg',
+        tagline: 'Tubular blooms, bright colors, all-season nectar — the back porch becomes a Discovery Channel.',
+        tags: ['pollinator'],
+        style: 'Wildlife',
+        season: 'Spring through fall',
+        conditions: ['Full sun to part shade', 'Average water', 'Mulched soil'],
+        description: 'Anna\'s hummingbirds overwinter in Humboldt, so this patch is wired for year-round visitors. Tubular reds and pinks pull in the hummers; the salvias and bee balm keep bumblebees and native bees fed. Plant a sit spot nearby and bring a coffee.',
+        plants: [
+          { slug: 'hummingbird-sage', role: 'Native, deep red-pink whorls of bloom' },
+          { slug: 'bee-balm', role: 'Shaggy red flowers, mint-family fragrance' },
+          { slug: 'penstemon', role: 'Tubular spires in pink, purple, or red' },
+          { slug: 'sticky-monkey-flower', role: 'Native, orange tubular flowers all summer' },
+          { slug: 'cleveland-sage', role: 'Lavender-blue whorls, drought-tough' },
+          { slug: 'fuchsia', role: 'Hanging bells, hummingbird gold standard' }
+        ]
+      },
+      {
+        slug: 'coastal-wind-hedge',
+        name: 'Coastal Wind & Salt Hedge',
+        hero: 'plant-pairings/coastal-wind-hedge.jpg',
+        tagline: 'Privacy that takes the salt spray and the worst Westerly without flinching.',
+        tags: ['coastal', 'native'],
+        style: 'Hedge · Windbreak',
+        season: 'Year-round screen',
+        conditions: ['Full sun', 'Wind & salt tolerant', 'Sandy or rocky soil OK'],
+        description: 'Beachside or bluff-edge gardens face wind and salt that will brown out a typical privet hedge in a season. These four are built for it — three natives and one tough conifer. Plant in a staggered double row for fast screening, single row for a hedgy look.',
+        plants: [
+          { slug: 'pacific-wax-myrtle', role: 'Aromatic evergreen, native, fast screen' },
+          { slug: 'ceanothus', role: 'Evergreen native, blue spring flower clouds' },
+          { slug: 'shore-pine', role: 'Wind-sculpted native conifer, almost bulletproof' },
+          { slug: 'twinberry', role: 'Native shrub for understory, red-orange tube flowers' }
+        ]
+      },
+      {
+        slug: 'moon-garden',
+        name: 'Moon Garden',
+        hero: 'plant-pairings/moon-garden.jpg',
+        tagline: 'Whites, silvers, and pale pastels that glow at dusk and reflect moonlight.',
+        tags: ['moon'],
+        style: 'Romantic · Evening',
+        season: 'Spring through fall',
+        conditions: ['Full sun to part shade', 'Average water', 'Best near a sit spot'],
+        description: 'Plant near where you sit at the end of the day — a back porch, a bedroom window, the edge of an outdoor dining spot. As light fades, the whites and silvers come into their own and the garden becomes a different place. Many of these are also fragrant after dark.',
+        plants: [
+          { slug: 'iceland-poppy', role: 'Tissue-paper white and cream flowers' },
+          { slug: 'anemone', role: 'Pure white blooms on tall stems' },
+          { slug: 'lavender-cotton', role: 'Silvery-grey mound, glows in low light' },
+          { slug: 'shasta-daisy-becky', role: 'Crisp white daisies, classic moon bloomer' },
+          { slug: 'daffodil', role: 'White-flowered narcissus varieties early in spring' },
+          { slug: 'sweet-alyssum-pimpernel', role: 'Honey-scented carpet of tiny white flowers' }
+        ]
+      },
+      {
+        slug: 'cut-flower-patch',
+        name: 'Cut Flower Patch',
+        hero: 'plant-pairings/cut-flower-patch.jpg',
+        tagline: 'Fresh bouquets from June through first frost — a row, a bed, or a wild back corner.',
+        tags: ['cut-flower'],
+        style: 'Productive · Cottage',
+        season: 'Summer through fall',
+        conditions: ['Full sun', 'Rich soil', 'Regular water', 'Stake the tall ones'],
+        description: 'You don\'t need a flower farm to have bouquets on the table all summer. This patch fits in 4×8 feet, regrows after every cut, and gives you a bouquet a week. Pinch dahlias and zinnias when young to make them bushy. Snip with stems long; the more you cut, the more you get.',
+        plants: [
+          { slug: 'dahlia', role: 'Center-of-the-bouquet showpieces, all sizes and colors' },
+          { slug: 'zinnia', role: 'Workhorse filler, pinch young to bush out' },
+          { slug: 'sweet-pea', role: 'Spring vine, sweet fragrance, picks endlessly' },
+          { slug: 'cosmos', role: 'Airy filler, reseeds, pollinator favorite' },
+          { slug: 'snapdragon', role: 'Vertical spires for shape and height' },
+          { slug: 'calendula', role: 'Bright orange and yellow, also useful in salves' }
+        ]
+      }
+    ];
+
+    // --- Plant lookup (for thumbs and names in modal) ---
+    // We don't load the full plant-guide data; just construct from slug.
+    function plantThumbSrc(slug) { return 'plant-guide/' + slug + '.jpg'; }
+    function plantTitle(slug) {
+      return slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    }
+    function plantHref(slug) { return 'plant-guide.html?plant=' + slug; }
+
+    // --- Render grid ---
+    const grid = document.getElementById('pairings-grid');
+    function renderGrid(filter) {
+      grid.innerHTML = '';
+      const filtered = filter === 'all'
+        ? PAIRINGS
+        : PAIRINGS.filter(p => p.tags.includes(filter));
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div class="empty-state"><p>No pairings match that filter yet — more recipes coming soon.</p></div>';
+        return;
+      }
+
+      filtered.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'pairing-card';
+        card.dataset.slug = p.slug;
+        const styleTag = p.style ? '<span class="pairing-tag style">' + p.style + '</span>' : '';
+        const seasonTag = p.season ? '<span class="pairing-tag season">' + p.season + '</span>' : '';
+        card.innerHTML = `
+          <img class="pairing-img" src="${p.hero}" alt="${p.name}" loading="lazy" onerror="this.style.background='var(--sage-light)';this.removeAttribute('src');">
+          <div class="pairing-body">
+            <h2 class="pairing-name">${p.name}</h2>
+            <p class="pairing-tagline">${p.tagline}</p>
+            <div class="pairing-tags">${styleTag}${seasonTag}</div>
+            <div class="pairing-plant-count">${p.plants.length} plants in this recipe</div>
+          </div>
+        `;
+        card.addEventListener('click', () => openModal(p));
+        grid.appendChild(card);
+      });
+    }
+
+    // --- Filters ---
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        renderGrid(chip.dataset.filter);
+      });
+    });
+
+    // --- Modal ---
+    const overlay = document.getElementById('modal-overlay');
+    const modalHero = document.getElementById('modal-hero');
+    const modalBody = document.getElementById('modal-body');
+
+    function openModal(p) {
+      modalHero.src = p.hero;
+      modalHero.alt = p.name;
+      const conditionTags = p.conditions.map(c => `<span class="pairing-tag">${c}</span>`).join('');
+      const plantRows = p.plants.map(pl => `
+        <a class="plant-row" href="${plantHref(pl.slug)}">
+          <img class="plant-thumb" src="${plantThumbSrc(pl.slug)}" alt="" loading="lazy" onerror="this.style.background='var(--sage-light)';this.removeAttribute('src');">
+          <div class="plant-info">
+            <div class="plant-info-name">${plantTitle(pl.slug)}</div>
+            <div class="plant-info-role">${pl.role}</div>
+          </div>
+        </a>
+      `).join('');
+      modalBody.innerHTML = `
+        <h2 class="modal-name">${p.name}</h2>
+        <p class="modal-tagline">${p.tagline}</p>
+        <div class="modal-tags">${conditionTags}</div>
+        <p class="modal-description">${p.description}</p>
+        <div class="modal-section-title">Plants in this recipe</div>
+        <div class="plant-list">${plantRows}</div>
+      `;
+      overlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      overlay.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    document.getElementById('modal-close').addEventListener('click', closeModal);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    // Initial render
+    renderGrid('all');
+  </script>
+</body>
+</html>
