@@ -2721,7 +2721,27 @@ async function _callReceiptAPI(key, body, maxAttempts) {
 
 // --- Income tab ---
 let incomeViewMonth = (() => { const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); })();
+let incomeFilterStatus = 'all';   // 'all' | 'unpaid' | 'paid'
+let incomeFilterClient = '';      // exact client name, or '' for none
+let incomeSearch = '';            // free-text search over client name
 let _payingBookingId = null;
+
+// Re-render the Income tab while preserving focus + cursor in the search
+// input. Needed because each keystroke calls renderIncome() which replaces
+// the entire tab content via innerHTML.
+function rerenderIncome() {
+  renderIncome();
+  const el = document.getElementById('income-search');
+  if (el) {
+    el.focus();
+    const v = el.value;
+    try { el.setSelectionRange(v.length, v.length); } catch (_) {}
+  }
+}
+
+function setIncomeStatus(s)  { incomeFilterStatus = s; rerenderIncome(); }
+function setIncomeClient(n)  { incomeFilterClient = n || ''; rerenderIncome(); }
+function clearIncomeFilters(){ incomeFilterStatus = 'all'; incomeFilterClient = ''; incomeSearch = ''; rerenderIncome(); }
 
 function renderIncome() {
   const el = document.getElementById('income-content');
@@ -2758,7 +2778,21 @@ function renderIncome() {
     if (b.paid) byClient[k].paid += Number(b.price)||0;
   });
 
-  const monthOpts = months.map(m => `<option value="${m}"${m===incomeViewMonth?' selected':''}>${m}</option>`).join('');
+  const monthOpts = months.map(m => `<option value="${m}"${m===incomeViewMonth?' selected':''}>${escapeHtml(formatDisplayMonth(m))}</option>`).join('');
+
+  // Apply filters to the month's bookings: status + client + free-text search
+  const q = (incomeSearch || '').toLowerCase().trim();
+  const filtered = inMonth.filter(b => {
+    if (incomeFilterStatus === 'paid'   && !b.paid) return false;
+    if (incomeFilterStatus === 'unpaid' &&  b.paid) return false;
+    if (incomeFilterClient && (b.clientName || '') !== incomeFilterClient) return false;
+    if (q) {
+      const name = (b.clientName || '').toLowerCase();
+      if (!name.includes(q)) return false;
+    }
+    return true;
+  });
+  const filterActive = incomeFilterStatus !== 'all' || !!incomeFilterClient || !!q;
 
   // Outstanding balance card — shown only if money is actually owed.
   let html = '';
@@ -2768,7 +2802,7 @@ function renderIncome() {
       .map(([name, info]) => {
         const visits = info.count + ' visit' + (info.count === 1 ? '' : 's');
         return '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:0.9rem;">' +
-          '<span>' + escapeHtml(name) + ' <span style="color:var(--gray-600);font-size:0.8rem;">· ' + visits + ' · oldest ' + escapeHtml(info.oldest) + '</span></span>' +
+          '<span>' + escapeHtml(name) + ' <span style="color:var(--gray-600);font-size:0.8rem;">· ' + visits + ' · oldest ' + escapeHtml(formatDisplayDate(info.oldest)) + '</span></span>' +
           '<span style="font-weight:700;">$' + info.total.toFixed(0) + '</span>' +
         '</div>';
       }).join('');
@@ -2785,7 +2819,7 @@ function renderIncome() {
   html += `
     <div class="card" style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
-        <select onchange="incomeViewMonth=this.value;renderIncome()" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--gray-200);">${monthOpts}</select>
+        <select onchange="incomeViewMonth=this.value;rerenderIncome()" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--gray-200);">${monthOpts}</select>
         <button class="modal-btn secondary" style="padding:8px 12px;" onclick="exportIncomeCsv()">CSV</button>
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
@@ -2796,38 +2830,114 @@ function renderIncome() {
     </div>
   `;
 
-  html += '<div style="background:var(--white);border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:var(--shadow);"><h3 style="margin-bottom:8px;font-size:1rem;">Bookings this month</h3>';
-  if (!inMonth.length) {
-    html += '<div style="color:var(--gray-600);font-size:0.9rem;">No bookings.</div>';
+  // ----- Bookings card with filter bar -----
+  const pill = (label, value) => {
+    const active = incomeFilterStatus === value;
+    return '<button onclick="setIncomeStatus(\'' + value + '\')" style="' +
+      'border:1px solid ' + (active ? 'var(--plum)' : 'var(--gray-200)') + ';' +
+      'background:' + (active ? 'var(--plum)' : 'transparent') + ';' +
+      'color:' + (active ? 'var(--white)' : 'var(--gray-600)') + ';' +
+      'font-family:Nunito,sans-serif;font-weight:600;font-size:0.8rem;' +
+      'padding:6px 12px;border-radius:999px;cursor:pointer;' +
+      '">' + label + '</button>';
+  };
+
+  html += '<div style="background:var(--white);border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:var(--shadow);">' +
+    '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;">' +
+      '<h3 style="font-size:1rem;">Bookings</h3>' +
+      '<span style="font-size:0.8rem;color:var(--gray-600);">' +
+        filtered.length + ' of ' + inMonth.length +
+      '</span>' +
+    '</div>' +
+    '<input type="search" id="income-search" value="' + escapeHtml(incomeSearch) + '"' +
+      ' oninput="incomeSearch=this.value;rerenderIncome()" placeholder="Search by client name..."' +
+      ' autocomplete="off" style="width:100%;padding:8px 10px;border-radius:8px;' +
+      'border:1px solid var(--gray-200);font-family:Nunito,sans-serif;font-size:0.9rem;margin-bottom:8px;">' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">' +
+      pill('All', 'all') + pill('Unpaid', 'unpaid') + pill('Paid', 'paid') +
+    '</div>';
+
+  // Active-filter chip row (shows client filter + a Clear button when active)
+  if (incomeFilterClient || filterActive) {
+    html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center;">';
+    if (incomeFilterClient) {
+      html += '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--petal-pink-light);' +
+        'color:var(--plum);padding:4px 10px;border-radius:999px;font-size:0.8rem;font-weight:600;">' +
+        escapeHtml(incomeFilterClient) +
+        ' <button onclick="setIncomeClient(\'\')" style="border:none;background:none;color:var(--plum);' +
+        'font-weight:700;cursor:pointer;padding:0 0 0 2px;font-size:1rem;line-height:1;" title="Clear client filter">&times;</button>' +
+        '</span>';
+    }
+    if (filterActive) {
+      html += '<button onclick="clearIncomeFilters()" style="border:none;background:none;color:var(--gray-600);' +
+        'font-size:0.8rem;text-decoration:underline;cursor:pointer;padding:0;">Clear all</button>';
+    }
+    html += '</div>';
+  }
+
+  if (!filtered.length) {
+    html += '<div style="color:var(--gray-600);font-size:0.9rem;padding:12px 0;">' +
+      (inMonth.length ? 'No bookings match these filters.' : 'No bookings this month.') +
+    '</div>';
   } else {
-    inMonth.sort((a,b) => (a.date||'').localeCompare(b.date||''));
-    inMonth.forEach(b => {
+    // Oldest first (chronological reading order)
+    filtered.sort((a,b) => (a.date||'').localeCompare(b.date||''));
+    filtered.forEach(b => {
       const price = Number(b.price)||0;
       const paidBadge = b.paid
-        ? `<span style="background:#dfe8d4;color:#4a1942;padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:700;">PAID ${b.paymentMethod? '· '+b.paymentMethod:''}</span>`
-        : (price > 0 ? `<span style="background:var(--red-light);color:var(--red);padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:700;">UNPAID</span>` : `<span style="color:var(--gray-400);font-size:0.8rem;">no price</span>`);
-      html += `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100);">
-          <div style="flex:1;min-width:0;">
-            <div style="font-weight:600;">${b.date} · ${b.clientName||'Client'}</div>
-            <div style="font-size:0.8rem;color:var(--gray-600);">${EVENT_LABELS[b.eventType]||b.eventType} · $${price.toFixed(0)}</div>
-          </div>
-          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">${paidBadge}${!b.paid && price > 0 ? `<button class="modal-btn primary" style="padding:4px 10px;font-size:0.8rem;" onclick="quickMarkPaid('${b.id}')">Paid</button><button class="modal-btn secondary" style="padding:4px 10px;font-size:0.8rem;" onclick="sendInvoice('${b.id}')">Invoice</button>` : ''}<button class="modal-btn secondary" style="padding:4px 10px;font-size:0.8rem;" onclick="openPayment('${b.id}')">Edit</button></div>
-        </div>`;
+        ? '<span style="background:#dfe8d4;color:#4a1942;padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:700;white-space:nowrap;">PAID' + (b.paymentMethod ? ' &middot; ' + escapeHtml(b.paymentMethod) : '') + '</span>'
+        : (price > 0
+            ? '<span style="background:var(--red-light);color:var(--red);padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:700;white-space:nowrap;">UNPAID</span>'
+            : '<span style="color:var(--gray-400);font-size:0.8rem;white-space:nowrap;">no price</span>');
+      // Quick actions only visible when useful (unpaid + has a price)
+      const quickActions = (!b.paid && price > 0)
+        ? '<button class="modal-btn primary" style="padding:4px 10px;font-size:0.8rem;" onclick="event.stopPropagation();quickMarkPaid(\'' + b.id + '\')">Paid</button>' +
+          '<button class="modal-btn secondary" style="padding:4px 10px;font-size:0.8rem;" onclick="event.stopPropagation();sendInvoice(\'' + b.id + '\')">Invoice</button>'
+        : '';
+      html +=
+        '<div onclick="openPayment(\'' + b.id + '\')"' +
+          ' title="Tap to edit income"' +
+          ' onmouseover="this.style.background=\'var(--gray-100)\'"' +
+          ' onmouseout="this.style.background=\'transparent\'"' +
+          ' style="display:flex;justify-content:space-between;align-items:center;gap:8px;' +
+            'padding:8px 6px;border-bottom:1px solid var(--gray-100);cursor:pointer;border-radius:6px;">' +
+          '<div style="flex:1;min-width:0;">' +
+            '<div style="font-weight:600;">' +
+              escapeHtml(formatDisplayDate(b.date)) + ' &middot; ' + escapeHtml(b.clientName || 'Client') +
+            '</div>' +
+            '<div style="font-size:0.8rem;color:var(--gray-600);">' +
+              escapeHtml(EVENT_LABELS[b.eventType] || b.eventType || '') + ' &middot; $' + price.toFixed(0) +
+            '</div>' +
+          '</div>' +
+          '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">' +
+            paidBadge + quickActions +
+          '</div>' +
+          '<div style="color:var(--gray-400);font-size:1.1rem;margin-left:2px;flex-shrink:0;" aria-hidden="true">&rsaquo;</div>' +
+        '</div>';
     });
   }
   html += '</div>';
 
-  html += '<div style="background:var(--white);border-radius:12px;padding:12px;box-shadow:var(--shadow);"><h3 style="margin-bottom:8px;font-size:1rem;">By client</h3>';
+  // ----- By client (tap a row to filter the list above) -----
+  html += '<div style="background:var(--white);border-radius:12px;padding:12px;box-shadow:var(--shadow);">' +
+    '<h3 style="margin-bottom:8px;font-size:1rem;">By client</h3>';
   const clientRows = Object.entries(byClient).sort((a,b) => b[1].gross - a[1].gross);
   if (!clientRows.length) {
     html += '<div style="color:var(--gray-600);font-size:0.9rem;">-</div>';
   } else {
     clientRows.forEach(([name, s]) => {
-      html += `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--gray-100);font-size:0.9rem;">
-        <span>${name} <span style="color:var(--gray-600);font-size:0.8rem;">(${s.count})</span></span>
-        <span><b>$${s.gross.toFixed(0)}</b> <span style="color:var(--gray-600);font-size:0.8rem;">(${s.paid.toFixed(0)} paid)</span></span>
-      </div>`;
+      const isFiltered = incomeFilterClient === name;
+      html +=
+        '<div onclick="setIncomeClient(' + (isFiltered ? '\'\'' : '\'' + String(name).replace(/'/g, "\\'") + '\'') + ')"' +
+          ' title="' + (isFiltered ? 'Clear filter' : 'Filter bookings to this client') + '"' +
+          ' onmouseover="this.style.background=\'var(--gray-100)\'"' +
+          ' onmouseout="this.style.background=\'' + (isFiltered ? 'var(--petal-pink-light)' : 'transparent') + '\'"' +
+          ' style="display:flex;justify-content:space-between;align-items:center;padding:8px 6px;' +
+            'border-bottom:1px solid var(--gray-100);font-size:0.9rem;cursor:pointer;border-radius:6px;' +
+            'background:' + (isFiltered ? 'var(--petal-pink-light)' : 'transparent') + ';">' +
+          '<span>' + escapeHtml(name) + ' <span style="color:var(--gray-600);font-size:0.8rem;">(' + s.count + ')</span></span>' +
+          '<span><b>$' + s.gross.toFixed(0) + '</b> <span style="color:var(--gray-600);font-size:0.8rem;">(' + s.paid.toFixed(0) + ' paid)</span></span>' +
+        '</div>';
     });
   }
   html += '</div>';
@@ -2839,7 +2949,7 @@ function openPayment(bookingId) {
   const b = getBookings().find(x => x.id === bookingId);
   if (!b) return;
   _payingBookingId = bookingId;
-  document.getElementById('pay-booking-info').textContent = `${b.date} · ${b.clientName||'Client'} · ${EVENT_LABELS[b.eventType]||b.eventType}`;
+  document.getElementById('pay-booking-info').textContent = `${formatDisplayDate(b.date)} · ${b.clientName||'Client'} · ${EVENT_LABELS[b.eventType]||b.eventType}`;
   document.getElementById('pay-price').value = b.price || '';
   document.getElementById('pay-paid').checked = !!b.paid;
   document.getElementById('pay-method').value = b.paymentMethod || '';
@@ -3400,7 +3510,7 @@ function renderClients() {
     let card = '<div class="booking-card" style="border-left-color:' + borderColor + ';">' +
       '<h3>' + esc(c.name || 'Client') + '</h3>' +
       '<div class="booking-meta">' + c.count + ' visit' + (c.count === 1 ? '' : 's') +
-        (c.lastVisit ? ' &middot; Last: ' + esc(c.lastVisit) : '') +
+        (c.lastVisit ? ' &middot; Last: ' + esc(formatDisplayDate(c.lastVisit)) : '') +
       '</div>';
 
     // Totals row (charged / paid / outstanding)
@@ -3455,7 +3565,7 @@ function renderClients() {
         ' onmouseover="this.style.background=\'var(--gray-100)\'"' +
         ' onmouseout="this.style.background=\'transparent\'">' +
         '<div style="min-width:0;flex:1;">' +
-          '<div style="font-weight:600;color:var(--plum);">' + esc(v.date) + (v.time ? ' &middot; ' + esc(v.time) : '') + '</div>' +
+          '<div style="font-weight:600;color:var(--plum);">' + esc(formatDisplayDate(v.date)) + (v.time ? ' &middot; ' + esc(v.time) : '') + '</div>' +
           '<div style="color:var(--gray-600);font-size:0.78rem;">' + esc(svc) + '</div>' +
         '</div>' +
         '<div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px;">' +
@@ -3974,6 +4084,35 @@ function formatDate(date) {
   return date.getFullYear() + '-' +
     String(date.getMonth() + 1).padStart(2, '0') + '-' +
     String(date.getDate()).padStart(2, '0');
+}
+
+// Display helpers for human-friendly dates (no leading year, which Taya
+// finds ugly). Drop the year when it matches the current year so the
+// common case stays compact: "Apr 16" instead of "Apr 16, 2026".
+const _MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const _MONTH_LONG  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function formatDisplayDate(iso) {
+  if (!iso) return '';
+  const parts = String(iso).split('-');
+  if (parts.length < 3) return iso;
+  const y = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10);
+  const d = parseInt(parts[2], 10);
+  if (!y || !m || !d) return iso;
+  const thisYear = new Date().getFullYear();
+  const mon = _MONTH_SHORT[m - 1] || '';
+  return y === thisYear ? mon + ' ' + d : mon + ' ' + d + ', ' + y;
+}
+
+function formatDisplayMonth(iso7) {
+  // "2026-04" -> "April 2026"
+  if (!iso7) return '';
+  const parts = String(iso7).split('-');
+  const y = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10);
+  if (!y || !m) return iso7;
+  return (_MONTH_LONG[m - 1] || '') + ' ' + y;
 }
 
 function renderAll() {
