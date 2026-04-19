@@ -134,7 +134,8 @@ footer a:hover { text-decoration: underline; }
 .meadow {
   position: relative;
   width: 100%;
-  height: 170px;
+  aspect-ratio: 6 / 1;   /* matches SVG viewBox 1200x200 so flowers never crop */
+  min-height: 120px;     /* floor on very narrow screens */
   margin-top: 32px;
   overflow: hidden;
   pointer-events: none;
