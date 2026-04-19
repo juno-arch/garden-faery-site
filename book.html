@@ -430,6 +430,48 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
 }
 .form-group textarea { resize: vertical; min-height: 80px; }
 
+/* Address autocomplete dropdown (Photon / OpenStreetMap) */
+.address-field { position: relative; }
+.address-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0; right: 0;
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(74, 25, 66, 0.12);
+  max-height: 260px;
+  overflow-y: auto;
+  z-index: 20;
+  margin-top: 4px;
+}
+.address-suggestions[hidden] { display: none; }
+.address-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 0.92rem;
+  border-bottom: 1px solid var(--gray-100);
+  line-height: 1.35;
+  color: var(--plum);
+}
+.address-item:last-child { border-bottom: none; }
+.address-item:hover,
+.address-item.active { background: var(--cream); }
+.address-item .city {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--gray-600);
+  margin-top: 2px;
+}
+.address-attribution {
+  padding: 6px 12px;
+  font-size: 0.68rem;
+  color: var(--gray-600);
+  text-align: right;
+  border-top: 1px solid var(--gray-100);
+}
+.address-attribution a { color: var(--gray-600); text-decoration: underline; }
+
 /* Buttons */
 .btn {
   display: inline-flex;
@@ -941,9 +983,10 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
         <label for="f-phone">Phone <span class="required">*</span></label>
         <input type="tel" id="f-phone" name="phone" placeholder="(707) 555-1234" autocomplete="tel" required>
       </div>
-      <div class="form-group">
+      <div class="form-group address-field">
         <label for="f-address">Address <span class="required">*</span></label>
-        <input type="text" id="f-address" name="address" placeholder="Where should I come?" autocomplete="street-address">
+        <input type="text" id="f-address" name="address" placeholder="Start typing your address…" autocomplete="street-address" aria-autocomplete="list" aria-controls="f-address-suggestions" autocapitalize="words" spellcheck="false">
+        <div class="address-suggestions" id="f-address-suggestions" role="listbox" hidden></div>
       </div>
       <div class="form-group">
         <label for="f-notes">Garden notes</label>
@@ -2074,6 +2117,149 @@ refreshData();
 // in localStorage so the same browser skips the form next time. Logout
 // clears it.
 // ============================================
+// ============================================
+// Address autocomplete (Photon / OpenStreetMap)
+// Free public service from komoot (https://photon.komoot.io/) — no API key,
+// no signup, no billing. Biased to Humboldt County so local suggestions
+// come first. If the service is slow or down, users can still type manually.
+// ============================================
+const ADDR_API = 'https://photon.komoot.io/api/';
+const ADDR_BIAS_LAT = 40.8665;   // ~Arcata, CA
+const ADDR_BIAS_LON = -124.0828;
+const ADDR_DEBOUNCE_MS = 220;
+const ADDR_MIN_CHARS = 3;
+let _addrDebounceTimer = null;
+let _addrAbortController = null;
+let _addrActiveIndex = -1;
+let _addrSuggestions = [];
+
+function formatAddressFromPhoton(p) {
+  // Photon feature.properties typically has: housenumber, street, city,
+  // county, state, postcode, country, name.
+  const line1 = [p.housenumber, p.street].filter(Boolean).join(' ');
+  const cityBits = [p.city || p.town || p.village || p.hamlet, p.state, p.postcode].filter(Boolean).join(', ');
+  const primary = line1 || p.name || '';
+  return { primary, secondary: cityBits };
+}
+
+function fullAddressString(p) {
+  const { primary, secondary } = formatAddressFromPhoton(p);
+  return [primary, secondary].filter(Boolean).join(', ');
+}
+
+function escAddr(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+function hideAddressSuggestions() {
+  const el = document.getElementById('f-address-suggestions');
+  if (el) { el.hidden = true; el.innerHTML = ''; }
+  _addrActiveIndex = -1;
+  _addrSuggestions = [];
+}
+
+function renderAddressSuggestions(features) {
+  const el = document.getElementById('f-address-suggestions');
+  if (!el) return;
+  if (!features || !features.length) { hideAddressSuggestions(); return; }
+  _addrSuggestions = features;
+  _addrActiveIndex = -1;
+  const items = features.map((f, i) => {
+    const { primary, secondary } = formatAddressFromPhoton(f.properties || {});
+    return '<div class="address-item" role="option" data-idx="' + i + '">' +
+      escAddr(primary || 'Unnamed place') +
+      (secondary ? '<span class="city">' + escAddr(secondary) + '</span>' : '') +
+    '</div>';
+  }).join('');
+  el.innerHTML = items +
+    '<div class="address-attribution">Suggestions via <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></div>';
+  el.hidden = false;
+  el.querySelectorAll('.address-item').forEach(item => {
+    item.addEventListener('mousedown', (e) => {
+      // Use mousedown so it fires before the input's blur
+      e.preventDefault();
+      pickAddressSuggestion(Number(item.dataset.idx));
+    });
+  });
+}
+
+function pickAddressSuggestion(idx) {
+  const f = _addrSuggestions[idx];
+  if (!f) return;
+  document.getElementById('f-address').value = fullAddressString(f.properties || {});
+  hideAddressSuggestions();
+}
+
+async function fetchAddressSuggestions(q) {
+  if (_addrAbortController) _addrAbortController.abort();
+  _addrAbortController = new AbortController();
+  try {
+    const url = ADDR_API +
+      '?q=' + encodeURIComponent(q) +
+      '&limit=6' +
+      '&lat=' + ADDR_BIAS_LAT +
+      '&lon=' + ADDR_BIAS_LON +
+      '&lang=en';
+    const r = await fetch(url, { signal: _addrAbortController.signal });
+    if (!r.ok) return;
+    const j = await r.json();
+    renderAddressSuggestions(j.features || []);
+  } catch (e) {
+    // AbortError on rapid typing is expected; other errors silently no-op.
+  }
+}
+
+function onAddressInput(e) {
+  const q = e.target.value.trim();
+  clearTimeout(_addrDebounceTimer);
+  if (q.length < ADDR_MIN_CHARS) { hideAddressSuggestions(); return; }
+  _addrDebounceTimer = setTimeout(() => fetchAddressSuggestions(q), ADDR_DEBOUNCE_MS);
+}
+
+function onAddressKeydown(e) {
+  if (!_addrSuggestions.length) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    _addrActiveIndex = Math.min(_addrSuggestions.length - 1, _addrActiveIndex + 1);
+    updateAddressActiveClass();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    _addrActiveIndex = Math.max(0, _addrActiveIndex - 1);
+    updateAddressActiveClass();
+  } else if (e.key === 'Enter' && _addrActiveIndex >= 0) {
+    e.preventDefault();
+    pickAddressSuggestion(_addrActiveIndex);
+  } else if (e.key === 'Escape') {
+    hideAddressSuggestions();
+  }
+}
+
+function updateAddressActiveClass() {
+  const el = document.getElementById('f-address-suggestions');
+  if (!el) return;
+  el.querySelectorAll('.address-item').forEach((it, i) => {
+    it.classList.toggle('active', i === _addrActiveIndex);
+    if (i === _addrActiveIndex) it.scrollIntoView({ block: 'nearest' });
+  });
+}
+
+// Wire up once the DOM is ready (book.html scripts run after the body).
+(function setupAddressAutocomplete() {
+  const input = document.getElementById('f-address');
+  if (!input) return;
+  input.addEventListener('input', onAddressInput);
+  input.addEventListener('keydown', onAddressKeydown);
+  input.addEventListener('blur', () => {
+    // Small delay so mousedown on a suggestion can run first
+    setTimeout(hideAddressSuggestions, 120);
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#f-address') && !e.target.closest('#f-address-suggestions')) {
+      hideAddressSuggestions();
+    }
+  });
+})();
+
 const CLIENT_PROFILE_KEY = 'gf_client_profile_v1';
 
 function getSavedClientProfile() {
