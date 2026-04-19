@@ -2961,7 +2961,7 @@ function renderClients() {
   const container = document.getElementById('clients-content');
   const bookings = getBookings().filter(b => b.status !== 'canceled');
 
-  // Group by client email
+  // Group by client email (fall back to name)
   const clients = {};
   bookings.forEach(b => {
     const key = b.clientEmail || b.clientName;
@@ -2971,35 +2971,113 @@ function renderClients() {
         email: b.clientEmail,
         phone: b.clientPhone,
         address: b.clientAddress,
-        visits: 0,
-        lastVisit: b.date
+        visits: []
       };
     }
-    clients[key].visits++;
-    if (b.date > clients[key].lastVisit) clients[key].lastVisit = b.date;
+    clients[key].visits.push(b);
+    // Fill in missing contact info from any booking that has it
     if (b.clientPhone && !clients[key].phone) clients[key].phone = b.clientPhone;
+    if (b.clientEmail && !clients[key].email) clients[key].email = b.clientEmail;
+    if (b.clientAddress && !clients[key].address) clients[key].address = b.clientAddress;
   });
 
-  const sorted = Object.values(clients).sort((a, b) => b.visits - a.visits);
+  // Compute totals for each client
+  Object.values(clients).forEach(c => {
+    c.visits.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    c.count = c.visits.length;
+    c.lastVisit = c.visits[0] ? c.visits[0].date : '';
+    c.totalCharged = c.visits.reduce((s, v) => s + (Number(v.price) || 0), 0);
+    c.totalPaid = c.visits.reduce((s, v) => s + (v.paid ? (Number(v.price) || 0) : 0), 0);
+    c.outstanding = c.totalCharged - c.totalPaid;
+  });
+
+  // Sort: outstanding balance first, then by visit count
+  const sorted = Object.values(clients).sort((a, b) => {
+    if ((b.outstanding > 0) !== (a.outstanding > 0)) return b.outstanding > 0 ? 1 : -1;
+    if (b.outstanding !== a.outstanding) return b.outstanding - a.outstanding;
+    return b.count - a.count;
+  });
 
   if (sorted.length === 0) {
     container.innerHTML = '<div class="empty-day"><p>No clients yet. They\'ll show up here as bookings come in.</p></div>';
     return;
   }
 
+  const money = n => '$' + (Math.round((Number(n) || 0) * 100) / 100).toFixed(2).replace(/\.00$/, '');
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const today = formatDate(new Date());
+
   let html = '';
   sorted.forEach(c => {
-    html += '<div class="booking-card" style="border-left-color: var(--plum);">' +
-      '<h3>' + c.name + '</h3>' +
-      '<div class="booking-meta">' + c.visits + ' visit' + (c.visits > 1 ? 's' : '') + ' &middot; Last: ' + c.lastVisit + '</div>' +
-      '<div class="booking-client">' +
-        (c.phone ? c.phone + ' ' : '') +
-        (c.email ? c.email : '') +
-      '</div>' +
-      '<div class="booking-actions">' +
-        (c.phone ? '<button class="action-btn" onclick="callClient(\'' + c.phone + '\')">Call</button>' +
-        '<button class="action-btn" onclick="textClient(\'' + c.phone + '\')">Text</button>' : '') +
-      '</div></div>';
+    const borderColor = c.outstanding > 0 ? 'var(--red)' : 'var(--plum)';
+
+    // Header: name, visit count, last visit
+    let card = '<div class="booking-card" style="border-left-color:' + borderColor + ';">' +
+      '<h3>' + esc(c.name || 'Client') + '</h3>' +
+      '<div class="booking-meta">' + c.count + ' visit' + (c.count === 1 ? '' : 's') +
+        (c.lastVisit ? ' &middot; Last: ' + esc(c.lastVisit) : '') +
+      '</div>';
+
+    // Totals row (charged / paid / outstanding)
+    card += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px;font-size:0.8rem;">' +
+      '<span style="background:var(--gray-100);color:var(--plum);padding:3px 9px;border-radius:10px;font-weight:700;">' +
+        money(c.totalCharged) + ' charged</span>' +
+      '<span style="background:#dfe8d4;color:var(--plum);padding:3px 9px;border-radius:10px;font-weight:700;">' +
+        money(c.totalPaid) + ' paid</span>' +
+      (c.outstanding > 0
+        ? '<span style="background:var(--red-light);color:var(--red);padding:3px 9px;border-radius:10px;font-weight:700;">' +
+            money(c.outstanding) + ' outstanding</span>'
+        : '') +
+      '</div>';
+
+    // Contact line
+    card += '<div class="booking-client">' +
+      (c.phone ? esc(c.phone) : '') +
+      (c.phone && c.email ? ' &middot; ' : '') +
+      (c.email ? esc(c.email) : '') +
+      '</div>';
+
+    // Action buttons
+    card += '<div class="booking-actions">' +
+      (c.phone ? '<button class="action-btn" onclick="callClient(\'' + esc(c.phone) + '\')">Call</button>' +
+                 '<button class="action-btn" onclick="textClient(\'' + esc(c.phone) + '\')">Text</button>' : '') +
+      '</div>';
+
+    // Visit history
+    card += '<div style="margin-top:12px;border-top:1px solid var(--gray-100);padding-top:10px;">' +
+      '<div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--gray-600);margin-bottom:6px;">Visits</div>';
+
+    c.visits.forEach(v => {
+      const svc = EVENT_LABELS[v.eventType] || v.eventType || '';
+      const price = Number(v.price) || 0;
+      const isFuture = v.date > today;
+
+      let badge;
+      if (v.paid) {
+        const method = v.paymentMethod ? ' &middot; ' + esc(v.paymentMethod) : '';
+        const payDate = v.paidDate ? ' &middot; ' + esc((v.paidDate || '').slice(5, 10)) : '';
+        badge = '<span style="background:#dfe8d4;color:var(--plum);padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;white-space:nowrap;">' +
+          'PAID' + method + payDate + '</span>';
+      } else if (isFuture) {
+        badge = '<span style="background:var(--gray-100);color:var(--gray-600);padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;white-space:nowrap;">UPCOMING</span>';
+      } else {
+        badge = '<span style="background:var(--red-light);color:var(--red);padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;white-space:nowrap;">UNPAID</span>';
+      }
+
+      card += '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--gray-100);font-size:0.85rem;">' +
+        '<div style="min-width:0;flex:1;">' +
+          '<div style="font-weight:600;color:var(--plum);">' + esc(v.date) + (v.time ? ' &middot; ' + esc(v.time) : '') + '</div>' +
+          '<div style="color:var(--gray-600);font-size:0.78rem;">' + esc(svc) + '</div>' +
+        '</div>' +
+        '<div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px;">' +
+          '<div style="font-weight:700;color:var(--plum);">' + money(price) + '</div>' +
+          badge +
+        '</div>' +
+      '</div>';
+    });
+
+    card += '</div></div>';
+    html += card;
   });
   container.innerHTML = html;
 }
