@@ -200,15 +200,21 @@
     const beeWrap = bee.querySelector('.gf-bee-wrap');
 
     // --- Click interaction: speech bubble + petal puff + happy wiggle ---
+    // "tickles!" is Taya's favorite, so it's in the pool a few extra times.
     const beeMessages = [
+      'tickles!',
       'bzzzzz!',
+      'tickles!',
       'hi there!',
+      'tickles!',
       'thanks!',
       'bzz-bzz!',
       'tickles!',
       'hello!',
       'xo',
-      'pollen time!'
+      'tickles!',
+      'pollen time!',
+      'tickles!'
     ];
     const petalColors = [
       'var(--petal-pink, #e9b8d6)',
