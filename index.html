@@ -431,7 +431,7 @@
   </div>
 
   <div class="potm">
-    <a class="potm-card" id="potm-card" href="#">
+    <a class="potm-card" id="potm-card" href="plant-guide.html">
       <div class="potm-image"><img id="potm-img" src="" alt="" loading="lazy"></div>
       <div class="potm-body">
         <div class="potm-eyebrow" id="potm-eyebrow">Plant of the Month</div>
@@ -749,15 +749,18 @@
       var status = document.getElementById('nl-status');
       status.style.display = 'block';
       status.textContent = 'Signing you up...';
-      fetch('https://api.buttondown.com/v1/subscribers', {
+      // Posts to our PocketBase proxy, which holds the Buttondown key server-side.
+      fetch('https://bookings.gardenfaery.love/api/newsletter-subscribe', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Token f5562637-5256-4345-9c13-768b1f8004a0' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email })
       }).then(function(r) {
-        if (r.status === 201 || r.status === 200) {
+        return r.json().then(function(data) { return { status: r.status, data: data }; });
+      }).then(function(result) {
+        if (result.status === 200 && result.data.status === 'subscribed') {
           status.textContent = "You're in! Watch for garden magic in your inbox.";
           document.getElementById('nl-email').value = '';
-        } else if (r.status === 400) {
+        } else if (result.status === 200 && result.data.status === 'already_subscribed') {
           status.textContent = "Looks like you're already on the list!";
         } else {
           throw new Error('Server error');

@@ -510,17 +510,22 @@
       const status = document.getElementById('waitlist-status');
       if (!email) return;
       status.textContent = 'Adding you to the list...';
-      fetch('https://api.buttondown.com/v1/subscribers', {
+      // Posts to our PocketBase proxy, which holds the Buttondown key server-side.
+      fetch('https://bookings.gardenfaery.love/api/newsletter-subscribe', {
         method: 'POST',
-        mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email_address: email, tags: ['seed-kit-waitlist'] })
-      }).then(() => {
-        status.textContent = "You're on the list. I'll be in touch when the kit is ready.";
-        document.getElementById('waitlist-email').value = '';
-      }).catch(() => {
-        status.textContent = "Couldn't reach the server. Email taya@gardenfaery.love and I'll add you manually.";
-      });
+        body: JSON.stringify({ email: email, tags: ['seed-kit-waitlist'] })
+      }).then(r => r.json().then(data => ({ ok: r.ok, data })))
+        .then(result => {
+          if (result.ok && (result.data.status === 'subscribed' || result.data.status === 'already_subscribed')) {
+            status.textContent = "You're on the list. I'll be in touch when the kit is ready.";
+            document.getElementById('waitlist-email').value = '';
+          } else {
+            throw new Error('Server error');
+          }
+        }).catch(() => {
+          status.textContent = "Couldn't reach the server. Email taya@gardenfaery.love and I'll add you manually.";
+        });
     }
   </script>
 </body>
