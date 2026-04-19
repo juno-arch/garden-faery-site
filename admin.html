@@ -879,6 +879,12 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
       </select>
     </div>
     <div class="form-group">
+      <label>Existing client (or type below for new)</label>
+      <select id="obo-existing" onchange="onPickExistingClient()">
+        <option value="">— new client —</option>
+      </select>
+    </div>
+    <div class="form-group">
       <label>Client name</label>
       <input type="text" id="obo-name" placeholder="First and last name">
     </div>
@@ -931,7 +937,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
 
 <!-- Bottom bar -->
 <div class="bottom-bar">
-  <button class="fab fab-primary" onclick="openModal('modal-book')">+ Book Client</button>
+  <button class="fab fab-primary" onclick="openBookModal()">+ Book Client</button>
   <button class="fab fab-secondary" onclick="openModal('modal-block')">Block Time</button>
 </div>
 </div><!-- /app-wrap -->
@@ -1582,15 +1588,22 @@ async function renderTaxes() {
     return { ...qd, gross, exp, net, estTax, due, periodStart, periodEnd, phase, visits: qBookings.length };
   });
 
-  // Schedule C mapping: group expenses by line
+  // Schedule C mapping: group expenses by line, splitting by line-item
+  // category when the expense has tagged line items. See expenseCategoryBreakdown.
   const byLine = {};
   yearExpensesBiz.forEach(e => {
-    const mapping = SCHEDULE_C[e.category] || SCHEDULE_C.other;
-    const key = String(mapping.line);
-    if (!byLine[key]) byLine[key] = { line: mapping.line, name: mapping.name, total: 0, count: 0, items: [] };
-    byLine[key].total += e.amount;
-    byLine[key].count += 1;
-    byLine[key].items.push(e);
+    const breakdown = expenseCategoryBreakdown(e);
+    Object.entries(breakdown).forEach(([cat, amt]) => {
+      const mapping = SCHEDULE_C[cat] || SCHEDULE_C.other;
+      const key = String(mapping.line);
+      if (!byLine[key]) byLine[key] = { line: mapping.line, name: mapping.name, total: 0, count: 0, items: [] };
+      byLine[key].total += amt;
+      // Count the expense only once per line it touches, not once per line-item.
+      if (!byLine[key].items.some(x => x.id === e.id)) {
+        byLine[key].count += 1;
+        byLine[key].items.push(e);
+      }
+    });
   });
   const scheduleCLines = Object.values(byLine).sort((a,b) => {
     const ak = typeof a.line === 'number' ? a.line : 99;
@@ -1735,14 +1748,17 @@ function exportAccountantCsv() {
   lines.push(`Line 31 — Net Profit or Loss,${net.toFixed(2)}`);
   lines.push('');
 
-  // Expense totals by Schedule C line
+  // Expense totals by Schedule C line (split by line-item category when tagged)
   const byLine = {};
   expenses.forEach(e => {
-    const m = SCHEDULE_C[e.category] || SCHEDULE_C.other;
-    const k = String(m.line);
-    if (!byLine[k]) byLine[k] = { name: m.name, total: 0, items: [] };
-    byLine[k].total += e.amount;
-    byLine[k].items.push(e);
+    const breakdown = expenseCategoryBreakdown(e);
+    Object.entries(breakdown).forEach(([cat, amt]) => {
+      const m = SCHEDULE_C[cat] || SCHEDULE_C.other;
+      const k = String(m.line);
+      if (!byLine[k]) byLine[k] = { name: m.name, total: 0, items: [] };
+      byLine[k].total += amt;
+      if (!byLine[k].items.some(x => x.id === e.id)) byLine[k].items.push(e);
+    });
   });
   lines.push('EXPENSES BY SCHEDULE C LINE');
   lines.push('Schedule C Line,Total');
@@ -1790,6 +1806,28 @@ function exportAccountantCsv() {
       esc(e.cardLast4 || ''),
       esc(e.notes || '')
     ].join(','));
+  });
+  lines.push('');
+
+  // Line-item detail for mixed-category receipts. Only emitted for expenses
+  // that actually have tagged line items so the accountant can trace the
+  // per-category splits.
+  lines.push('MIXED-RECEIPT LINE ITEM DETAIL');
+  lines.push('Date,Vendor,Line Description,Line Amount,Line Category,Schedule C Line');
+  expenses.forEach(e => {
+    const items = Array.isArray(e.lineItems) ? e.lineItems.filter(i => i.category) : [];
+    if (!items.length) return;
+    items.forEach(i => {
+      const m = SCHEDULE_C[i.category] || SCHEDULE_C.other;
+      lines.push([
+        e.date || '',
+        esc(e.vendor || ''),
+        esc(i.description || ''),
+        (Number(i.amount)||0).toFixed(2),
+        esc(i.category || ''),
+        esc(m.name)
+      ].join(','));
+    });
   });
 
   const csv = lines.join('\n');
@@ -1940,6 +1978,149 @@ async function renderExpenses() {
   el.innerHTML = html;
 }
 
+// Return the per-category dollar breakdown for an expense, splitting by
+// line-item category where tagged. Line items with a category pull their
+// own amount into that category; the remainder (total − sum of tagged
+// line items) goes to the expense's top-level category.
+// Returns an object like {plants: 80, equipment: 100, supplies: 20}.
+function expenseCategoryBreakdown(e) {
+  const total = Number(e.amount) || 0;
+  const topCat = e.category || 'other';
+  const items = Array.isArray(e.lineItems) ? e.lineItems : [];
+  const tagged = items.filter(i => i.category && Number(i.amount) > 0);
+  if (!tagged.length) {
+    // Nothing tagged — full amount goes to the receipt-level category.
+    return { [topCat]: total };
+  }
+  const out = {};
+  let sumTagged = 0;
+  tagged.forEach(i => {
+    const amt = Number(i.amount) || 0;
+    out[i.category] = (out[i.category] || 0) + amt;
+    sumTagged += amt;
+  });
+  const remainder = total - sumTagged;
+  if (Math.abs(remainder) > 0.005) {
+    // Typically this is tax + any untagged items; push to receipt-level category.
+    out[topCat] = (out[topCat] || 0) + remainder;
+  }
+  return out;
+}
+
+// ============================================================================
+// Expense line-item correction memory
+// Remembers past per-line-item categorizations keyed on vendor+description.
+// When a receipt comes in from the scanner, we look up each line item against
+// the memory and override the AI's suggested category with the learned one.
+// When the user saves an expense with line items, any new or changed line-item
+// category is recorded as a memory entry for next time.
+// Backed by PocketBase collection "expense_line_memory" so the memory syncs
+// across devices.
+// ============================================================================
+
+let _lineMemoryCache = null;   // key -> {category, id, hits}
+let _lineMemoryLoaded = false;
+
+function lineKey(vendor, desc) {
+  const v = String(vendor || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  const d = String(desc || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  if (!d) return '';
+  // Include vendor so the same description under different vendors can map
+  // to different categories (e.g. "SOIL" at a nursery vs. at a hardware store).
+  return v + '|' + d;
+}
+
+async function ensureLineMemoryLoaded() {
+  if (_lineMemoryLoaded) return;
+  try {
+    const r = await fetch(PB_URL + '/api/collections/expense_line_memory/records?perPage=500', {
+      headers: { 'Authorization': PB_TOKEN }
+    });
+    if (!r.ok) { _lineMemoryCache = {}; _lineMemoryLoaded = true; return; }
+    const data = await r.json();
+    _lineMemoryCache = {};
+    (data.items || []).forEach(row => {
+      if (row.key) _lineMemoryCache[row.key] = { id: row.id, category: row.category, hits: Number(row.hits) || 0 };
+    });
+    _lineMemoryLoaded = true;
+  } catch (e) {
+    _lineMemoryCache = {};
+    _lineMemoryLoaded = true;
+  }
+}
+
+function lookupLineMemory(vendor, desc) {
+  if (!_lineMemoryCache) return null;
+  const k = lineKey(vendor, desc);
+  return k && _lineMemoryCache[k] ? _lineMemoryCache[k] : null;
+}
+
+// Apply learned memory to a fresh array of scanner line items. Mutates in place.
+// Overrides the AI's category with the learned one when we have a hit, and
+// marks the item with _learned=true so the UI can show a badge.
+async function applyLineMemory(vendor, items) {
+  if (!Array.isArray(items) || !items.length) return items;
+  await ensureLineMemoryLoaded();
+  items.forEach(it => {
+    const hit = lookupLineMemory(vendor, it.description);
+    if (hit && hit.category) {
+      it.category = hit.category;
+      it._learned = true;
+    }
+  });
+  return items;
+}
+
+// Called on save: compare final line items against memory and upsert new/changed.
+// Runs fire-and-forget — we don't want to block save on memory writes.
+function recordLineItemMemory(vendor, items) {
+  if (!Array.isArray(items) || !items.length) return;
+  if (!_lineMemoryCache) _lineMemoryCache = {};
+  const now = new Date().toISOString();
+  items.forEach(it => {
+    const k = lineKey(vendor, it.description);
+    if (!k || !it.category) return;
+    const existing = _lineMemoryCache[k];
+    if (existing && existing.category === it.category) {
+      // Same mapping — just bump the hit counter (best effort, non-blocking).
+      const hits = (existing.hits || 0) + 1;
+      existing.hits = hits;
+      fetch(PB_URL + '/api/collections/expense_line_memory/records/' + existing.id, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': PB_TOKEN },
+        body: JSON.stringify({ hits })
+      }).catch(() => {});
+    } else if (existing) {
+      // Category changed — update the stored category, reset hits.
+      existing.category = it.category;
+      existing.hits = 1;
+      fetch(PB_URL + '/api/collections/expense_line_memory/records/' + existing.id, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': PB_TOKEN },
+        body: JSON.stringify({ category: it.category, hits: 1 })
+      }).catch(() => {});
+    } else {
+      // New entry — create.
+      const body = {
+        key: k,
+        vendor: String(vendor || '').trim(),
+        description: String(it.description || '').trim(),
+        category: it.category,
+        hits: 1
+      };
+      fetch(PB_URL + '/api/collections/expense_line_memory/records', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': PB_TOKEN },
+        body: JSON.stringify(body)
+      }).then(r => r.ok ? r.json() : null).then(row => {
+        if (row && row.id) _lineMemoryCache[k] = { id: row.id, category: it.category, hits: 1 };
+      }).catch(() => {});
+      // Placeholder so duplicate saves in the same session don't create duplicates.
+      _lineMemoryCache[k] = { id: '__pending__', category: it.category, hits: 1 };
+    }
+  });
+}
+
 // Friendly display label for a stored card value + optional last-4.
 const CARD_LABELS = {
   coast_central_biz:      'Coast Central (biz)',
@@ -2024,18 +2205,75 @@ function closeExpenseModal() {
   _pendingReceiptFile = null;
 }
 
+// Category options shared between the main dropdown and per-line-item dropdowns.
+// Keep in sync with the <select id="exp-category"> options and SCHEDULE_C map.
+const EXPENSE_CATEGORIES = [
+  { v: 'plants',                l: 'Plants' },
+  { v: 'soil_amendments',       l: 'Soil / Amendments' },
+  { v: 'tools',                 l: 'Tools' },
+  { v: 'equipment',             l: 'Equipment' },
+  { v: 'fuel',                  l: 'Fuel' },
+  { v: 'vehicle',               l: 'Vehicle' },
+  { v: 'supplies',              l: 'Supplies' },
+  { v: 'marketing',             l: 'Marketing' },
+  { v: 'software',              l: 'Software' },
+  { v: 'professional_services', l: 'Professional Services' },
+  { v: 'other',                 l: 'Other' }
+];
+
+function escAttr(s) {
+  return String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+// Render line items as editable rows: description (readonly), amount (editable),
+// category dropdown (editable, empty = "same as receipt"). If a line-item
+// category was auto-applied from correction memory, we mark it with a badge.
 function renderLineItems(items) {
   if (!Array.isArray(items) || !items.length) return '';
-  let h = '<div style="margin-top:4px;padding:8px;background:var(--gray-100);border-radius:8px;"><b>Line items:</b>';
-  items.forEach(i => { h += `<div>${i.description || ''} - $${Number(i.amount||0).toFixed(2)}</div>`; });
+  const opts = (selected) => {
+    let o = '<option value="">(same as receipt)</option>';
+    EXPENSE_CATEGORIES.forEach(c => {
+      o += '<option value="' + c.v + '"' + (c.v === selected ? ' selected' : '') + '>' + c.l + '</option>';
+    });
+    return o;
+  };
+  let h = '<div style="margin-top:4px;padding:10px;background:var(--gray-100);border-radius:8px;">' +
+    '<div style="font-weight:700;font-size:0.8rem;margin-bottom:6px;">Line items (tag any that differ from the receipt category)</div>';
+  items.forEach((i, idx) => {
+    const desc = i.description || '';
+    const amt = Number(i.amount || 0).toFixed(2);
+    const cat = i.category || '';
+    const learned = i._learned ? '<span title="Auto-applied from a past correction" style="background:#dfe8d4;color:#4a1942;padding:1px 6px;border-radius:8px;font-size:0.65rem;font-weight:700;margin-left:4px;">learned</span>' : '';
+    h += '<div class="line-item-row" data-idx="' + idx + '" style="display:grid;grid-template-columns:1fr 70px 130px;gap:6px;align-items:center;margin-bottom:4px;font-size:0.8rem;">' +
+      '<div class="li-desc" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + escAttr(desc) + '">' + escAttr(desc) + learned + '</div>' +
+      '<input class="li-amt" type="number" step="0.01" value="' + amt + '" style="padding:4px 6px;font-size:0.8rem;width:100%;">' +
+      '<select class="li-cat" style="padding:4px 6px;font-size:0.8rem;width:100%;">' + opts(cat) + '</select>' +
+    '</div>';
+  });
   h += '</div>';
   return h;
+}
+
+// Read the current state of the editable line-item rows out of the DOM.
+// Returns an array of {description, amount, category} matching the
+// line_items JSON schema.
+function readLineItemsFromDom() {
+  const rows = document.querySelectorAll('#exp-line-items .line-item-row');
+  const items = [];
+  rows.forEach(row => {
+    const desc = (row.querySelector('.li-desc') && row.querySelector('.li-desc').getAttribute('title')) || '';
+    const amt = parseFloat(row.querySelector('.li-amt').value) || 0;
+    const cat = row.querySelector('.li-cat').value || null;
+    items.push({ description: desc, amount: amt, category: cat });
+  });
+  return items;
 }
 
 async function saveExpense() {
   const last4Raw = (document.getElementById('exp-card-last4').value || '').trim();
   const card_last4 = /^\d{4}$/.test(last4Raw) ? last4Raw : '';
   const card = document.getElementById('exp-card').value || null;
+  const lineItems = readLineItemsFromDom();
   const body = {
     date: document.getElementById('exp-date').value,
     amount: parseFloat(document.getElementById('exp-amount').value) || 0,
@@ -2044,12 +2282,16 @@ async function saveExpense() {
     card: card,
     card_last4: card_last4,
     on_biz_account: document.getElementById('exp-biz').checked,
-    notes: document.getElementById('exp-notes').value
+    notes: document.getElementById('exp-notes').value,
+    line_items: lineItems.length ? lineItems : null
   };
   if (!body.date || !body.amount) { alert('Date and amount are required.'); return; }
 
   // If both a bank and a last-4 are set, remember the pairing for future scans
   if (card && card_last4) rememberCardBank(card_last4, card);
+
+  // Remember per-line category corrections so future scans auto-apply them
+  recordLineItemMemory(body.vendor, lineItems);
 
   try {
     let id = _editingExpenseId;
@@ -2188,12 +2430,17 @@ const RECEIPT_TOOL = {
       },
       line_items: {
         type: 'array',
-        description: 'Itemized list from the receipt. Empty array if none visible.',
+        description: 'Itemized list from the receipt. Empty array if none visible. Each item can carry its own category when it differs from the receipt-level category (e.g. a Home Depot run with plants and lumber on the same receipt).',
         items: {
           type: 'object',
           properties: {
             description: { type: 'string' },
-            amount: { type: 'number' }
+            amount: { type: 'number' },
+            category: {
+              type: ['string','null'],
+              enum: ['plants','soil_amendments','tools','equipment','fuel','vehicle','supplies','marketing','software','professional_services','other', null],
+              description: 'Best-fit category for this specific line item. Use the same enum as the top-level category. Set when the line clearly belongs to a different category than the receipt\'s dominant one. Null when it matches the receipt category or is ambiguous.'
+            }
           },
           required: ['description','amount']
         }
@@ -2292,6 +2539,16 @@ LINE ITEMS
 - Include every clearly-printed line with its dollar amount. Do not include subtotals, tax lines, payment method lines, or change-due lines, only actual purchased items.
 - If the receipt has dozens of items and they're hard to parse individually, capture the first several with their totals and leave the rest out. Better to have 6 correct line items than 30 garbled ones.
 
+LINE-ITEM CATEGORIES (per-line splits on mixed receipts)
+- Many Home Depot, Ace Hardware, and Pierson receipts mix categories (e.g. $80 of plants + $100 of lumber + $20 of gloves on one receipt). Tag each line item with its own category using the line_items[].category field so taxes get accurate per-category totals.
+- The top-level category field should be the dominant / biggest bucket on the receipt. Per-line categories override the top-level category for THAT dollar amount only.
+- Set line_items[].category=null when the item clearly matches the receipt-level category (don't bother tagging it) or when the item is ambiguous.
+- Examples:
+  - Home Depot receipt with "MARIGOLD FLAT $12", "2X4 CEDAR $45", "WORK GLOVES $8": dominant=equipment; line items get category=plants, category=equipment (or null), category=supplies.
+  - Ace Hardware receipt with a hori-hori and a bag of soil: dominant=tools; soil-bag line gets category=soil_amendments.
+  - Mad River Gardens receipt with plants and fertilizer: dominant=plants; fertilizer line gets category=soil_amendments.
+- Don't tag every item — only tag lines that differ from the top-level category. This keeps the data clean.
+
 PAYMENT METHOD AND CARD LAST 4
 - Receipts almost always print the payment method near the totals: "VISA", "MASTERCARD", "AMEX", "DEBIT", "CREDIT", "CASH", "CHECK", or a wallet tag like "APPLE PAY".
 - When a card is used, the receipt usually prints a masked card number: "****1234", "XXXXXXX5678", "ACCT: ****9012", "VISA DEBIT ****3456". Extract ONLY the 4 unmasked digits into card_last4. Do not include the mask characters. If multiple cards appear (split tender), return the last-4 of the card used for the largest portion.
@@ -2356,7 +2613,13 @@ async function scanReceipt(input) {
     if (parsed.vendor) document.getElementById('exp-vendor').value = parsed.vendor;
     if (parsed.amount != null) document.getElementById('exp-amount').value = parsed.amount;
     if (parsed.category) document.getElementById('exp-category').value = parsed.category;
-    if (Array.isArray(parsed.line_items)) document.getElementById('exp-line-items').innerHTML = renderLineItems(parsed.line_items);
+    if (Array.isArray(parsed.line_items)) {
+      // Layer learned corrections over the AI suggestions before rendering,
+      // so line items the user has categorized before auto-fill with the
+      // learned category (and show a "learned" badge).
+      await applyLineMemory(parsed.vendor || '', parsed.line_items);
+      document.getElementById('exp-line-items').innerHTML = renderLineItems(parsed.line_items);
+    }
     // Auto-set biz/personal if model is confident enough
     const bizCheckbox = document.getElementById('exp-biz');
     if (bizCheckbox && parsed.on_biz_hint !== null && parsed.on_biz_hint !== undefined) {
@@ -3261,6 +3524,80 @@ function openModal(id) {
 }
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
+}
+
+// Book-on-behalf modal: populate the existing-client dropdown from past
+// bookings so Taya can pick someone and auto-fill name/email/phone/address
+// instead of re-typing every time.
+function openBookModal() {
+  populateExistingClientSelect();
+  // Clear the fields for a fresh booking (will be filled by the dropdown if picked)
+  document.getElementById('obo-existing').value = '';
+  document.getElementById('obo-name').value = '';
+  document.getElementById('obo-email').value = '';
+  document.getElementById('obo-phone').value = '';
+  document.getElementById('obo-address').value = '';
+  openModal('modal-book');
+}
+
+function buildExistingClientList() {
+  // Group bookings by clientEmail (fall back to clientName) to get unique clients.
+  // Prefer the most-recent booking's contact info for each client.
+  const bookings = (typeof getBookings === 'function' ? getBookings() : [])
+    .filter(b => b.status !== 'canceled' && (b.clientName || b.clientEmail))
+    .slice()
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const seen = new Map();
+  bookings.forEach(b => {
+    const key = (b.clientEmail || b.clientName || '').toLowerCase().trim();
+    if (!key || seen.has(key)) return;
+    seen.set(key, {
+      key: key,
+      name: b.clientName || '',
+      email: b.clientEmail || '',
+      phone: b.clientPhone || '',
+      address: b.clientAddress || '',
+      lastDate: b.date || ''
+    });
+    // Backfill missing contact fields from any older booking for this client
+  });
+  // Merge in any older bookings with phone/address missing on newest
+  bookings.forEach(b => {
+    const key = (b.clientEmail || b.clientName || '').toLowerCase().trim();
+    const c = seen.get(key);
+    if (!c) return;
+    if (!c.phone   && b.clientPhone)   c.phone = b.clientPhone;
+    if (!c.email   && b.clientEmail)   c.email = b.clientEmail;
+    if (!c.address && b.clientAddress) c.address = b.clientAddress;
+  });
+  return [...seen.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function populateExistingClientSelect() {
+  const sel = document.getElementById('obo-existing');
+  if (!sel) return;
+  const clients = buildExistingClientList();
+  const existingValue = sel.value;
+  sel.innerHTML = '<option value="">— new client —</option>' +
+    clients.map(c => {
+      const label = c.name + (c.email ? ' · ' + c.email : c.phone ? ' · ' + c.phone : '');
+      return '<option value="' + escAttr(c.key) + '">' + escAttr(label) + '</option>';
+    }).join('');
+  // Stash for onPickExistingClient to look up
+  sel._clients = clients;
+  sel.value = existingValue || '';
+}
+
+function onPickExistingClient() {
+  const sel = document.getElementById('obo-existing');
+  const key = sel.value;
+  if (!key || !sel._clients) return;
+  const c = sel._clients.find(x => x.key === key);
+  if (!c) return;
+  document.getElementById('obo-name').value    = c.name || '';
+  document.getElementById('obo-email').value   = c.email || '';
+  document.getElementById('obo-phone').value   = c.phone || '';
+  document.getElementById('obo-address').value = c.address || '';
 }
 
 document.getElementById('block-type').addEventListener('change', function() {
