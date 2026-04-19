@@ -86,7 +86,7 @@
     const flowers = [];
     for (let i = 0; i < NFLOWERS; i++) {
       const x = (VW / (NFLOWERS + 1)) * (i + 1) + (rand() - 0.5) * 110;
-      const stemH = 130 + rand() * 55;        // 130–185
+      const stemH = 110 + rand() * 45;        // 110–155
       const scheme = flowerSchemes[Math.floor(rand() * flowerSchemes.length)];
       const swayN = 1 + Math.floor(rand() * 3);
       const petals = 5 + Math.floor(rand() * 3); // 5–7 petals
@@ -108,18 +108,15 @@
     }
 
     // Flowers (stem + petals + center).
-    // Nested groups so the head can sway independently of the stem base —
-    // the outer group rocks gently from the ground, the inner group (head +
-    // upper stem + leaf) rocks more dramatically from higher up, giving an
-    // organic "bending in the wind" feel instead of a rigid lollipop swing.
+    // Stem is a single curved bezier so it always stays attached to the
+    // head — no visible kink. The whole flower-base group rocks gently
+    // from the ground; the flower-head (petals only) nods a little extra
+    // in place for a softer, more organic feel.
     for (const f of flowers) {
       const cx = f.x;
       const cy = BASE - f.stemH;
       const bendDir = rand() < 0.5 ? 1 : -1;
-      const bendAmt = 10 + rand() * 14;           // horizontal curve offset
-      // Pivot for the head's extra sway — a little below the head so the
-      // upper third of the stem bends with it.
-      const pivotY = cy + f.stemH * 0.30;
+      const bendAmt = 8 + rand() * 12;            // horizontal curve offset
 
       let petalsSvg = '';
       for (let p = 0; p < f.petals; p++) {
@@ -131,27 +128,19 @@
       const leafY = cy + f.stemH * 0.55;
       const leaf = `<path d="M${cx} ${leafY} q${10 * leafSide} -4, ${14 * leafSide} 4 q${-6 * leafSide} 2, ${-14 * leafSide} -4 z" fill="var(--spring-sage)" opacity="0.85"/>`;
 
-      // Lower stem: base to pivot, curves slightly (half the bend).
-      const lowerCtrlX = cx + bendDir * bendAmt * 0.25;
-      const lowerCtrlY = (BASE + pivotY) / 2;
-      const lowerStem =
-        `<path d="M${cx} ${BASE} Q${lowerCtrlX} ${lowerCtrlY}, ${cx + bendDir * bendAmt * 0.35} ${pivotY}" `
+      // Single curved stem from ground to flower head.
+      // Control point offset horizontally gives a natural bend.
+      const ctrlX = cx + bendDir * bendAmt;
+      const ctrlY = (BASE + cy) / 2;
+      const stem =
+        `<path d="M${cx} ${BASE} Q${ctrlX} ${ctrlY}, ${cx} ${cy}" `
         + `fill="none" stroke="var(--leaf-green)" stroke-width="2.4" stroke-linecap="round"/>`;
-
-      // Upper stem: pivot to flower head, curves more.
-      const upperBaseX = cx + bendDir * bendAmt * 0.35;
-      const upperCtrlX = cx + bendDir * bendAmt;
-      const upperCtrlY = (pivotY + cy) / 2;
-      const upperStem =
-        `<path d="M${upperBaseX} ${pivotY} Q${upperCtrlX} ${upperCtrlY}, ${cx} ${cy}" `
-        + `fill="none" stroke="var(--leaf-green)" stroke-width="2.2" stroke-linecap="round"/>`;
 
       parts.push(
         `<g class="flower-base sway-${f.swayN}">`
-        +   lowerStem
+        +   stem
         +   leaf
         +   `<g class="flower-head sway-h${f.swayN}">`
-        +     upperStem
         +     petalsSvg
         +     `<circle cx="${cx}" cy="${cy}" r="3.4" fill="${f.center}"/>`
         +   `</g>`
@@ -235,7 +224,15 @@
       tip.className = 'gf-bee-tip';
       tip.textContent = text;
       tip.style.left = (rect.left + rect.width / 2) + 'px';
-      tip.style.top  = rect.top + 'px';
+      // If the bee is near the top of the viewport, flip the bubble below it
+      // so it doesn't get hidden behind the sticky nav.
+      const flipBelow = rect.top < 90;
+      if (flipBelow) {
+        tip.classList.add('below');
+        tip.style.top = rect.bottom + 'px';
+      } else {
+        tip.style.top = rect.top + 'px';
+      }
       document.body.appendChild(tip);
       setTimeout(() => tip.remove(), 1800);
     }
