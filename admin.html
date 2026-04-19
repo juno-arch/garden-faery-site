@@ -3651,19 +3651,59 @@ async function saveOBO() {
   const interval = recurring === 'biweekly' ? 14 : 7;
   const count = recurring === 'none' ? 1 : weeks;
 
+  // --- Build the list of (date, eventType) slots we plan to book ---
+  const targets = [];
+  for (let i = 0; i < count; i++) {
+    const d = new Date(date + 'T12:00:00');
+    d.setDate(d.getDate() + (i * interval));
+    targets.push({ date: formatDate(d), eventType: eventType });
+  }
+
+  // --- Duplicate prevention ---
+  // Refresh first so we catch anything booked from another tab/device.
+  // Then match each target slot against existing (non-canceled) bookings
+  // for this same client (by lowercase name or email). Covers the two
+  // common mistakes: double-tapping "Book It", and re-booking a slot
+  // that's already on the calendar.
+  try { await refreshData(); } catch (_) { /* offline: fall back to cache */ }
+  const nameKey  = name.toLowerCase();
+  const emailKey = email.toLowerCase();
+  const existing = (getBookings() || []).filter(b => b.status !== 'canceled');
+  const dupes = [];
+  const toBook = [];
+  for (const t of targets) {
+    const hit = existing.find(b =>
+      b.date === t.date &&
+      b.eventType === t.eventType &&
+      (
+        (b.clientName || '').toLowerCase().trim() === nameKey ||
+        (emailKey && (b.clientEmail || '').toLowerCase().trim() === emailKey)
+      )
+    );
+    if (hit) dupes.push(t); else toBook.push(t);
+  }
+
+  if (dupes.length === targets.length) {
+    const when = dupes.length === 1 ? dupes[0].date : dupes.length + ' of those dates';
+    alert(name + ' is already booked for ' + EVENT_LABELS[eventType] + ' on ' + when + '. Nothing to add.');
+    return;
+  }
+  if (dupes.length > 0) {
+    const msg = dupes.length + ' of ' + targets.length + ' slots are already booked for ' +
+                name + ' (' + EVENT_LABELS[eventType] + '). Skip those and book the other ' +
+                toBook.length + '?';
+    if (!confirm(msg)) return;
+  }
+
   let booked = 0;
   try {
-    for (let i = 0; i < count; i++) {
-      const d = new Date(date + 'T12:00:00');
-      d.setDate(d.getDate() + (i * interval));
-      const ds = formatDate(d);
-
+    for (const t of toBook) {
       const booking = {
-        id: 'b_' + Date.now() + '_' + i,
-        eventType: eventType,
-        eventName: EVENT_LABELS[eventType],
-        date: ds,
-        time: EVENT_TIME_SLOTS[eventType],
+        id: 'b_' + Date.now() + '_' + booked,
+        eventType: t.eventType,
+        eventName: EVENT_LABELS[t.eventType],
+        date: t.date,
+        time: EVENT_TIME_SLOTS[t.eventType],
         clientName: name,
         clientEmail: email,
         clientPhone: phone,
@@ -3685,8 +3725,17 @@ async function saveOBO() {
     document.getElementById('obo-recurring').value = 'none';
     document.getElementById('obo-weeks-group').style.display = 'none';
 
-    if (booked > 1) {
-      alert('Booked ' + name + ' for ' + booked + ' ' + recurring + ' visits starting ' + date + '.');
+    if (booked > 1 || dupes.length > 0) {
+      const parts = [];
+      if (booked > 0) {
+        parts.push('Booked ' + name + ' for ' + booked +
+          (recurring !== 'none' ? ' ' + recurring : '') +
+          ' visit' + (booked === 1 ? '' : 's') + ' starting ' + date + '.');
+      }
+      if (dupes.length > 0) {
+        parts.push('Skipped ' + dupes.length + ' already-booked slot' + (dupes.length === 1 ? '' : 's') + '.');
+      }
+      alert(parts.join(' '));
     }
     await refreshData();
     renderAll();
