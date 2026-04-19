@@ -1167,8 +1167,13 @@ const DB = {
       method: 'DELETE',
       headers: PB_TOKEN ? { 'Authorization': 'Bearer ' + PB_TOKEN } : {},
     });
-    if (!resp.ok && resp.status !== 204) {
-      throw new Error('Delete failed: HTTP ' + resp.status);
+    // PocketBase returns 204 on success (which makes resp.ok true), 404 if
+    // the record is already gone (which the caller can handle specially),
+    // and 4xx/5xx for real errors.
+    if (!resp.ok) {
+      const err = new Error('Delete failed: HTTP ' + resp.status);
+      err.status = resp.status;
+      throw err;
     }
   },
 };
@@ -3024,13 +3029,17 @@ function renderIncome() {
         : (price > 0
             ? '<span style="background:var(--red-light);color:var(--red);padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:700;white-space:nowrap;">UNPAID</span>'
             : '<span style="color:var(--gray-400);font-size:0.8rem;white-space:nowrap;">no price</span>');
-      // Quick actions only visible when useful (unpaid + has a price)
+      // Quick actions only visible when useful (unpaid + has a price).
+      // data-id carries the booking id (HTML-attribute-escaped) instead of
+      // interpolating it into the JS string, so exotic ids (or a future
+      // schema change) can't break these handlers.
+      const idAttr = escAttr(b.id);
       const quickActions = (!b.paid && price > 0)
-        ? '<button class="modal-btn primary" style="padding:4px 10px;font-size:0.8rem;" onclick="event.stopPropagation();quickMarkPaid(\'' + b.id + '\')">Paid</button>' +
-          '<button class="modal-btn secondary" style="padding:4px 10px;font-size:0.8rem;" onclick="event.stopPropagation();sendInvoice(\'' + b.id + '\')">Invoice</button>'
+        ? '<button class="modal-btn primary" style="padding:4px 10px;font-size:0.8rem;" data-id="' + idAttr + '" onclick="event.stopPropagation();quickMarkPaid(this.dataset.id)">Paid</button>' +
+          '<button class="modal-btn secondary" style="padding:4px 10px;font-size:0.8rem;" data-id="' + idAttr + '" onclick="event.stopPropagation();sendInvoice(this.dataset.id)">Invoice</button>'
         : '';
       html +=
-        '<div onclick="openPayment(\'' + b.id + '\')"' +
+        '<div data-id="' + idAttr + '" onclick="openPayment(this.dataset.id)"' +
           ' title="Tap to edit income"' +
           ' onmouseover="this.style.background=\'var(--gray-100)\'"' +
           ' onmouseout="this.style.background=\'transparent\'"' +
@@ -3062,8 +3071,12 @@ function renderIncome() {
   } else {
     clientRows.forEach(([name, s]) => {
       const isFiltered = incomeFilterClient === name;
+      // data-name carries the client name safely (HTML-attribute-escaped);
+      // the handler reads it back so quotes/angle brackets in names can't
+      // break the onclick attribute.
       html +=
-        '<div onclick="setIncomeClient(' + (isFiltered ? '\'\'' : '\'' + String(name).replace(/'/g, "\\'") + '\'') + ')"' +
+        '<div data-name="' + (isFiltered ? '' : escAttr(name)) + '"' +
+          ' onclick="setIncomeClient(this.dataset.name)"' +
           ' title="' + (isFiltered ? 'Clear filter' : 'Filter bookings to this client') + '"' +
           ' onmouseover="this.style.background=\'var(--gray-100)\'"' +
           ' onmouseout="this.style.background=\'' + (isFiltered ? 'var(--petal-pink-light)' : 'transparent') + '\'"' +
@@ -3135,19 +3148,26 @@ async function deleteCurrentBooking() {
   if (!confirm(msg)) return;
 
   const id = _payingBookingId;
-  try {
-    await DB.deleteBooking(id);
+  const finishUp = async () => {
     // Remove from the in-memory cache too so the UI updates immediately
     const idx = (_cachedBookings || []).findIndex(x => x.id === id);
     if (idx >= 0) _cachedBookings.splice(idx, 1);
     closeModal('modal-payment');
     _payingBookingId = null;
-    renderIncome();
-    renderClients();
     // Best-effort full refresh so anything else that reads bookings stays fresh
     try { await refreshData(); } catch (_) {}
     renderAll();
+  };
+  try {
+    await DB.deleteBooking(id);
+    await finishUp();
   } catch (e) {
+    // 404 means the record was already gone — another tab or session must
+    // have deleted it. Treat as success: clean up the UI and move on.
+    if (e && e.status === 404) {
+      await finishUp();
+      return;
+    }
     alert('Delete failed: ' + (e && e.message ? e.message : e));
   }
 }
@@ -3760,8 +3780,8 @@ function renderClients() {
 
     // Action buttons
     card += '<div class="booking-actions">' +
-      (c.phone ? '<button class="action-btn" onclick="callClient(\'' + esc(c.phone) + '\')">Call</button>' +
-                 '<button class="action-btn" onclick="textClient(\'' + esc(c.phone) + '\')">Text</button>' : '') +
+      (c.phone ? '<button class="action-btn" onclick="callClient(\'' + phoneAttr(c.phone) + '\')">Call</button>' +
+                 '<button class="action-btn" onclick="textClient(\'' + phoneAttr(c.phone) + '\')">Text</button>' : '') +
       '<button class="action-btn" data-name="' + escAttr(c.name || '') + '" onclick="renameClientByName(this.dataset.name)">Rename</button>' +
       '</div>';
 
@@ -3786,7 +3806,7 @@ function renderClients() {
         badge = '<span style="background:var(--red-light);color:var(--red);padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;white-space:nowrap;">UNPAID</span>';
       }
 
-      card += '<div onclick="openPayment(\'' + esc(v.id) + '\')"' +
+      card += '<div data-id="' + escAttr(v.id) + '" onclick="openPayment(this.dataset.id)"' +
         ' title="Tap to edit income"' +
         ' style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--gray-100);font-size:0.85rem;cursor:pointer;border-radius:6px;"' +
         ' onmouseover="this.style.background=\'var(--gray-100)\'"' +
