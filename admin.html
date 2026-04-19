@@ -3290,8 +3290,22 @@ function formatDate(date) {
 
 function renderAll() {
   renderWeekStrip();
-  renderDashboard();
   renderTomorrowBanner();
+  renderDashboard();
+  // Re-render whichever tab is currently visible so date navigation
+  // (prevDay/nextDay/goToday/jumpToDate/jumpToDay) and post-save refreshes
+  // actually update the content below — previously only the week strip
+  // and dashboard refreshed, so the Day/Month/Upcoming/etc. views froze.
+  const active = document.querySelector('.tab.active');
+  const tab = active ? active.dataset.tab : null;
+  if (tab === 'day') renderDay();
+  else if (tab === 'month') renderMonth();
+  else if (tab === 'upcoming') renderUpcoming();
+  else if (tab === 'clients') renderClients();
+  else if (tab === 'income') renderIncome();
+  else if (tab === 'expenses') renderExpenses();
+  else if (tab === 'taxes') renderTaxes();
+  else if (tab === 'settings') renderSettings();
 }
 
 // --- Tomorrow's schedule banner ---
