@@ -285,6 +285,34 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   justify-content: center;
 }
 .receipt-lightbox-close:hover { background: rgba(255,255,255,0.25); }
+
+/* Mixed-receipt visuals: a line item marked personal strikes through and
+   dims, and the matching expense gets a "mixed" badge in the list. */
+.line-item-row.li-row-personal .li-desc {
+  text-decoration: line-through;
+  color: var(--gray-400);
+}
+.line-item-row.li-row-personal .li-amt,
+.line-item-row.li-row-personal .li-cat {
+  opacity: 0.55;
+}
+.li-personal-cb {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--plum);
+  cursor: pointer;
+}
+.expense-mixed-badge {
+  display: inline-block;
+  background: #f6e5c9;
+  color: #6b4a1a;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  margin-left: 4px;
+}
+
 .modal {
   background: var(--white);
   border-radius: 16px 16px 0 0;
@@ -1845,7 +1873,9 @@ function exportAccountantCsv() {
   lines.push('MIXED-RECEIPT LINE ITEM DETAIL');
   lines.push('Date,Vendor,Line Description,Line Amount,Line Category,Schedule C Line');
   expenses.forEach(e => {
-    const items = Array.isArray(e.lineItems) ? e.lineItems.filter(i => i.category) : [];
+    // Exclude personal lines — they are retained on the record as audit
+    // proof that they were excluded, but don't belong in a business tax export.
+    const items = Array.isArray(e.lineItems) ? e.lineItems.filter(i => i.category && !i.personal) : [];
     if (!items.length) return;
     items.forEach(i => {
       const m = SCHEDULE_C[i.category] || SCHEDULE_C.other;
@@ -1917,6 +1947,10 @@ let expenseViewMonth = (() => { const d = new Date(); return d.getFullYear()+'-'
 let _cachedExpenses = [];
 let _editingExpenseId = null;
 let _pendingReceiptFile = null;
+// Tax + subtotal pulled from the most recent receipt scan, so toggling a
+// line item between business and personal can prorate tax correctly.
+// Reset on modal open/close.
+let _receiptMeta = { tax: 0, originalSubtotal: 0, originalTotal: 0 };
 
 async function loadExpenses() {
   try {
@@ -1986,6 +2020,13 @@ async function renderExpenses() {
       const bizTag = e.onBiz
         ? `<span style="background:#dfe8d4;color:#4a1942;padding:2px 6px;border-radius:8px;font-size:0.7rem;font-weight:700;">BIZ</span>`
         : `<span style="background:var(--gray-100);color:var(--gray-600);padding:2px 6px;border-radius:8px;font-size:0.7rem;font-weight:700;">personal</span>`;
+      // Mixed-receipt badge: any line item flagged personal means the
+      // expense amount is already business-only, but the full receipt
+      // photo is preserved as proof of the original transaction.
+      const hasPersonalLines = Array.isArray(e.lineItems) && e.lineItems.some(li => li && li.personal);
+      const mixedTag = hasPersonalLines
+        ? `<span class="expense-mixed-badge" title="Mixed receipt: some line items on the original receipt are personal and excluded from this expense total.">mixed</span>`
+        : '';
       const cardLabel = cardDisplayLabel(e.card, e.cardLast4);
       const thumb = e.receipt && e._collection && e.id
         ? `<img class="receipt-thumb" src="${receiptUrl(e)}" alt="Receipt thumbnail" onclick="openReceiptLightbox('${receiptUrl(e)}')" loading="lazy">`
@@ -1994,7 +2035,7 @@ async function renderExpenses() {
         <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100);gap:10px;">
           ${thumb}
           <div style="flex:1;min-width:0;">
-            <div style="font-weight:600;">${e.date} · ${e.vendor || 'Unknown vendor'}</div>
+            <div style="font-weight:600;">${e.date} · ${e.vendor || 'Unknown vendor'}${mixedTag}</div>
             <div style="font-size:0.8rem;color:var(--gray-600);">${e.category||'-'} ${cardLabel?'· '+cardLabel:''} ${bizTag}</div>
           </div>
           <div style="display:flex;gap:8px;align-items:center;">
@@ -2016,7 +2057,9 @@ async function renderExpenses() {
 function expenseCategoryBreakdown(e) {
   const total = Number(e.amount) || 0;
   const topCat = e.category || 'other';
-  const items = Array.isArray(e.lineItems) ? e.lineItems : [];
+  // Ignore personal lines — they are only kept on the record as audit proof
+  // that they were deliberately excluded from the business total.
+  const items = Array.isArray(e.lineItems) ? e.lineItems.filter(i => !i.personal) : [];
   const tagged = items.filter(i => i.category && Number(i.amount) > 0);
   if (!tagged.length) {
     // Nothing tagged — full amount goes to the receipt-level category.
@@ -2213,6 +2256,7 @@ function rememberCardBank(last4, bank) {
 function openExpenseModal(id) {
   _editingExpenseId = id || null;
   _pendingReceiptFile = null;
+  _receiptMeta = { tax: 0, originalSubtotal: 0, originalTotal: 0 };
   const e = id ? _cachedExpenses.find(x => x.id === id) : null;
   document.getElementById('exp-title').textContent = e ? 'Edit expense' : 'New expense';
   document.getElementById('exp-date').value = e ? e.date : formatDate(new Date());
@@ -2233,6 +2277,7 @@ function closeExpenseModal() {
   document.getElementById('modal-expense').classList.remove('open');
   _editingExpenseId = null;
   _pendingReceiptFile = null;
+  _receiptMeta = { tax: 0, originalSubtotal: 0, originalTotal: 0 };
 }
 
 // Category options shared between the main dropdown and per-line-item dropdowns.
@@ -2268,24 +2313,34 @@ function renderLineItems(items) {
     return o;
   };
   let h = '<div style="margin-top:4px;padding:10px;background:var(--gray-100);border-radius:8px;">' +
-    '<div style="font-weight:700;font-size:0.8rem;margin-bottom:6px;">Line items (tag any that differ from the receipt category)</div>';
+    '<div style="font-weight:700;font-size:0.8rem;margin-bottom:6px;">Line items (tag category, or check "P" to mark a line personal and exclude it from the expense)</div>';
   items.forEach((i, idx) => {
     const desc = i.description || '';
     const amt = Number(i.amount || 0).toFixed(2);
     const cat = i.category || '';
+    const personal = !!i.personal;
     const learned = i._learned ? '<span title="Auto-applied from a past correction" style="background:#dfe8d4;color:#4a1942;padding:1px 6px;border-radius:8px;font-size:0.65rem;font-weight:700;margin-left:4px;">learned</span>' : '';
-    h += '<div class="line-item-row" data-idx="' + idx + '" style="display:grid;grid-template-columns:1fr 70px 130px;gap:6px;align-items:center;margin-bottom:4px;font-size:0.8rem;">' +
+    const rowPersonalClass = personal ? ' li-row-personal' : '';
+    h += '<div class="line-item-row' + rowPersonalClass + '" data-idx="' + idx + '" style="display:grid;grid-template-columns:1fr 70px 130px 32px;gap:6px;align-items:center;margin-bottom:4px;font-size:0.8rem;">' +
       '<div class="li-desc" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + escAttr(desc) + '">' + escAttr(desc) + learned + '</div>' +
       '<input class="li-amt" type="number" step="0.01" value="' + amt + '" style="padding:4px 6px;font-size:0.8rem;width:100%;">' +
       '<select class="li-cat" style="padding:4px 6px;font-size:0.8rem;width:100%;">' + opts(cat) + '</select>' +
+      '<label class="li-personal-label" title="Mark this line as a personal purchase. It stays in the record for audit proof but is excluded from the expense total." style="display:flex;align-items:center;justify-content:center;cursor:pointer;">' +
+        '<input type="checkbox" class="li-personal-cb"' + (personal ? ' checked' : '') + '>' +
+      '</label>' +
     '</div>';
   });
+  // Summary row + mini legend
+  h += '<div class="li-summary" style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--gray-400);font-size:0.72rem;color:var(--gray-600);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">' +
+    '<span><strong>P</strong> = personal (excluded from total, receipt photo still kept as proof)</span>' +
+    '<span class="li-personal-summary" style="color:var(--plum);font-weight:700;"></span>' +
+  '</div>';
   h += '</div>';
   return h;
 }
 
 // Read the current state of the editable line-item rows out of the DOM.
-// Returns an array of {description, amount, category} matching the
+// Returns an array of {description, amount, category, personal} matching the
 // line_items JSON schema.
 function readLineItemsFromDom() {
   const rows = document.querySelectorAll('#exp-line-items .line-item-row');
@@ -2294,16 +2349,109 @@ function readLineItemsFromDom() {
     const desc = (row.querySelector('.li-desc') && row.querySelector('.li-desc').getAttribute('title')) || '';
     const amt = parseFloat(row.querySelector('.li-amt').value) || 0;
     const cat = row.querySelector('.li-cat').value || null;
-    items.push({ description: desc, amount: amt, category: cat });
+    const personalCb = row.querySelector('.li-personal-cb');
+    const personal = !!(personalCb && personalCb.checked);
+    items.push({ description: desc, amount: amt, category: cat, personal: personal });
   });
   return items;
 }
+
+// Recompute the receipt's "Amount" field based on which line items are
+// currently flagged personal. Business subtotal + prorated tax.
+function recomputeExpenseAmountFromLines() {
+  const rows = Array.from(document.querySelectorAll('#exp-line-items .line-item-row'));
+  if (!rows.length) return;
+
+  let bizSubtotal = 0;
+  let fullSubtotal = 0;
+  let personalCount = 0;
+  let personalSubtotal = 0;
+  const personalDescs = [];
+
+  rows.forEach(row => {
+    const amt = parseFloat(row.querySelector('.li-amt').value) || 0;
+    const cb = row.querySelector('.li-personal-cb');
+    const personal = !!(cb && cb.checked);
+    const desc = (row.querySelector('.li-desc') && row.querySelector('.li-desc').getAttribute('title')) || '';
+    // Keep strikethrough in sync in case this was triggered by checkbox change
+    row.classList.toggle('li-row-personal', personal);
+    fullSubtotal += amt;
+    if (personal) {
+      personalCount++;
+      personalSubtotal += amt;
+      if (desc) personalDescs.push(desc);
+    } else {
+      bizSubtotal += amt;
+    }
+  });
+
+  let newAmount = bizSubtotal;
+  // If we have the original receipt's tax + subtotal (from a scan), prorate
+  // the tax onto the business portion. Otherwise just sum business lines.
+  if (_receiptMeta.tax > 0 && _receiptMeta.originalSubtotal > 0 && fullSubtotal > 0) {
+    const taxShare = (bizSubtotal / fullSubtotal) * _receiptMeta.tax;
+    newAmount = bizSubtotal + taxShare;
+  }
+  // Only overwrite the top Amount when line-item math is clearly the source
+  // of truth (i.e. at least one personal toggle is on, or the user is doing
+  // a fresh scan with a pending file). If nothing is personal, leave the
+  // user's amount alone so they can still override.
+  if (personalCount > 0) {
+    document.getElementById('exp-amount').value = newAmount.toFixed(2);
+  }
+
+  // Update the summary line
+  const summaryEl = document.querySelector('#exp-line-items .li-personal-summary');
+  if (summaryEl) {
+    if (personalCount > 0) {
+      summaryEl.textContent = personalCount + ' personal line' + (personalCount === 1 ? '' : 's')
+        + ' excluded ($' + personalSubtotal.toFixed(2) + ')';
+    } else {
+      summaryEl.textContent = '';
+    }
+  }
+}
+
+// One-time event delegation on the line-items container so personal toggles
+// (and amount edits) keep the receipt total in sync. Safe to call repeatedly;
+// guards against double-binding via a flag on the element.
+function ensureLineItemEvents() {
+  const el = document.getElementById('exp-line-items');
+  if (!el || el.dataset.bound) return;
+  el.dataset.bound = '1';
+  const handler = (e) => {
+    if (e.target && (
+      e.target.classList.contains('li-personal-cb') ||
+      e.target.classList.contains('li-amt')
+    )) {
+      recomputeExpenseAmountFromLines();
+    }
+  };
+  el.addEventListener('change', handler);
+  el.addEventListener('input', handler);
+}
+ensureLineItemEvents();
+// Also re-bind when the modal opens (the div persists but just in case)
+document.addEventListener('DOMContentLoaded', ensureLineItemEvents);
 
 async function saveExpense() {
   const last4Raw = (document.getElementById('exp-card-last4').value || '').trim();
   const card_last4 = /^\d{4}$/.test(last4Raw) ? last4Raw : '';
   const card = document.getElementById('exp-card').value || null;
   const lineItems = readLineItemsFromDom();
+
+  // If the user flagged any lines as personal, auto-fill the Notes field
+  // (only when it's still empty) with an audit-friendly summary of what
+  // was excluded. The original receipt photo stays attached as proof.
+  const personalItems = lineItems.filter(i => i.personal);
+  const notesEl = document.getElementById('exp-notes');
+  if (personalItems.length && notesEl && !notesEl.value.trim()) {
+    const names = personalItems.map(i => (i.description || 'untagged')).join(', ');
+    const totalPersonal = personalItems.reduce((s, i) => s + (Number(i.amount) || 0), 0);
+    const origTotal = _receiptMeta.originalTotal > 0 ? ` Original receipt total $${_receiptMeta.originalTotal.toFixed(2)}.` : '';
+    notesEl.value = `Mixed receipt — personal items excluded: ${names} (personal subtotal $${totalPersonal.toFixed(2)}).${origTotal} Tax prorated onto business portion. Photo retained as proof of original transaction.`;
+  }
+
   const body = {
     date: document.getElementById('exp-date').value,
     amount: parseFloat(document.getElementById('exp-amount').value) || 0,
@@ -2312,7 +2460,7 @@ async function saveExpense() {
     card: card,
     card_last4: card_last4,
     on_biz_account: document.getElementById('exp-biz').checked,
-    notes: document.getElementById('exp-notes').value,
+    notes: notesEl ? notesEl.value : '',
     line_items: lineItems.length ? lineItems : null
   };
   if (!body.date || !body.amount) { alert('Date and amount are required.'); return; }
@@ -2643,6 +2791,20 @@ async function scanReceipt(input) {
     if (parsed.vendor) document.getElementById('exp-vendor').value = parsed.vendor;
     if (parsed.amount != null) document.getElementById('exp-amount').value = parsed.amount;
     if (parsed.category) document.getElementById('exp-category').value = parsed.category;
+
+    // Stash the receipt's tax + subtotal so a future personal-line toggle
+    // can prorate tax correctly. If subtotal isn't printed, derive it from
+    // amount - tax (falling back to the sum of line items).
+    const parsedTax = Number(parsed.tax) || 0;
+    const parsedSubtotal = Number(parsed.subtotal)
+      || (Number(parsed.amount) - parsedTax)
+      || (Array.isArray(parsed.line_items) ? parsed.line_items.reduce((s, i) => s + (Number(i.amount) || 0), 0) : 0);
+    _receiptMeta = {
+      tax: parsedTax,
+      originalSubtotal: parsedSubtotal,
+      originalTotal: Number(parsed.amount) || 0
+    };
+
     if (Array.isArray(parsed.line_items)) {
       // Layer learned corrections over the AI suggestions before rendering,
       // so line items the user has categorized before auto-fill with the
