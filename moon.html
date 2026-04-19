@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Moon Cycle | Garden Faery</title>
 <link rel="apple-touch-icon" href="/icon-moon.png">
+<link rel="icon" type="image/svg+xml" href="/icon-moon.svg">
 <link rel="icon" type="image/png" href="/icon-moon.png">
 <meta name="apple-mobile-web-app-title" content="Moon">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -149,6 +150,145 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 600; margin: 0; color: var
 .cal-day .num { line-height: 1; }
 .cal-day .moon { font-size: 0.8rem; margin-top: 2px; filter: drop-shadow(0 0 4px rgba(181,139,255,0.45)); }
 .cal-day.period { background: rgba(255,110,140,0.28); color: #fff; font-weight: 700; }
+.cal-day.period-light  { background: rgba(255,110,140,0.20); }
+.cal-day.period-medium { background: rgba(255,110,140,0.40); }
+.cal-day.period-heavy  { background: rgba(255,110,140,0.58); }
+
+/* Phase herbs (moon ↔ plant guide link) */
+.herb-section {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: rgba(181,139,255,0.07);
+  border: 1px solid rgba(181,139,255,0.18);
+  border-radius: 12px;
+}
+.herb-section .label {
+  font-size: 0.7rem;
+  color: var(--moon-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+}
+.herb-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.herb-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 7px 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  color: var(--moon-text);
+  text-decoration: none;
+  transition: background 0.15s, transform 0.1s, border-color 0.15s;
+}
+.herb-chip:hover {
+  background: rgba(181,139,255,0.12);
+  border-color: rgba(181,139,255,0.4);
+  transform: translateY(-1px);
+}
+.herb-chip .name { font-weight: 600; color: var(--moon-accent); }
+.herb-chip .why { font-size: 0.72rem; color: var(--moon-dim); }
+.herb-chip { cursor: pointer; }
+
+/* Herb info modal */
+.herb-modal-backdrop {
+  display: none; position: fixed; inset: 0;
+  background: rgba(10,4,20,0.78); backdrop-filter: blur(6px);
+  z-index: 200; align-items: flex-end; justify-content: center;
+}
+.herb-modal-backdrop.open { display: flex; }
+.herb-modal {
+  background: var(--moon-card); color: var(--moon-text);
+  width: 100%; max-width: 520px; max-height: 86vh; overflow-y: auto;
+  border: 1px solid rgba(181,139,255,0.2);
+  border-radius: 20px 20px 0 0; padding: 22px;
+}
+.herb-modal h3 { font-family: 'Lora', serif; font-size: 1.4rem; margin: 0 0 2px; color: var(--moon-accent); }
+.herb-modal .sci { font-style: italic; font-size: 0.85rem; color: var(--moon-dim); margin-bottom: 14px; }
+.herb-modal .field { margin: 12px 0; font-size: 0.92rem; line-height: 1.5; }
+.herb-modal .field .lbl {
+  display: block; font-size: 0.72rem; letter-spacing: 0.7px;
+  text-transform: uppercase; color: var(--moon-dim); margin-bottom: 3px;
+}
+.herb-modal .caution {
+  margin-top: 14px; padding: 10px 12px;
+  background: rgba(255,110,140,0.12); border: 1px solid rgba(255,110,140,0.3);
+  border-radius: 8px; font-size: 0.85rem; color: var(--moon-pink2);
+}
+.herb-modal .close-x {
+  float: right; background: transparent; border: none;
+  color: var(--moon-dim); font-size: 1.6rem; cursor: pointer; line-height: 1;
+}
+
+/* Today card teaching line */
+.today-teach {
+  margin-top: 8px; padding: 10px 14px; font-size: 0.9rem; line-height: 1.45;
+  color: var(--moon-text); font-style: italic;
+}
+
+/* Fertile badge on Today card */
+.fertile-badge {
+  display: inline-block; margin-top: 10px; padding: 6px 12px;
+  border-radius: 999px; font-size: 0.78rem; font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.fertile-badge.fertile { background: rgba(255,217,139,0.18); color: var(--moon-gold); border: 1px solid rgba(255,217,139,0.4); }
+.fertile-badge.infertile { background: rgba(163,184,140,0.15); color: #c4d8b1; border: 1px solid rgba(163,184,140,0.4); }
+.fertile-badge.unknown { background: rgba(255,255,255,0.06); color: var(--moon-dim); border: 1px solid rgba(255,255,255,0.15); }
+
+/* BBT input row */
+.bbt-row { display: flex; align-items: flex-end; gap: 12px; }
+.bbt-row .form-field { flex: 1; }
+.bbt-hint { font-size: 0.72rem; color: var(--moon-dim); margin-top: 4px; }
+
+/* Hormone curve chart */
+.hormone-chart { width: 100%; height: 180px; }
+.hormone-legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.75rem; color: var(--moon-dim); margin-top: 6px; justify-content: center; }
+.hormone-legend .item { display: inline-flex; align-items: center; gap: 5px; }
+.hormone-legend .sw { width: 14px; height: 3px; border-radius: 2px; }
+.hormone-today { font-size: 0.85rem; color: var(--moon-text); text-align: center; margin-top: 10px; font-style: italic; }
+.hormone-checkpoint-tip {
+  margin-top: 10px; padding: 10px 12px; font-size: 0.82rem; line-height: 1.5;
+  background: rgba(181,139,255,0.1); border: 1px solid rgba(181,139,255,0.22);
+  border-radius: 10px; color: var(--moon-text);
+}
+
+/* Temp chart */
+.temp-chart { width: 100%; height: 110px; }
+.temp-chart-empty {
+  padding: 22px; text-align: center; color: var(--moon-dim); font-size: 0.88rem;
+  background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.1);
+  border-radius: 10px;
+}
+
+/* Learn section — phase accordion */
+.learn-nav {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+  margin-bottom: 14px;
+}
+.learn-nav .tab {
+  padding: 10px 6px; text-align: center; font-size: 0.72rem;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px; cursor: pointer; color: var(--moon-text);
+  transition: background 0.15s, border-color 0.15s;
+  font-weight: 600; letter-spacing: 0.3px;
+}
+.learn-nav .tab .emoji { display: block; font-size: 1.2rem; margin-bottom: 3px; }
+.learn-nav .tab:hover { background: rgba(181,139,255,0.1); }
+.learn-nav .tab.active { background: rgba(181,139,255,0.18); border-color: rgba(181,139,255,0.5); color: var(--moon-accent); }
+.learn-body { font-size: 0.92rem; line-height: 1.6; color: var(--moon-text); }
+.learn-body h4 {
+  margin: 18px 0 6px; font-size: 0.75rem; letter-spacing: 0.9px;
+  text-transform: uppercase; color: var(--moon-dim); font-weight: 600;
+}
+.learn-body h4:first-child { margin-top: 0; }
+.learn-body p { margin: 0 0 10px; }
+.learn-body ul { margin: 6px 0 10px 0; padding-left: 20px; }
+.learn-body li { margin-bottom: 4px; }
+.learn-body strong { color: var(--moon-accent); font-weight: 600; }
+.learn-body em.witch { color: var(--moon-pink2); font-style: normal; font-weight: 600; }
 .cal-day.projected {
   background: repeating-linear-gradient(45deg, rgba(255,110,140,0.22), rgba(255,110,140,0.22) 3px, transparent 3px, transparent 7px);
   color: var(--moon-pink2); font-weight: 700;
@@ -307,7 +447,7 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Nunito', sans-serif
 <!-- Login -->
 <div id="login" style="display:none;">
   <div class="card">
-    <div style="font-size:3rem;margin-bottom:6px;filter:drop-shadow(0 0 18px rgba(181,139,255,0.6));">🌙</div>
+    <div style="font-size:3rem;margin-bottom:6px;line-height:1;filter:drop-shadow(0 0 18px rgba(181,139,255,0.6));"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></div>
     <h2 style="margin-bottom:18px;font-size:1.2rem;letter-spacing:0.5px;">Moon Cycle</h2>
     <div class="form-field" style="text-align:left;">
       <label>Password</label>
@@ -321,19 +461,25 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Nunito', sans-serif
 <!-- App -->
 <div id="app" class="container" style="display:none;">
   <div class="top-bar">
-    <h1>🌙 Moon Cycle</h1>
+    <h1><svg xmlns="http://www.w3.org/2000/svg" width="0.9em" height="0.9em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px;margin-right:6px;"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>Moon Cycle</h1>
     <button class="exit-btn" onclick="logout()">Exit</button>
   </div>
 
   <!-- Today card -->
   <div class="card today-card">
     <div class="today-date" id="t-date">—</div>
-    <div class="today-phase" id="t-phase">🌑</div>
+    <div class="today-phase" id="t-phase"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></div>
     <div class="today-name" id="t-name">—</div>
     <div class="today-illum" id="t-illum">—</div>
     <div class="today-cycle">
       <span class="day" id="t-cycleday">—</span>
       <span class="season" id="t-season">—</span>
+    </div>
+    <div class="today-teach" id="t-teach"></div>
+    <div id="t-fertile-wrap" style="text-align:center;"><span class="fertile-badge unknown" id="t-fertile">—</span></div>
+    <div class="herb-section" id="t-herbs-wrap" style="display:none;">
+      <div class="label">Plants for this phase</div>
+      <div class="herb-row" id="t-herbs"></div>
     </div>
     <button class="log-today-btn" onclick="openLogToday()">+ Log today</button>
   </div>
@@ -379,9 +525,28 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Nunito', sans-serif
     </div>
   </div>
 
+  <!-- Hormone curve -->
+  <div class="card">
+    <h3>Hormone curve</h3>
+    <div id="hormone-chart"></div>
+    <div class="hormone-legend">
+      <span class="item"><span class="sw" style="background:#ffb49c;"></span>Estrogen</span>
+      <span class="item"><span class="sw" style="background:#b58bff;"></span>Progesterone</span>
+      <span class="item"><span class="sw" style="background:#ffd98b;border-top:1.5px dashed #ffd98b;"></span>LH</span>
+      <span class="item"><span class="sw" style="background:#c4d8b1;border-top:1.5px dashed #c4d8b1;"></span>FSH</span>
+    </div>
+    <div class="hormone-today" id="hormone-today">—</div>
+    <div class="hormone-checkpoint-tip" id="hormone-tip" style="display:none;">Tap any dot to see what's happening at that cycle day.</div>
+    <div style="font-size:0.72rem;color:var(--moon-dim);text-align:center;margin-top:8px;">Tap the dots to explore the cycle.</div>
+  </div>
+
   <!-- Charts -->
   <div class="card" id="charts-card">
     <h3>Trends</h3>
+    <div style="margin-bottom:14px;">
+      <div style="font-size:0.82rem;color:var(--moon-dim);margin-bottom:4px;">Basal temp — current cycle</div>
+      <div id="temp-chart-wrap"></div>
+    </div>
     <div style="margin-bottom:14px;">
       <div style="font-size:0.82rem;color:var(--moon-dim);margin-bottom:4px;">Cycle length</div>
       <svg id="chart-cycle" viewBox="0 0 320 100" preserveAspectRatio="none"></svg>
@@ -392,6 +557,39 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Nunito', sans-serif
       <svg id="chart-plen" viewBox="0 0 320 100" preserveAspectRatio="none"></svg>
       <div id="chart-plen-legend" style="font-size:0.72rem;color:var(--moon-dim);text-align:center;"></div>
     </div>
+  </div>
+
+  <!-- Patterns -->
+  <div class="card">
+    <h3>🔍 Your patterns</h3>
+    <div style="font-size:0.82rem;color:var(--moon-dim);margin-bottom:10px;">How your symptoms + energy shift across the cycle.</div>
+    <div id="patterns-body"></div>
+  </div>
+
+  <!-- Subscribe calendar -->
+  <div class="card">
+    <h3>📅 Subscribe to your moon days</h3>
+    <div style="font-size:0.82rem;color:var(--moon-dim);margin-bottom:10px;">Paste this URL into Google / Apple Calendar so your moon days auto-block on any booking tool.</div>
+    <div style="font-family:monospace;font-size:0.8rem;padding:10px 12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;word-break:break-all;user-select:all;">https://bookings.gardenfaery.love/moon-days.ics</div>
+    <div style="font-size:0.72rem;color:var(--moon-dim);margin-top:8px;">Logged period days + next 6 projected periods. Refreshes every 2 hours.</div>
+  </div>
+
+  <!-- Export -->
+  <div class="card">
+    <h3>📋 Export</h3>
+    <div style="font-size:0.82rem;color:var(--moon-dim);margin-bottom:12px;">Print a summary for your care provider, or back up your full data.</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn" onclick="openReport()" style="flex:1;min-width:140px;">🖨️ Print report</button>
+      <button class="btn secondary" onclick="downloadJSON()" style="flex:1;min-width:140px;">💾 Download data</button>
+    </div>
+  </div>
+
+  <!-- Learn: body literacy -->
+  <div class="card">
+    <h3>🌸 Learn your body</h3>
+    <div style="font-size:0.82rem;color:var(--moon-dim);margin-bottom:10px;">Ms. Frizzle meets plant medicine. Tap a phase.</div>
+    <div class="learn-nav" id="learn-nav"></div>
+    <div class="learn-body" id="learn-body"></div>
   </div>
 
   <!-- Log a period -->
@@ -411,19 +609,36 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Nunito', sans-serif
   </div>
 </div>
 
+<!-- Herb info modal -->
+<div class="herb-modal-backdrop" id="herb-modal-backdrop" onclick="if(event.target===this) closeHerbModal()">
+  <div class="herb-modal" role="dialog" aria-label="Herb info">
+    <button class="close-x" onclick="closeHerbModal()" aria-label="Close">×</button>
+    <h3 id="herb-m-name">—</h3>
+    <div class="sci" id="herb-m-sci">—</div>
+    <div class="field"><span class="lbl">Why for this phase</span><span id="herb-m-why"></span></div>
+    <div class="field"><span class="lbl">How to use</span><span id="herb-m-how"></span></div>
+    <div class="caution" id="herb-m-caution-wrap" style="display:none;"><strong>Caution: </strong><span id="herb-m-caution"></span></div>
+  </div>
+</div>
+
 <!-- Day log sheet -->
 <div class="sheet-backdrop" id="sheet-backdrop" onclick="if(event.target===this) closeLog()">
   <div class="sheet" role="dialog" aria-label="Log a day">
     <div class="sheet-grip"></div>
     <div class="sheet-head">
       <div class="left">
-        <div class="phase" id="sheet-phase">🌑</div>
+        <div class="phase" id="sheet-phase"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></div>
         <div class="info">
           <div class="d" id="sheet-date">—</div>
           <div class="p" id="sheet-phase-name">—</div>
         </div>
       </div>
-      <button class="close" onclick="closeLog()" aria-label="Close">✕</button>
+      <button class="close" onclick="closeLog()" aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    </div>
+
+    <div class="herb-section" id="sheet-herbs-wrap" style="display:none;">
+      <div class="label" id="sheet-herbs-label">Plants for this phase</div>
+      <div class="herb-row" id="sheet-herbs"></div>
     </div>
 
     <div class="section">
@@ -466,6 +681,17 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Nunito', sans-serif
     </div>
 
     <div class="section">
+      <div class="section-title">Basal Temp (°F)</div>
+      <div class="bbt-row">
+        <div class="form-field">
+          <label>Morning temp</label>
+          <input type="number" id="f-temp" min="95" max="101" step="0.01" placeholder="97.50">
+        </div>
+      </div>
+      <div class="bbt-hint">Take before getting out of bed. 0.4°F+ sustained shift = ovulation confirmed.</div>
+    </div>
+
+    <div class="section">
       <div class="section-title">Notes</div>
       <textarea id="f-notes" placeholder="Anything else on your mind…"></textarea>
     </div>
@@ -486,51 +712,758 @@ let dayLogs = {};   // { 'YYYY-MM-DD': {id, flow, symptoms[], moods[], sex[], di
 let calDate = new Date();
 let logDate = null; // date currently open in the sheet
 const AUTO_BLOCK_TAG = 'Moon days';
+// Flow levels that count as a period day. Spotting and none do not.
+const PERIOD_FLOWS = ['light', 'medium', 'heavy'];
+const isPeriodFlow = (f) => PERIOD_FLOWS.indexOf(f) !== -1;
+
+// Phase → herbs mapping. Each herb has full monograph data so the app
+// stays self-contained (no external plant guide dependency).
+const HERBS = {
+  'yarrow': {
+    name: 'Yarrow', sci: 'Achillea millefolium',
+    why: 'Astringent; tones the uterus, eases heavy flow + cramps.',
+    how: 'Tea: 1 tsp dried flowering tops per cup, steep 10 min. Tincture: 30-40 drops in water 2-3x daily during heavy days.',
+    caution: 'Avoid in pregnancy. Rare allergy if sensitive to ragweed/asters.'
+  },
+  'chamomile': {
+    name: 'Chamomile', sci: 'Matricaria chamomilla',
+    why: 'Mild antispasmodic + sedative. Eases cramps, calms nerves, helps sleep.',
+    how: 'Tea: 1-2 tsp dried flowers per cup, steep 5-10 min. Safe daily.',
+    caution: 'Rare allergy if sensitive to ragweed/asters.'
+  },
+  'lemon-balm': {
+    name: 'Lemon balm', sci: 'Melissa officinalis',
+    why: 'Gentle nervine. Calms anxiety, lifts mood, eases tension cramps.',
+    how: 'Tea: 1 tbsp fresh or 1-2 tsp dried leaves per cup, steep 10 min. Safe daily.',
+    caution: 'Large doses may affect thyroid function; fine in tea amounts.'
+  },
+  'mugwort': {
+    name: 'Mugwort', sci: 'Artemisia vulgaris',
+    why: 'Classic moon herb. Encourages delayed menstruation, amplifies dreams, spiritual "opening."',
+    how: 'Tea: 1 tsp dried per cup, steep 5 min — bitter, usually blended. Smoke bundle, tincture, or pillow sachet.',
+    caution: 'AVOID in pregnancy (emmenagogue). Not for heavy bleeders.'
+  },
+  'calendula': {
+    name: 'Calendula', sci: 'Calendula officinalis',
+    why: 'Lymphatic + liver support — helps clear estrogen metabolites. Bright, renewing, skin healing.',
+    how: 'Tea: 1-2 tsp dried petals per cup. Infused oil for skin. Tincture in water.',
+    caution: 'Rare allergy if sensitive to daisy family.'
+  },
+  'nasturtium': {
+    name: 'Nasturtium', sci: 'Tropaeolum majus',
+    why: 'High vitamin C, warming, peppery. Supports immune + renewal energy of spring.',
+    how: 'Eat fresh — leaves + flowers in salad. Pesto (whole plant). Vinegar-pickled seeds = capers.',
+    caution: 'Peppery isothiocyanates may irritate sensitive stomachs in large amounts.'
+  },
+  'red-currant': {
+    name: 'Red flowering currant', sci: 'Ribes sanguineum',
+    why: 'Native PNW spring bloomer. Flowers edible, slightly sweet. Pollinator magnet + seasonal tonic.',
+    how: 'Flowers garnish or infuse in honey/water. Berries (when ripe) edible but seedy.',
+    caution: 'Generally safe. Do not confuse with toxic black currant relatives.'
+  },
+  'bee-balm': {
+    name: 'Bee balm', sci: 'Monarda didyma',
+    why: 'Uplifts, warms the heart + digestion. Mildly antimicrobial (contains thymol).',
+    how: 'Tea: 1 tsp dried flowers/leaves per cup. Fresh flowers in salads.',
+    caution: 'Avoid in pregnancy (thymol content, precautionary).'
+  },
+  'borage': {
+    name: 'Borage', sci: 'Borago officinalis',
+    why: '"Gladdens the heart." Classic mood lifter. Flowers high in GLA precursors.',
+    how: 'Fresh flowers in water, salad, or frozen into ice cubes. Young leaves (cooked).',
+    caution: 'Do NOT use seed oil long-term daily (pyrrolizidine alkaloids risk liver). Flowers + young leaves are fine.'
+  },
+  'hummingbird-sage': {
+    name: 'Hummingbird sage', sci: 'Salvia spathacea',
+    why: 'Native California salvia. Fragrant, warming, attracts pollinators — mirrors the peak-attraction vibe of ovulation.',
+    how: 'Tea: 1 tsp dried leaves per cup. Smudge bundle. Fresh leaves in cooking.',
+    caution: 'Generally safe; avoid large doses in pregnancy.'
+  },
+  'musk-mallow': {
+    name: 'Musk mallow', sci: 'Abelmoschus moschatus',
+    why: 'Soothing mucilage, sweet, cooling. Gentle emollient.',
+    how: 'Flowers in tea, salad, or cold infusion. Seeds in herbal blends.',
+    caution: 'Generally safe.'
+  },
+  'sage': {
+    name: 'Sage', sci: 'Salvia officinalis',
+    why: 'Hormonal balancer. Reduces night sweats, supports late-luteal stability, drying.',
+    how: 'Tea: 1 tsp dried per cup, steep 5-10 min. Tincture drops.',
+    caution: 'Avoid large medicinal doses in pregnancy + while nursing (thujone, can reduce milk supply).'
+  },
+  'lavender': {
+    name: 'Lavender', sci: 'Lavandula angustifolia',
+    why: 'Calms anxiety, eases PMS tension, improves sleep. Classic late-luteal ally.',
+    how: 'Tea: 1 tsp dried buds per cup. Essential oil diluted on pillow. Bath sachet.',
+    caution: 'Essential oil must be diluted; undiluted skin use can irritate.'
+  },
+  'meadowsweet': {
+    name: 'Meadowsweet', sci: 'Filipendula ulmaria',
+    why: 'Contains natural salicylates (aspirin\'s plant ancestor). Anti-inflammatory for cramps + headaches.',
+    how: 'Tea: 1 tsp dried flowering tops per cup, steep 10 min.',
+    caution: 'AVOID if allergic to aspirin or NSAIDs. Not for children <16 (Reye\'s-like risk).'
+  },
+  'valerian': {
+    name: 'Valerian', sci: 'Valeriana officinalis',
+    why: 'Strong sedative. Eases insomnia + tension. Smells funky but works.',
+    how: 'Tincture: 20-40 drops before bed. Tea (pungent!). Capsules common.',
+    caution: 'Do NOT combine with alcohol or sedatives. Rarely: paradoxical stimulation. Avoid in pregnancy.'
+  }
+};
+const PHASE_HERBS = {
+  winter: ['yarrow', 'chamomile', 'lemon-balm', 'mugwort'],
+  spring: ['calendula', 'nasturtium', 'red-currant'],
+  summer: ['bee-balm', 'borage', 'hummingbird-sage', 'musk-mallow'],
+  autumn: ['sage', 'lavender', 'meadowsweet', 'valerian']
+};
+const PHASE_LABELS = {
+  winter: 'Inner winter · menstrual',
+  spring: 'Inner spring · follicular',
+  summer: 'Inner summer · ovulation',
+  autumn: 'Inner autumn · luteal'
+};
+function phaseKey(cycleDay, avg) {
+  if (cycleDay == null) return null;
+  if (cycleDay <= 5) return 'winter';
+  if (cycleDay <= 13) return 'spring';
+  if (cycleDay <= 16) return 'summer';
+  if (cycleDay <= (avg || 28)) return 'autumn';
+  return null;
+}
+function cycleDayFor(ds) {
+  if (!periods.length) return null;
+  const target = parseDate(ds);
+  let last = null;
+  for (const p of periods) {
+    if (parseDate(p.start) <= target) last = p; else break;
+  }
+  if (!last) return null;
+  return daysBetween(last.start, ds) + 1;
+}
+function renderHerbChips(slugs) {
+  if (!slugs || !slugs.length) return '';
+  return slugs.map(s => {
+    const h = HERBS[s]; if (!h) return '';
+    const shortWhy = h.why.split(/[.;]/)[0];
+    return '<div class="herb-chip" data-slug="' + s + '" onclick="openHerbModal(\'' + s + '\')">' +
+           '<span class="name">' + h.name + '</span>' +
+           '<span class="why">' + shortWhy + '</span>' +
+           '</div>';
+  }).join('');
+}
+function openHerbModal(slug) {
+  const h = HERBS[slug]; if (!h) return;
+  document.getElementById('herb-m-name').textContent = h.name;
+  document.getElementById('herb-m-sci').textContent = h.sci;
+  document.getElementById('herb-m-why').textContent = h.why;
+  document.getElementById('herb-m-how').textContent = h.how;
+  const cautionWrap = document.getElementById('herb-m-caution-wrap');
+  if (h.caution) {
+    document.getElementById('herb-m-caution').textContent = h.caution;
+    cautionWrap.style.display = 'block';
+  } else {
+    cautionWrap.style.display = 'none';
+  }
+  document.getElementById('herb-modal-backdrop').classList.add('open');
+}
+function closeHerbModal() { document.getElementById('herb-modal-backdrop').classList.remove('open'); }
+
+// --- Body-literacy content: Learn phase deep-dives ---
+const LEARN_CONTENT = {
+  winter: {
+    emoji: '🌑', label: 'Winter', title: 'Inner winter · menstrual · days 1-5',
+    html: `
+      <h4>What's up in there</h4>
+      <p>Day 1 is the day you bleed. Your uterus is peeling off its plush lining — the cozy velvet crib it built last month in case an embryo needed a home. No embryo moved in, so the eviction party starts today. <em class="witch">Totally normal. Totally magic.</em></p>
+      <h4>The hormones</h4>
+      <p>Estrogen, progesterone, LH, FSH — all at baseline. Hormones take the week off. This is why you feel so different from ovulation-you.</p>
+      <h4>In the ovary</h4>
+      <p>Your brain sends <strong>FSH</strong> (follicle-stimulating hormone) to wake up the next round of egg candidates. A dozen microscopic follicles start growing in both ovaries — tiny fluid-filled bubbles, each holding one immature egg. They'll compete over two weeks to see which one "wins."</p>
+      <h4>How it feels</h4>
+      <p>Tired. Tender. Inward. Your energy is pointing IN, not out — this isn't failure, this is deep cellular maintenance. Blood loss + low hormones = real fatigue. Listen to it.</p>
+      <h4>Body-witch care</h4>
+      <ul>
+        <li>Iron-rich foods (nettle, dark greens, beets, red meat if you eat it)</li>
+        <li>Warm belly: heat pad or hot water bottle</li>
+        <li>Stillness. Shorter lists. Say no.</li>
+        <li>Baths are medicine.</li>
+      </ul>
+    `
+  },
+  spring: {
+    emoji: '🌱', label: 'Spring', title: 'Inner spring · follicular · days 6-13',
+    html: `
+      <h4>What's up in there</h4>
+      <p>Period's done. Your uterus is building a fresh lining — brand new velvet nursery going up floor by floor. Cervix is rising, opening slightly, making sticky-then-creamy mucus.</p>
+      <h4>The hormones</h4>
+      <p><strong>Estrogen</strong> is climbing — this is the feel-good ascent. FSH tapers after its peak. LH and progesterone stay quiet, watching.</p>
+      <h4>In the ovary</h4>
+      <p>One follicle has emerged as "dominant" — the biggest, fastest-growing. It's now a juicy little bubble about the size of a grape, pumping estrogen into your bloodstream. The other candidates give up and reabsorb. <em class="witch">Every month your body runs an egg talent show.</em> The winner becomes next week's ovulation.</p>
+      <h4>How it feels</h4>
+      <p>Energy back. Skin clearing. Libido warming. Ideas flowing. You can take on more. You can speak up more. Your brain is literally built for learning right now — estrogen boosts neuroplasticity.</p>
+      <h4>Body-witch care</h4>
+      <ul>
+        <li>Move! More vigorous exercise feels good now.</li>
+        <li>Fresh, green, growing foods (sprouts, early greens).</li>
+        <li>Start the thing.</li>
+        <li>Social connection.</li>
+      </ul>
+    `
+  },
+  summer: {
+    emoji: '☀️', label: 'Summer', title: 'Inner summer · ovulation · days 14-16',
+    html: `
+      <h4>What's up in there — THE big day</h4>
+      <p>The dominant follicle has grown to ~2cm (almost an inch). Estrogen hits peak. Your pituitary gland says <em class="witch">"OK, GO"</em> and releases a flood of <strong>LH</strong> — the Luteinizing Hormone surge.</p>
+      <p>About 24-36 hours after the LH surge starts, the follicle <strong>BURSTS</strong>. It literally ruptures on the surface of your ovary and releases its egg. 🥚✨</p>
+      <p>The egg — your <strong>ovum</strong>, about the size of a poppy seed — is swept into the fallopian tube by tiny finger-like <strong>fimbriae</strong> that dance it toward the uterus. It has <strong>12-24 hours</strong> to be fertilized before it dies.</p>
+      <h4>The hormones</h4>
+      <p>Estrogen peaks and drops. <strong>LH</strong> spikes dramatically. Progesterone starts its climb from the empty follicle (now the <strong>corpus luteum</strong> — "yellow body," named because it literally IS yellowish under magnification).</p>
+      <h4>How it feels</h4>
+      <p>Peak. Energy, confidence, libido, magnetism, glow. Some feel a one-sided twinge (<strong>mittelschmerz</strong> — German for "middle pain" — that's the follicle popping!). Cervical mucus goes clear, stretchy, slippery — designed to ferry sperm up to the egg.</p>
+      <h4>Fertile window</h4>
+      <p>Sperm live inside you up to <strong>5 days</strong>. The egg lives <strong>24 hours</strong>. So you can conceive from sex up to 5 days BEFORE ovulation through 1 day after. <em class="witch">Six-day window.</em></p>
+      <h4>Body-witch care</h4>
+      <ul>
+        <li>Say yes to things.</li>
+        <li>Dance, perform, flirt, create, ask.</li>
+        <li>This is manifestation hour.</li>
+      </ul>
+    `
+  },
+  autumn: {
+    emoji: '🍂', label: 'Autumn', title: 'Inner autumn · luteal · days 17-28',
+    html: `
+      <h4>What's up in there</h4>
+      <p>The empty follicle that released your egg has transformed into the <strong>corpus luteum</strong> — a temporary hormone-making gland. Its one job: pump out progesterone to keep your uterine lining cushy and nesting in case an embryo implants.</p>
+      <p>No pregnancy? Corpus luteum dies around day 26-28. Progesterone crashes. Lining has no support, starts shedding. Period begins. Cycle restarts.</p>
+      <h4>The hormones</h4>
+      <ul>
+        <li><strong>Early luteal (day 17-22)</strong>: progesterone climbing. Grounded, productive, cozy.</li>
+        <li><strong>Mid luteal (day 22-24)</strong>: progesterone at peak, estrogen does a small second climb.</li>
+        <li><strong>Late luteal (day 25-28)</strong>: hormones falling. Hello, PMS.</li>
+      </ul>
+      <h4>In the ovary</h4>
+      <p>Corpus luteum is the active structure. No new follicles growing yet. It's a waiting game.</p>
+      <h4>How it feels</h4>
+      <p>Slowing down. Cozier. Crave quiet. Want to finish things, not start new ones. Late luteal brings the PMS symphony — mood shifts, cramps, breast tenderness, cravings, bloating, breakouts. <em class="witch">This is hormones plummeting, not you being broken or difficult.</em></p>
+      <h4>Body-witch care</h4>
+      <ul>
+        <li>Complete projects, don't start new ones.</li>
+        <li>Warm, grounding food (soups, stews, roots).</li>
+        <li>Cut caffeine + alcohol late luteal — they amplify PMS.</li>
+        <li>Earlier bedtime.</li>
+        <li>Magnesium (food or supplement) helps cramps.</li>
+      </ul>
+    `
+  },
+  ovulation: {
+    emoji: '🥚', label: 'Egg Drop', title: 'The ovulation moment',
+    html: `
+      <h4>Here's what actually happens mid-cycle</h4>
+      <p>About <strong>14 days BEFORE your next period</strong> (not 14 days after the last one started — this is the source of most calendar-method failure), ONE follicle in ONE ovary releases ONE egg.</p>
+      <p>The egg lives 12-24 hours. Sperm live up to 5 days. You can conceive from sex <strong>up to 5 days before ovulation</strong> through 1 day after.</p>
+      <h4>How to KNOW you're ovulating</h4>
+      <ul>
+        <li><strong>Cervical mucus</strong>: clear, stretchy, slippery — like raw egg white. If you can pull it between two fingers, that's fertile mucus.</li>
+        <li><strong>Basal body temp</strong>: shifts up 0.4-0.8°F the day AFTER ovulation. Confirms it already happened.</li>
+        <li><strong>Mittelschmerz</strong>: one-sided twinge in your lower belly when the follicle ruptures. Not everyone feels it.</li>
+        <li><strong>Cervix</strong>: higher, softer, more open.</li>
+        <li><strong>Sex drive</strong> often spikes.</li>
+        <li><strong>LH strips</strong> (pee on a stick): detect the LH surge 24-36h BEFORE ovulation — earliest warning.</li>
+      </ul>
+      <h4>What BBT is good for</h4>
+      <p>Your morning temp reflects your hormones. Before ovulation: low. After: progesterone from the corpus luteum raises it. A sustained shift of <strong>3 days at elevated temperature</strong> CONFIRMS ovulation happened.</p>
+      <h4>What BBT is NOT great for</h4>
+      <p>It's retrospective. It tells you "ovulation was 3 days ago," not "it's about to happen." Good for confirming you're in the safe post-ovulation window. Bad for timing sex to conceive — for that, watch mucus + LH strips.</p>
+      <h4>Avoiding pregnancy with this info</h4>
+      <p>Don't rely on BBT alone. The <strong>sympto-thermal method</strong> (mucus + temp + calendar + cervix) used perfectly has a Pearl Index ~0.4 (comparable to the pill). Used typically: ~1.8. It requires strict daily observation + abstinence (or backup) during the fertile window.</p>
+      <p><em class="witch">We show you your fertile window. Your choices are yours. ♥</em></p>
+    `
+  }
+};
+let learnTab = 'winter';
+function renderLearn() {
+  const nav = document.getElementById('learn-nav');
+  const body = document.getElementById('learn-body');
+  const order = ['winter', 'spring', 'summer', 'autumn', 'ovulation'];
+  nav.innerHTML = order.map(k => {
+    const c = LEARN_CONTENT[k];
+    return '<div class="tab' + (k === learnTab ? ' active' : '') + '" onclick="setLearnTab(\'' + k + '\')">' +
+           '<span class="emoji">' + c.emoji + '</span>' + c.label + '</div>';
+  }).join('');
+  const c = LEARN_CONTENT[learnTab];
+  body.innerHTML = '<h3 style="font-family:Lora,serif;font-size:1.1rem;margin:0 0 12px;color:var(--moon-accent);">' + c.title + '</h3>' + c.html;
+}
+function setLearnTab(k) { learnTab = k; renderLearn(); }
+
+// --- Hormone curves (normalized 0-100 across a 28-day cycle) ---
+function hE(d)   { if (d <= 13) return 12 + (d-1)*7; if (d === 14) return 70; if (d === 15) return 50; if (d <= 22) return 50 + (d-15)*3.5; return Math.max(18, 75 - (d-22)*11); }
+function hP(d)   { if (d <= 14) return 12; if (d <= 22) return 12 + (d-14)*9; if (d <= 26) return 84; return Math.max(12, 84 - (d-26)*36); }
+function hLH(d)  { if (d >= 13 && d <= 14) return 95; if (d === 12 || d === 15) return 45; return 15; }
+function hFSH(d) { if (d <= 3) return 55; if (d <= 7) return 55 - (d-3)*8; if (d >= 13 && d <= 14) return 45; return 18; }
+
+const HORMONE_CHECKPOINTS = [
+  { day: 1,  label: 'Day 1',  blurb: 'Period begins. Hormones at baseline. Lining sheds.' },
+  { day: 7,  label: 'Day 7',  blurb: 'Mid-follicular. Estrogen climbing. Energy returning. Lining rebuilding.' },
+  { day: 13, label: 'Day 13', blurb: 'Estrogen peak. LH surge triggers within hours. Fertile window peak.' },
+  { day: 14, label: 'Day 14', blurb: 'OVULATION. Follicle bursts, releases egg. Egg lives 12-24 hours.' },
+  { day: 20, label: 'Day 20', blurb: 'Progesterone peak. Corpus luteum pumping. Cozy, nesting, focused.' },
+  { day: 26, label: 'Day 26', blurb: 'Late luteal. Hormones dropping. PMS window begins. Be gentle.' }
+];
+let selectedCheckpoint = null;
+function renderHormoneChart() {
+  const chart = document.getElementById('hormone-chart'); if (!chart) return;
+  const W = 320, H = 160, PAD = 14;
+  const daySpan = 28;
+  const x = (d) => PAD + ((d-1) / (daySpan-1)) * (W - PAD*2);
+  const y = (v) => H - PAD - (v/100) * (H - PAD*2 - 6);
+  const line = (fn, color, dash) => {
+    let d = 'M ';
+    for (let i = 1; i <= daySpan; i++) {
+      const px = x(i).toFixed(1), py = y(fn(i)).toFixed(1);
+      d += (i === 1 ? '' : ' L ') + px + ' ' + py;
+    }
+    return '<path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="2"' + (dash ? ' stroke-dasharray="4 3"' : '') + ' stroke-linecap="round" stroke-linejoin="round"/>';
+  };
+  // Today line
+  const last = periods.length ? periods[periods.length - 1] : null;
+  const today = todayStr();
+  const cd = last ? Math.min(daySpan, Math.max(1, daysBetween(last.start, today) + 1)) : null;
+  let todayLine = '';
+  if (cd) {
+    const px = x(cd).toFixed(1);
+    todayLine = '<line x1="' + px + '" y1="' + PAD + '" x2="' + px + '" y2="' + (H - PAD) + '" stroke="#fff" stroke-width="1.5" stroke-dasharray="2 3" opacity="0.5"/>' +
+                '<text x="' + px + '" y="' + (PAD - 4) + '" fill="#fff" font-size="10" text-anchor="middle" opacity="0.7">today</text>';
+  }
+  // Checkpoint dots
+  const dots = HORMONE_CHECKPOINTS.map(cp => {
+    // position dot at the dominant curve for that day (pick the highest curve)
+    const curves = [['E',hE(cp.day)],['P',hP(cp.day)],['LH',hLH(cp.day)],['FSH',hFSH(cp.day)]];
+    curves.sort((a,b) => b[1]-a[1]);
+    const top = curves[0][1];
+    const active = selectedCheckpoint === cp.day ? ' active' : '';
+    return '<circle cx="' + x(cp.day) + '" cy="' + y(top) + '" r="5" fill="#fff" stroke="#b58bff" stroke-width="2" style="cursor:pointer"' +
+           ' onclick="setCheckpoint(' + cp.day + ')"/>';
+  }).join('');
+  chart.innerHTML =
+    '<svg viewBox="0 0 ' + W + ' ' + H + '" class="hormone-chart">' +
+    line(hE, '#ffb49c', false) +
+    line(hP, '#b58bff', false) +
+    line(hLH, '#ffd98b', true) +
+    line(hFSH, '#c4d8b1', true) +
+    todayLine + dots +
+    '</svg>';
+  // Today blurb
+  const todayWrap = document.getElementById('hormone-today');
+  if (cd) {
+    const nearest = HORMONE_CHECKPOINTS.reduce((a, b) =>
+      Math.abs(b.day - cd) < Math.abs(a.day - cd) ? b : a);
+    todayWrap.textContent = 'Cycle day ' + cd + ' · ' + nearest.blurb;
+  } else {
+    todayWrap.textContent = 'Log a period to anchor your hormone chart.';
+  }
+  // Checkpoint tip
+  const tip = document.getElementById('hormone-tip');
+  if (selectedCheckpoint) {
+    const cp = HORMONE_CHECKPOINTS.find(c => c.day === selectedCheckpoint);
+    if (cp) {
+      tip.innerHTML = '<strong>' + cp.label + '</strong> — ' + cp.blurb;
+      tip.style.display = 'block';
+    }
+  } else {
+    tip.style.display = 'none';
+  }
+}
+function setCheckpoint(day) {
+  selectedCheckpoint = selectedCheckpoint === day ? null : day;
+  renderHormoneChart();
+}
+
+// --- BBT sympto-thermal detection ---
+// Returns { ovulationDay, confirmed, baseline } for the current cycle or null.
+function detectOvulation() {
+  if (!periods.length) return null;
+  const last = periods[periods.length - 1];
+  const startD = parseDate(last.start);
+  // Walk up to 40 days forward from cycle start, collecting temps
+  const temps = [];
+  for (let i = 0; i < 40; i++) {
+    const ds = dateStr(addDays(startD, i));
+    const log = dayLogs[ds];
+    const t = log && log.basal_temp ? Number(log.basal_temp) : null;
+    temps.push({ day: i + 1, ds, t });
+  }
+  const preOv = temps.filter(x => x.day >= 5 && x.day <= 13 && x.t).map(x => x.t);
+  if (preOv.length < 3) return null;
+  const baseline = preOv.reduce((a, b) => a + b, 0) / preOv.length;
+  // Find first day where 3 consecutive temps are >= baseline + 0.4 AND one is >= baseline + 0.7
+  for (let i = 13; i < temps.length - 2; i++) {
+    const win = [temps[i], temps[i+1], temps[i+2]];
+    if (win.every(x => x.t && x.t >= baseline + 0.4) &&
+        win.some(x => x.t >= baseline + 0.7)) {
+      return { ovulationDay: temps[i].day, confirmed: true, baseline };
+    }
+  }
+  return { ovulationDay: null, confirmed: false, baseline };
+}
+
+// Returns 'fertile' | 'infertile' | 'unknown' for today
+function fertileStatusToday() {
+  const last = periods.length ? periods[periods.length - 1] : null;
+  if (!last) return { status: 'unknown', detail: 'Log a period to begin.' };
+  const cd = daysBetween(last.start, todayStr()) + 1;
+  const ov = detectOvulation();
+  if (ov && ov.confirmed) {
+    if (cd > ov.ovulationDay + 3) {
+      return { status: 'infertile', detail: 'Post-ovulation safe window (BBT-confirmed day ' + ov.ovulationDay + ')' };
+    }
+    return { status: 'fertile', detail: 'Ovulation confirmed day ' + ov.ovulationDay + '. Fertile through day ' + (ov.ovulationDay + 1) + '.' };
+  }
+  // No BBT-confirmed ovulation: use calendar prediction
+  const avg = avgCycle();
+  const predictedOv = Math.round(avg - 14);
+  if (cd < predictedOv - 5) return { status: 'infertile', detail: 'Pre-fertile window. Predicted ovulation day ' + predictedOv + '.' };
+  if (cd >= predictedOv - 5 && cd <= predictedOv + 1) return { status: 'fertile', detail: 'Predicted fertile window (day ' + (predictedOv - 5) + '-' + (predictedOv + 1) + '). Not BBT-confirmed.' };
+  return { status: 'unknown', detail: 'Past predicted ovulation. Log BBT to confirm.' };
+}
+
+// --- Temp chart for Trends card ---
+function renderTempChart() {
+  const wrap = document.getElementById('temp-chart-wrap'); if (!wrap) return;
+  if (!periods.length) { wrap.innerHTML = '<div class="temp-chart-empty">Log a period and some morning temps to see your thermal shift.</div>'; return; }
+  const last = periods[periods.length - 1];
+  const startD = parseDate(last.start);
+  const points = [];
+  for (let i = 0; i < 35; i++) {
+    const ds = dateStr(addDays(startD, i));
+    const log = dayLogs[ds];
+    if (log && log.basal_temp) points.push({ day: i + 1, t: Number(log.basal_temp) });
+  }
+  if (points.length < 2) { wrap.innerHTML = '<div class="temp-chart-empty">Log 2+ morning temps to see the curve. Take it before you get out of bed.</div>'; return; }
+  const W = 320, H = 110, PAD = 18;
+  const minT = Math.min(...points.map(p => p.t)) - 0.2;
+  const maxT = Math.max(...points.map(p => p.t)) + 0.2;
+  const daySpan = Math.max(28, Math.max(...points.map(p => p.day)));
+  const x = (d) => PAD + ((d-1) / (daySpan-1)) * (W - PAD*2);
+  const y = (t) => H - PAD - ((t - minT) / (maxT - minT)) * (H - PAD*2);
+  const ov = detectOvulation();
+  let path = 'M ' + x(points[0].day).toFixed(1) + ' ' + y(points[0].t).toFixed(1);
+  for (let i = 1; i < points.length; i++) path += ' L ' + x(points[i].day).toFixed(1) + ' ' + y(points[i].t).toFixed(1);
+  let baselineLine = '';
+  if (ov && ov.baseline) {
+    const by = y(ov.baseline).toFixed(1);
+    baselineLine = '<line x1="' + PAD + '" y1="' + by + '" x2="' + (W-PAD) + '" y2="' + by + '" stroke="#c4d8b1" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/>';
+  }
+  let ovMark = '';
+  if (ov && ov.confirmed) {
+    const ox = x(ov.ovulationDay).toFixed(1);
+    ovMark = '<line x1="' + ox + '" y1="' + PAD + '" x2="' + ox + '" y2="' + (H-PAD) + '" stroke="#ffd98b" stroke-width="1.5" stroke-dasharray="2 3"/>' +
+             '<text x="' + ox + '" y="' + (PAD - 4) + '" fill="#ffd98b" font-size="10" text-anchor="middle">ov day ' + ov.ovulationDay + '</text>';
+  }
+  const dots = points.map(p => '<circle cx="' + x(p.day) + '" cy="' + y(p.t) + '" r="2.5" fill="#ffb49c"/>').join('');
+  wrap.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="temp-chart">' +
+    baselineLine + ovMark +
+    '<path d="' + path + '" fill="none" stroke="#ffb49c" stroke-width="1.5"/>' +
+    dots + '</svg>';
+}
+
+// --- Export: printable care-provider report ---
+function buildReportHTML() {
+  const avg = avgCycle();
+  const plen = avgPeriodLen();
+  const today = todayStr();
+  const last = periods.length ? periods[periods.length - 1] : null;
+  const cd = last ? (daysBetween(last.start, today) + 1) : null;
+
+  // Period history (most recent 24 months)
+  const rows = [...periods].reverse().slice(0, 36).map(p => {
+    const len = p.end ? (daysBetween(p.start, p.end) + 1) : '—';
+    return '<tr><td>' + p.start + '</td><td>' + (p.end || '—') + '</td><td>' + len + '</td></tr>';
+  }).join('');
+
+  // Cycle length history
+  const gapRows = [];
+  for (let i = 1; i < periods.length; i++) {
+    const gap = daysBetween(periods[i - 1].start, periods[i].start);
+    gapRows.push('<tr><td>' + periods[i].start + '</td><td>' + gap + ' days</td></tr>');
+  }
+  const cycleRows = gapRows.reverse().slice(0, 24).join('');
+
+  // Symptom frequency (all tracked logs)
+  const sympFreq = {};
+  Object.values(dayLogs).forEach(l => (l.symptoms || []).forEach(s => { sympFreq[s] = (sympFreq[s] || 0) + 1; }));
+  const sympSorted = Object.entries(sympFreq).sort((a, b) => b[1] - a[1]).slice(0, 12);
+  const sympRows = sympSorted.map(([s, n]) => '<tr><td>' + s.replace(/_/g, ' ') + '</td><td>' + n + '</td></tr>').join('') || '<tr><td colspan="2" style="color:#888;">No symptoms logged.</td></tr>';
+
+  // BBT data (current cycle)
+  let bbtSection = '';
+  if (last) {
+    const sDate = parseDate(last.start);
+    const bbtPoints = [];
+    for (let i = 0; i < 40; i++) {
+      const ds = dateStr(addDays(sDate, i));
+      const log = dayLogs[ds];
+      if (log && log.basal_temp) bbtPoints.push({ day: i + 1, ds, t: Number(log.basal_temp) });
+    }
+    const ov = detectOvulation();
+    if (bbtPoints.length) {
+      const bbtRows = bbtPoints.map(p => '<tr><td>Day ' + p.day + '</td><td>' + p.ds + '</td><td>' + p.t.toFixed(2) + '°F</td></tr>').join('');
+      bbtSection = '<h3>Basal body temperature — current cycle</h3>' +
+        (ov ? '<p>Baseline: ' + (ov.baseline ? ov.baseline.toFixed(2) + '°F' : 'n/a') +
+              ' · Ovulation: ' + (ov.confirmed ? 'confirmed day ' + ov.ovulationDay + ' (sympto-thermal method)' : 'not yet confirmed') + '</p>' : '') +
+        '<table><tr><th>Cycle day</th><th>Date</th><th>Temp</th></tr>' + bbtRows + '</table>';
+    }
+  }
+
+  // Recent notes (day logs with notes in last 90 days)
+  const cutoff = dateStr(addDays(new Date(), -90));
+  const noteEntries = Object.entries(dayLogs)
+    .filter(([ds, l]) => ds >= cutoff && l.notes && l.notes.trim())
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .slice(0, 20);
+  const noteRows = noteEntries.map(([ds, l]) => '<tr><td>' + ds + '</td><td>' + escapeHtml(l.notes) + '</td></tr>').join('');
+  const notesSection = noteRows ? '<h3>Recent notes (last 90 days)</h3><table><tr><th>Date</th><th>Note</th></tr>' + noteRows + '</table>' : '';
+
+  return `<!doctype html>
+<html><head><meta charset="utf-8"><title>Cycle Report · ${today}</title>
+<style>
+  body { font-family: Georgia, serif; color: #222; max-width: 780px; margin: 40px auto; padding: 0 24px; line-height: 1.5; }
+  h1 { font-size: 1.7rem; border-bottom: 2px solid #333; padding-bottom: 8px; }
+  h2 { font-size: 1.15rem; margin-top: 28px; color: #333; }
+  h3 { font-size: 1rem; margin-top: 22px; color: #555; }
+  .meta { color: #666; font-size: 0.9rem; margin-bottom: 14px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; margin: 10px 0 20px; }
+  .stat { padding: 8px 0; border-bottom: 1px solid #eee; }
+  .stat .k { font-size: 0.78rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat .v { font-size: 1.05rem; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 8px; }
+  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid #ddd; }
+  th { background: #f6f4ef; font-weight: 600; }
+  .note { font-size: 0.85rem; color: #666; margin-top: 8px; font-style: italic; }
+  @media print { body { max-width: none; margin: 0; padding: 10mm; } h1 { font-size: 1.4rem; } button { display:none; } }
+  .actions { margin: 12px 0 20px; }
+  button { font-family: inherit; font-size: 0.9rem; padding: 7px 14px; cursor: pointer; border: 1px solid #888; background: #fff; border-radius: 6px; margin-right: 8px; }
+</style></head><body>
+<h1>Cycle Summary Report</h1>
+<div class="meta">Generated ${today} · via Moon Cycle app</div>
+<div class="actions"><button onclick="window.print()">Print / Save as PDF</button><button onclick="window.close()">Close</button></div>
+
+<h2>Overview</h2>
+<div class="grid">
+  <div class="stat"><div class="k">Cycles tracked</div><div class="v">${periods.length}</div></div>
+  <div class="stat"><div class="k">Avg cycle length</div><div class="v">${avg} days</div></div>
+  <div class="stat"><div class="k">Avg period length</div><div class="v">${plen} days</div></div>
+  <div class="stat"><div class="k">Last period start</div><div class="v">${last ? last.start : '—'}</div></div>
+  <div class="stat"><div class="k">Current cycle day</div><div class="v">${cd || '—'}</div></div>
+  <div class="stat"><div class="k">Day logs recorded</div><div class="v">${Object.keys(dayLogs).length}</div></div>
+</div>
+
+<h2>Period history</h2>
+<table><tr><th>Start</th><th>End</th><th>Length (days)</th></tr>${rows}</table>
+
+<h2>Cycle lengths (gap between period starts)</h2>
+${cycleRows ? '<table><tr><th>Period start</th><th>Days since previous</th></tr>' + cycleRows + '</table>' : '<p class="note">Need at least 2 periods to compute cycle lengths.</p>'}
+
+<h2>Recurring symptoms (count of days logged)</h2>
+<table><tr><th>Symptom</th><th>Times logged</th></tr>${sympRows}</table>
+
+${bbtSection ? '<h2>Fertility & BBT</h2>' + bbtSection : ''}
+
+${notesSection ? '<h2>Notes</h2>' + notesSection : ''}
+
+<div class="note" style="margin-top:30px;">This report was generated from self-tracked data in the Moon Cycle app. It is informational and does not constitute medical advice.</div>
+</body></html>`;
+}
+function escapeHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function openReport() {
+  const html = buildReportHTML();
+  const win = window.open('', '_blank');
+  if (!win) { alert('Pop-up blocked. Please allow pop-ups for this site.'); return; }
+  win.document.write(html);
+  win.document.close();
+}
+function downloadJSON() {
+  const data = {
+    exported_at: new Date().toISOString(),
+    app: 'Moon Cycle',
+    periods: periods,
+    day_logs: dayLogs
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'moon-cycle-data-' + todayStr() + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// --- Patterns: symptom + energy aggregates per phase ---
+function computePatterns() {
+  const phaseSymp = { winter: {}, spring: {}, summer: {}, autumn: {} };
+  const phaseEnergy = { winter: [], spring: [], summer: [], autumn: [] };
+  const phaseSleep = { winter: [], spring: [], summer: [], autumn: [] };
+  const phaseMoods = { winter: {}, spring: {}, summer: {}, autumn: {} };
+  const cycles = new Set();
+  let total = 0;
+  const avg = avgCycle();
+  Object.entries(dayLogs).forEach(([ds, log]) => {
+    const cd = cycleDayFor(ds); if (!cd) return;
+    const ph = phaseKey(cd, avg); if (!ph) return;
+    total++;
+    (log.symptoms || []).forEach(s => { phaseSymp[ph][s] = (phaseSymp[ph][s] || 0) + 1; });
+    (log.moods || []).forEach(m => { phaseMoods[ph][m] = (phaseMoods[ph][m] || 0) + 1; });
+    if (log.energy) phaseEnergy[ph].push(log.energy);
+    if (log.sleep_hours) phaseSleep[ph].push(log.sleep_hours);
+    const anchor = periods.filter(p => p.start <= ds).pop();
+    if (anchor) cycles.add(anchor.start);
+  });
+  return { phaseSymp, phaseMoods, phaseEnergy, phaseSleep, total, cycles: cycles.size };
+}
+function renderPatterns() {
+  const wrap = document.getElementById('patterns-body'); if (!wrap) return;
+  const p = computePatterns();
+  const phases = {
+    winter: '🌑 Inner winter · menstrual',
+    spring: '🌱 Inner spring · follicular',
+    summer: '☀️ Inner summer · ovulation',
+    autumn: '🍂 Inner autumn · luteal'
+  };
+  if (p.cycles < 2) {
+    wrap.innerHTML = '<div style="color:var(--moon-dim);font-size:0.88rem;padding:14px;text-align:center;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.1);border-radius:10px;">' +
+      'Log ' + (2 - p.cycles) + ' more cycle' + (p.cycles === 1 ? '' : 's') + ' with daily symptoms + moods to unlock your patterns. ' +
+      '<br><span style="font-size:0.78rem;">(' + p.cycles + ' cycle tracked · ' + p.total + ' day logs so far)</span></div>';
+    return;
+  }
+  const avgArr = (arr) => arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : null;
+  let html = '<div style="font-size:0.75rem;color:var(--moon-dim);margin-bottom:14px;">Based on ' + p.cycles + ' cycles · ' + p.total + ' day logs.</div>';
+  Object.entries(phases).forEach(([k, label]) => {
+    const symTop = Object.entries(p.phaseSymp[k]).sort((a, b) => b[1] - a[1]).slice(0, 4);
+    const moodTop = Object.entries(p.phaseMoods[k]).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    const e = avgArr(p.phaseEnergy[k]);
+    const s = avgArr(p.phaseSleep[k]);
+    const pill = (label, n) => '<span style="display:inline-block;padding:3px 9px;background:rgba(181,139,255,0.12);border:1px solid rgba(181,139,255,0.25);border-radius:999px;font-size:0.78rem;margin:2px 4px 2px 0;">' + label.replace(/_/g, ' ') + ' <span style="color:var(--moon-dim);">×' + n + '</span></span>';
+    const sym = symTop.length ? symTop.map(([n, c]) => pill(n, c)).join('') : '<span style="color:var(--moon-dim);font-size:0.82rem;">—</span>';
+    const mood = moodTop.length ? moodTop.map(([n, c]) => pill(n, c)).join('') : '<span style="color:var(--moon-dim);font-size:0.82rem;">—</span>';
+    const stats = [];
+    if (e) stats.push('energy ' + e + '/5');
+    if (s) stats.push('sleep ' + s + 'h');
+    html += '<div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.06);">' +
+      '<div style="font-weight:600;color:var(--moon-accent);margin-bottom:4px;">' + label + '</div>' +
+      (stats.length ? '<div style="font-size:0.76rem;color:var(--moon-dim);margin-bottom:6px;">avg ' + stats.join(' · ') + '</div>' : '') +
+      '<div style="font-size:0.74rem;text-transform:uppercase;letter-spacing:0.6px;color:var(--moon-dim);margin-top:6px;">Top symptoms</div><div>' + sym + '</div>' +
+      '<div style="font-size:0.74rem;text-transform:uppercase;letter-spacing:0.6px;color:var(--moon-dim);margin-top:6px;">Top moods</div><div>' + mood + '</div>' +
+    '</div>';
+  });
+  wrap.innerHTML = html;
+}
+
+// --- Daily teaching line for Today card ---
+function dailyTeach(cycleDay) {
+  if (!cycleDay) return '';
+  const key = phaseKey(cycleDay, avgCycle());
+  const map = {
+    winter: 'Low estrogen + progesterone. Your uterus is shedding. Rest is productive right now.',
+    spring: 'Estrogen is climbing — energy, libido, creativity on the rise. A follicle is growing in one ovary.',
+    summer: 'LH surge → follicle rupture → egg drop. Cervical mucus slippery. Fertile window peak.',
+    autumn: 'Progesterone rising (early) then crashing (late). Cozy mode. Be gentle with yourself.'
+  };
+  return map[key] || '';
+}
+
+/* ---------- Icon library (inline SVGs, inherit currentColor) ---------- */
+const IC = (inner) => '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + inner + '</svg>';
+const ICON = {
+  droplet:      IC('<path d="M12 22a7 7 0 0 1-7-7c0-2.5 2.5-5.5 7-12 4.5 6.5 7 9.5 7 12a7 7 0 0 1-7 7Z"/>'),
+  droplets:     IC('<path d="M7 20a4 4 0 0 1-4-4c0-1.5 1.5-3.25 4-6 2.5 2.75 4 4.5 4 6a4 4 0 0 1-4 4Z"/><path d="M17 20a4 4 0 0 1-4-4c0-1.5 1.5-3.25 4-6 2.5 2.75 4 4.5 4 6a4 4 0 0 1-4 4Z"/>'),
+  droplet_full: IC('<path d="M12 22a7 7 0 0 1-7-7c0-2.5 2.5-5.5 7-12 4.5 6.5 7 9.5 7 12a7 7 0 0 1-7 7Z" fill="currentColor"/>'),
+  tornado:      IC('<path d="M3 4h18"/><path d="M5 8h14"/><path d="M7 12h10"/><path d="M9 16h6"/><path d="M11 20h2"/>'),
+  heart:        IC('<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/>'),
+  heart_solid:  IC('<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z" fill="currentColor"/>'),
+  brain:        IC('<path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>'),
+  balloon:      IC('<circle cx="12" cy="10" r="7"/><path d="M12 17v5"/>'),
+  bone:         IC('<path d="M17 10c.7-.7 1.69 0 2.5 0a2.5 2.5 0 1 0 0-5 .5.5 0 0 1-.5-.5 2.5 2.5 0 1 0-5 0c0 .81.7 1.8 0 2.5l-7 7c-.7.7-1.69 0-2.5 0a2.5 2.5 0 0 0 0 5c.28 0 .5.22.5.5a2.5 2.5 0 1 0 5 0c0-.81-.7-1.8 0-2.5Z"/>'),
+  bed:          IC('<path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/>'),
+  frown:        IC('<circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/>'),
+  sparkles:     IC('<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/><path d="M5 3v4"/><path d="M3 5h4"/><path d="M19 17v4"/><path d="M17 19h4"/>'),
+  cookie:       IC('<path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/><path d="M8.5 8.5v.01"/><path d="M16 15.5v.01"/><path d="M12 12v.01"/><path d="M11 17v.01"/><path d="M7 14v.01"/>'),
+  flame:        IC('<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5Z"/>'),
+  spiral:       IC('<path d="M21 12a9 9 0 1 1-6.219-8.56"/><path d="M16 12a4 4 0 1 1-2.5-3.71"/><path d="M12 12h.01"/>'),
+  moon:         IC('<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>'),
+  smile:        IC('<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/>'),
+  leaf:         IC('<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.8 2c1 2 2 4.18 2 8 0 10-10 10-10.8 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>'),
+  zap:          IC('<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14Z"/>'),
+  target:       IC('<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>'),
+  cloud_rain:   IC('<path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/>'),
+  battery_low:  IC('<rect width="16" height="10" x="2" y="7" rx="2" ry="2"/><line x1="22" x2="22" y1="11" y2="13"/><line x1="6" x2="6.01" y1="12" y2="12"/>'),
+  alert:        IC('<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>'),
+  meh:          IC('<circle cx="12" cy="12" r="10"/><line x1="8" x2="16" y1="14" y2="14"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/>'),
+  waves:        IC('<path d="M2 6c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/>'),
+  users:        IC('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'),
+  shield:       IC('<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>'),
+  sprout:       IC('<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8Z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2Z"/>'),
+  x:            IC('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'),
+};
+// Moon-phase SVGs (distinct silhouettes for each cycle stage)
+const ICM = (inner) => '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">' + inner + '</svg>';
+const MOON_PHASE = {
+  new:              ICM('<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/>'),
+  waxing_crescent:  ICM('<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 2 A10 10 0 0 1 12 22 A5 10 0 0 1 12 2 Z" fill="currentColor"/>'),
+  first_quarter:    ICM('<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 2 A10 10 0 0 1 12 22 Z" fill="currentColor"/>'),
+  waxing_gibbous:   ICM('<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 2 A10 10 0 0 1 12 22 A5 10 0 0 0 12 2 Z" fill="currentColor"/>'),
+  full:             ICM('<circle cx="12" cy="12" r="10" fill="currentColor"/>'),
+  waning_gibbous:   ICM('<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 2 A10 10 0 0 0 12 22 A5 10 0 0 1 12 2 Z" fill="currentColor"/>'),
+  last_quarter:     ICM('<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 2 A10 10 0 0 0 12 22 Z" fill="currentColor"/>'),
+  waning_crescent:  ICM('<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 2 A10 10 0 0 0 12 22 A5 10 0 0 0 12 2 Z" fill="currentColor"/>'),
+};
 
 /* ---------- Catalog of options (all chip labels) ---------- */
 const FLOW_OPTIONS = [
   { v: 'none',     l: 'None',     e: '·'  },
   { v: 'spotting', l: 'Spotting', e: '·'  },
-  { v: 'light',    l: 'Light',    e: '💧' },
-  { v: 'medium',   l: 'Medium',   e: '💧💧' },
-  { v: 'heavy',    l: 'Heavy',    e: '🩸' }
+  { v: 'light',    l: 'Light',    e: ICON.droplet },
+  { v: 'medium',   l: 'Medium',   e: ICON.droplets },
+  { v: 'heavy',    l: 'Heavy',    e: ICON.droplet_full }
 ];
 const SYMPTOM_OPTIONS = [
-  { v: 'cramps',         l: 'Cramps',          e: '🌀' },
-  { v: 'breast_tender',  l: 'Breast tender',   e: '🤍' },
-  { v: 'headache',       l: 'Headache',        e: '🤕' },
-  { v: 'bloating',       l: 'Bloated',         e: '🎈' },
-  { v: 'back_pain',      l: 'Back pain',       e: '🦴' },
-  { v: 'fatigue',        l: 'Fatigue',         e: '😴' },
-  { v: 'nausea',         l: 'Nausea',          e: '🤢' },
-  { v: 'acne',           l: 'Acne',            e: '🫧' },
-  { v: 'cravings',       l: 'Cravings',        e: '🍫' },
-  { v: 'hot_flashes',    l: 'Hot flashes',     e: '🔥' },
-  { v: 'dizzy',          l: 'Dizzy',           e: '💫' },
-  { v: 'insomnia',       l: 'Insomnia',        e: '🌙' }
+  { v: 'cramps',         l: 'Cramps',          e: ICON.tornado },
+  { v: 'breast_tender',  l: 'Breast tender',   e: ICON.heart },
+  { v: 'headache',       l: 'Headache',        e: ICON.brain },
+  { v: 'bloating',       l: 'Bloated',         e: ICON.balloon },
+  { v: 'back_pain',      l: 'Back pain',       e: ICON.bone },
+  { v: 'fatigue',        l: 'Fatigue',         e: ICON.bed },
+  { v: 'nausea',         l: 'Nausea',          e: ICON.frown },
+  { v: 'acne',           l: 'Acne',            e: ICON.sparkles },
+  { v: 'cravings',       l: 'Cravings',        e: ICON.cookie },
+  { v: 'hot_flashes',    l: 'Hot flashes',     e: ICON.flame },
+  { v: 'dizzy',          l: 'Dizzy',           e: ICON.spiral },
+  { v: 'insomnia',       l: 'Insomnia',        e: ICON.moon }
 ];
 const MOOD_OPTIONS = [
-  { v: 'happy',        l: 'Happy',        e: '😊' },
-  { v: 'calm',         l: 'Calm',         e: '🌿' },
-  { v: 'loved',        l: 'Loved',        e: '🥰' },
-  { v: 'energetic',    l: 'Energetic',    e: '⚡' },
-  { v: 'focused',      l: 'Focused',      e: '🎯' },
-  { v: 'anxious',      l: 'Anxious',      e: '😰' },
-  { v: 'irritable',    l: 'Irritable',    e: '😤' },
-  { v: 'sad',          l: 'Sad',          e: '😢' },
-  { v: 'low',          l: 'Low',          e: '🪫' },
-  { v: 'angry',        l: 'Angry',        e: '😠' },
-  { v: 'emotional',    l: 'Emotional',    e: '🫠' },
-  { v: 'overwhelmed',  l: 'Overwhelmed',  e: '🌊' }
+  { v: 'happy',        l: 'Happy',        e: ICON.smile },
+  { v: 'calm',         l: 'Calm',         e: ICON.leaf },
+  { v: 'loved',        l: 'Loved',        e: ICON.heart_solid },
+  { v: 'energetic',    l: 'Energetic',    e: ICON.zap },
+  { v: 'focused',      l: 'Focused',      e: ICON.target },
+  { v: 'anxious',      l: 'Anxious',      e: ICON.cloud_rain },
+  { v: 'irritable',    l: 'Irritable',    e: ICON.frown },
+  { v: 'sad',          l: 'Sad',          e: ICON.cloud_rain },
+  { v: 'low',          l: 'Low',          e: ICON.battery_low },
+  { v: 'angry',        l: 'Angry',        e: ICON.alert },
+  { v: 'emotional',    l: 'Emotional',    e: ICON.meh },
+  { v: 'overwhelmed',  l: 'Overwhelmed',  e: ICON.waves }
 ];
 const SEX_OPTIONS = [
-  { v: 'solo',          l: 'Solo',          e: '💜' },
-  { v: 'partner',       l: 'Partner',       e: '💞' },
-  { v: 'protected',     l: 'Protected',     e: '🛡️' },
-  { v: 'unprotected',   l: 'Unprotected',   e: '🌱' },
-  { v: 'orgasm',        l: 'Orgasm',        e: '✨' },
-  { v: 'high_libido',   l: 'High libido',   e: '🔥' },
-  { v: 'low_libido',    l: 'Low libido',    e: '🌧️' }
+  { v: 'solo',          l: 'Solo',          e: ICON.heart },
+  { v: 'partner',       l: 'Partner',       e: ICON.users },
+  { v: 'protected',     l: 'Protected',     e: ICON.shield },
+  { v: 'unprotected',   l: 'Unprotected',   e: ICON.sprout },
+  { v: 'orgasm',        l: 'Orgasm',        e: ICON.sparkles },
+  { v: 'high_libido',   l: 'High libido',   e: ICON.flame },
+  { v: 'low_libido',    l: 'Low libido',    e: ICON.cloud_rain }
 ];
 const DISCHARGE_OPTIONS = [
   { v: 'dry',       l: 'Dry',        e: '·' },
@@ -560,14 +1493,14 @@ function moonIllumination(phase) {
 }
 
 function moonGlyph(phase) {
-  if (phase < 0.03125 || phase >= 0.96875) return '🌑';
-  if (phase < 0.21875) return '🌒';
-  if (phase < 0.28125) return '🌓';
-  if (phase < 0.46875) return '🌔';
-  if (phase < 0.53125) return '🌕';
-  if (phase < 0.71875) return '🌖';
-  if (phase < 0.78125) return '🌗';
-  return '🌘';
+  if (phase < 0.03125 || phase >= 0.96875) return MOON_PHASE.new;
+  if (phase < 0.21875) return MOON_PHASE.waxing_crescent;
+  if (phase < 0.28125) return MOON_PHASE.first_quarter;
+  if (phase < 0.46875) return MOON_PHASE.waxing_gibbous;
+  if (phase < 0.53125) return MOON_PHASE.full;
+  if (phase < 0.71875) return MOON_PHASE.waning_gibbous;
+  if (phase < 0.78125) return MOON_PHASE.last_quarter;
+  return MOON_PHASE.waning_crescent;
 }
 
 function moonName(phase) {
@@ -640,6 +1573,7 @@ async function showApp() {
   buildChips();
   await loadPeriods();
   await loadDayLogs();
+  renderLearn();
   render();
   syncAutoBlocks();
 }
@@ -671,6 +1605,7 @@ async function loadDayLogs() {
       discharge: row.discharge || '',
       energy: Number(row.energy) || 0,
       sleep_hours: Number(row.sleep_hours) || 0,
+      basal_temp: row.basal_temp ? Number(row.basal_temp) : null,
       notes: row.notes || ''
     };
   });
@@ -748,12 +1683,36 @@ function render() {
   // Today card
   const phase = moonPhase(now);
   document.getElementById('t-date').textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-  document.getElementById('t-phase').textContent = moonGlyph(phase);
+  document.getElementById('t-phase').innerHTML = moonGlyph(phase);
   document.getElementById('t-name').textContent = moonName(phase);
   document.getElementById('t-illum').textContent = Math.round(moonIllumination(phase) * 100) + '% illuminated';
   const cycleDay = last ? (daysBetween(last.start, today) + 1) : null;
   document.getElementById('t-cycleday').textContent = cycleDay ? 'Cycle day ' + cycleDay : 'No cycle logged';
   document.getElementById('t-season').textContent = cycleDay ? innerSeason(cycleDay, avg) : 'Log a period to begin';
+
+  const todayPhase = phaseKey(cycleDay, avg);
+  const herbWrap = document.getElementById('t-herbs-wrap');
+  const herbList = document.getElementById('t-herbs');
+  if (todayPhase && PHASE_HERBS[todayPhase]) {
+    herbList.innerHTML = renderHerbChips(PHASE_HERBS[todayPhase]);
+    herbWrap.style.display = 'block';
+  } else {
+    herbWrap.style.display = 'none';
+  }
+
+  // Daily teaching line
+  document.getElementById('t-teach').textContent = dailyTeach(cycleDay);
+
+  // Fertile badge
+  const fs = fertileStatusToday();
+  const badge = document.getElementById('t-fertile');
+  badge.className = 'fertile-badge ' + fs.status;
+  const labels = { fertile: '🌿 Fertile window', infertile: '🛡️ Safe window', unknown: '🌙 Unknown' };
+  badge.textContent = labels[fs.status] + ' · ' + fs.detail;
+
+  renderHormoneChart();
+  renderTempChart();
+  renderPatterns();
 
   // Stats
   document.getElementById('s-last').textContent = last ? last.start : '—';
@@ -829,14 +1788,16 @@ function renderCal() {
     const phase = moonPhase(cellDate);
     const glyph = moonGlyph(phase);
 
+    const log = dayLogs[ds];
     let cls = 'cal-day';
     if (ds === today) cls += ' today';
-    if (periodDays.has(ds)) cls += ' period';
-    else if (projected.has(ds)) cls += ' projected';
+    if (periodDays.has(ds)) {
+      cls += ' period';
+      if (log && isPeriodFlow(log.flow)) cls += ' period-' + log.flow;
+    } else if (projected.has(ds)) cls += ' projected';
     else if (fertile.has(ds)) cls += ' fertile';
 
     // Dots for logged data
-    const log = dayLogs[ds];
     let dots = '';
     if (log) {
       let dotHtml = '';
@@ -977,9 +1938,21 @@ function openLog(ds) {
   logDate = ds;
   const d = parseDate(ds);
   const phase = moonPhase(d);
-  document.getElementById('sheet-phase').textContent = moonGlyph(phase);
+  document.getElementById('sheet-phase').innerHTML = moonGlyph(phase);
   document.getElementById('sheet-phase-name').textContent = moonName(phase) + ' · ' + Math.round(moonIllumination(phase) * 100) + '%';
   document.getElementById('sheet-date').textContent = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+  // Phase herbs for this specific day
+  const dayCycleDay = cycleDayFor(ds);
+  const dayPhase = phaseKey(dayCycleDay, avgCycle());
+  const sheetHerbs = document.getElementById('sheet-herbs-wrap');
+  if (dayPhase && PHASE_HERBS[dayPhase]) {
+    document.getElementById('sheet-herbs-label').textContent = 'Plants for ' + PHASE_LABELS[dayPhase].toLowerCase();
+    document.getElementById('sheet-herbs').innerHTML = renderHerbChips(PHASE_HERBS[dayPhase]);
+    sheetHerbs.style.display = 'block';
+  } else {
+    sheetHerbs.style.display = 'none';
+  }
 
   const log = dayLogs[ds] || {};
   setChipState('chips-flow',      log.flow || '');
@@ -989,6 +1962,7 @@ function openLog(ds) {
   setChipState('chips-discharge', log.discharge || '');
   document.getElementById('f-energy').value = log.energy || '';
   document.getElementById('f-sleep').value = log.sleep_hours || '';
+  document.getElementById('f-temp').value = log.basal_temp || '';
   document.getElementById('f-notes').value = log.notes || '';
   document.getElementById('btn-delete-log').style.display = log.id ? 'block' : 'none';
 
@@ -1000,11 +1974,98 @@ function closeLog() {
   logDate = null;
 }
 
+// Ensure cycle_periods covers `ds`. Extends a neighboring period (within 1 day
+// gap), merges two bridged periods, or creates a new single-day period.
+async function ensurePeriodContains(ds) {
+  const d = parseDate(ds);
+  const prevDs = dateStr(addDays(d, -1));
+  const nextDs = dateStr(addDays(d, 1));
+
+  // Period containing ds or ending at ds / prevDs
+  const prev = periods.find(p => {
+    const pEnd = p.end || p.start;
+    if (p.start <= ds && ds <= pEnd) return true;
+    return pEnd === prevDs;
+  });
+  // Period starting at ds or nextDs (excluding prev)
+  const next = periods.find(p => p !== prev && (p.start === ds || p.start === nextDs));
+
+  if (prev && prev.start <= ds && ds <= (prev.end || prev.start)) return; // contained
+
+  const checkOk = async (resp, label) => {
+    if (!resp.ok) {
+      const txt = await resp.text();
+      throw new Error(label + ' (' + resp.status + '): ' + txt.slice(0, 200));
+    }
+  };
+
+  if (prev && next) {
+    const newEnd = next.end || next.start;
+    await checkOk(await pb('/api/collections/cycle_periods/records/' + prev.id, {
+      method: 'PATCH', body: JSON.stringify({ end_date: newEnd + ' 00:00:00.000Z' })
+    }), 'merge-extend');
+    await checkOk(await pb('/api/collections/cycle_periods/records/' + next.id, { method: 'DELETE' }), 'merge-delete');
+    return;
+  }
+  if (prev) {
+    await checkOk(await pb('/api/collections/cycle_periods/records/' + prev.id, {
+      method: 'PATCH', body: JSON.stringify({ end_date: ds + ' 00:00:00.000Z' })
+    }), 'extend-end');
+    return;
+  }
+  if (next) {
+    await checkOk(await pb('/api/collections/cycle_periods/records/' + next.id, {
+      method: 'PATCH', body: JSON.stringify({ start_date: ds + ' 00:00:00.000Z' })
+    }), 'extend-start');
+    return;
+  }
+  await checkOk(await pb('/api/collections/cycle_periods/records', {
+    method: 'POST',
+    body: JSON.stringify({ start_date: ds + ' 00:00:00.000Z', end_date: ds + ' 00:00:00.000Z' })
+  }), 'create-period');
+}
+
+// Shrink cycle_periods if ds is a boundary day; delete if single-day period.
+// If ds is in the middle of a multi-day period, leave it (don't split).
+async function ensurePeriodExcludes(ds) {
+  const p = periods.find(pp => {
+    const pEnd = pp.end || pp.start;
+    return pp.start <= ds && ds <= pEnd;
+  });
+  if (!p) return;
+  const pEnd = p.end || p.start;
+  const checkOk = async (resp, label) => {
+    if (!resp.ok) { const t = await resp.text(); throw new Error(label + ' (' + resp.status + '): ' + t.slice(0, 200)); }
+  };
+
+  if (p.start === ds && pEnd === ds) {
+    await checkOk(await pb('/api/collections/cycle_periods/records/' + p.id, { method: 'DELETE' }), 'exclude-delete');
+    return;
+  }
+  if (p.start === ds) {
+    const newStart = dateStr(addDays(parseDate(ds), 1));
+    await checkOk(await pb('/api/collections/cycle_periods/records/' + p.id, {
+      method: 'PATCH', body: JSON.stringify({ start_date: newStart + ' 00:00:00.000Z' })
+    }), 'shrink-start');
+    return;
+  }
+  if (pEnd === ds) {
+    const newEnd = dateStr(addDays(parseDate(ds), -1));
+    await checkOk(await pb('/api/collections/cycle_periods/records/' + p.id, {
+      method: 'PATCH', body: JSON.stringify({ end_date: newEnd + ' 00:00:00.000Z' })
+    }), 'shrink-end');
+    return;
+  }
+  // Middle of a multi-day period: leave it.
+}
+
 async function saveLog() {
   if (!logDate) return;
+  const newFlow = getChipState('chips-flow', false);
+  const tempRaw = document.getElementById('f-temp').value;
   const body = {
     date: logDate + ' 00:00:00.000Z',
-    flow: getChipState('chips-flow', false),
+    flow: newFlow,
     symptoms: getChipState('chips-symptoms', true),
     moods: getChipState('chips-moods', true),
     sex: getChipState('chips-sex', true),
@@ -1013,7 +2074,11 @@ async function saveLog() {
     sleep_hours: Number(document.getElementById('f-sleep').value) || 0,
     notes: document.getElementById('f-notes').value.trim()
   };
+  // Only include basal_temp if user entered one. Avoids PB errors if the
+  // field doesn't exist yet (pre-migration 006).
+  if (tempRaw) body.basal_temp = Number(tempRaw);
   const existing = dayLogs[logDate];
+  const oldFlow = existing ? existing.flow : '';
   let r;
   try {
     if (existing && existing.id) {
@@ -1022,24 +2087,48 @@ async function saveLog() {
       r = await pb('/api/collections/cycle_day_logs/records', { method: 'POST', body: JSON.stringify(body) });
     }
     if (!r.ok) throw new Error(await r.text());
-    await loadDayLogs();
-    renderCal();
-    closeLog();
   } catch (e) {
     alert('Save failed: ' + e.message);
+    return;
   }
+
+  // Day log saved. Now sync cycle_periods independently so a period-sync
+  // error doesn't mask a successful save or block the UI refresh.
+  try {
+    if (isPeriodFlow(newFlow) && !isPeriodFlow(oldFlow)) {
+      await ensurePeriodContains(logDate);
+      await loadPeriods();
+      syncAutoBlocks();
+    } else if (!isPeriodFlow(newFlow) && isPeriodFlow(oldFlow)) {
+      await ensurePeriodExcludes(logDate);
+      await loadPeriods();
+      syncAutoBlocks();
+    }
+  } catch (e) {
+    alert('Day saved, but period sync failed: ' + e.message);
+  }
+
+  await loadDayLogs();
+  render();
+  closeLog();
 }
 
 async function deleteLog() {
   if (!logDate) return;
   const existing = dayLogs[logDate];
   if (!existing || !existing.id) { closeLog(); return; }
+  const hadPeriodFlow = isPeriodFlow(existing.flow);
   if (!confirm('Delete this day log?')) return;
   try {
     const r = await pb('/api/collections/cycle_day_logs/records/' + existing.id, { method: 'DELETE' });
     if (!r.ok) throw new Error(await r.text());
     delete dayLogs[logDate];
-    renderCal();
+    if (hadPeriodFlow) {
+      await ensurePeriodExcludes(logDate);
+      await loadPeriods();
+      syncAutoBlocks();
+    }
+    render();
     closeLog();
   } catch (e) {
     alert('Delete failed: ' + e.message);
