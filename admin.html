@@ -751,34 +751,28 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
         <option value="other">Other</option>
       </select>
     </div>
-    <div class="form-group" style="display:flex;gap:8px;align-items:flex-end;">
-      <div style="flex:1;">
-        <label>Card / payment</label>
-        <select id="exp-card" onchange="onExpCardChange()">
-          <option value="">-</option>
-          <optgroup label="Business">
-            <option value="coast_central_biz">Coast Central (business)</option>
-          </optgroup>
-          <optgroup label="Personal">
-            <option value="coast_central_personal">Coast Central (personal)</option>
-            <option value="columbia">Columbia Bank</option>
-            <option value="northrim">Northrim Bank</option>
-            <option value="skyla_debit">Skyla debit</option>
-            <option value="skyla_credit">Skyla credit</option>
-            <option value="bofa_debit">Bank of America debit</option>
-            <option value="bofa_credit">Bank of America credit</option>
-          </optgroup>
-          <optgroup label="Other">
-            <option value="cash">Cash</option>
-            <option value="venmo">Venmo</option>
-            <option value="other">Other</option>
-          </optgroup>
-        </select>
-      </div>
-      <div style="width:110px;">
-        <label>Last 4</label>
-        <input type="text" id="exp-card-last4" inputmode="numeric" maxlength="4" pattern="\d{0,4}" placeholder="auto">
-      </div>
+    <div class="form-group">
+      <label>Card / payment</label>
+      <select id="exp-card" onchange="onExpCardChange()">
+        <option value="">-</option>
+        <optgroup label="Business">
+          <option value="coast_central_biz">Coast Central (business)</option>
+        </optgroup>
+        <optgroup label="Personal">
+          <option value="coast_central_personal">Coast Central (personal)</option>
+          <option value="columbia">Columbia Bank</option>
+          <option value="northrim">Northrim Bank</option>
+          <option value="skyla_debit">Skyla debit</option>
+          <option value="skyla_credit">Skyla credit</option>
+          <option value="bofa_debit">Bank of America debit</option>
+          <option value="bofa_credit">Bank of America credit</option>
+        </optgroup>
+        <optgroup label="Other">
+          <option value="cash">Cash</option>
+          <option value="venmo">Venmo</option>
+          <option value="other">Other</option>
+        </optgroup>
+      </select>
     </div>
     <div class="form-group">
       <label>
@@ -1850,7 +1844,7 @@ function exportAccountantCsv() {
 
   // Expense detail
   lines.push('EXPENSE DETAIL');
-  lines.push('Date,Vendor,Category,Schedule C Line,Amount,Card,Last 4,Notes');
+  lines.push('Date,Vendor,Category,Schedule C Line,Amount,Card,Notes');
   expenses.sort((a,b) => (a.date||'').localeCompare(b.date||''));
   expenses.forEach(e => {
     const m = SCHEDULE_C[e.category] || SCHEDULE_C.other;
@@ -1861,7 +1855,6 @@ function exportAccountantCsv() {
       esc(m.name),
       (Number(e.amount)||0).toFixed(2),
       esc(e.card || ''),
-      esc(e.cardLast4 || ''),
       esc(e.notes || '')
     ].join(','));
   });
@@ -1966,7 +1959,6 @@ async function loadExpenses() {
       vendor: r.vendor || '',
       category: r.category || '',
       card: r.card || '',
-      cardLast4: r.card_last4 || '',
       onBiz: r.on_biz_account,
       notes: r.notes || '',
       receipt: r.receipt || '',
@@ -2027,7 +2019,7 @@ async function renderExpenses() {
       const mixedTag = hasPersonalLines
         ? `<span class="expense-mixed-badge" title="Mixed receipt: some line items on the original receipt are personal and excluded from this expense total.">mixed</span>`
         : '';
-      const cardLabel = cardDisplayLabel(e.card, e.cardLast4);
+      const cardLabel = cardDisplayLabel(e.card);
       const thumb = e.receipt && e._collection && e.id
         ? `<img class="receipt-thumb" src="${receiptUrl(e)}" alt="Receipt thumbnail" onclick="openReceiptLightbox('${receiptUrl(e)}')" loading="lazy">`
         : '';
@@ -2208,12 +2200,8 @@ const CARD_LABELS = {
   venmo:                  'Venmo',
   other:                  'Other'
 };
-function cardDisplayLabel(card, last4) {
-  const base = CARD_LABELS[card] || (card ? String(card).replace(/_/g, ' ') : '');
-  if (!base && !last4) return '';
-  if (!base) return '····' + last4;
-  if (!last4) return base;
-  return base + ' ····' + last4;
+function cardDisplayLabel(card) {
+  return CARD_LABELS[card] || (card ? String(card).replace(/_/g, ' ') : '');
 }
 
 // When Coast Central Bank (the business account) is selected, tick the
@@ -2228,29 +2216,6 @@ function onExpCardChange() {
   if (card === 'coast_central_biz') {
     document.getElementById('exp-biz').checked = true;
   }
-  const last4 = (document.getElementById('exp-card-last4').value || '').trim();
-  if (card && /^\d{4}$/.test(last4)) {
-    rememberCardBank(last4, card);
-  }
-}
-
-// Map of last-4 → bank option value, persisted in localStorage so future
-// receipts can auto-fill the dropdown when the AI extracts a known last-4.
-const CARD_BANK_KEY = 'gf_card_banks_v1';
-function loadCardBanks() {
-  try { return JSON.parse(localStorage.getItem(CARD_BANK_KEY) || '{}'); }
-  catch { return {}; }
-}
-function getCardBank(last4) {
-  const m = loadCardBanks();
-  return m[last4] || '';
-}
-function rememberCardBank(last4, bank) {
-  if (!last4 || !bank) return;
-  const m = loadCardBanks();
-  if (m[last4] === bank) return;
-  m[last4] = bank;
-  localStorage.setItem(CARD_BANK_KEY, JSON.stringify(m));
 }
 
 function openExpenseModal(id) {
@@ -2264,7 +2229,6 @@ function openExpenseModal(id) {
   document.getElementById('exp-vendor').value = e ? e.vendor : '';
   document.getElementById('exp-category').value = e ? e.category : '';
   document.getElementById('exp-card').value = e ? e.card : '';
-  document.getElementById('exp-card-last4').value = e ? (e.cardLast4 || '') : '';
   document.getElementById('exp-biz').checked = e ? !!e.onBiz : false;
   document.getElementById('exp-notes').value = e ? e.notes : '';
   document.getElementById('exp-scan-status').textContent = '';
@@ -2435,8 +2399,6 @@ ensureLineItemEvents();
 document.addEventListener('DOMContentLoaded', ensureLineItemEvents);
 
 async function saveExpense() {
-  const last4Raw = (document.getElementById('exp-card-last4').value || '').trim();
-  const card_last4 = /^\d{4}$/.test(last4Raw) ? last4Raw : '';
   const card = document.getElementById('exp-card').value || null;
   const lineItems = readLineItemsFromDom();
 
@@ -2458,15 +2420,11 @@ async function saveExpense() {
     vendor: document.getElementById('exp-vendor').value,
     category: document.getElementById('exp-category').value || null,
     card: card,
-    card_last4: card_last4,
     on_biz_account: document.getElementById('exp-biz').checked,
     notes: notesEl ? notesEl.value : '',
     line_items: lineItems.length ? lineItems : null
   };
   if (!body.date || !body.amount) { alert('Date and amount are required.'); return; }
-
-  // If both a bank and a last-4 are set, remember the pairing for future scans
-  if (card && card_last4) rememberCardBank(card_last4, card);
 
   // Remember per-line category corrections so future scans auto-apply them
   recordLineItemMemory(body.vendor, lineItems);
@@ -2503,10 +2461,10 @@ async function saveExpense() {
 
 function exportExpenseCsv() {
   const inMonth = _cachedExpenses.filter(e => (e.date||'').slice(0,7) === expenseViewMonth);
-  const rows = [['Date','Vendor','Amount','Category','Card','Last 4','On Biz','Notes']];
+  const rows = [['Date','Vendor','Amount','Category','Card','On Biz','Notes']];
   inMonth.sort((a,b) => (a.date||'').localeCompare(b.date||''));
   inMonth.forEach(e => {
-    rows.push([e.date, e.vendor, e.amount.toFixed(2), e.category, e.card, e.cardLast4 || '', e.onBiz?'yes':'no', (e.notes||'').replace(/"/g,'""')]);
+    rows.push([e.date, e.vendor, e.amount.toFixed(2), e.category, e.card, e.onBiz?'yes':'no', (e.notes||'').replace(/"/g,'""')]);
   });
   const csv = rows.map(r => r.map(c => `"${String(c||'')}"`).join(',')).join('\n');
   const blob = new Blob([csv], { type:'text/csv' });
@@ -2627,11 +2585,6 @@ const RECEIPT_TOOL = {
         type: ['boolean','null'],
         description: 'true if this looks like a business expense for a gardener (plants, tools, farm supply, garden center, Mad River Gardens, Humboldt Bay Homes, Miller Farms, Ace Hardware contractor receipt, feed store, etc.). false if it looks clearly personal (groceries, restaurants, clothing). null if ambiguous.'
       },
-      card_last4: {
-        type: ['string','null'],
-        description: 'Last 4 digits of the payment card if printed on the receipt (e.g. "VISA ****1234", "DEBIT ACCT: XXXXXX5678", "CARD: ************9012"). Return the 4 digits only, no stars or mask characters. Return null if the receipt shows cash, check, or no card info.',
-        pattern: '^\\d{4}$'
-      },
       payment_type: {
         type: ['string','null'],
         enum: ['cash','check','card_debit','card_credit','venmo','zelle','other', null],
@@ -2727,14 +2680,12 @@ LINE-ITEM CATEGORIES (per-line splits on mixed receipts)
   - Mad River Gardens receipt with plants and fertilizer: dominant=plants; fertilizer line gets category=soil_amendments.
 - Don't tag every item — only tag lines that differ from the top-level category. This keeps the data clean.
 
-PAYMENT METHOD AND CARD LAST 4
+PAYMENT METHOD
 - Receipts almost always print the payment method near the totals: "VISA", "MASTERCARD", "AMEX", "DEBIT", "CREDIT", "CASH", "CHECK", or a wallet tag like "APPLE PAY".
-- When a card is used, the receipt usually prints a masked card number: "****1234", "XXXXXXX5678", "ACCT: ****9012", "VISA DEBIT ****3456". Extract ONLY the 4 unmasked digits into card_last4. Do not include the mask characters. If multiple cards appear (split tender), return the last-4 of the card used for the largest portion.
 - If the line says "DEBIT" or "DEBIT PURCHASE" or "PIN DEBIT", payment_type is "card_debit".
 - If the line says "CREDIT" or "CREDIT SALE", payment_type is "card_credit".
-- If only "VISA" or "MC" appears without debit/credit, and you cannot tell, leave payment_type null but still return card_last4.
-- CASH, CHECK, VENMO, ZELLE: payment_type accordingly, card_last4 is null.
-- If the receipt is blurry around the card area, leave card_last4 null rather than guess.
+- If only "VISA" or "MC" appears without debit/credit, and you cannot tell, leave payment_type null.
+- CASH, CHECK, VENMO, ZELLE: payment_type accordingly.
 
 TOOL CALL RULES
 - Call record_receipt exactly once per image.
@@ -2816,16 +2767,6 @@ async function scanReceipt(input) {
     const bizCheckbox = document.getElementById('exp-biz');
     if (bizCheckbox && parsed.on_biz_hint !== null && parsed.on_biz_hint !== undefined) {
       bizCheckbox.checked = !!parsed.on_biz_hint;
-    }
-    // Auto-fill card last 4 (pulled from receipt)
-    if (parsed.card_last4 && /^\d{4}$/.test(parsed.card_last4)) {
-      document.getElementById('exp-card-last4').value = parsed.card_last4;
-      // If we've seen this card before, auto-pick the bank from memory
-      const knownBank = getCardBank(parsed.card_last4);
-      if (knownBank) {
-        document.getElementById('exp-card').value = knownBank;
-        onExpCardChange();
-      }
     }
     // Merge notes if any
     if (parsed.notes) {
