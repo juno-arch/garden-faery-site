@@ -589,7 +589,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
     <p>Enter your PIN to open the dashboard.</p>
     <div class="pin-wrap">
       <input type="password" id="login-pin" placeholder="PIN" maxlength="20" autocomplete="off">
-      <button type="button" class="pin-toggle" id="pin-toggle" aria-label="Show PIN" onclick="togglePinVisibility()">👁</button>
+      <button type="button" class="pin-toggle" id="pin-toggle" aria-label="Show PIN" onclick="togglePinVisibility()"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button>
     </div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Open Dashboard</button>
     <div class="login-error" id="login-error">Wrong PIN. Try again.</div>
@@ -612,7 +612,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
 
   <!-- Tabs -->
   <div class="tabs">
-    <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard')">📊</button>
+    <button class="tab active" data-tab="dashboard" aria-label="Dashboard" onclick="switchTab('dashboard')"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg></button>
     <button class="tab" data-tab="day" onclick="switchTab('day')">Day</button>
     <button class="tab" data-tab="month" onclick="switchTab('month')">Month</button>
     <button class="tab" data-tab="upcoming" onclick="switchTab('upcoming')">Upcoming</button>
@@ -620,7 +620,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
     <button class="tab" data-tab="income" onclick="switchTab('income')">Income</button>
     <button class="tab" data-tab="expenses" onclick="switchTab('expenses')">Expenses</button>
     <button class="tab" data-tab="taxes" onclick="switchTab('taxes')">Taxes</button>
-    <button class="tab" data-tab="settings" onclick="switchTab('settings')">⚙️</button>
+    <button class="tab" data-tab="settings" aria-label="Settings" onclick="switchTab('settings')"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="3"/></svg></button>
   </div>
 
   <!-- Dashboard view -->
@@ -642,7 +642,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   <div class="tab-panel" id="tab-upcoming" style="display:none;">
     <div id="moon-conflicts-card" style="display:none; background:#fff; border:1px solid var(--gray-200); border-radius:12px; padding:16px; margin-bottom:16px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <h3 style="margin:0;">🌙 Moon-day conflicts</h3>
+        <h3 style="margin:0;display:flex;align-items:center;gap:8px;"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>Moon-day conflicts</h3>
         <button class="action-btn" onclick="syncMoonConflicts()" style="font-size:0.8rem;">Refresh</button>
       </div>
       <p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:10px;">Bookings that land on moon-block days. Auto-cancel within 7 days. Tap Keep to override.</p>
@@ -688,8 +688,8 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   <div class="modal" style="max-height:90vh;overflow-y:auto;">
     <h2 id="exp-title">New expense</h2>
     <div style="margin-bottom:10px;">
-      <button class="modal-btn secondary" style="width:100%;" onclick="document.getElementById('exp-photo').click()">
-        📷 Scan a receipt
+      <button class="modal-btn secondary" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="document.getElementById('exp-photo').click()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>Scan a receipt
       </button>
       <input type="file" id="exp-photo" accept="image/*,application/pdf" style="display:none;" onchange="scanReceipt(this)">
       <div id="exp-scan-status" style="font-size:0.8rem;color:var(--gray-600);margin-top:4px;"></div>
@@ -803,9 +803,12 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
       <label>Notes</label>
       <input type="text" id="pay-notes" placeholder="Optional">
     </div>
-    <div class="modal-actions">
-      <button class="modal-btn secondary" onclick="closeModal('modal-payment')">Cancel</button>
-      <button class="modal-btn primary" onclick="savePayment()">Save</button>
+    <div class="modal-actions" style="justify-content:space-between;">
+      <button type="button" onclick="deleteCurrentBooking()" style="background:none;border:none;color:var(--red);font-family:Nunito,sans-serif;font-size:0.85rem;font-weight:600;padding:8px 4px;cursor:pointer;text-decoration:underline;">Delete booking</button>
+      <div style="display:flex;gap:8px;">
+        <button class="modal-btn secondary" onclick="closeModal('modal-payment')">Cancel</button>
+        <button class="modal-btn primary" onclick="savePayment()">Save</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1127,6 +1130,25 @@ const DB = {
       headers: PB_TOKEN ? { 'Authorization': 'Bearer ' + PB_TOKEN } : {},
     });
   },
+
+  // Hard-delete a booking record. Used by the "Delete" button in the
+  // payment edit modal for truly removing bogus / test / duplicate entries.
+  // (For "this client canceled the visit" use cancelBooking instead, which
+  // preserves the record with status='canceled' for historical reference.)
+  async deleteBooking(id) {
+    if (!this._usePB) {
+      const bookings = (await this.getBookings()).filter(b => b.id !== id);
+      localStorage.setItem('gf_bookings_v1', JSON.stringify(bookings));
+      return;
+    }
+    const resp = await fetch(PB_URL + '/api/collections/bookings/records/' + id, {
+      method: 'DELETE',
+      headers: PB_TOKEN ? { 'Authorization': 'Bearer ' + PB_TOKEN } : {},
+    });
+    if (!resp.ok && resp.status !== 204) {
+      throw new Error('Delete failed: HTTP ' + resp.status);
+    }
+  },
 };
 
 // --- Sync cache for rendering ---
@@ -1322,7 +1344,7 @@ async function renderDashboard() {
     <div style="background:${overdueTotal>0?'#fff4e5':'var(--white)'};border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);border:${overdueTotal>0?'1px solid #e8b828':'none'};">
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <h3 style="margin:0 0 2px;font-size:1rem;">${overdueTotal > 0 ? '💰 You\'re owed' : 'All paid up'}</h3>
+          <h3 style="margin:0 0 2px;font-size:1rem;display:flex;align-items:center;gap:6px;">${overdueTotal > 0 ? '<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><line x1=\"12\" x2=\"12\" y1=\"2\" y2=\"22\"/><path d=\"M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6\"/></svg>You\'re owed' : 'All paid up'}</h3>
           <div style="font-size:0.8rem;color:var(--gray-600);">
             ${overdueTotal > 0
               ? `${overdueCount} past visit${overdueCount===1?'':'s'} across ${overdueClients} client${overdueClients===1?'':'s'}`
@@ -1630,7 +1652,7 @@ async function renderTaxes() {
         <label style="font-size:0.9rem;font-weight:700;">Tax year</label>
         <select onchange="setTaxYear(this.value)" style="padding:6px 8px;border-radius:8px;border:1px solid var(--gray-200);font-size:0.9rem;">${yearOpts}</select>
         <span style="flex:1;"></span>
-        <button class="modal-btn primary" style="padding:6px 14px;font-size:0.85rem;" onclick="exportAccountantCsv()">📄 Accountant CSV</button>
+        <button class="modal-btn primary" style="padding:6px 14px;font-size:0.85rem;display:inline-flex;align-items:center;gap:6px;" onclick="exportAccountantCsv()"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>Accountant CSV</button>
       </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;border-top:1px solid var(--gray-100);padding-top:10px;">
         <div><div style="font-size:0.7rem;color:var(--gray-600);">Gross Income</div><div style="font-size:1.05rem;font-weight:700;color:#6b8f52;">${fmt(yearGross)}</div><div style="font-size:0.65rem;color:var(--gray-400);">SchC Line 1</div></div>
@@ -1721,7 +1743,7 @@ async function renderTaxes() {
   html += `
     <div style="background:#f4ebdf;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:0.78rem;color:var(--gray-600);line-height:1.55;">
       <strong style="color:var(--plum);">How the tax reserve is calculated:</strong>
-      net profit × ${Math.round(taxPct*100)}% (your setting on the 📊 Dashboard).
+      net profit × ${Math.round(taxPct*100)}% (your setting on the <svg xmlns="http://www.w3.org/2000/svg" width="0.9em" height="0.9em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px;"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg> Dashboard).
       For a Humboldt-based sole proprietor, 25-30% typically covers self-employment tax (~15.3%) plus federal
       and California income tax at moderate income levels. Talk to your CPA for your exact rate.
     </div>
@@ -1881,7 +1903,7 @@ function saveApiKey() {
     return;
   }
   localStorage.setItem('gf_anthropic_key', v);
-  document.getElementById('setting-status').innerHTML = '<span style="color:var(--spring-sage,#6b8f52);">Saved ✓</span>';
+  document.getElementById('setting-status').innerHTML = '<span style="color:var(--spring-sage,#6b8f52);display:inline-flex;align-items:center;gap:4px;">Saved <svg xmlns="http://www.w3.org/2000/svg" width="0.9em" height="0.9em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>';
   setTimeout(renderSettings, 1000);
 }
 function clearApiKey() {
@@ -2578,14 +2600,14 @@ async function scanReceipt(input) {
   const key = localStorage.getItem('gf_anthropic_key');
   const status = document.getElementById('exp-scan-status');
   if (!key) {
-    status.innerHTML = '<span style="color:var(--red);">Receipt attached. Set Anthropic API key in ⚙️ Settings to auto-extract fields.</span>';
+    status.innerHTML = '<span style="color:var(--red);">Receipt attached. Set Anthropic API key in Settings to auto-extract fields.</span>';
     return;
   }
   if (file.type === 'application/pdf') {
     status.innerHTML = 'PDF attached (auto-scan only works on images right now - enter details manually).';
     return;
   }
-  status.textContent = '📷 Scanning…';
+  status.innerHTML = '<span style="display:inline-flex;align-items:center;gap:6px;"><svg xmlns="http://www.w3.org/2000/svg" width="0.95em" height="0.95em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>Scanning…</span>';
 
   // Do downscale and API-payload prep in parallel-ish (downscale is the slow CPU part).
   const downscalePromise = downscaleImageToBase64(file, 1800, 0.85);
@@ -2651,7 +2673,7 @@ async function scanReceipt(input) {
 
     const conf = typeof parsed.confidence === 'number' ? parsed.confidence : 0.85;
     const confLabel = conf >= 0.85 ? '' : conf >= 0.6 ? ' (moderate confidence - double-check fields)' : ' (low confidence - verify carefully)';
-    status.innerHTML = '<span style="color:#6b8f52;">Scanned ✓' + confLabel + ' - review and adjust before saving.</span>';
+    status.innerHTML = '<span style="color:#6b8f52;display:inline-flex;align-items:center;gap:4px;">Scanned <svg xmlns="http://www.w3.org/2000/svg" width="0.9em" height="0.9em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>' + confLabel + ' - review and adjust before saving.</span>';
   } catch (e) {
     status.innerHTML = '<span style="color:var(--red);">Scan error: ' + e.message + '</span>';
   }
@@ -2992,6 +3014,38 @@ async function savePayment() {
     renderClients();
   } catch (e) {
     alert('Save failed: ' + e.message);
+  }
+}
+
+// Hard delete the booking the payment modal is currently editing. Uses
+// DB.deleteBooking which hits PocketBase DELETE (admin auth required —
+// works because the admin is logged in whenever this modal is reachable).
+// For "client canceled" use the Cancel action in the Day view instead;
+// this is for truly removing records (duplicates, typos, test data).
+async function deleteCurrentBooking() {
+  if (!_payingBookingId) return;
+  const b = (_cachedBookings || []).find(x => x.id === _payingBookingId);
+  const label = b ? (formatDisplayDate(b.date) + ' — ' + (b.clientName || 'Client')) : 'this booking';
+  const msg = 'Permanently delete ' + label + '?\n\n' +
+    'This removes the record from the database. It cannot be undone. ' +
+    'If the client just canceled, use Cancel on the Day view instead — that keeps the record.';
+  if (!confirm(msg)) return;
+
+  const id = _payingBookingId;
+  try {
+    await DB.deleteBooking(id);
+    // Remove from the in-memory cache too so the UI updates immediately
+    const idx = (_cachedBookings || []).findIndex(x => x.id === id);
+    if (idx >= 0) _cachedBookings.splice(idx, 1);
+    closeModal('modal-payment');
+    _payingBookingId = null;
+    renderIncome();
+    renderClients();
+    // Best-effort full refresh so anything else that reads bookings stays fresh
+    try { await refreshData(); } catch (_) {}
+    renderAll();
+  } catch (e) {
+    alert('Delete failed: ' + (e && e.message ? e.message : e));
   }
 }
 
@@ -4246,13 +4300,15 @@ function showApp() {
 function togglePinVisibility() {
   const input = document.getElementById('login-pin');
   const btn = document.getElementById('pin-toggle');
+  const EYE = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const EYE_OFF = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>';
   if (input.type === 'password') {
     input.type = 'text';
-    btn.textContent = '🙈';
+    btn.innerHTML = EYE_OFF;
     btn.setAttribute('aria-label', 'Hide PIN');
   } else {
     input.type = 'password';
-    btn.textContent = '👁';
+    btn.innerHTML = EYE;
     btn.setAttribute('aria-label', 'Show PIN');
   }
 }
