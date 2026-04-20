@@ -359,6 +359,50 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
   font-size: 0.8rem; color: var(--moon-dim); line-height: 1.55;
 }
 .attribution-card a { color: var(--moon-accent); text-decoration: underline; }
+
+/* Bottom tab bar (app-style navigation) */
+.tab-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  background: rgba(31, 19, 30, 0.92);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-top: 1px solid rgba(241, 228, 220, 0.12);
+  padding: 8px 4px calc(8px + env(safe-area-inset-bottom, 0));
+  z-index: 60;
+}
+.tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--moon-dim);
+  padding: 6px 4px;
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  transition: color 0.15s;
+}
+.tab-btn .tab-icon { font-size: 1.25rem; line-height: 1; }
+.tab-btn.active { color: var(--moon-accent); }
+.tab-btn.active .tab-icon { filter: drop-shadow(0 0 8px rgba(192, 131, 11, 0.4)); }
+
+/* Hide cards not matching the active tab */
+body.view-today    [data-section]:not([data-section="today"])    { display: none; }
+body.view-calendar [data-section]:not([data-section="calendar"]) { display: none; }
+body.view-trends   [data-section]:not([data-section="trends"])   { display: none; }
+body.view-learn    [data-section]:not([data-section="learn"])    { display: none; }
+body.view-settings [data-section]:not([data-section="settings"]) { display: none; }
+
+/* Bottom spacer so tab bar doesn't cover the last card */
+#app { padding-bottom: 90px; }
 .cal-day.projected {
   background: repeating-linear-gradient(45deg, rgba(255,110,140,0.22), rgba(255,110,140,0.22) 3px, transparent 3px, transparent 7px);
   color: var(--moon-pink2); font-weight: 700;
@@ -536,7 +580,7 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
   </div>
 
   <!-- Today card -->
-  <div class="card today-card">
+  <div class="card today-card" data-section="today">
     <div class="today-date" id="t-date">—</div>
     <div class="today-phase" id="t-phase"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></div>
     <div class="today-name" id="t-name">—</div>
@@ -555,7 +599,7 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
   </div>
 
   <!-- Calendar -->
-  <div class="card">
+  <div class="card" data-section="calendar">
     <div class="cal-header">
       <h3 id="cal-title">—</h3>
       <div class="cal-nav">
@@ -577,7 +621,7 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
   </div>
 
   <!-- Cycle stats -->
-  <div class="card">
+  <div class="card" data-section="calendar">
     <h3>Current cycle</h3>
     <div class="stat"><span class="label">Last period started</span><span class="value" id="s-last">—</span></div>
     <div class="stat"><span class="label">Cycle day (today)</span><span class="value" id="s-day">—</span></div>
@@ -589,14 +633,14 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
   </div>
 
   <!-- Info about auto-blocks -->
-  <div class="card" style="padding:14px;">
+  <div class="card" data-section="calendar" style="padding:14px;">
     <div class="info-box">
       Booking conflicts on moon days are handled in <a href="/admin">admin → Upcoming</a>. Logging a period here still auto-blocks those dates on the booking calendar.
     </div>
   </div>
 
   <!-- Hormone curve -->
-  <div class="card">
+  <div class="card" data-section="trends">
     <h3>Hormone curve</h3>
     <div id="hormone-chart"></div>
     <div class="hormone-legend">
@@ -611,7 +655,7 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
   </div>
 
   <!-- Charts -->
-  <div class="card" id="charts-card">
+  <div class="card" data-section="trends" id="charts-card">
     <h3>Trends</h3>
     <div style="margin-bottom:14px;">
       <div style="font-size:0.82rem;color:var(--moon-dim);margin-bottom:4px;">Basal temp — current cycle</div>
@@ -630,14 +674,14 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
   </div>
 
   <!-- Patterns -->
-  <div class="card">
+  <div class="card" data-section="trends">
     <h3>🔍 Your patterns</h3>
     <div style="font-size:0.82rem;color:var(--moon-dim);margin-bottom:10px;">How your symptoms + energy shift across the cycle.</div>
     <div id="patterns-body"></div>
   </div>
 
   <!-- Subscribe calendar -->
-  <div class="card">
+  <div class="card" data-section="settings">
     <h3>📅 Subscribe to your moon days</h3>
     <div style="font-size:0.82rem;color:var(--moon-dim);margin-bottom:10px;">Paste this URL into Google / Apple Calendar so your moon days auto-block on any booking tool.</div>
     <div style="font-family:monospace;font-size:0.8rem;padding:10px 12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;word-break:break-all;user-select:all;">https://bookings.gardenfaery.love/moon-days.ics</div>
@@ -645,7 +689,7 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
   </div>
 
   <!-- Export -->
-  <div class="card">
+  <div class="card" data-section="settings">
     <h3>📋 Export</h3>
     <div style="font-size:0.82rem;color:var(--moon-dim);margin-bottom:12px;">Print a summary for your care provider, or back up your full data.</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
@@ -655,7 +699,7 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
   </div>
 
   <!-- Cyclical Living Principles: Usha's cross-cutting teachings -->
-  <div class="card">
+  <div class="card" data-section="learn">
     <h3>🕯️ Cyclical living</h3>
     <p style="font-size:0.88rem;color:var(--moon-dim);font-style:italic;margin:0 0 14px;line-height:1.55;">Usha Anandi's framing: these principles hold across the whole cycle, not just one phase.</p>
 
@@ -709,7 +753,7 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
   </div>
 
   <!-- Yoni Steam: ancestral womb practice -->
-  <div class="card yoni-card">
+  <div class="card yoni-card" data-section="learn">
     <h3>🌿 Yoni steam</h3>
     <p class="intro">The word <em>yoni</em> is Sanskrit for womb / vulva / sacred portal. The practice is ancient — traceable across Mayan, Korean, Russian, African, and indigenous curanderisma traditions. You sit over a pot of hot herbal water, wrapped to the waist in a blanket. Steam carries the herbs' volatiles to your vulva and cervix.</p>
 
@@ -776,7 +820,7 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
   </div>
 
   <!-- Learn: body literacy -->
-  <div class="card">
+  <div class="card" data-section="learn">
     <h3>🌸 Learn your body</h3>
     <div style="font-size:0.82rem;color:var(--moon-dim);margin-bottom:10px;font-style:italic;">Alchemizing science + the sacred. Tap a phase.</div>
     <div class="learn-nav" id="learn-nav"></div>
@@ -787,7 +831,7 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
   </div>
 
   <!-- Log a period -->
-  <div class="card">
+  <div class="card" data-section="calendar">
     <h3>Log a period</h3>
     <div class="row wrap">
       <div class="form-field"><label>Start</label><input type="date" id="f-start"></div>
@@ -797,10 +841,19 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
   </div>
 
   <!-- History -->
-  <div class="card">
+  <div class="card" data-section="calendar">
     <h3>Period history</h3>
     <div id="period-list"></div>
   </div>
+
+  <!-- Bottom tab navigation -->
+  <nav class="tab-bar" role="tablist" aria-label="Main navigation">
+    <button class="tab-btn" data-tab="today" onclick="setTab('today')" role="tab"><span class="tab-icon">🌙</span>Today</button>
+    <button class="tab-btn" data-tab="calendar" onclick="setTab('calendar')" role="tab"><span class="tab-icon">📅</span>Calendar</button>
+    <button class="tab-btn" data-tab="trends" onclick="setTab('trends')" role="tab"><span class="tab-icon">📈</span>Trends</button>
+    <button class="tab-btn" data-tab="learn" onclick="setTab('learn')" role="tab"><span class="tab-icon">📖</span>Learn</button>
+    <button class="tab-btn" data-tab="settings" onclick="setTab('settings')" role="tab"><span class="tab-icon">⚙️</span>Settings</button>
+  </nav>
 </div>
 
 <!-- Herb info modal -->
@@ -1745,11 +1798,21 @@ async function showApp() {
   document.getElementById('app').style.display = 'block';
   document.getElementById('f-start').value = todayStr();
   buildChips();
+  setTab('today');
   await loadPeriods();
   await loadDayLogs();
   renderLearn();
   render();
   syncAutoBlocks();
+}
+
+// Bottom-nav tab switching
+function setTab(name) {
+  ['today','calendar','trends','learn','settings'].forEach(n =>
+    document.body.classList.toggle('view-' + n, n === name));
+  document.querySelectorAll('.tab-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === name));
+  window.scrollTo(0, 0);
 }
 
 /* ---------- Data loading ---------- */
