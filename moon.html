@@ -308,6 +308,22 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
   color: var(--moon-text);
 }
 .learn-body .phase-practice strong { color: var(--moon-pink); font-weight: 600; }
+.learn-body .phase-move {
+  margin: 4px 0 10px; padding: 11px 14px;
+  background: rgba(170, 125, 86, 0.1);
+  border-left: 3px solid var(--moon-teal);
+  border-radius: 0 10px 10px 0;
+  font-size: 0.9rem; line-height: 1.55;
+}
+.learn-body .phase-move strong { color: var(--moon-teal); font-weight: 600; }
+.learn-body .phase-nourish {
+  margin: 4px 0 10px; padding: 11px 14px;
+  background: rgba(192, 131, 11, 0.08);
+  border-left: 3px solid var(--moon-gold);
+  border-radius: 0 10px 10px 0;
+  font-size: 0.9rem; line-height: 1.55;
+}
+.learn-body .phase-nourish strong { color: var(--moon-gold); font-weight: 600; }
 
 /* Yoni steam card */
 .yoni-card { position: relative; }
@@ -635,6 +651,60 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
       <button class="btn" onclick="openReport()" style="flex:1;min-width:140px;">🖨️ Print report</button>
       <button class="btn secondary" onclick="downloadJSON()" style="flex:1;min-width:140px;">💾 Download data</button>
+    </div>
+  </div>
+
+  <!-- Cyclical Living Principles: Usha's cross-cutting teachings -->
+  <div class="card">
+    <h3>🕯️ Cyclical living</h3>
+    <p style="font-size:0.88rem;color:var(--moon-dim);font-style:italic;margin:0 0 14px;line-height:1.55;">Usha Anandi's framing: these principles hold across the whole cycle, not just one phase.</p>
+
+    <div class="yoni-section">
+      <h4>Every meal is medicine</h4>
+      <p>Food isn't neutral fuel. Each meal is information your body reads and uses to build the next month's cycle. Eat like you're already pregnant (even if you aren't) — sleep well, eat regularly, add sweetness: soft fabrics, beauty, rest, pleasure.</p>
+    </div>
+
+    <div class="yoni-section">
+      <h4>The 48-minute rule</h4>
+      <p>Eat your meals at the same time every day — <strong>give or take 48 minutes</strong>. Your metabolism entrains to the rhythm. Chaotic meal timing destabilizes insulin, cortisol, and eventually reproductive hormones.</p>
+    </div>
+
+    <div class="yoni-section">
+      <h4>Solar alignment</h4>
+      <p>Your digestive fire follows the sun.</p>
+      <ul>
+        <li><strong>Breakfast:</strong> light (sun's still rising, fire's small)</li>
+        <li><strong>Lunch:</strong> largest meal of the day (sun at its peak)</li>
+        <li><strong>Dinner:</strong> light, early (fire winding down, body needs to repair)</li>
+      </ul>
+      <p>A heavy late dinner sits on top of a cold fire and disrupts sleep + hormone repair overnight.</p>
+    </div>
+
+    <div class="yoni-section warn">
+      <h4>Fasting is not made for women's bodies</h4>
+      <p>Usha: <em>"Fasting diets might be trendy, but they weren't made with women in mind."</em> What she teaches happens when women fast:</p>
+      <ul>
+        <li><strong>Day 1:</strong> cortisol spikes, body stores belly fat, blood sugar crashes → shaky + irritable</li>
+        <li><strong>Day 2:</strong> insulin + leptin destabilize, agni (digestive fire) weakens, bloating + gas</li>
+        <li><strong>Week 1:</strong> muscle breaks down, metabolism slows, <strong>period goes irregular or stops</strong></li>
+        <li><strong>Month 1:</strong> hair thins, skin dries, immunity weakens, paradoxical weight gain from slowed metabolism</li>
+      </ul>
+      <p>Eat regularly. Add healthy fats. Your reproductive system needs fuel to stay online.</p>
+    </div>
+
+    <div class="yoni-section">
+      <h4>Digestion is the campfire</h4>
+      <p>A strong fire burns cleanly and efficiently. Signs yours is unbalanced: irregular hunger, feeling undernourished even after eating, fatigue after meals, early fullness. Fix digestion first — then fertility, mood, skin, everything else follows. <strong>Add more healthy fats with your meals</strong> to absorb fat-soluble nutrients (A, D, E, K) and support hormone production.</p>
+    </div>
+
+    <div class="yoni-section">
+      <h4>Survival &gt; reproduction</h4>
+      <p>Your body always picks survival first. Chronic stress diverts energy away from sex hormones (estrogen, progesterone) toward stress hormones (cortisol, adrenaline). That's when cycles go irregular, periods get painful, or ovulation stops entirely. Create a <strong>cocoon</strong> — drop draining relationships, cut stressful media, protect sleep. Your ovaries are listening to your nervous system.</p>
+    </div>
+
+    <div class="yoni-section">
+      <h4>31 days</h4>
+      <p>It takes roughly <strong>31 days</strong> for nourishment from food, herbs, and lifestyle to reach your reproductive tissues. Traditional preparation for conception is <strong>six months to a year</strong>. This is slow medicine. Trust the rhythm.</p>
     </div>
   </div>
 
@@ -997,75 +1067,52 @@ const LEARN_CONTENT = {
   winter: {
     emoji: '🌑', label: 'Winter', title: 'Inner winter · menstrual · days 1-5',
     html: `
-      <p class="phase-gift"><strong>Your spiritual gift:</strong> deep knowing. The veil is thin. Listen to what your body says when no one else is asking.</p>
-      <p class="phase-practice"><strong>Practice:</strong> Hands on your lower belly, thank her for this month's work. Write what's leaving with this blood, then burn or bury the paper. Offer the first drop of blood to a plant.</p>
       <h4>What's up in there</h4>
-      <p>Day 1 is the day you bleed. Your uterus is peeling off its plush lining — the cozy velvet crib it built last month in case an embryo needed a home. No embryo moved in, so the eviction party starts today. <em class="witch">Totally normal. Totally magic.</em></p>
+      <p>Day 1 is the day you bleed. Your uterus is peeling off its plush lining — the velvet nursery it built last month in case an embryo needed a home. No embryo moved in, so the lining releases.</p>
       <h4>The hormones</h4>
-      <p>Estrogen, progesterone, LH, FSH — all at baseline. Hormones take the week off. This is why you feel so different from ovulation-you.</p>
+      <p>Estrogen, progesterone, LH, FSH — all at baseline. This is why you feel so different from ovulation-you. Hormones aren't making you anything right now. <strong>You are the unadorned baseline.</strong></p>
       <h4>In the ovary</h4>
-      <p>Your brain sends <strong>FSH</strong> (follicle-stimulating hormone) to wake up the next round of egg candidates. A dozen microscopic follicles start growing in both ovaries — tiny fluid-filled bubbles, each holding one immature egg. They'll compete over two weeks to see which one "wins."</p>
-      <h4>How it feels</h4>
-      <p>Tired. Tender. Inward. Your energy is pointing IN, not out — this isn't failure, this is deep cellular maintenance. Blood loss + low hormones = real fatigue. Listen to it.</p>
-      <h4>Body-witch care</h4>
-      <ul>
-        <li>Iron-rich foods (nettle, dark greens, beets, red meat if you eat it)</li>
-        <li>Warm belly: heat pad or hot water bottle</li>
-        <li>Stillness. Shorter lists. Say no.</li>
-        <li>Baths are medicine.</li>
-      </ul>
+      <p>Your brain sends <strong>FSH</strong> (follicle-stimulating hormone) to wake up the next round of egg candidates. A dozen microscopic follicles start growing in both ovaries. They'll compete over two weeks to see which one "wins" and becomes next month's ovulation.</p>
+      <p class="phase-move"><strong>Move:</strong> Restorative yoga, walks in nature, slow dancing, Feldenkrais. Usha's guidance: <em>"If your body is calling for stillness, listen to that — especially during the first two or three days."</em></p>
+      <p class="phase-nourish"><strong>Nourish (Vata-balancing):</strong> Warm, cooked, grounding foods. Root vegetables (sweet potato, carrot, beet), whole grains (brown rice, oats, quinoa), almonds + walnuts + cashews, chia / flax / pumpkin seeds, ghee. <strong>Avoid:</strong> raw / cold foods, crackers + chips (drying), caffeine, alcohol, processed sugar.</p>
+      <p class="phase-practice"><strong>Ritual:</strong> Hands on your lower belly — thank her for this month's work. Write what's leaving with this blood. Hot water bottle. Permission to do less.</p>
     `
   },
   spring: {
     emoji: '🌱', label: 'Spring', title: 'Inner spring · follicular · days 6-13',
     html: `
-      <p class="phase-gift"><strong>Your spiritual gift:</strong> the maiden. Curious, open, willing to start. This is your creation phase — plant seeds of every kind.</p>
-      <p class="phase-practice"><strong>Practice:</strong> Set one intention. Write it three times. Plant an actual seed (herb, flower, sprout in a jar) as a mirror of what you're growing inside. Morning sun on your face, three minutes.</p>
       <h4>What's up in there</h4>
-      <p>Period's done. Your uterus is building a fresh lining — brand new velvet nursery going up floor by floor. Cervix is rising, opening slightly, making sticky-then-creamy mucus.</p>
+      <p>Period's done. Your uterus is building a fresh lining — new nursery going up floor by floor. Cervix is rising, opening slightly, making sticky-then-creamy mucus.</p>
       <h4>The hormones</h4>
-      <p><strong>Estrogen</strong> is climbing — this is the feel-good ascent. FSH tapers after its peak. LH and progesterone stay quiet, watching.</p>
+      <p><strong>Estrogen</strong> is climbing steadily. FSH tapers after its peak. LH and progesterone stay quiet, watching. Your brain is literally built for learning right now — estrogen boosts neuroplasticity.</p>
       <h4>In the ovary</h4>
-      <p>One follicle has emerged as "dominant" — the biggest, fastest-growing. It's now a juicy little bubble about the size of a grape, pumping estrogen into your bloodstream. The other candidates give up and reabsorb. <em class="witch">Every month your body runs an egg talent show.</em> The winner becomes next week's ovulation.</p>
-      <h4>How it feels</h4>
-      <p>Energy back. Skin clearing. Libido warming. Ideas flowing. You can take on more. You can speak up more. Your brain is literally built for learning right now — estrogen boosts neuroplasticity.</p>
-      <h4>Body-witch care</h4>
-      <ul>
-        <li>Move! More vigorous exercise feels good now.</li>
-        <li>Fresh, green, growing foods (sprouts, early greens).</li>
-        <li>Start the thing.</li>
-        <li>Social connection.</li>
-      </ul>
+      <p>One follicle has emerged as the <strong>dominant</strong> one — the biggest, fastest-growing. It's now a juicy little bubble about the size of a grape, pumping estrogen into your bloodstream. The other candidates are reabsorbing.</p>
+      <p class="phase-move"><strong>Move:</strong> Vinyasa, HIIT, cardio, weights. Usha's rule: <strong>high-intensity every OTHER day max</strong> — rest days get Qi Gong, Tai Chi, or a long walk. <em>"It's important to not overexert yourself — pushing too hard can tax our adrenal glands and release stress hormones."</em></p>
+      <p class="phase-nourish"><strong>Nourish (Kapha-balancing):</strong> Light, warm, easy-to-digest. Quinoa / barley / brown rice, leafy greens (spinach, kale, collards), fresh fruit (pears, apples, berries), legumes (lentils, chickpeas, black beans), warming spices (ginger, black pepper, turmeric), herbal teas. <strong>Avoid:</strong> heavy + oily, cold / frozen, dairy, raw veg, fried food.</p>
+      <p class="phase-practice"><strong>Ritual:</strong> Set one intention. Plant an actual seed — herb, flower, or sprout in a jar — as a living mirror of what you're growing inside. Morning sun on your face, three minutes.</p>
     `
   },
   summer: {
     emoji: '☀️', label: 'Summer', title: 'Inner summer · ovulation · days 14-16',
     html: `
-      <p class="phase-gift"><strong>Your spiritual gift:</strong> the mother. Radiant, magnetic, generous. People feel you. Ask, speak, lead — the world is listening.</p>
-      <p class="phase-practice"><strong>Practice:</strong> Peak-fertility orgasm (alone or partnered) is recognized across traditions as a spiritual technology — it anchors your intention into the body. Say the thing out loud. Dance to one song. Record yourself speaking your vision; watch it back in autumn.</p>
-      <h4>What's up in there — THE big day</h4>
-      <p>The dominant follicle has grown to ~2cm (almost an inch). Estrogen hits peak. Your pituitary gland says <em class="witch">"OK, GO"</em> and releases a flood of <strong>LH</strong> — the Luteinizing Hormone surge.</p>
-      <p>About 24-36 hours after the LH surge starts, the follicle <strong>BURSTS</strong>. It literally ruptures on the surface of your ovary and releases its egg. 🥚✨</p>
-      <p>The egg — your <strong>ovum</strong>, about the size of a poppy seed — is swept into the fallopian tube by tiny finger-like <strong>fimbriae</strong> that dance it toward the uterus. It has <strong>12-24 hours</strong> to be fertilized before it dies.</p>
+      <h4>What's up in there — the big day</h4>
+      <p>The dominant follicle has grown to about 2cm (almost an inch). Estrogen hits peak. Your pituitary gland releases a flood of <strong>LH</strong> — the Luteinizing Hormone surge.</p>
+      <p>About 24-36 hours after the LH surge starts, the follicle <strong>ruptures</strong> on the surface of your ovary and releases its egg.</p>
+      <p>The egg — your <strong>ovum</strong>, about the size of a poppy seed — is swept into the fallopian tube by tiny finger-like <strong>fimbriae</strong> that move it toward the uterus. It has <strong>12-24 hours</strong> to be fertilized before it dies.</p>
       <h4>The hormones</h4>
-      <p>Estrogen peaks and drops. <strong>LH</strong> spikes dramatically. Progesterone starts its climb from the empty follicle (now the <strong>corpus luteum</strong> — "yellow body," named because it literally IS yellowish under magnification).</p>
+      <p>Estrogen peaks and drops. <strong>LH</strong> spikes dramatically. Progesterone starts its climb from the empty follicle — now the <strong>corpus luteum</strong> ("yellow body," named because it literally IS yellowish under magnification).</p>
       <h4>How it feels</h4>
-      <p>Peak. Energy, confidence, libido, magnetism, glow. Some feel a one-sided twinge (<strong>mittelschmerz</strong> — German for "middle pain" — that's the follicle popping!). Cervical mucus goes clear, stretchy, slippery — designed to ferry sperm up to the egg.</p>
+      <p>Peak energy, confidence, libido, magnetism. Some feel a one-sided twinge (<strong>mittelschmerz</strong> — German for "middle pain" — the follicle rupturing). Cervical mucus is clear, stretchy, slippery — designed to ferry sperm up to the egg.</p>
       <h4>Fertile window</h4>
-      <p>Sperm live inside you up to <strong>5 days</strong>. The egg lives <strong>24 hours</strong>. So you can conceive from sex up to 5 days BEFORE ovulation through 1 day after. <em class="witch">Six-day window.</em></p>
-      <h4>Body-witch care</h4>
-      <ul>
-        <li>Say yes to things.</li>
-        <li>Dance, perform, flirt, create, ask.</li>
-        <li>This is manifestation hour.</li>
-      </ul>
+      <p>Sperm live inside you up to <strong>5 days</strong>. The egg lives <strong>24 hours</strong>. You can conceive from sex up to 5 days BEFORE ovulation through 1 day after — a six-day window.</p>
+      <p class="phase-move"><strong>Move:</strong> Peak-intensity allowed. HIIT, running, weights, Zumba, Barre, Pilates, kickboxing. <strong>Cap at one hour per day.</strong> This phase is only 3-4 days long — ride it, don't burn out.</p>
+      <p class="phase-nourish"><strong>Nourish (Pitta-cooling):</strong> Sweet, bitter, astringent tastes. Leafy greens (spinach, kale), quinoa, brown rice, berries (strawberry, blueberry), avocado, fatty fish (salmon, mackerel). <strong>Avoid:</strong> caffeine, alcohol, processed food, high-sugar — pitta's already running hot.</p>
+      <p class="phase-practice"><strong>Ritual:</strong> Say the thing out loud. Ask for what you want — your body is magnetic right now, the world is listening. Record yourself speaking your vision; watch it back in autumn when the inner critic's louder.</p>
     `
   },
   autumn: {
     emoji: '🍂', label: 'Autumn', title: 'Inner autumn · luteal · days 17-28',
     html: `
-      <p class="phase-gift"><strong>Your spiritual gift:</strong> the wild woman. Discerning, honest, finishing what needs finished. Your truth-teller is loudest here — let her.</p>
-      <p class="phase-practice"><strong>Practice:</strong> Yoni steam 3-5 days before your expected period (see the Yoni Steam card below). Warm oil massage on your lower belly (castor, black seed, or calendula-infused). Journal what wants to die with this cycle — what's finished.</p>
       <h4>What's up in there</h4>
       <p>The empty follicle that released your egg has transformed into the <strong>corpus luteum</strong> — a temporary hormone-making gland. Its one job: pump out progesterone to keep your uterine lining cushy and nesting in case an embryo implants.</p>
       <p>No pregnancy? Corpus luteum dies around day 26-28. Progesterone crashes. Lining has no support, starts shedding. Period begins. Cycle restarts.</p>
@@ -1078,15 +1125,10 @@ const LEARN_CONTENT = {
       <h4>In the ovary</h4>
       <p>Corpus luteum is the active structure. No new follicles growing yet. It's a waiting game.</p>
       <h4>How it feels</h4>
-      <p>Slowing down. Cozier. Crave quiet. Want to finish things, not start new ones. Late luteal brings the PMS symphony — mood shifts, cramps, breast tenderness, cravings, bloating, breakouts. <em class="witch">This is hormones plummeting, not you being broken or difficult.</em></p>
-      <h4>Body-witch care</h4>
-      <ul>
-        <li>Complete projects, don't start new ones.</li>
-        <li>Warm, grounding food (soups, stews, roots).</li>
-        <li>Cut caffeine + alcohol late luteal — they amplify PMS.</li>
-        <li>Earlier bedtime.</li>
-        <li>Magnesium (food or supplement) helps cramps.</li>
-      </ul>
+      <p>Slowing down. Cozier. Crave quiet. Want to finish things, not start new ones. Late luteal brings the PMS symphony — mood shifts, cramps, breast tenderness, cravings, bloating, breakouts. <strong>This is hormones plummeting, not you being broken or difficult.</strong></p>
+      <p class="phase-move"><strong>Move:</strong> Keep going but dial it down. Tai Chi, Qi Gong, Yin yoga, Hatha, dancing, walking, biking, swimming. Usha's principle: movement <em>"helps clear stagnation and support the liver in detoxification"</em> — TCM frame. Don't go couch, don't go max effort.</p>
+      <p class="phase-nourish"><strong>Nourish (Vata-grounding, sweet/sour/salty):</strong> Sweet potato, warming spices (turmeric, cinnamon, cardamom), pecans, plant-based milks, a little maple syrup. <strong>Lightly steamed vegetables</strong> — Usha's PMS recommendation because <em>"the system doesn't have to work too hard to process it."</em> <strong>Cut caffeine + alcohol</strong> in late luteal — they amplify PMS.</p>
+      <p class="phase-practice"><strong>Ritual:</strong> Yoni steam 3-5 days before your expected period (see the Yoni Steam card below). Warm oil massage on your lower belly (castor, black seed, or calendula-infused). Finish projects instead of starting new ones.</p>
     `
   },
   ovulation: {
