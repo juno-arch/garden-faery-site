@@ -117,9 +117,8 @@
 
     /* Hero photo */
     .about-hero {
-      width: 160px; height: auto;
-      aspect-ratio: 1;
-      border-radius: 50%;
+      width: 160px; height: 160px;
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
       object-fit: cover;
       display: block;
       margin: 0 auto 28px;
@@ -230,7 +229,7 @@
 </nav>
 
 <main class="page-content">
-  <img src="gallery/farm-avatar.jpg" alt="Taya, the Garden Faery, gardener in Arcata and Humboldt County" class="about-hero" loading="lazy">
+  <img src="farm.jpg" alt="Taya, the Garden Faery, gardener in Arcata and Humboldt County" class="about-hero" loading="lazy">
   <h1 class="page-title">Hey, I'm Taya</h1>
   <p class="page-subtitle">The Garden Faery &middot; Arcata, CA</p>
 
