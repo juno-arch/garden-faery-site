@@ -310,9 +310,57 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
 
 .booking-type {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   margin-top: 16px;
 }
+.booking-type button { min-width: 31%; }
+@media (max-width: 600px) { .booking-type button { flex: 1 1 100%; } }
+.multi-summary {
+  margin-top: 14px;
+  padding: 14px;
+  background: var(--sage-light, #eef3e6);
+  border: 2px solid var(--spring-sage, #a3b88c);
+  border-radius: 10px;
+}
+.multi-count {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--plum, #4a1942);
+  margin-bottom: 10px;
+}
+.multi-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.multi-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px 6px 12px;
+  background: white;
+  border: 1.5px solid var(--spring-sage, #a3b88c);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--plum, #4a1942);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.multi-chip:hover { background: #ffe6ea; border-color: #c25; }
+.multi-chip .x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: rgba(74, 25, 66, 0.1);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+.multi-chip:hover .x { background: #c25; color: white; }
 .booking-type button {
   flex: 1;
   padding: 14px;
@@ -614,6 +662,11 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   transition: all 0.2s;
 }
 .my-booking-card .actions button:hover { border-color: var(--spring-sage); }
+.my-booking-card .actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-color: var(--gray-200);
+}
 .my-booking-card .actions .cancel-btn { color: #a03020; border-color: #f0d4d4; }
 .my-booking-card .actions .cancel-btn:hover { background: #f0d4d4; }
 
@@ -839,6 +892,10 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
         <button type="button" id="bt-once" onclick="selectBookingType('once')">
           Just one visit
           <small>A single morning</small>
+        </button>
+        <button type="button" id="bt-multiple" onclick="selectBookingType('multiple')">
+          A few specific dates
+          <small>Pick the days, no pattern</small>
         </button>
         <button type="button" id="bt-recurring" onclick="selectBookingType('recurring')">
           Recurring
@@ -1201,7 +1258,8 @@ let calMonth = new Date().getMonth();
 let calYear = new Date().getFullYear();
 
 // Recurring booking state
-let bookingType = 'once'; // 'once' or 'recurring'
+let bookingType = 'once'; // 'once' | 'multiple' | 'recurring'
+let multiDates = []; // array of 'YYYY-MM-DD' for bookingType === 'multiple'
 let recurWeekday = null;  // 0-6 (Sun..Sat)
 let recurFrequency = 'weekly';
 let recurStart = null;    // YYYY-MM-DD
@@ -1228,7 +1286,11 @@ function goStep(n) {
     d.classList.toggle('done', i < n);
   });
   if (n === 1) { refreshData().then(() => renderCalendar()); }
-  if (n === 2) renderSummary();
+  if (n === 2) {
+    renderSummary();
+    const bookBtn = document.getElementById('btn-book');
+    if (bookBtn) bookBtn.textContent = (bookingType === 'once') ? 'Book My Visit' : 'Book My Visits';
+  }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -1238,6 +1300,7 @@ document.querySelectorAll('.event-type-btn').forEach(btn => {
     selectedEvent = btn.dataset.event;
     selectedDate = null;
     selectedTime = null;
+    multiDates = [];
     resetRecurringState();
     document.querySelectorAll('.event-type-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
@@ -1265,6 +1328,7 @@ document.querySelectorAll('.event-type-btn').forEach(btn => {
 function selectBookingType(type) {
   bookingType = type;
   document.getElementById('bt-once').classList.toggle('selected', type === 'once');
+  document.getElementById('bt-multiple').classList.toggle('selected', type === 'multiple');
   document.getElementById('bt-recurring').classList.toggle('selected', type === 'recurring');
   const rSetup = document.getElementById('recurring-setup');
   const contRow = document.getElementById('step-0-continue');
@@ -1272,6 +1336,14 @@ function selectBookingType(type) {
   if (type === 'once') {
     rSetup.style.display = 'none';
     contRow.style.display = 'none';
+    multiDates = [];
+    setTimeout(() => goStep(1), 200);
+  } else if (type === 'multiple') {
+    rSetup.style.display = 'none';
+    contRow.style.display = 'none';
+    multiDates = [];
+    selectedDate = null;
+    selectedTime = null;
     setTimeout(() => goStep(1), 200);
   } else {
     rSetup.style.display = 'block';
@@ -1461,7 +1533,9 @@ function renderCalendar() {
     );
 
     const available = !isPast && isAvailableDay && !isBooked && !isDateBlocked(dateStr, selectedEvent);
-    const isSelected = selectedDate && date.getTime() === selectedDate.getTime();
+    const isSelected = bookingType === 'multiple'
+      ? multiDates.indexOf(dateStr) !== -1
+      : (selectedDate && date.getTime() === selectedDate.getTime());
 
     let classes = 'cal-day';
     if (isPast) classes += ' past';
@@ -1484,8 +1558,12 @@ function renderCalendar() {
   }
 
   grid.innerHTML = html;
-  document.getElementById('time-slot-area').innerHTML = '';
-  document.getElementById('btn-to-form').disabled = true;
+  if (bookingType === 'multiple') {
+    renderMultiSummary();
+  } else {
+    document.getElementById('time-slot-area').innerHTML = '';
+    document.getElementById('btn-to-form').disabled = true;
+  }
 
   // Re-highlight selected date if in this month
   if (selectedDate && selectedDate.getMonth() === calMonth && selectedDate.getFullYear() === calYear) {
@@ -1502,13 +1580,61 @@ function renderCalendar() {
 }
 
 function selectDate(el) {
-  const parts = el.dataset.date.split('-');
-  selectedDate = new Date(parts[0], parts[1]-1, parts[2]);
-  selectedTime = null;
+  const ds = el.dataset.date; // 'YYYY-M-D'
+  const parts = ds.split('-');
+  const dateObj = new Date(parts[0], parts[1]-1, parts[2]);
 
+  if (bookingType === 'multiple') {
+    // Toggle in/out of multiDates set. Use canonical YYYY-MM-DD format.
+    const canonical = formatDate(dateObj);
+    const idx = multiDates.indexOf(canonical);
+    if (idx === -1) {
+      multiDates.push(canonical);
+      multiDates.sort();
+      el.classList.add('selected');
+    } else {
+      multiDates.splice(idx, 1);
+      el.classList.remove('selected');
+    }
+    renderMultiSummary();
+    return;
+  }
+
+  selectedDate = dateObj;
+  selectedTime = null;
   document.querySelectorAll('.cal-day').forEach(d => d.classList.remove('selected'));
   el.classList.add('selected');
   showTimeSlots();
+}
+
+function renderMultiSummary() {
+  const area = document.getElementById('time-slot-area');
+  const count = multiDates.length;
+  if (count === 0) {
+    area.innerHTML = '<div style="text-align:center;color:var(--gray-600);font-size:0.9rem;padding:14px;">Tap dates above to add them.</div>';
+    document.getElementById('btn-to-form').disabled = true;
+    return;
+  }
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const chips = multiDates.map(ds => {
+    const p = ds.split('-');
+    const d = new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
+    const label = dayNames[d.getDay()] + ' ' + monthNames[d.getMonth()] + ' ' + d.getDate();
+    return '<button type="button" class="multi-chip" onclick="removeMultiDate(\'' + ds + '\')">' +
+      '<span>' + label + '</span><span class="x">×</span></button>';
+  }).join('');
+  area.innerHTML = '<div class="multi-summary">' +
+    '<div class="multi-count">' + count + ' visit' + (count === 1 ? '' : 's') + ' selected</div>' +
+    '<div class="multi-chips">' + chips + '</div></div>';
+  document.getElementById('btn-to-form').disabled = false;
+}
+
+function removeMultiDate(ds) {
+  const idx = multiDates.indexOf(ds);
+  if (idx !== -1) multiDates.splice(idx, 1);
+  renderCalendar();
+  renderMultiSummary();
 }
 
 function showTimeSlots() {
@@ -1583,6 +1709,23 @@ function renderSummary() {
       html += '<div class="summary-item"><span class="summary-label">Skipping</span><span class="summary-value">' + skipped.length + ' conflicting date' + (skipped.length === 1 ? '' : 's') + '</span></div>';
     }
     document.getElementById('booking-summary').innerHTML = html;
+    return;
+  }
+
+  if (bookingType === 'multiple') {
+    const fmtOne = (ds) => {
+      const p = ds.split('-');
+      const d = new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
+      return monthNames[d.getMonth()] + ' ' + d.getDate();
+    };
+    const list = multiDates.map(fmtOne).join(' · ');
+    document.getElementById('booking-summary').innerHTML =
+      '<div class="summary-item"><span class="summary-label">Service</span><span class="summary-value">' + et.name + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Visits</span><span class="summary-value">' + multiDates.length + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Dates</span><span class="summary-value" style="text-align:right;max-width:60%;">' + list + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Time</span><span class="summary-value">' + et.slots[0] + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Duration</span><span class="summary-value">' + durationStr + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Rate</span><span class="summary-value">' + priceStr + '</span></div>';
     return;
   }
 
@@ -1672,6 +1815,49 @@ async function submitBooking() {
     return;
   }
 
+  if (bookingType === 'multiple') {
+    if (multiDates.length === 0) {
+      alert('Pick at least one date.');
+      btn.disabled = false;
+      btn.textContent = 'Book My Visits';
+      return;
+    }
+    const seriesId = 'multi_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    let saved = 0;
+    try {
+      for (const ds of multiDates) {
+        const b = {
+          id: 'b_' + Date.now() + '_' + saved,
+          eventType: selectedEvent,
+          eventName: et.name,
+          date: ds,
+          time: et.slots[0],
+          duration: et.duration,
+          clientName: name,
+          clientEmail: email,
+          clientPhone: phone,
+          clientAddress: address,
+          gardenNotes: notes,
+          status: 'confirmed',
+          bookedBy: 'client',
+          recurringSeriesId: seriesId,
+          recurringFrequency: null,
+          createdAt: new Date().toISOString()
+        };
+        await DB.saveBooking(b);
+        saved++;
+      }
+      showMultipleConfirmation(et, multiDates.slice(), seriesId);
+      goStep(3);
+    } catch (err) {
+      console.log('Multi-date booking error:', err);
+      alert('Saved ' + saved + ' of ' + multiDates.length + ' visits before an error. Please contact Taya if anything looks off.');
+      btn.disabled = false;
+      btn.textContent = 'Book My Visits';
+    }
+    return;
+  }
+
   const booking = {
     id: 'b_' + Date.now(),
     eventType: selectedEvent,
@@ -1699,6 +1885,32 @@ async function submitBooking() {
     alert('Something went wrong saving your booking. Please try again.');
     btn.disabled = false;
     btn.textContent = 'Book My Visit';
+  }
+}
+
+function showMultipleConfirmation(et, dates, seriesId) {
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const fmtOne = (ds) => {
+    const p = ds.split('-');
+    const d = new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+    return dayNames[d.getDay()] + ', ' + monthNames[d.getMonth()] + ' ' + d.getDate();
+  };
+  const list = dates.map(fmtOne).join(' · ');
+  const fnameEl = document.getElementById('f-first-name');
+  const lnameEl = document.getElementById('f-last-name');
+  const name = ((fnameEl && fnameEl.value || '').trim() + ' ' + (lnameEl && lnameEl.value || '').trim()).trim();
+  const address = document.getElementById('f-address').value.trim();
+
+  const el = document.getElementById('confirm-details');
+  if (el) {
+    el.innerHTML =
+      '<div class="summary-item"><span class="summary-label">What</span><span class="summary-value">' + et.name + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Visits</span><span class="summary-value">' + dates.length + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Dates</span><span class="summary-value" style="text-align:right;max-width:60%;">' + list + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Time</span><span class="summary-value">' + et.slots[0] + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Where</span><span class="summary-value">' + (address || 'TBD') + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Who</span><span class="summary-value">' + name + '</span></div>';
   }
 }
 
@@ -1840,16 +2052,17 @@ async function lookupBookings() {
         '</button>' +
       '</div>' +
       '<div class="reschedule-picker" id="reschedule-' + b.id + '" style="display:none;">' +
-        '<label>New date</label>' +
-        '<input type="date" id="resched-date-' + b.id + '" min="' + today + '">' +
         '<label>New time</label>' +
-        '<select id="resched-slot-' + b.id + '">' +
+        '<select id="resched-slot-' + b.id + '" onchange="onReschedSlotChange(\'' + b.id + '\')">' +
           '<option value="morning">Morning (9:00am to 2:00pm)</option>' +
           '<option value="afternoon">Afternoon (2:30pm to 4:30pm)</option>' +
         '</select>' +
+        '<label style="margin-top:12px;">Pick a new date (only open days shown)</label>' +
+        '<div id="resched-cal-' + b.id + '" style="margin-top:4px;"></div>' +
+        '<div id="resched-selected-' + b.id + '" style="font-size:0.85rem;color:var(--gray-600);margin-top:8px;min-height:1.1em;">Pick a date above.</div>' +
         '<div class="actions" style="margin-top: 8px;">' +
-          '<button onclick="confirmClientReschedule(\'' + b.id + '\')">Confirm New Date</button>' +
-          '<button onclick="document.getElementById(\'reschedule-' + b.id + '\').style.display=\'none\'">Never Mind</button>' +
+          '<button onclick="confirmClientReschedule(\'' + b.id + '\')" id="resched-confirm-' + b.id + '" disabled>Confirm New Date</button>' +
+          '<button onclick="hideRescheduleCard(\'' + b.id + '\')">Never Mind</button>' +
         '</div>' +
       '</div>';
     }
@@ -1860,39 +2073,185 @@ async function lookupBookings() {
   container.innerHTML = html;
 }
 
-function clientReschedule(id) {
-  // Hide all other reschedule pickers
+// --- Client-facing reschedule: calendar view ---
+// Per-open-picker state (one picker at a time in practice, but keyed by
+// booking id so switching between cards doesn't leak state).
+const _reschedState = new Map(); // id -> { year, month, eventType, date }
+
+async function clientReschedule(id) {
+  // Hide any other open reschedule picker first.
   document.querySelectorAll('.reschedule-picker').forEach(p => p.style.display = 'none');
+
+  const b = getBookings().find(x => x.id === id);
+  if (!b) { alert('Could not load that booking. Try refreshing.'); return; }
+
+  // Pull fresh data so the availability calendar reflects any late-breaking
+  // books or blocks made by Taya or other clients.
+  try { await refreshData(); } catch (_) { /* offline: fall back to cache */ }
+
+  // Default to the booking's own service + a month starting today, so the
+  // first view shows the soonest open dates.
+  const today = new Date();
+  _reschedState.set(id, {
+    year: today.getFullYear(),
+    month: today.getMonth(),
+    eventType: (b.eventType === 'morning' || b.eventType === 'afternoon') ? b.eventType : 'morning',
+    date: null,
+  });
+
   document.getElementById('reschedule-' + id).style.display = 'block';
+  const slotEl = document.getElementById('resched-slot-' + id);
+  if (slotEl) slotEl.value = _reschedState.get(id).eventType;
+  renderRescheduleCalendar(id);
+}
+
+function hideRescheduleCard(id) {
+  const panel = document.getElementById('reschedule-' + id);
+  if (panel) panel.style.display = 'none';
+  _reschedState.delete(id);
+}
+
+function reschedPrevMonth(id) {
+  const s = _reschedState.get(id);
+  if (!s) return;
+  s.month--;
+  if (s.month < 0) { s.month = 11; s.year--; }
+  renderRescheduleCalendar(id);
+}
+
+function reschedNextMonth(id) {
+  const s = _reschedState.get(id);
+  if (!s) return;
+  s.month++;
+  if (s.month > 11) { s.month = 0; s.year++; }
+  renderRescheduleCalendar(id);
+}
+
+function reschedPickDate(id, dateStr) {
+  const s = _reschedState.get(id);
+  if (!s) return;
+  s.date = dateStr;
+  renderRescheduleCalendar(id);
+}
+
+function onReschedSlotChange(id) {
+  const s = _reschedState.get(id);
+  if (!s) return;
+  const slotEl = document.getElementById('resched-slot-' + id);
+  if (!slotEl) return;
+  s.eventType = slotEl.value;
+  s.date = null;  // availability changes with service type
+  renderRescheduleCalendar(id);
+}
+
+function renderRescheduleCalendar(id) {
+  const s = _reschedState.get(id);
+  const container = document.getElementById('resched-cal-' + id);
+  if (!s || !container) return;
+
+  const monthNamesLong = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const dayNamesLong   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  const et = EVENT_TYPES[s.eventType];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const firstDay = new Date(s.year, s.month, 1);
+  const lastDay  = new Date(s.year, s.month + 1, 0);
+  const startDow = firstDay.getDay();
+
+  // Exclude the booking being rescheduled from the "is booked" test so the
+  // client can move it within the same service slot family without the
+  // calendar marking their own current day as taken.
+  const bookings = getBookings();
+  const blocks   = getBlocks();
+
+  let html =
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
+      '<button type="button" class="cal-nav" onclick="reschedPrevMonth(\'' + id + '\')" aria-label="Previous month">&lt;</button>' +
+      '<span style="font-weight:700;color:var(--plum);">' + monthNamesLong[s.month] + ' ' + s.year + '</span>' +
+      '<button type="button" class="cal-nav" onclick="reschedNextMonth(\'' + id + '\')" aria-label="Next month">&gt;</button>' +
+    '</div>' +
+    '<div class="cal-grid">';
+
+  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d => {
+    html += '<div class="cal-day-label">' + d + '</div>';
+  });
+  for (let i = 0; i < startDow; i++) html += '<div class="cal-day"></div>';
+
+  for (let d = 1; d <= lastDay.getDate(); d++) {
+    const date = new Date(s.year, s.month, d);
+    const dow = date.getDay();
+    const isPast = date < today;
+    const isToday = date.getTime() === today.getTime();
+    const dateStr = formatDate(date);
+    const isAvailableDay = et.days.includes(dow);
+    const isBooked = bookings.some(b =>
+      b.id !== id && b.date === dateStr && b.eventType === s.eventType && b.status !== 'canceled'
+    );
+    const dayBlocks = blocks.filter(b => b.date === dateStr);
+    const isMoonDay = dayBlocks.some(b => (b.reason || '').toLowerCase().startsWith('moon days'));
+    const available = !isPast && isAvailableDay && !isBooked && !isDateBlocked(dateStr, s.eventType);
+    const isSelected = s.date === dateStr;
+
+    let classes = 'cal-day';
+    if (isPast) classes += ' past';
+    if (isToday) classes += ' today';
+    if (available) classes += ' available';
+    if (isSelected) classes += ' selected';
+    if (isMoonDay) classes += ' moon-day';
+
+    if (available) {
+      html += '<div class="' + classes + '" data-date="' + dateStr + '" onclick="reschedPickDate(\'' + id + '\',\'' + dateStr + '\')">' + d + '</div>';
+    } else if (isMoonDay && !isPast) {
+      html += '<div class="' + classes + '" title="Moon days - Taya is resting">' + d + '<span class="moon-mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span></div>';
+    } else {
+      html += '<div class="' + classes + '">' + d + '</div>';
+    }
+  }
+  html += '</div>';
+
+  container.innerHTML = html;
+
+  // Update the selection summary + Confirm button state.
+  const selEl = document.getElementById('resched-selected-' + id);
+  const confirmBtn = document.getElementById('resched-confirm-' + id);
+  if (s.date) {
+    const p = s.date.split('-');
+    const d = new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+    const txt = 'New visit: ' + dayNamesLong[d.getDay()] + ', ' + monthNamesLong[d.getMonth()] + ' ' + d.getDate() + ' at ' + et.slots[0] + '.';
+    if (selEl) selEl.textContent = txt;
+    if (confirmBtn) confirmBtn.disabled = false;
+  } else {
+    if (selEl) selEl.textContent = 'Pick an open date above.';
+    if (confirmBtn) confirmBtn.disabled = true;
+  }
 }
 
 async function confirmClientReschedule(id) {
-  const newDate = document.getElementById('resched-date-' + id).value;
-  const newSlot = document.getElementById('resched-slot-' + id).value;
+  const s = _reschedState.get(id);
+  if (!s || !s.date) { alert('Pick a new date first.'); return; }
 
-  if (!newDate) { alert('Pick a new date.'); return; }
-
-  // Check if the new date is available
-  const dow = new Date(newDate + 'T12:00:00').getDay();
+  const newDate = s.date;
+  const newSlot = s.eventType;
   const et = EVENT_TYPES[newSlot];
-  if (!et.days.includes(dow)) {
-    const dayNames = ['Sundays','Mondays','Tuesdays','Wednesdays','Thursdays','Fridays','Saturdays'];
-    alert('That service isn\'t available on ' + dayNames[dow] + '. Try a different day.');
-    return;
-  }
 
-  // Refresh data and check availability
-  await refreshData();
+  // Re-fetch and revalidate right before committing — someone else might
+  // have grabbed the slot while the picker was open.
+  try { await refreshData(); } catch (_) {}
+
   const isBooked = getBookings().some(b =>
     b.id !== id && b.date === newDate && b.eventType === newSlot && b.status !== 'canceled'
   );
   if (isBooked) {
-    alert('That slot is already booked. Try a different date.');
+    alert('That slot was just booked by someone else. Pick another date.');
+    s.date = null;
+    renderRescheduleCalendar(id);
     return;
   }
-
   if (isDateBlocked(newDate, newSlot)) {
-    alert('That date isn\'t available. Try a different day.');
+    alert('That date is no longer available. Pick another day.');
+    s.date = null;
+    renderRescheduleCalendar(id);
     return;
   }
 
@@ -1905,6 +2264,7 @@ async function confirmClientReschedule(id) {
       time: et.slots[0],
       rescheduledAt: new Date().toISOString(),
     }, phone);
+    _reschedState.delete(id);
     // PocketBase hook sends reschedule email to Taya automatically
     lookupBookings();
   } catch (err) {
