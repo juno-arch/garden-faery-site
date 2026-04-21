@@ -48,6 +48,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap" media="print" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap"></noscript>
 <link rel="stylesheet" href="shared.css">
+<link rel="preload" as="fetch" href="botanicals.svg" crossorigin="anonymous">
+<link rel="preload" as="image" href="hero-flower-field.jpg" fetchpriority="high">
 <script src="shared.js" defer></script>
 <style>
 body {
@@ -92,7 +94,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 40%;
+  object-position: center;
   filter: brightness(0.72) saturate(1.05);
 }
 .header .hero-overlay {
@@ -841,7 +843,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
 
 <div class="container">
   <div class="header">
-    <img src="gallery/flower-field-dianthus.jpg" alt="Garden Faery flower field" decoding="async">
+    <img src="hero-flower-field.jpg" alt="Garden Faery flower field" width="489" height="207" decoding="async" fetchpriority="high">
     <div class="hero-overlay">
       <h1>Book a Visit</h1>
       <p>Pick a service, choose your day, and you're all set.</p>
@@ -952,11 +954,11 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
     <div class="card">
       <div class="form-group">
         <label for="f-first-name">First name <span class="required">*</span></label>
-        <input type="text" id="f-first-name" name="first-name" placeholder="Anna" autocomplete="given-name" autocapitalize="words" required>
+        <input type="text" id="f-first-name" name="first-name" placeholder="Jane" autocomplete="given-name" autocapitalize="words" required>
       </div>
       <div class="form-group">
         <label for="f-last-name">Last name <span class="required">*</span></label>
-        <input type="text" id="f-last-name" name="last-name" placeholder="Peck" autocomplete="family-name" autocapitalize="words" required>
+        <input type="text" id="f-last-name" name="last-name" placeholder="Doe" autocomplete="family-name" autocapitalize="words" required>
       </div>
       <div class="form-group">
         <label for="f-email">Email <span class="required">*</span></label>
@@ -968,21 +970,21 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
       </div>
       <div class="form-group address-field">
         <label for="f-address">Street address <span class="required">*</span></label>
-        <input type="text" id="f-address" name="address-line1" placeholder="3346 D St" autocomplete="address-line1" aria-autocomplete="list" aria-controls="f-address-suggestions" autocapitalize="words" spellcheck="false">
+        <input type="text" id="f-address" name="address-line1" placeholder="123 Main St" autocomplete="address-line1" aria-autocomplete="list" aria-controls="f-address-suggestions" autocapitalize="words" spellcheck="false">
         <div class="address-suggestions" id="f-address-suggestions" role="listbox" hidden></div>
       </div>
       <div class="form-group">
         <label for="f-address2">Apt / Unit <span style="color:var(--gray-600);font-weight:400;font-size:0.85em;">(optional)</span></label>
-        <input type="text" id="f-address2" name="address-line2" placeholder="Apt 4B" autocomplete="address-line2" autocapitalize="words">
+        <input type="text" id="f-address2" name="address-line2" placeholder="Apt 2" autocomplete="address-line2" autocapitalize="words">
       </div>
       <div class="form-group" style="display:flex;gap:10px;flex-wrap:wrap;">
         <div style="flex:1 1 160px;">
           <label for="f-city">City <span class="required">*</span></label>
-          <input type="text" id="f-city" name="city" placeholder="Eureka" autocomplete="address-level2" autocapitalize="words">
+          <input type="text" id="f-city" name="city" placeholder="Arcata" autocomplete="address-level2" autocapitalize="words">
         </div>
         <div style="width:120px;">
           <label for="f-zip">ZIP <span class="required">*</span></label>
-          <input type="text" id="f-zip" name="postal-code" placeholder="95501" autocomplete="postal-code" inputmode="numeric" pattern="\d{5}(-\d{4})?" maxlength="10">
+          <input type="text" id="f-zip" name="postal-code" placeholder="95521" autocomplete="postal-code" inputmode="numeric" pattern="\d{5}(-\d{4})?" maxlength="10">
         </div>
       </div>
       <input type="hidden" id="f-state" name="state" value="CA" autocomplete="address-level1">
@@ -1019,7 +1021,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   <!-- Faery divider -->
   <div class="faery-divider" aria-hidden="true">
     <div class="faery-divider-line"></div>
-    <img src="garden-faery-logo.png" alt="" decoding="async">
+    <img src="garden-faery-logo.png" alt="" width="72" height="72" loading="lazy" decoding="async">
     <div class="faery-divider-line"></div>
   </div>
 
@@ -2499,7 +2501,7 @@ function addressPartsFromPhoton(p) {
 // Build the single "full address" string that gets stored on bookings
 // (client_address) from the four split form inputs. Keeps the existing
 // downstream code working without a schema change.
-// Produces the standard US format: "3346 D St, Apt 4B, Eureka, CA 95501".
+// Produces the standard US format: "123 Main St, Apt 2, Arcata, CA 95521".
 function composeAddressFromFields() {
   const street = (document.getElementById('f-address') || {}).value || '';
   const apt    = (document.getElementById('f-address2') || {}).value || '';

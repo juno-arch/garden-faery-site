@@ -914,11 +914,11 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
     </div>
     <div class="form-group">
       <label>First name <span style="color:var(--red);">*</span></label>
-      <input type="text" id="obo-first-name" placeholder="Anna" required>
+      <input type="text" id="obo-first-name" placeholder="Jane" required>
     </div>
     <div class="form-group">
       <label>Last name <span style="color:var(--red);">*</span></label>
-      <input type="text" id="obo-last-name" placeholder="Peck" required>
+      <input type="text" id="obo-last-name" placeholder="Doe" required>
     </div>
     <div class="form-group">
       <label>Email</label>
@@ -3946,9 +3946,9 @@ function openBookModal() {
 }
 
 // Split a full name into first + last on the first space.
-// "Anna"                  -> { first: "Anna", last: "" }
-// "Anna Peck"             -> { first: "Anna", last: "Peck" }
-// "Anna Van Der Berg"     -> { first: "Anna", last: "Van Der Berg" }
+// "Jane"                  -> { first: "Jane", last: "" }
+// "Jane Doe"              -> { first: "Jane", last: "Doe" }
+// "Jane Van Der Berg"     -> { first: "Jane", last: "Van Der Berg" }
 function splitName(full) {
   const trimmed = (full || '').trim().replace(/\s+/g, ' ');
   if (!trimmed) return { first: '', last: '' };
@@ -4196,7 +4196,7 @@ async function saveOBO() {
   try { await refreshData(); } catch (_) { /* offline: fall back to cache */ }
   // Match the same client-merging rules used by the picker: name OR email
   // OR phone (digits-only). Catches dupes even if the existing booking is
-  // filed under a different name variation ("Anna" vs "Anna Peck").
+  // filed under a different name variation ("Jane" vs "Jane Doe").
   const nameKey  = (name  || '').toLowerCase().trim().replace(/\s+/g, ' ');
   const emailKey = (email || '').toLowerCase().trim();
   const phoneKey = (phone || '').replace(/\D/g, '');
