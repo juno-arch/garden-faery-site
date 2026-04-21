@@ -1271,7 +1271,7 @@ let recurEnd = null;      // YYYY-MM-DD
 let recurDates = [];      // computed array of { date, status: 'ok'|'skip-booked'|'skip-blocked' }
 
 function resetRecurringState() {
-  bookingType = 'once';
+  bookingType = 'multiple';
   recurWeekday = null;
   recurFrequency = 'weekly';
   recurStart = null;
