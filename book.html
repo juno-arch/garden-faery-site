@@ -1262,7 +1262,7 @@ let calMonth = new Date().getMonth();
 let calYear = new Date().getFullYear();
 
 // Recurring booking state
-let bookingType = 'once'; // 'once' | 'multiple' | 'recurring'
+let bookingType = 'multiple'; // multi-date is the only mode now; 'once'/'recurring' kept as no-op fallbacks
 let multiDates = []; // array of 'YYYY-MM-DD' for bookingType === 'multiple'
 let recurWeekday = null;  // 0-6 (Sun..Sat)
 let recurFrequency = 'weekly';
@@ -1299,32 +1299,22 @@ function goStep(n) {
 }
 
 // --- Event type selection ---
+// Multi-date is now the only booking mode. Picking a service jumps
+// straight to the calendar — pick 1 day for one visit or N for several.
 document.querySelectorAll('.event-type-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     selectedEvent = btn.dataset.event;
     selectedDate = null;
     selectedTime = null;
     multiDates = [];
+    bookingType = 'multiple';
     resetRecurringState();
     document.querySelectorAll('.event-type-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
-
-    // Morning/afternoon: show booking-type picker (one vs recurring). Other events auto-advance.
-    const btSection = document.getElementById('booking-type-section');
-    const rSetup = document.getElementById('recurring-setup');
-    const contRow = document.getElementById('step-0-continue');
-    rSetup.style.display = 'none';
-    contRow.style.display = 'none';
-    document.getElementById('bt-once').classList.remove('selected');
-    document.getElementById('bt-recurring').classList.remove('selected');
-
     if (selectedEvent === 'morning' || selectedEvent === 'afternoon') {
-      btSection.style.display = 'block';
-      refreshData(); // prefetch for taken-weekday computation
-    } else {
-      btSection.style.display = 'none';
-      setTimeout(() => goStep(1), 200);
+      refreshData();
     }
+    setTimeout(() => goStep(1), 200);
   });
 });
 
