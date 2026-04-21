@@ -260,6 +260,58 @@
       margin-bottom: 4px;
     }
 
+    /* Recipe sub-cards (pairings inside a style modal) */
+    .recipe-list { display: flex; flex-direction: column; gap: 20px; }
+    .recipe-card {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(74,25,66,0.06);
+    }
+    .recipe-hero {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      display: block;
+      background: var(--sage-light);
+    }
+    .recipe-body { padding: 18px 20px 22px; }
+    .recipe-name {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+      line-height: 1.2;
+    }
+    .recipe-tagline {
+      font-family: var(--font-heading);
+      font-style: italic;
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    .recipe-conditions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .recipe-condition {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      padding: 4px 9px;
+      border-radius: 4px;
+      background: var(--petal-pink-light);
+      color: var(--text-primary);
+    }
+    .recipe-description {
+      font-size: 14.5px;
+      line-height: 1.65;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+    }
+    .recipe-plants { margin-top: 6px; }
+
     .footer-cta {
       max-width: 720px;
       margin: 0 auto 80px;
@@ -306,8 +358,6 @@
       <div class="nav-group active">
         <button class="nav-group-toggle" type="button" onclick="this.parentElement.classList.toggle('open')">Guides<span class="caret" aria-hidden="true">&#9662;</span></button>
         <div class="nav-group-menu">
-          <a href="plant-guide.html">Plant Archive</a>
-          <a href="plant-pairings.html">Plant Pairings</a>
           <a href="garden-styles.html" class="active">Garden Styles</a>
           <a href="food-guide.html">Succession Planting</a>
           <a href="seed-kit.html">Succession Planting Seed Kit</a>
@@ -553,11 +603,153 @@
       }
     ];
 
+    // Recipes: pre-made plant combinations, each tagged with the style(s) it fits.
+    // Hero photos in plant-pairings/{slug}.jpg (kept from the original pairings page).
+    const RECIPES = [
+      {
+        slug: 'foggy-coast-cottage',
+        name: 'Foggy Coast Cottage Border',
+        hero: 'plant-pairings/foggy-coast-cottage.jpg',
+        tagline: 'Soft pastels and lush textures that look romantic even on gray fog days.',
+        styles: ['cottage', 'faery-whimsy'],
+        conditions: ['Part shade', 'Acidic soil', 'Coastal fog belt'],
+        description: 'Designed for the Eureka and Arcata fog belt where direct sun is rare and the air stays moist all day. Big mophead hydrangeas anchor the back, fuchsias dangle their bell flowers in front, and a foreground of leafy textures keeps it lush even when nothing is blooming. Acid soil suits all of these.',
+        plants: [
+          { slug: 'hydrangea', role: 'Anchor - big mophead blooms in blue, pink, or white' },
+          { slug: 'fuchsia', role: 'Pendulous bell flowers, hummingbird magnet' },
+          { slug: 'astilbe', role: 'Plume flowers in pink and white, loves the moisture' },
+          { slug: 'hosta', role: 'Lush leaf texture, classic shade plant' },
+          { slug: 'autumn-fern', role: 'Coppery new fronds, evergreen structure' },
+          { slug: 'heuchera', role: 'Burgundy or silver foliage as a low edge' }
+        ]
+      },
+      {
+        slug: 'deer-resistant-pollinator',
+        name: 'Deer-Resistant Pollinator Patch',
+        hero: 'plant-pairings/deer-resistant-pollinator.jpg',
+        tagline: 'Aromatic, fuzzy, or just plain unpalatable - bees love it, deer pass it by.',
+        styles: ['drought-mediterranean', 'pollinator-sanctuary'],
+        conditions: ['Full sun', 'Well-drained soil', 'Drought-tolerant once established'],
+        description: 'Deer hate strong herbal scents and fuzzy leaves. This patch packs both into one bee-friendly mosaic. Drop it along a sunny driveway, against a south wall, or anywhere deer have been treating your other beds like a salad bar.',
+        plants: [
+          { slug: 'lavender', role: 'Backbone scent and bloom, deer skip it cold' },
+          { slug: 'rosemary', role: 'Evergreen herb, blue flowers in winter' },
+          { slug: 'yarrow', role: 'Flat flower platforms for native bees' },
+          { slug: 'california-poppy', role: 'Pop of orange, reseeds gently' },
+          { slug: 'pacific-aster', role: 'Native fall bloomer for late pollinator forage' },
+          { slug: 'cleveland-sage', role: 'Heady fragrance, drought-proof' }
+        ]
+      },
+      {
+        slug: 'pnw-native-woodland',
+        name: 'Pacific Northwest Native Woodland Edge',
+        hero: 'plant-pairings/pnw-native-woodland.jpg',
+        tagline: 'A whole ecosystem under your redwoods, douglas firs, or shade-cast fence line.',
+        styles: ['pnw-native'],
+        conditions: ['Full to dappled shade', 'Acidic, organic soil', 'Cool roots'],
+        description: 'Most of these plants grow wild in the woods around Humboldt - they want exactly what your shaded property edges already offer. Once established they ask for almost nothing. Birds, native bees, and small mammals all benefit.',
+        plants: [
+          { slug: 'sword-fern', role: 'Evergreen architecture under conifers' },
+          { slug: 'salal', role: 'Glossy spreading shrub, edible berries' },
+          { slug: 'redwood-sorrel', role: 'Carpet groundcover under deep shade' },
+          { slug: 'evergreen-huckleberry', role: 'Native berry shrub, slow but worthwhile' },
+          { slug: 'oregon-grape', role: 'Holly-like leaves, yellow spring flowers, blue fruit' },
+          { slug: 'western-bleeding-heart', role: 'Lacy ferny foliage, pink heart-shaped flowers' }
+        ]
+      },
+      {
+        slug: 'edible-faery-path',
+        name: 'Edible Faery Path',
+        hero: 'plant-pairings/edible-faery-path.jpg',
+        tagline: 'Pinch a leaf, pick a flower, snap a strawberry - every step rewards a little hand or curious mouth.',
+        styles: ['faery-whimsy', 'sensory-kids', 'edible-permaculture'],
+        conditions: ['Sun to part shade', 'Well-drained soil', 'Regular water'],
+        description: 'Designed for the kind of garden where someone wanders in barefoot and snacks their way through. Everything here is edible, kid-safe, and beautiful. Tuck it along a path, around a kid-height table, or as the front edge of a vegetable bed.',
+        plants: [
+          { slug: 'chives', role: 'Mild oniony, purple pom-pom flowers' },
+          { slug: 'calendula', role: 'Edible petals for salads and cakes' },
+          { slug: 'nasturtium', role: 'Peppery leaves and flowers, scrambles happily' },
+          { slug: 'lemon-balm', role: 'Crush a leaf for instant lemon scent' },
+          { slug: 'beach-strawberry', role: 'Tiny intense berries, native groundcover' },
+          { slug: 'parsley', role: 'Bright green ruffled foliage, snack as you pass' }
+        ]
+      },
+      {
+        slug: 'hummingbird-buffet',
+        name: 'Hummingbird & Bee Buffet',
+        hero: 'plant-pairings/hummingbird-buffet.jpg',
+        tagline: 'Tubular blooms, bright colors, all-season nectar - the back porch becomes a Discovery Channel.',
+        styles: ['pollinator-sanctuary'],
+        conditions: ['Full sun to part shade', 'Average water', 'Mulched soil'],
+        description: 'Anna\'s hummingbirds overwinter in Humboldt, so this patch is wired for year-round visitors. Tubular reds and pinks pull in the hummers; the salvias and bee balm keep bumblebees and native bees fed. Plant a sit spot nearby and bring a coffee.',
+        plants: [
+          { slug: 'hummingbird-sage', role: 'Native, deep red-pink whorls of bloom' },
+          { slug: 'bee-balm', role: 'Shaggy red flowers, mint-family fragrance' },
+          { slug: 'penstemon', role: 'Tubular spires in pink, purple, or red' },
+          { slug: 'sticky-monkey-flower', role: 'Native, orange tubular flowers all summer' },
+          { slug: 'cleveland-sage', role: 'Lavender-blue whorls, drought-tough' },
+          { slug: 'fuchsia', role: 'Hanging bells, hummingbird gold standard' }
+        ]
+      },
+      {
+        slug: 'coastal-wind-hedge',
+        name: 'Coastal Wind & Salt Hedge',
+        hero: 'plant-pairings/coastal-wind-hedge.jpg',
+        tagline: 'Privacy that takes the salt spray and the worst Westerly without flinching.',
+        styles: ['coastal'],
+        conditions: ['Full sun', 'Wind & salt tolerant', 'Sandy or rocky soil OK'],
+        description: 'Beachside or bluff-edge gardens face wind and salt that will brown out a typical privet hedge in a season. These four are built for it - three natives and one tough conifer. Plant in a staggered double row for fast screening, single row for a hedgy look.',
+        plants: [
+          { slug: 'pacific-wax-myrtle', role: 'Aromatic evergreen, native, fast screen' },
+          { slug: 'ceanothus', role: 'Evergreen native, blue spring flower clouds' },
+          { slug: 'shore-pine', role: 'Wind-sculpted native conifer, almost bulletproof' },
+          { slug: 'twinberry', role: 'Native shrub for understory, red-orange tube flowers' }
+        ]
+      },
+      {
+        slug: 'moon-garden',
+        name: 'Moon Garden',
+        hero: 'plant-pairings/moon-garden.jpg',
+        tagline: 'Whites, silvers, and pale pastels that glow at dusk and reflect moonlight.',
+        styles: ['faery-whimsy', 'cottage'],
+        conditions: ['Full sun to part shade', 'Average water', 'Best near a sit spot'],
+        description: 'Plant near where you sit at the end of the day - a back porch, a bedroom window, the edge of an outdoor dining spot. As light fades, the whites and silvers come into their own and the garden becomes a different place. Many of these are also fragrant after dark.',
+        plants: [
+          { slug: 'iceland-poppy', role: 'Tissue-paper white and cream flowers' },
+          { slug: 'anemone', role: 'Pure white blooms on tall stems' },
+          { slug: 'lavender-cotton', role: 'Silvery-grey mound, glows in low light' },
+          { slug: 'shasta-daisy-becky', role: 'Crisp white daisies, classic moon bloomer' },
+          { slug: 'daffodil', role: 'White-flowered narcissus varieties early in spring' },
+          { slug: 'sweet-alyssum-pimpernel', role: 'Honey-scented carpet of tiny white flowers' }
+        ]
+      },
+      {
+        slug: 'cut-flower-patch',
+        name: 'Cut Flower Patch',
+        hero: 'plant-pairings/cut-flower-patch.jpg',
+        tagline: 'Fresh bouquets from June through first frost - a row, a bed, or a wild back corner.',
+        styles: ['cottage'],
+        conditions: ['Full sun', 'Rich soil', 'Regular water', 'Stake the tall ones'],
+        description: 'You don\'t need a flower farm to have bouquets on the table all summer. This patch fits in 4x8 feet, regrows after every cut, and gives you a bouquet a week. Pinch dahlias and zinnias when young to make them bushy. Snip with stems long; the more you cut, the more you get.',
+        plants: [
+          { slug: 'dahlia', role: 'Center-of-the-bouquet showpieces, all sizes and colors' },
+          { slug: 'zinnia', role: 'Workhorse filler, pinch young to bush out' },
+          { slug: 'sweet-pea', role: 'Spring vine, sweet fragrance, picks endlessly' },
+          { slug: 'cosmos', role: 'Airy filler, reseeds, pollinator favorite' },
+          { slug: 'snapdragon', role: 'Vertical spires for shape and height' },
+          { slug: 'calendula', role: 'Bright orange and yellow, also useful in salves' }
+        ]
+      }
+    ];
+
     function plantTitle(slug) {
       return slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     }
     function plantHref(slug) { return 'plant-guide.html?plant=' + slug; }
     function plantThumbSrc(slug) { return 'plant-guide/' + slug + '.jpg'; }
+    function recipesForStyle(styleSlug) {
+      return RECIPES.filter(r => r.styles.indexOf(styleSlug) !== -1);
+    }
 
     const grid = document.getElementById('styles-grid');
     STYLES.forEach(s => {
@@ -590,12 +782,37 @@
       </a>`;
     }
 
+    function recipeBlock(r) {
+      const conditionTags = r.conditions.map(c => `<span class="recipe-condition">${c}</span>`).join('');
+      const plantRows = r.plants.map(plantRow).join('');
+      return `
+        <div class="recipe-card">
+          <img class="recipe-hero" src="${r.hero}" alt="${r.name}" loading="lazy"
+            onerror="this.style.background='var(--sage-light)';this.removeAttribute('src');" decoding="async">
+          <div class="recipe-body">
+            <h3 class="recipe-name">${r.name}</h3>
+            <p class="recipe-tagline">${r.tagline}</p>
+            <div class="recipe-conditions">${conditionTags}</div>
+            <p class="recipe-description">${r.description}</p>
+            <div class="plant-list recipe-plants">${plantRows}</div>
+          </div>
+        </div>
+      `;
+    }
+
     function openModal(s) {
       modalHero.src = s.hero;
       modalHero.alt = s.name;
       const vibesHtml = s.vibes.map(v => `<span class="vibe-tag">${v}</span>`).join('');
       const anchorsHtml = s.anchors.map(plantRow).join('');
       const companionsHtml = s.companions.map(plantRow).join('');
+      const recipes = recipesForStyle(s.slug);
+      const recipesHtml = recipes.length
+        ? `<div class="section-title">Recipes in this style
+             <span class="section-title-helper">Pre-made plant combinations you can plant as a set.</span>
+           </div>
+           <div class="recipe-list">${recipes.map(recipeBlock).join('')}</div>`
+        : '';
       modalBody.innerHTML = `
         <h2 class="modal-name">${s.name}</h2>
         <p class="modal-tagline">${s.tagline}</p>
@@ -610,7 +827,9 @@
           <span class="section-title-helper">Fill in around the anchors. Mix and match by your taste and conditions.</span>
         </div>
         <div class="plant-list">${companionsHtml}</div>
+        ${recipesHtml}
       `;
+      modalBody.parentElement.scrollTop = 0;
       overlay.classList.add('open');
       document.body.style.overflow = 'hidden';
     }
@@ -623,12 +842,18 @@
     overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-    // Deep link: #slug opens that style's modal
+    // Deep link: #slug opens that style's modal.
+    // Also matches old plant-pairings recipe slugs -> opens the style they live in.
     function openFromHash() {
       const slug = location.hash.replace(/^#/, '');
       if (!slug) return;
       const s = STYLES.find(x => x.slug === slug);
-      if (s) openModal(s);
+      if (s) { openModal(s); return; }
+      const recipe = RECIPES.find(r => r.slug === slug);
+      if (recipe && recipe.styles && recipe.styles.length) {
+        const owner = STYLES.find(x => x.slug === recipe.styles[0]);
+        if (owner) openModal(owner);
+      }
     }
     openFromHash();
     window.addEventListener('hashchange', openFromHash);

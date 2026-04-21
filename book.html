@@ -49,7 +49,7 @@
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap"></noscript>
 <link rel="stylesheet" href="shared.css">
 <link rel="preload" as="fetch" href="botanicals.svg" crossorigin="anonymous">
-<link rel="preload" as="image" href="hero-flower-field.jpg" fetchpriority="high">
+<link rel="preload" as="image" href="hero-sprouts.jpg" fetchpriority="high">
 <script src="shared.js" defer></script>
 <style>
 body {
@@ -88,7 +88,8 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   overflow: hidden;
   background: #2a1a26;
 }
-.header img {
+.header img,
+.header video {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -843,7 +844,9 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
 
 <div class="container">
   <div class="header">
-    <img src="hero-flower-field.jpg" alt="Garden Faery flower field" width="489" height="207" decoding="async" fetchpriority="high">
+    <video autoplay muted loop playsinline poster="hero-sprouts.jpg" preload="none" aria-label="Tiny wheatgrass sprouts">
+      <source src="hero-sprouts.mp4" type="video/mp4">
+    </video>
     <div class="hero-overlay">
       <h1>Book a Visit</h1>
       <p>Pick a service, choose your day, and you're all set.</p>
