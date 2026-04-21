@@ -991,10 +991,25 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
         <input type="tel" id="f-phone" name="phone" placeholder="(707) 555-1234" autocomplete="tel" required>
       </div>
       <div class="form-group address-field">
-        <label for="f-address">Address <span class="required">*</span></label>
-        <input type="text" id="f-address" name="address" placeholder="Start typing your address…" autocomplete="street-address" aria-autocomplete="list" aria-controls="f-address-suggestions" autocapitalize="words" spellcheck="false">
+        <label for="f-address">Street address <span class="required">*</span></label>
+        <input type="text" id="f-address" name="address-line1" placeholder="3346 D St" autocomplete="address-line1" aria-autocomplete="list" aria-controls="f-address-suggestions" autocapitalize="words" spellcheck="false">
         <div class="address-suggestions" id="f-address-suggestions" role="listbox" hidden></div>
       </div>
+      <div class="form-group">
+        <label for="f-address2">Apt / Unit <span style="color:var(--gray-600);font-weight:400;font-size:0.85em;">(optional)</span></label>
+        <input type="text" id="f-address2" name="address-line2" placeholder="Apt 4B" autocomplete="address-line2" autocapitalize="words">
+      </div>
+      <div class="form-group" style="display:flex;gap:10px;flex-wrap:wrap;">
+        <div style="flex:1 1 160px;">
+          <label for="f-city">City <span class="required">*</span></label>
+          <input type="text" id="f-city" name="city" placeholder="Eureka" autocomplete="address-level2" autocapitalize="words">
+        </div>
+        <div style="width:120px;">
+          <label for="f-zip">ZIP <span class="required">*</span></label>
+          <input type="text" id="f-zip" name="postal-code" placeholder="95501" autocomplete="postal-code" inputmode="numeric" pattern="\d{5}(-\d{4})?" maxlength="10">
+        </div>
+      </div>
+      <input type="hidden" id="f-state" name="state" value="CA" autocomplete="address-level1">
       <div class="form-group">
         <label for="f-notes">Garden notes</label>
         <textarea id="f-notes" placeholder="Anything I should know? Dogs, gate codes, what you'd like help with..."></textarea>
@@ -1038,7 +1053,6 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
     <p>Not quite ready to book? Send a quick note and I'll get back to you soon.</p>
     <div class="contact-plug-actions">
       <a href="contact.html" class="contact-plug-btn">Send a Message</a>
-      <a href="mailto:taya@gardenfaery.love" class="contact-plug-btn secondary">Email Taya</a>
     </div>
   </div>
 </div>
@@ -1093,7 +1107,21 @@ const DB = {
     };
     if (body) opts.body = JSON.stringify(body);
     const resp = await fetch(PB_URL + '/api/collections/' + path, opts);
-    if (!resp.ok) throw new Error('PocketBase error: ' + resp.status);
+    if (!resp.ok) {
+      // Surface PB validation messages so failed bookings show WHY,
+      // not just the status code. Examples: "client_phone: Cannot be blank."
+      let detail = '';
+      try {
+        const err = await resp.json();
+        if (err && err.data) {
+          detail = Object.entries(err.data).map(([f, v]) =>
+            f + ': ' + ((v && v.message) || JSON.stringify(v))).join(' · ');
+        } else if (err && err.message) {
+          detail = err.message;
+        }
+      } catch (_) { /* non-JSON body */ }
+      throw new Error('PocketBase ' + resp.status + (detail ? ' — ' + detail : ''));
+    }
     return resp.json();
   },
 
@@ -1747,7 +1775,10 @@ async function submitBooking() {
   const name = (firstName + ' ' + lastName).trim();
   const email = document.getElementById('f-email').value.trim();
   const phone = formatPhoneNumber(document.getElementById('f-phone').value);
-  const address = document.getElementById('f-address').value.trim();
+  const street = document.getElementById('f-address').value.trim();
+  const city   = document.getElementById('f-city').value.trim();
+  const zip    = document.getElementById('f-zip').value.trim();
+  const address = composeAddressFromFields();
   const notes = document.getElementById('f-notes').value.trim();
 
   if (!firstName) {
@@ -1762,6 +1793,21 @@ async function submitBooking() {
   }
   if (!email || !phone) {
     alert('Please fill in your email and phone number.');
+    return;
+  }
+  if (!street) {
+    alert('Please enter your street address.');
+    document.getElementById('f-address').focus();
+    return;
+  }
+  if (!city) {
+    alert('Please enter your city.');
+    document.getElementById('f-city').focus();
+    return;
+  }
+  if (!zip || !/^\d{5}(-\d{4})?$/.test(zip)) {
+    alert('Please enter a valid 5-digit ZIP code.');
+    document.getElementById('f-zip').focus();
     return;
   }
 
@@ -1808,7 +1854,7 @@ async function submitBooking() {
       goStep(3);
     } catch (err) {
       console.log('Recurring booking error:', err);
-      alert('Saved ' + saved + ' of ' + okDates.length + ' visits before an error. Please contact Taya if anything looks off.');
+      alert('Saved ' + saved + ' of ' + okDates.length + ' visits, then hit:\n\n' + (err && err.message ? err.message : err) + '\n\nPlease contact Taya if anything looks off.');
       btn.disabled = false;
       btn.textContent = 'Book My Visit';
     }
@@ -1851,7 +1897,7 @@ async function submitBooking() {
       goStep(3);
     } catch (err) {
       console.log('Multi-date booking error:', err);
-      alert('Saved ' + saved + ' of ' + multiDates.length + ' visits before an error. Please contact Taya if anything looks off.');
+      alert('Saved ' + saved + ' of ' + multiDates.length + ' visits, then hit:\n\n' + (err && err.message ? err.message : err) + '\n\nPlease contact Taya if anything looks off.');
       btn.disabled = false;
       btn.textContent = 'Book My Visits';
     }
@@ -1900,7 +1946,7 @@ function showMultipleConfirmation(et, dates, seriesId) {
   const fnameEl = document.getElementById('f-first-name');
   const lnameEl = document.getElementById('f-last-name');
   const name = ((fnameEl && fnameEl.value || '').trim() + ' ' + (lnameEl && lnameEl.value || '').trim()).trim();
-  const address = document.getElementById('f-address').value.trim();
+  const address = composeAddressFromFields();
 
   const el = document.getElementById('confirm-details');
   if (el) {
@@ -1926,7 +1972,7 @@ function showRecurringConfirmation(et, okDates, seriesId) {
   const fnameEl = document.getElementById('f-first-name');
   const lnameEl = document.getElementById('f-last-name');
   const name = ((fnameEl && fnameEl.value || '').trim() + ' ' + (lnameEl && lnameEl.value || '').trim()).trim();
-  const address = document.getElementById('f-address').value.trim();
+  const address = composeAddressFromFields();
 
   const el = document.getElementById('confirm-details');
   if (el) {
@@ -2327,7 +2373,7 @@ function _calEventParams() {
   const endM = String(et.endMin).padStart(2, '0');
   const dtStart = y + m + d + 'T' + startH + startM + '00';
   const dtEnd = y + m + d + 'T' + endH + endM + '00';
-  const address = document.getElementById('f-address').value.trim();
+  const address = composeAddressFromFields();
   const fnameEl = document.getElementById('f-first-name');
   const lnameEl = document.getElementById('f-last-name');
   const name = ((fnameEl && fnameEl.value || '').trim() + ' ' + (lnameEl && lnameEl.value || '').trim()).trim();
@@ -2473,6 +2519,31 @@ function fullAddressString(p) {
   return [primary, secondary].filter(Boolean).join(', ');
 }
 
+// Pull parsed parts out of a Photon feature so we can populate the
+// street / city / state / zip fields individually.
+function addressPartsFromPhoton(p) {
+  return {
+    street: [p.housenumber, p.street].filter(Boolean).join(' ') || p.name || '',
+    city:   p.city || p.town || p.village || p.hamlet || '',
+    state:  p.state || '',
+    zip:    p.postcode || ''
+  };
+}
+
+// Build the single "full address" string that gets stored on bookings
+// (client_address) from the four split form inputs. Keeps the existing
+// downstream code working without a schema change.
+// Produces the standard US format: "3346 D St, Apt 4B, Eureka, CA 95501".
+function composeAddressFromFields() {
+  const street = (document.getElementById('f-address') || {}).value || '';
+  const apt    = (document.getElementById('f-address2') || {}).value || '';
+  const city   = (document.getElementById('f-city') || {}).value || '';
+  const state  = (document.getElementById('f-state') || {}).value || 'CA';
+  const zip    = (document.getElementById('f-zip') || {}).value || '';
+  const stateZip = [state.trim(), zip.trim()].filter(Boolean).join(' ');
+  return [street.trim(), apt.trim(), city.trim(), stateZip].filter(Boolean).join(', ');
+}
+
 function escAddr(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 }
@@ -2512,8 +2583,16 @@ function renderAddressSuggestions(features) {
 function pickAddressSuggestion(idx) {
   const f = _addrSuggestions[idx];
   if (!f) return;
-  document.getElementById('f-address').value = fullAddressString(f.properties || {});
+  const parts = addressPartsFromPhoton(f.properties || {});
+  const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+  setVal('f-address',  parts.street);
+  setVal('f-city',     parts.city);
+  setVal('f-zip',      parts.zip);
+  // state is a hidden field, kept at "CA"
   hideAddressSuggestions();
+  // Nudge focus forward if we're missing an apt/unit detail
+  const aptEl = document.getElementById('f-address2');
+  if (aptEl && !aptEl.value) aptEl.focus();
 }
 
 async function fetchAddressSuggestions(q) {
