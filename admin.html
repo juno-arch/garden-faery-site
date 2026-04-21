@@ -9,7 +9,10 @@
 <meta name="apple-mobile-web-app-title" content="Admin">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap" media="print" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap"></noscript>
 <link rel="stylesheet" href="shared.css">
 <style>
 body {
@@ -708,7 +711,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
 <!-- Receipt lightbox (click a thumbnail to open) -->
 <div class="receipt-lightbox" id="receipt-lightbox" onclick="closeReceiptLightbox()">
   <button class="receipt-lightbox-close" onclick="event.stopPropagation(); closeReceiptLightbox()" aria-label="Close">&times;</button>
-  <img id="receipt-lightbox-img" src="" alt="Receipt">
+  <img id="receipt-lightbox-img" src="" alt="Receipt" decoding="async">
 </div>
 
 <!-- Expense modal -->
@@ -2026,7 +2029,7 @@ async function renderExpenses() {
         : '';
       const cardLabel = cardDisplayLabel(e.card);
       const thumb = e.receipt && e._collection && e.id
-        ? `<img class="receipt-thumb" src="${receiptUrl(e)}" alt="Receipt thumbnail" onclick="openReceiptLightbox('${receiptUrl(e)}')" loading="lazy">`
+        ? `<img class="receipt-thumb" src="${receiptUrl(e)}" alt="Receipt thumbnail" onclick="openReceiptLightbox('${receiptUrl(e)}')" loading="lazy" decoding="async">`
         : '';
       html += `
         <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100);gap:10px;">

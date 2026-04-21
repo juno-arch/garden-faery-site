@@ -44,7 +44,9 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap" media="print" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap"></noscript>
 <link rel="stylesheet" href="shared.css">
 <script src="shared.js" defer></script>
 <style>
@@ -786,7 +788,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
 
 <div class="container">
   <div class="header">
-    <img src="gallery/flower-field-dianthus.jpg" alt="Garden Faery flower field">
+    <img src="gallery/flower-field-dianthus.jpg" alt="Garden Faery flower field" decoding="async">
     <div class="hero-overlay">
       <h1>Book a Visit</h1>
       <p>Pick a service, choose your day, and you're all set.</p>
@@ -969,7 +971,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   <!-- Faery divider -->
   <div class="faery-divider" aria-hidden="true">
     <div class="faery-divider-line"></div>
-    <img src="garden-faery-logo.png" alt="">
+    <img src="garden-faery-logo.png" alt="" decoding="async">
     <div class="faery-divider-line"></div>
   </div>
 

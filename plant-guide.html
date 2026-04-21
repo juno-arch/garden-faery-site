@@ -21,7 +21,9 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" media="print" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap"></noscript>
   <title>Plant Archive | Garden Faery, Arcata, CA</title>
   <script type="application/ld+json">
   {
@@ -1486,7 +1488,7 @@
 
   <!-- Navigation -->
   <nav class="site-nav">
-    <a href="index.html" class="nav-logo"><img src="garden-faery-logo.png" alt="" class="nav-logo-img" aria-hidden="true">Garden Faery</a>
+    <a href="index.html" class="nav-logo"><img src="garden-faery-logo.png" alt="" class="nav-logo-img" aria-hidden="true" decoding="async">Garden Faery</a>
     <button class="hamburger" onclick="var m=document.querySelector('.nav-links');m.classList.toggle('open');this.setAttribute('aria-expanded',m.classList.contains('open'))" aria-label="Menu" aria-expanded="false">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
         <line x1="3" y1="6" x2="21" y2="6"/>
@@ -3777,7 +3779,7 @@
 
           const imageHtml = `
             <div class="plant-image">
-              <img src="plant-guide/${plant.slug}.jpg" alt="${plant.name}" loading="lazy" onerror="handleImgError(this, '${cat.color}')">
+              <img src="plant-guide/${plant.slug}.jpg" alt="${plant.name}" loading="lazy" onerror="handleImgError(this, '${cat.color}')" decoding="async">
             </div>
           `;
 
@@ -4523,7 +4525,7 @@
 
       imgWrap.classList.remove('multi');
       imgWrap.innerHTML =
-        '<img class="gallery-img" src="' + primaryUrl + '" alt="' + escapeHtml(p.name) + '">' +
+        '<img class="gallery-img" src="' + primaryUrl + '" alt="' + escapeHtml(p.name) + '" decoding="async">' +
         '<button class="gallery-arrow prev" aria-label="Previous photo">&#8249;</button>' +
         '<button class="gallery-arrow next" aria-label="Next photo">&#8250;</button>' +
         '<div class="gallery-nav" hidden></div>';

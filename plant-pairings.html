@@ -22,7 +22,9 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" media="print" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap"></noscript>
   <title>Plant Pairings | Garden Faery, Arcata, CA</title>
   <link rel="stylesheet" href="shared.css">
   <style>
@@ -347,7 +349,7 @@
 <body>
   <nav class="site-nav">
     <a href="index.html" class="nav-logo">
-      <img src="garden-faery-logo.png" alt="" class="nav-logo-img">
+      <img src="garden-faery-logo.png" alt="" class="nav-logo-img" decoding="async">
       Garden Faery
     </a>
     <button class="nav-toggle" aria-label="Menu" type="button" onclick="document.querySelector('.nav-links').classList.toggle('open')">
@@ -413,7 +415,7 @@
   <div class="modal-overlay" id="modal-overlay">
     <div class="modal" id="modal">
       <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
-      <img class="modal-hero" id="modal-hero" alt="">
+      <img class="modal-hero" id="modal-hero" alt="" decoding="async">
       <div class="modal-body" id="modal-body"></div>
     </div>
   </div>
@@ -603,7 +605,7 @@
         const styleTag = p.style ? '<span class="pairing-tag style">' + p.style + '</span>' : '';
         const seasonTag = p.season ? '<span class="pairing-tag season">' + p.season + '</span>' : '';
         card.innerHTML = `
-          <img class="pairing-img" src="${p.hero}" alt="${p.name}" loading="lazy" onerror="this.style.background='var(--sage-light)';this.removeAttribute('src');">
+          <img class="pairing-img" src="${p.hero}" alt="${p.name}" loading="lazy" onerror="this.style.background='var(--sage-light)';this.removeAttribute('src');" decoding="async">
           <div class="pairing-body">
             <h2 class="pairing-name">${p.name}</h2>
             <p class="pairing-tagline">${p.tagline}</p>
@@ -636,7 +638,7 @@
       const conditionTags = p.conditions.map(c => `<span class="pairing-tag">${c}</span>`).join('');
       const plantRows = p.plants.map(pl => `
         <a class="plant-row" href="${plantHref(pl.slug)}">
-          <img class="plant-thumb" src="${plantThumbSrc(pl.slug)}" alt="" loading="lazy" onerror="this.style.background='var(--sage-light)';this.removeAttribute('src');">
+          <img class="plant-thumb" src="${plantThumbSrc(pl.slug)}" alt="" loading="lazy" onerror="this.style.background='var(--sage-light)';this.removeAttribute('src');" decoding="async">
           <div class="plant-info">
             <div class="plant-info-name">${plantTitle(pl.slug)}</div>
             <div class="plant-info-role">${pl.role}</div>

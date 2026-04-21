@@ -21,7 +21,9 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" media="print" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap"></noscript>
   <title>Succession Planting Seed Kit | Garden Faery, Arcata, CA</title>
   <link rel="stylesheet" href="shared.css">
   <style>
@@ -316,7 +318,7 @@
 <body>
   <nav class="site-nav">
     <a href="index.html" class="nav-logo">
-      <img src="garden-faery-logo.png" alt="" class="nav-logo-img">
+      <img src="garden-faery-logo.png" alt="" class="nav-logo-img" decoding="async">
       Garden Faery
     </a>
     <button class="hamburger" aria-label="Menu" aria-expanded="false" type="button" onclick="var m=document.querySelector('.nav-links');m.classList.toggle('open');this.setAttribute('aria-expanded',m.classList.contains('open'))">

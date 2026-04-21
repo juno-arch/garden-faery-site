@@ -22,7 +22,9 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" media="print" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap"></noscript>
   <title>Garden Styles | Garden Faery, Arcata, CA</title>
   <link rel="stylesheet" href="shared.css">
   <style>
@@ -286,7 +288,7 @@
 <body>
   <nav class="site-nav">
     <a href="index.html" class="nav-logo">
-      <img src="garden-faery-logo.png" alt="" class="nav-logo-img">
+      <img src="garden-faery-logo.png" alt="" class="nav-logo-img" decoding="async">
       Garden Faery
     </a>
     <button class="nav-toggle" aria-label="Menu" type="button" onclick="document.querySelector('.nav-links').classList.toggle('open')">
@@ -340,7 +342,7 @@
   <div class="modal-overlay" id="modal-overlay">
     <div class="modal" id="modal">
       <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
-      <img class="modal-hero" id="modal-hero" alt="">
+      <img class="modal-hero" id="modal-hero" alt="" decoding="async">
       <div class="modal-body" id="modal-body"></div>
     </div>
   </div>
@@ -563,7 +565,7 @@
       card.className = 'style-card';
       card.innerHTML = `
         <img src="${s.hero}" alt="${s.name}" loading="lazy"
-          onerror="this.style.background='var(--sage-light)';this.removeAttribute('src');">
+          onerror="this.style.background='var(--sage-light)';this.removeAttribute('src');" decoding="async">
         <div class="style-card-body">
           <div class="style-card-name">${s.name}</div>
           <div class="style-card-tagline">${s.tagline}</div>
@@ -580,7 +582,7 @@
     function plantRow(p) {
       return `<a class="plant-row" href="${plantHref(p.slug)}">
         <img class="plant-thumb" src="${plantThumbSrc(p.slug)}" alt="" loading="lazy"
-          onerror="this.style.background='var(--sage-light)';this.removeAttribute('src');">
+          onerror="this.style.background='var(--sage-light)';this.removeAttribute('src');" decoding="async">
         <div class="plant-info">
           <div class="plant-info-name">${plantTitle(p.slug)}</div>
           <div class="plant-info-role">${p.role}</div>

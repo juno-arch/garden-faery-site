@@ -55,7 +55,9 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" media="print" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="shared.css">
   <script src="shared.js" defer></script>
   <title>Garden Services in Arcata & Humboldt County | Garden Faery</title>
@@ -364,7 +366,7 @@
 </head>
 <body>
   <nav class="site-nav">
-    <a href="index.html" class="nav-logo"><img src="garden-faery-logo.png" alt="" class="nav-logo-img" aria-hidden="true">Garden Faery</a>
+    <a href="index.html" class="nav-logo"><img src="garden-faery-logo.png" alt="" class="nav-logo-img" aria-hidden="true" decoding="async">Garden Faery</a>
     <button class="hamburger" onclick="var m=document.querySelector('.nav-links');m.classList.toggle('open');this.setAttribute('aria-expanded',m.classList.contains('open'))" aria-label="Menu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div class="nav-links">
       <a href="index.html">Home</a>
@@ -392,7 +394,7 @@
 
     <div class="service-card">
       <div class="service-card-image">
-        <img src="gallery/calendula-flowers-hand.jpg" alt="Hands holding calendula flowers from a tended garden" loading="lazy">
+        <img src="gallery/calendula-flowers-hand.jpg" alt="Hands holding calendula flowers from a tended garden" loading="lazy" decoding="async">
         <h3>Garden Tending &amp; Weeding</h3>
       </div>
       <div class="service-card-body">
@@ -403,7 +405,7 @@
 
     <div class="service-card">
       <div class="service-card-image">
-        <img src="gallery/fresh-beet-harvest.jpg" alt="Fresh beet harvest from raised bed" loading="lazy">
+        <img src="gallery/fresh-beet-harvest.jpg" alt="Fresh beet harvest from raised bed" loading="lazy" decoding="async">
         <h3>Creative Raised Beds</h3>
       </div>
       <div class="service-card-body">
@@ -423,7 +425,7 @@
 
     <div class="service-card">
       <div class="service-card-image">
-        <img src="gallery/honeybees-hive-frame.jpg" alt="Honeybees on hive frame" loading="lazy">
+        <img src="gallery/honeybees-hive-frame.jpg" alt="Honeybees on hive frame" loading="lazy" decoding="async">
         <h3>Bee Sitting, Swarms &amp; Hive Care</h3>
       </div>
       <div class="service-card-body">
@@ -434,7 +436,7 @@
 
     <div class="service-card">
       <div class="service-card-image">
-        <img src="gallery/flower-field-dianthus.jpg" alt="Flower field with dianthus" loading="lazy">
+        <img src="gallery/flower-field-dianthus.jpg" alt="Flower field with dianthus" loading="lazy" decoding="async">
         <h3>Pet &amp; Plant Sitting</h3>
       </div>
       <div class="service-card-body">

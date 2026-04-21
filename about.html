@@ -46,7 +46,9 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" media="print" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="shared.css">
   <script src="shared.js" defer></script>
   <style>
@@ -212,7 +214,7 @@
 <body>
 
 <nav class="site-nav">
-  <a href="index.html" class="nav-logo"><img src="garden-faery-logo.png" alt="" class="nav-logo-img" aria-hidden="true">Garden Faery</a>
+  <a href="index.html" class="nav-logo"><img src="garden-faery-logo.png" alt="" class="nav-logo-img" aria-hidden="true" decoding="async">Garden Faery</a>
   <button class="hamburger" onclick="var m=document.querySelector('.nav-links');m.classList.toggle('open');this.setAttribute('aria-expanded',m.classList.contains('open'))" aria-label="Menu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
   <div class="nav-links">
     <a href="index.html">Home</a>
@@ -235,7 +237,7 @@
 </nav>
 
 <main class="page-content">
-  <div class="about-hero"><img src="farm.jpg" alt="Taya, the Garden Faery, gardener in Arcata and Humboldt County" loading="lazy"></div>
+  <div class="about-hero"><img src="farm.jpg" alt="Taya, the Garden Faery, gardener in Arcata and Humboldt County" loading="lazy" decoding="async"></div>
   <h1 class="page-title">Hey, I'm Taya</h1>
   <p class="page-subtitle">The Garden Faery &middot; Arcata, CA</p>
 
@@ -250,8 +252,8 @@
   </div>
 
   <div class="photo-row">
-    <img src="gallery/costa-rica-bananas.jpg" alt="Taya at Verde Energia permaculture farm in Costa Rica, standing among banana trees" loading="lazy">
-    <img src="gallery/costa-rica-turmeric.jpg" alt="Taya with a massive turmeric harvest at Verde Energia, Costa Rica" loading="lazy">
+    <img src="gallery/costa-rica-bananas.jpg" alt="Taya at Verde Energia permaculture farm in Costa Rica, standing among banana trees" loading="lazy" decoding="async">
+    <img src="gallery/costa-rica-turmeric.jpg" alt="Taya with a massive turmeric harvest at Verde Energia, Costa Rica" loading="lazy" decoding="async">
   </div>
 
   <div class="about-section">
@@ -260,8 +262,8 @@
   </div>
 
   <div class="photo-row">
-    <img src="gallery/taya-lions-mane-greenhouse.jpg" alt="Taya growing lion's mane mushrooms in the greenhouse at Mystic Roots Farm" loading="lazy">
-    <img src="gallery/taya-with-microgreens.jpg" alt="Taya with fresh microgreens trays, specialty crop production in Humboldt County" loading="lazy">
+    <img src="gallery/taya-lions-mane-greenhouse.jpg" alt="Taya growing lion's mane mushrooms in the greenhouse at Mystic Roots Farm" loading="lazy" decoding="async">
+    <img src="gallery/taya-with-microgreens.jpg" alt="Taya with fresh microgreens trays, specialty crop production in Humboldt County" loading="lazy" decoding="async">
   </div>
 
   <div class="about-section">
@@ -270,12 +272,12 @@
   </div>
 
   <div class="photo-row">
-    <img src="gallery/honeybee-on-finger.jpg" alt="Honey bee resting on Taya's finger, gentle bee care in Humboldt County" loading="lazy">
-    <img src="gallery/honeybees-hive-frame.jpg" alt="Healthy honeybee hive frame, bee services by Garden Faery in Arcata" loading="lazy">
+    <img src="gallery/honeybee-on-finger.jpg" alt="Honey bee resting on Taya's finger, gentle bee care in Humboldt County" loading="lazy" decoding="async">
+    <img src="gallery/honeybees-hive-frame.jpg" alt="Healthy honeybee hive frame, bee services by Garden Faery in Arcata" loading="lazy" decoding="async">
   </div>
 
   <div class="section-divider">
-    <img src="garden-faery-logo-alt.png" alt="Garden Faery logo" loading="lazy">
+    <img src="garden-faery-logo-alt.png" alt="Garden Faery logo" loading="lazy" decoding="async">
   </div>
 
   <div class="about-section">
