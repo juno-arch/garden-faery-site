@@ -885,48 +885,24 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
       -->
     </div>
 
-    <!-- Booking type: one visit vs recurring (only shown after picking morning) -->
-    <div id="booking-type-section" style="display:none; margin-top: 20px;">
-      <h4 style="font-size: 0.95rem; font-weight: 600; color: var(--plum); margin-bottom: 8px;">How often?</h4>
-      <div class="booking-type">
-        <button type="button" id="bt-once" onclick="selectBookingType('once')">
-          Just one visit
-          <small>A single morning</small>
-        </button>
-        <button type="button" id="bt-multiple" onclick="selectBookingType('multiple')">
-          A few specific dates
-          <small>Pick the days, no pattern</small>
-        </button>
-        <button type="button" id="bt-recurring" onclick="selectBookingType('recurring')">
-          Recurring
-          <small>Same weekday, repeating</small>
-        </button>
-      </div>
+    <!-- Booking type chooser removed: multi-date is the only mode now.
+         Picking a service jumps straight to the calendar; pick 1 day for
+         one visit or N for several. Hidden stubs kept so legacy JS that
+         still references these IDs doesn't throw. -->
+    <div id="booking-type-section" style="display:none;">
+      <button type="button" id="bt-once" style="display:none;"></button>
+      <button type="button" id="bt-multiple" style="display:none;"></button>
+      <button type="button" id="bt-recurring" style="display:none;"></button>
     </div>
-
-    <!-- Recurring setup -->
-    <div id="recurring-setup" class="recurring-setup" style="display:none;">
-      <h4>Pick a weekday</h4>
-      <div class="weekday-chips" id="weekday-chips"></div>
-
-      <h4>How often?</h4>
-      <select id="recur-frequency" class="form-control" style="width:100%; padding:10px; border:2px solid var(--gray-200); border-radius:10px; font-size:0.95rem;">
-        <option value="weekly">Weekly</option>
-        <option value="biweekly">Every other week</option>
-        <option value="monthly">Monthly (same weekday)</option>
-      </select>
-
-      <h4>Start date</h4>
-      <input type="date" id="recur-start" style="width:100%; padding:10px; border:2px solid var(--gray-200); border-radius:10px; font-size:0.95rem;">
-
-      <h4>End date</h4>
-      <input type="date" id="recur-end" style="width:100%; padding:10px; border:2px solid var(--gray-200); border-radius:10px; font-size:0.95rem;">
-
-      <div id="recurring-preview" class="recurring-preview" style="display:none;"></div>
+    <div id="recurring-setup" style="display:none;">
+      <div id="weekday-chips"></div>
+      <select id="recur-frequency"><option value="weekly">Weekly</option></select>
+      <input type="date" id="recur-start">
+      <input type="date" id="recur-end">
+      <div id="recurring-preview" style="display:none;"></div>
     </div>
-
-    <div class="btn-row" id="step-0-continue" style="display:none; margin-top: 20px;">
-      <button class="btn btn-primary" id="btn-step0-continue" onclick="continueFromStep0()">Continue</button>
+    <div id="step-0-continue" style="display:none;">
+      <button id="btn-step0-continue"></button>
     </div>
 
     <div class="manage-link">

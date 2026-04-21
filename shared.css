@@ -224,8 +224,8 @@ footer a:hover { text-decoration: underline; }
   position: fixed;
   top: 0;
   left: 0;
-  width: 32px;
-  height: 20px;
+  width: 36px;
+  height: 30px;
   pointer-events: auto;
   cursor: pointer;
   z-index: 9;
@@ -235,11 +235,11 @@ footer a:hover { text-decoration: underline; }
   -webkit-tap-highlight-color: transparent;
 }
 /* Transparent "halo" around the bee so the click target is bigger than
-   the 32x20 visual — makes the bee much easier to catch in flight. */
+   the 36x30 visual — makes the bee much easier to catch in flight. */
 .gf-bee::before {
   content: '';
   position: absolute;
-  inset: -16px;
+  inset: -14px;
   border-radius: 50%;
 }
 /* While the bee is perched on a primary CTA, let clicks pass through to

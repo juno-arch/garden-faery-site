@@ -382,7 +382,7 @@
         const x = baseX + perpX * wiggle;
         const y = baseY + perpY * wiggle + bob;
         keyframes.push({
-          transform: 'translate(' + (x - 16) + 'px, ' + (y - 10) + 'px)'
+          transform: 'translate(' + (x - 18) + 'px, ' + (y - 15) + 'px)'
         });
       }
       bee.classList.add('flying');
@@ -407,7 +407,7 @@
       if (landingEl) {
         pos = { x: innerWidth * 0.35, y: innerHeight + 30 };
         bee.style.transform =
-          'translate(' + (pos.x - 16) + 'px, ' + (pos.y - 10) + 'px)';
+          'translate(' + (pos.x - 18) + 'px, ' + (pos.y - 15) + 'px)';
         await sleep(500 + Math.random() * 500);
         bee.classList.add('on-cta');
         await flyTo({ ...elementLandingPos(landingEl), land: true });
