@@ -162,7 +162,34 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
 .step-panel.active { display: block; }
 
 /* Event type selector */
-.event-types { display: flex; flex-direction: column; gap: 12px; }
+.event-types { display: flex; flex-direction: column; gap: 18px; }
+.event-option { display: flex; flex-direction: column; gap: 4px; }
+.next-available {
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: var(--text-secondary);
+  padding-left: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 16px;
+}
+.next-available::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--spring-sage);
+  flex-shrink: 0;
+}
+.next-available.loading::before { background: var(--gray-400); }
+.next-available.none::before { background: var(--gray-400); }
+.next-available .next-day {
+  font-weight: 700;
+  color: var(--text-primary);
+}
 
 .event-type-btn {
   display: flex;
@@ -865,20 +892,26 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   <div class="step-panel active" id="step-0">
 
     <div class="event-types">
-      <button class="event-type-btn" data-event="morning">
-        <div class="event-icon morning">AM</div>
-        <div class="event-info">
-          <h3>Morning Garden Care</h3>
-          <p>9am to 2pm, 5 hours. $25/hr. Tue through Fri.</p>
-        </div>
-      </button>
-      <button class="event-type-btn" data-event="afternoon">
-        <div class="event-icon afternoon">PM</div>
-        <div class="event-info">
-          <h3>Afternoon Garden Care</h3>
-          <p>2:30pm to 4:30pm, 2 hours. $25/hr. Tue through Fri.</p>
-        </div>
-      </button>
+      <div class="event-option">
+        <div class="next-available loading" id="next-avail-morning">Checking next opening...</div>
+        <button class="event-type-btn" data-event="morning">
+          <div class="event-icon morning">AM</div>
+          <div class="event-info">
+            <h3>Morning Garden Care</h3>
+            <p>9am to 2pm, 5 hours. $25/hr. Tue through Fri.</p>
+          </div>
+        </button>
+      </div>
+      <div class="event-option">
+        <div class="next-available loading" id="next-avail-afternoon">Checking next opening...</div>
+        <button class="event-type-btn" data-event="afternoon">
+          <div class="event-icon afternoon">PM</div>
+          <div class="event-info">
+            <h3>Afternoon Garden Care</h3>
+            <p>2:30pm to 4:30pm, 2 hours. $25/hr. Tue through Fri.</p>
+          </div>
+        </button>
+      </div>
       <!-- Consultation PAUSED as of April 12, 2026. Uncomment to re-enable.
       <button class="event-type-btn" data-event="consultation">
         <div class="event-icon consult">Free</div>
@@ -2452,7 +2485,67 @@ function formatDate(date) {
 }
 
 // --- Init: preload data ---
-refreshData();
+refreshData().then(updateNextAvailable);
+
+// --- Next-available indicator above each event-type button ---
+// Walks forward from today, skipping past dates, weekends outside the
+// service window, days already booked, and admin blocks. Stops at the
+// first matching open day (or after ~120 days if nothing fits).
+function findNextAvailable(eventKey) {
+  const et = EVENT_TYPES[eventKey];
+  if (!et) return null;
+  const bookings = getBookings();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  for (let i = 0; i < 120; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    const dow = d.getDay();
+    if (!et.days.includes(dow)) continue;
+    const dateStr = formatDate(d);
+    const isBooked = bookings.some(b =>
+      b.date === dateStr && b.eventType === eventKey && b.status !== 'canceled'
+    );
+    if (isBooked) continue;
+    if (typeof isDateBlocked === 'function' && isDateBlocked(dateStr, eventKey)) continue;
+    return d;
+  }
+  return null;
+}
+
+function formatNextAvailable(date) {
+  if (!date) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffDays = Math.round((date - today) / 86400000);
+  const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const dayName = weekdays[date.getDay()];
+  const monthDay = months[date.getMonth()] + ' ' + date.getDate();
+  let dayLabel;
+  if (diffDays === 0) dayLabel = 'Today';
+  else if (diffDays === 1) dayLabel = 'Tomorrow';
+  else if (diffDays < 7) dayLabel = 'This ' + dayName;
+  else if (diffDays < 14) dayLabel = 'Next ' + dayName;
+  else dayLabel = dayName;
+  return dayLabel + ', ' + monthDay;
+}
+
+function updateNextAvailable() {
+  ['morning', 'afternoon'].forEach(key => {
+    const el = document.getElementById('next-avail-' + key);
+    if (!el) return;
+    const next = findNextAvailable(key);
+    el.classList.remove('loading');
+    if (!next) {
+      el.classList.add('none');
+      el.textContent = 'No openings in the next four months. Try a different option.';
+      return;
+    }
+    el.classList.remove('none');
+    el.innerHTML = 'Next opening: <span class="next-day">' + formatNextAvailable(next) + '</span>';
+  });
+}
 
 // ============================================
 // Returning-client login (email OTP)
