@@ -82,10 +82,11 @@
 
     /* Meet Taya card */
     .meet-card { display: flex; gap: 18px; align-items: center; background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.7); border-radius: 20px; padding: 18px; margin: 8px 0 32px; box-shadow: 0 4px 20px rgba(74,25,66,0.06); }
-    .meet-card img { width: 96px; height: 96px; flex-shrink: 0; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); object-fit: cover; border: 3px solid var(--accent-1); }
+    .meet-img-wrap { width: 96px; height: 96px; flex-shrink: 0; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); background: var(--accent-1); padding: 4px; box-sizing: border-box; }
+    .meet-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .meet-card .meet-text { font-size: 15px; line-height: 1.55; }
     .meet-card .meet-text strong { font-family: var(--font-heading); font-size: 19px; display: block; margin-bottom: 4px; }
-    @media (max-width: 500px) { .meet-card { flex-direction: column; text-align: center; } .meet-card img { width: 110px; height: 110px; } }
+    @media (max-width: 500px) { .meet-card { flex-direction: column; text-align: center; } .meet-img-wrap { width: 110px; height: 110px; } }
 
     /* Photo strip */
     .photo-strip-section { margin: 8px 0 32px; }
@@ -429,7 +430,7 @@
 
   <div class="content">
     <div class="meet-card">
-      <img src="farm.jpg" alt="Taya, Garden Faery, smiling in the garden">
+      <div class="meet-img-wrap"><img src="farm.jpg" alt="Taya, Garden Faery, smiling in the garden"></div>
       <div class="meet-text">
         <strong>Hi, I&rsquo;m Taya</strong>
         Your local garden faery. I show up weekly to weed, prune, plant, and keep your garden happy so you don&rsquo;t have to. Roots in permaculture, beekeeping, and microgreen cultivation. Let me tend what you love.
