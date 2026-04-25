@@ -2761,6 +2761,17 @@ document.addEventListener('DOMContentLoaded', () => {
       phoneEl.value = formatPhoneNumber(phoneEl.value);
     });
   }
+
+  // Deep-link to the Manage panel via #manage in the URL. Email
+  // "Cancel or Reschedule" buttons point at /book.html#manage so a
+  // single click takes the client straight to phone-number entry.
+  const openManageFromHash = () => {
+    if (location.hash === '#manage' && typeof showManage === 'function') {
+      showManage();
+    }
+  };
+  openManageFromHash();
+  window.addEventListener('hashchange', openManageFromHash);
 });
 </script>
 

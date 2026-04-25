@@ -2072,6 +2072,51 @@ const EMAIL_TEMPLATES = [
       'At: {address}\n\n' +
       "See you in the garden! \u{1F33F}\n" +
       'Taya'
+  },
+  {
+    id: 'rain-alert-manual',
+    label: 'Rain alert (manual reschedule)',
+    trigger: 'Sent on Sundays via cron to clients with rainy bookings in the upcoming week (manual-reschedule mode).',
+    to: 'Client',
+    subject: 'Rain check on your visits this week  /  Rain check? My wings might get wet',
+    body:
+      'Hi {firstName},\n\n' +
+      "Did you know bees can’t fly in the rain? Neither can faeries.\n\n" +
+      "The forecast for your visit is looking soggy, so I’m hoping we can pick a new time:\n\n" +
+      '  {eventName} on {date} at {time}\n' +
+      '  Pick a new time: {rescheduleLink}\n\n' +
+      "Or just hit reply and we can sort it out together.\n\n" +
+      "Thanks for understanding the wet wings situation. \u{1F33F}\n\n" +
+      'Taya, Garden Faery'
+  },
+  {
+    id: 'rain-auto-reschedule',
+    label: 'Rain auto-reschedule (moved)',
+    trigger: 'Sent when a client’s rainy visit is auto-moved to the next dry slot (auto-reschedule toggle on).',
+    to: 'Client',
+    subject: 'Ever wonder where faeries go in the rain?',
+    body:
+      'Hi {firstName},\n\n' +
+      "Ever wonder where faeries go in the rain? Inside, mostly. So I’ve quietly moved your soggy visit to the next dry one I had open:\n\n" +
+      '  {eventName}: {oldDate} → {newDate} at {newTime}\n\n' +
+      "If that doesn’t work, just reply and we’ll find another spot.\n\n" +
+      'Taya, Garden Faery 🌿'
+  },
+  {
+    id: 'weekly-health-report',
+    label: 'Weekly rain-forecast report (admin)',
+    trigger: 'Internal status email sent every Sunday 10am Pacific to taya@gardenfaery.love. Reports cache freshness, rainy days coming, and last-7-days alert counts.',
+    to: 'Taya (admin)',
+    subject: 'Rain forecast: weekly status ({rainyCount} rainy day(s) coming  /  all clear)',
+    body:
+      "Sunday status, weather edition.\n\n" +
+      "{cacheVerdict} Cache freshness: {cacheFreshness}\n\n" +
+      "Heavy-rain days coming up:\n" +
+      "{rainyDayList}\n\n" +
+      "Last 7 days of alerts:\n" +
+      "{alertSummary}\n\n" +
+      "Want more detail anytime: http://147.224.41.2:8090/_/\n\n" +
+      "\u{1F33F} Garden Faery (automated)"
   }
 ];
 const SMS_TEMPLATES = [
