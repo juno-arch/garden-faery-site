@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#4a1942">
 <meta name="apple-mobile-web-app-title" content="Garden Faery">
 <title>Book a Gardener in Arcata &amp; Humboldt County | Garden Faery</title>
-<meta name="description" content="Book your garden care visit with Garden Faery. Your local gardener in Arcata & Humboldt County, CA. Morning or afternoon sessions, $30/hr.">
+<meta name="description" content="Book your garden care visit with Garden Faery. Your local gardener in Arcata & Humboldt County, CA. Morning sessions, $30/hr.">
 <meta property="og:title" content="Book a Gardener in Arcata & Humboldt County | Garden Faery">
-<meta property="og:description" content="Schedule a garden care visit. Morning or afternoon sessions in Arcata and Humboldt County, CA. $30/hr.">
+<meta property="og:description" content="Schedule a garden care visit. Morning sessions in Arcata and Humboldt County, CA. $30/hr.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://gardenfaery.love/book.html">
 <meta property="og:image" content="https://gardenfaery.love/farm.jpg">
@@ -17,7 +17,7 @@
 <meta property="og:site_name" content="Garden Faery">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Book a Gardener in Arcata & Humboldt County | Garden Faery">
-<meta name="twitter:description" content="Schedule a garden care visit. Morning or afternoon sessions in Arcata and Humboldt County, CA.">
+<meta name="twitter:description" content="Schedule a garden care visit. Morning sessions in Arcata and Humboldt County, CA.">
 <meta name="twitter:image" content="https://gardenfaery.love/farm.jpg">
 <link rel="canonical" href="https://gardenfaery.love/book.html">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -902,6 +902,10 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
           </div>
         </button>
       </div>
+      <!-- Afternoon Garden Care removed from public booking 2026-04-25.
+           Afternoon slots are reserved for grandfathered regulars (Kenzie).
+           Config block below is kept (days [] disables it) so the slug
+           still resolves for any existing bookings.
       <div class="event-option">
         <div class="next-available loading" id="next-avail-afternoon">Checking next opening...</div>
         <button class="event-type-btn" data-event="afternoon">
@@ -912,6 +916,8 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
           </div>
         </button>
       </div>
+      -->
+
       <!-- Consultation PAUSED as of April 12, 2026. Uncomment to re-enable.
       <button class="event-type-btn" data-event="consultation">
         <div class="event-icon consult">Free</div>
@@ -1100,7 +1106,7 @@ const EVENT_TYPES = {
     duration: 120,
     startHour: 14, startMin: 30,
     endHour: 16, endMin: 30,
-    days: [3,4,5], // Wed,Thu,Fri (Mon afternoon reserved for regulars, Tue off)
+    days: [], // Afternoon disabled for public booking 2026-04-25 (reserved for regulars)
     price: 30,
     slots: ['2:30pm']
   }
