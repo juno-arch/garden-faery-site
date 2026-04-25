@@ -660,6 +660,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
     <button class="tab" data-tab="income" onclick="switchTab('income')">Income</button>
     <button class="tab" data-tab="expenses" onclick="switchTab('expenses')">Expenses</button>
     <button class="tab" data-tab="taxes" onclick="switchTab('taxes')">Taxes</button>
+    <button class="tab" data-tab="emails" onclick="switchTab('emails')">Emails</button>
     <button class="tab" data-tab="settings" aria-label="Settings" onclick="switchTab('settings')"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="3"/></svg></button>
   </div>
 
@@ -709,6 +710,11 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   <!-- Taxes view -->
   <div class="tab-panel" id="tab-taxes" style="display:none;">
     <div id="taxes-content"></div>
+  </div>
+
+  <!-- Emails & SMS view -->
+  <div class="tab-panel" id="tab-emails" style="display:none;">
+    <div id="emails-content"></div>
   </div>
 
   <!-- Settings view -->
@@ -859,8 +865,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
       <label>What</label>
       <select id="block-type">
         <option value="all">Whole day off</option>
-        <option value="morning">Morning only (9am to 2pm)</option>
-        <option value="afternoon">Afternoon only (2:30 to 4:30pm)</option>
+        <option value="morning">Work hours (9am to 2pm)</option>
         <option value="custom">Custom time</option>
       </select>
     </div>
@@ -1322,6 +1327,7 @@ function switchTab(tab) {
   if (tab === 'income') renderIncome();
   if (tab === 'expenses') renderExpenses();
   if (tab === 'taxes') renderTaxes();
+  if (tab === 'emails') renderEmails();
   if (tab === 'settings') renderSettings();
 }
 
@@ -1990,6 +1996,156 @@ function exportAccountantCsv() {
   const a = document.createElement('a');
   a.href = url; a.download = `garden-faery-tax-${year}.csv`; a.click();
   URL.revokeObjectURL(url);
+}
+
+// --- Emails & SMS dashboard (read-only) ---
+// Mirrors the templates in pb_hooks/notifications.pb.js so Taya can see
+// exactly what clients receive without digging into the server file.
+// Edits to the wording still need a PocketBase deploy (deploy-update.sh)
+// for now; an inline editor with PB-side template storage is queued.
+const EMAIL_TEMPLATES = [
+  {
+    id: 'booking-confirmed',
+    label: 'Booking confirmation',
+    trigger: 'Sent when a client books a visit (or you book on their behalf).',
+    to: 'Client',
+    subject: 'Your Garden Faery visit is confirmed for {date}',
+    body:
+      'Hi {firstName},\n\n' +
+      "Thanks for booking with Garden Faery! Here are your details:\n\n" +
+      'Service: {eventName}\n' +
+      'Date: {date}\n' +
+      'Time: {time}\n' +
+      'Address: {address}\n\n' +
+      "(First-time clients get an extra paragraph: please be home for the first visit so you can walk me through the garden.)\n\n" +
+      'Need to reschedule? https://gardenfaery.love/book.html\n\n' +
+      "\u{1F33F} Garden Faery"
+  },
+  {
+    id: 'moon-cancel',
+    label: 'Moon-day reschedule',
+    trigger: "Sent when you cancel a visit because it falls on a moon day you're resting.",
+    to: 'Client',
+    subject: 'Rescheduling your Garden Faery visit on {date} \u{1F319}',
+    body:
+      'Hi {firstName},\n\n' +
+      "I'm resting this week for my moon days and need to reschedule our visit on {date}.\n\n" +
+      'Please pick a new time that works for you here:\n' +
+      'https://gardenfaery.love/book.html\n\n' +
+      "Thank you for your understanding, see you in the garden soon. \u{1F33F}\n\n" +
+      'Taya, Garden Faery'
+  },
+  {
+    id: 'admin-cancel',
+    label: 'Admin-cancel notice',
+    trigger: 'Sent when you cancel a visit from the admin (non-moon reason).',
+    to: 'Client',
+    subject: 'Your Garden Faery visit on {date} was canceled',
+    body:
+      'Hi {firstName},\n\n' +
+      'I had to cancel our {eventName} on {date} at {time}.\n\n' +
+      'You can reschedule anytime: https://gardenfaery.love/book.html\n\n' +
+      'Taya, Garden Faery'
+  },
+  {
+    id: 'rescheduled',
+    label: 'Visit rescheduled',
+    trigger: "Sent when a visit's date or time changes (admin or client).",
+    to: 'Client',
+    subject: 'Your Garden Faery visit moved to {newDate}',
+    body:
+      'Hi {firstName},\n\n' +
+      'Your {eventName} is now scheduled for:\n' +
+      '{newDate} at {newTime}\n\n' +
+      '(was {oldDate} at {oldTime})\n\n' +
+      "See you then! \u{1F33F}\n" +
+      'Taya, Garden Faery'
+  },
+  {
+    id: 'reminder',
+    label: 'Day-before reminder',
+    trigger: 'Sent automatically the day before a visit (PocketBase cron).',
+    to: 'Client',
+    subject: 'Reminder: your Garden Faery visit tomorrow ({date})',
+    body:
+      'Hi {firstName},\n\n' +
+      'Just a reminder: your {eventName} is tomorrow ({date}) at {time}.\n' +
+      'At: {address}\n\n' +
+      "See you in the garden! \u{1F33F}\n" +
+      'Taya'
+  }
+];
+const SMS_TEMPLATES = [
+  {
+    id: 'moon-cancel-sms',
+    label: 'Moon-day reschedule SMS',
+    trigger: "Sent alongside the moon-day email if SMS is enabled and the client has a phone.",
+    to: 'Client',
+    body:
+      "Garden Faery: I'm resting for my moon days and need to move our {date} visit. " +
+      'Please pick a new time: https://gardenfaery.love/book.html. Taya \u{1F319}'
+  },
+  {
+    id: 'rescheduled-sms',
+    label: 'Reschedule confirmation SMS',
+    trigger: 'Sent alongside the reschedule email if SMS is enabled.',
+    to: 'Client',
+    body:
+      'Garden Faery: Your {eventName} is now {newDate} at {newTime} (was {oldDate}). See you then! Taya'
+  }
+];
+
+function escapeHtmlForEmails(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function renderEmailCard(t, kind) {
+  const subjectRow = t.subject
+    ? '<div style="font-size:0.78rem;color:var(--gray-600);margin-bottom:4px;">Subject</div>' +
+      '<div style="font-family:Lora,serif;font-size:0.95rem;font-weight:600;margin-bottom:14px;">' +
+      escapeHtmlForEmails(t.subject) + '</div>'
+    : '';
+  return '<div style="background:var(--white);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow);margin-bottom:14px;">' +
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px;flex-wrap:wrap;">' +
+      '<h3 style="margin:0;font-size:1.05rem;">' + escapeHtmlForEmails(t.label) + '</h3>' +
+      '<span style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:1px;">' + kind + ' · to ' + escapeHtmlForEmails(t.to) + '</span>' +
+    '</div>' +
+    '<p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:14px;">' + escapeHtmlForEmails(t.trigger) + '</p>' +
+    subjectRow +
+    '<div style="font-size:0.78rem;color:var(--gray-600);margin-bottom:4px;">Body</div>' +
+    '<pre style="background:var(--gray-50,#fafafa);border:1px solid var(--gray-200,#eee);border-radius:8px;padding:12px 14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.82rem;line-height:1.55;white-space:pre-wrap;word-break:break-word;margin:0;">' +
+      escapeHtmlForEmails(t.body) +
+    '</pre>' +
+  '</div>';
+}
+
+function renderEmails() {
+  const el = document.getElementById('emails-content');
+  if (!el) return;
+  let html = '<div style="background:var(--white);border-radius:12px;padding:16px 20px;box-shadow:var(--shadow);margin-bottom:18px;">' +
+    '<h2 style="margin:0 0 6px 0;font-size:1.2rem;">Auto emails &amp; SMS</h2>' +
+    '<p style="font-size:0.88rem;color:var(--gray-700);margin:0 0 8px 0;">' +
+      'These are the messages PocketBase sends to clients automatically. ' +
+      "Tokens like <code>{firstName}</code> and <code>{date}</code> get filled in when each message goes out." +
+    '</p>' +
+    '<p style="font-size:0.78rem;color:var(--gray-600);margin:0;">' +
+      'Editing the wording: change <code>pocketbase/pb_hooks/notifications.pb.js</code> and run <code>deploy-update.sh</code>. ' +
+      'An in-place editor is on the to-do list.' +
+    '</p>' +
+  '</div>';
+
+  html += '<h3 style="margin:18px 4px 10px 4px;font-size:1rem;color:var(--gray-700);text-transform:uppercase;letter-spacing:1px;font-weight:600;">Email templates</h3>';
+  EMAIL_TEMPLATES.forEach(t => { html += renderEmailCard(t, 'Email'); });
+
+  html += '<h3 style="margin:24px 4px 10px 4px;font-size:1rem;color:var(--gray-700);text-transform:uppercase;letter-spacing:1px;font-weight:600;">SMS templates</h3>';
+  SMS_TEMPLATES.forEach(t => { html += renderEmailCard(t, 'SMS'); });
+
+  el.innerHTML = html;
 }
 
 // --- Settings (local to device) ---
@@ -4441,6 +4597,7 @@ function renderAll() {
   else if (tab === 'income') renderIncome();
   else if (tab === 'expenses') renderExpenses();
   else if (tab === 'taxes') renderTaxes();
+  else if (tab === 'emails') renderEmails();
   else if (tab === 'settings') renderSettings();
 }
 
