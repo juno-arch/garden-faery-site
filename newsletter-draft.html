@@ -336,41 +336,41 @@
   const MONTH_CONTENT = [
     { // Jan
       greeting: "Hello from the Humboldt coast. Winter rains are keeping the garden drinking, and indoors we're eyeing catalogs and warming up seed-starting gear. This month is about planning and planting bare-root.",
-      focus: "Bare-root season. Nurseries have blueberries, raspberries, and fruit trees at their lowest prices. Plant them now while they're dormant — they'll establish strong roots before spring pushes new growth.",
+      focus: "Bare-root season. Nurseries have blueberries, raspberries, and fruit trees at their lowest prices. Plant them now while they're dormant; they'll establish strong roots before spring pushes new growth.",
       spotlight: { name: 'Blueberry', slug: 'blueberry', note: "Humboldt's naturally acidic soil is perfect for them. Plant two varieties near each other for cross-pollination." }
     },
     { // Feb
-      greeting: "The light is starting to return. Days are still short, but there's a quickening in the garden — hellebores, early primroses, and tulip tips pushing through. Seed starting begins in earnest.",
+      greeting: "The light is starting to return. Days are still short, but there's a quickening in the garden: hellebores, early primroses, and tulip tips pushing through. Seed starting begins in earnest.",
       focus: "Start tomato and pepper seeds indoors mid-month. You'll want 6-8 weeks before transplanting out. A heat mat is the difference between okay germination and great germination.",
-      spotlight: { name: 'Sugar Snap Peas', slug: 'sugar-snap-peas', note: "Direct sow now. They love cool weather and our damp soil — the earliest crop to really thrive." }
+      spotlight: { name: 'Sugar Snap Peas', slug: 'sugar-snap-peas', note: "Direct sow now. They love cool weather and our damp soil. The earliest crop to really thrive." }
     },
     { // Mar
-      greeting: "March is the hinge month. Daffodils, calendula, California poppy — everything shakes off winter. Time to turn compost into beds and wake things up.",
+      greeting: "March is the hinge month. Daffodils, calendula, California poppy. Everything shakes off winter. Time to turn compost into beds and wake things up.",
       focus: "Prep beds for the season. Fold in compost, top-dress with worm castings, and get trellises in place before peas and favas demand them.",
       spotlight: { name: 'California Poppy', slug: 'california-poppy', note: "Scatter seed now and they'll self-sow forever. They ask almost nothing and give bees everything.", external: 'plant-guide.html' }
     },
     { // Apr
       greeting: "Tomato starts are hardening off, and there's that unmistakable green smell after the April rains. The garden is waking into full production.",
-      focus: "Get tomato starts into the warmest spot you have — a south-facing wall, a hoop house, a sheltered corner. Our cool coast means every degree of extra warmth matters.",
+      focus: "Get tomato starts into the warmest spot you have: a south-facing wall, a hoop house, a sheltered corner. Our cool coast means every degree of extra warmth matters.",
       spotlight: { name: 'Lavender', slug: 'lavender', note: "If you're planting ornamentals this month, lavender is a pollinator magnet and loves our mild Humboldt climate. Plant now for summer bees.", external: 'plant-guide.html' }
     },
     { // May
-      greeting: "Last-frost date is behind us (mostly — we know Humboldt surprises). Summer crops are going in the ground. This is planting month.",
+      greeting: "Last-frost date is behind us (mostly, we know Humboldt surprises). Summer crops are going in the ground. This is planting month.",
       focus: "Direct-sow beans, cucumbers, squash, and corn. Heat-lovers like tomatoes and peppers transplant out now. Succession-sow lettuce for continuous harvest.",
       spotlight: { name: 'Bee Balm', slug: 'bee-balm', note: "Perfect time to plant for mid-summer blooms. Hummingbirds find it instantly.", external: 'plant-guide.html' }
     },
     { // Jun
-      greeting: "Long days and garlic scapes — June in the coastal garden. The first strawberries, sugar snaps, and artichokes are on the table. Everything is growing.",
+      greeting: "Long days and garlic scapes. June in the coastal garden. The first strawberries, sugar snaps, and artichokes are on the table. Everything is growing.",
       focus: "Pinch tomato suckers, stake what's toppling, and start thinking about succession crops. A fresh sowing of lettuce and chard now gives you autumn greens.",
       spotlight: { name: 'Strawberry', slug: 'strawberry', note: "Peak season. Day-neutral varieties will keep fruiting well into fall. Mulch with straw to keep berries clean." }
     },
     { // Jul
-      greeting: "Garlic harvest month — the papery curls of scapes already clipped and the heads coming out full. The garden is generous in a way that only happens in July.",
+      greeting: "Garlic harvest month. The papery curls of scapes already clipped and the heads coming out full. The garden is generous in a way that only happens in July.",
       focus: "Pull garlic when the lower leaves yellow but a few green ones remain. Cure in a shaded, airy spot for 2-3 weeks before storing. Save the best heads to replant in October.",
       spotlight: { name: 'Garlic', slug: 'garlic', note: "Humboldt-grown garlic stores for months. Hardneck varieties offer scapes in spring; softneck braids better for hanging." }
     },
     { // Aug
-      greeting: "Fog, warm soil, ripe tomatoes. August on the coast is a gift — cool mornings that ease into warm afternoons. The garden is as lush as it gets.",
+      greeting: "Fog, warm soil, ripe tomatoes. August on the coast is a gift: cool mornings that ease into warm afternoons. The garden is as lush as it gets.",
       focus: "Keep picking. Regular harvest of beans, zucchini, and cukes keeps production going. This is also fall-planting prep month: order brassica starts for September.",
       spotlight: { name: 'Tomatoes', slug: 'tomatoes', note: "Stupice, Early Girl, and Sungold perform best on the coast. If yours are slow, plant near a south-facing wall next year." }
     },
@@ -387,7 +387,7 @@
     { // Nov
       greeting: "Short days, long nights, quiet garden. The soil is drinking deeply. Time for pruning, bare-root planning, and resting the tools.",
       focus: "Prune deciduous fruit trees once they're fully dormant (late in the month). Take cuttings of currants and blueberries while you're at it.",
-      spotlight: { name: 'Comfrey', slug: 'comfrey', note: "Cut back comfrey one last time and mulch with the leaves — it's like slow-release fertilizer for your perennials.", external: 'plant-guide.html' }
+      spotlight: { name: 'Comfrey', slug: 'comfrey', note: "Cut back comfrey one last time and mulch with the leaves; it's like slow-release fertilizer for your perennials.", external: 'plant-guide.html' }
     },
     { // Dec
       greeting: "Dark days, rest and planning. Winter solstice is just ahead. The garden needs very little from us now, and that's the gift.",
@@ -528,13 +528,13 @@
 
     if (plant.length > 0) {
       md += '## Plant now\n\nHere\'s what I\'m planting this month:\n\n';
-      plant.forEach(c => { md += '- **' + c.name + '** — ' + c.planting + '\n'; });
+      plant.forEach(c => { md += '- **' + c.name + '**: ' + c.planting + '\n'; });
       md += '\n';
     }
 
     if (harvest.length > 0) {
       md += '## Harvest now\n\nOn the table this month:\n\n';
-      harvest.forEach(c => { md += '- **' + c.name + '** — ' + c.harvest + '\n'; });
+      harvest.forEach(c => { md += '- **' + c.name + '**: ' + c.harvest + '\n'; });
       md += '\n';
     }
 

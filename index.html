@@ -383,13 +383,15 @@
   <!-- ═══ TEASER BANNER — delete this entire block when Succession Planting Kit launches ═══ -->
   <style>
     .announcement-banner { display: flex; align-items: center; justify-content: center; padding: 9px 48px 9px 16px; background: var(--plum); color: var(--cream); font-family: var(--font-body); font-size: 14px; font-weight: 600; text-align: center; position: relative; border-bottom: 2px solid var(--petal-pink); }
+    .announcement-banner-link { color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: opacity 0.2s; }
+    .announcement-banner-link:hover { opacity: 0.85; }
     .announcement-banner strong { color: var(--pollen-gold); font-family: var(--font-heading); font-weight: 600; }
     .announcement-close { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--cream); cursor: pointer; font-size: 18px; line-height: 1; padding: 4px 6px; opacity: 0.65; transition: opacity 0.2s; }
     .announcement-close:hover { opacity: 1; }
   </style>
   <div class="announcement-banner" id="announcementBanner" role="note" aria-label="Upcoming product announcement">
-    <span>🌱 <strong>Coming Soon:</strong> Succession Planting Kit — stay tuned!</span>
-    <button class="announcement-close" onclick="document.getElementById('announcementBanner').remove();try{localStorage.setItem('gf_succession_banner_dismissed','1')}catch(e){}" aria-label="Dismiss announcement">✕</button>
+    <a class="announcement-banner-link" href="seed-kit.html"><span>🌱 <strong>Coming Soon:</strong> Succession Planting Kit, peek inside.</span></a>
+    <button class="announcement-close" onclick="event.stopPropagation();document.getElementById('announcementBanner').remove();try{localStorage.setItem('gf_succession_banner_dismissed','1')}catch(e){}" aria-label="Dismiss announcement">✕</button>
   </div>
   <script>try{if(localStorage.getItem('gf_succession_banner_dismissed'))document.getElementById('announcementBanner').remove()}catch(e){}</script>
   <!-- ═══ END TEASER BANNER ═══ -->
