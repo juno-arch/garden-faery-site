@@ -2168,9 +2168,138 @@ function renderEmailCard(t, kind) {
   '</div>';
 }
 
-function renderEmails() {
+// Live templates fetched from PocketBase email_templates collection.
+// Falls back to the hardcoded seeds above if the fetch fails (offline,
+// PB down, collection missing).
+let _emailTemplatesLive = null;
+let _emailEditingId = null; // record id currently in edit mode
+
+async function fetchLiveEmailTemplates() {
+  try {
+    const resp = await fetch(PB_URL + '/api/collections/email_templates/records?perPage=50&sort=sort_order', {
+      headers: PB_TOKEN ? { 'Authorization': 'Bearer ' + PB_TOKEN } : {},
+    });
+    if (!resp.ok) throw new Error('PB ' + resp.status);
+    const data = await resp.json();
+    return data.items || [];
+  } catch (err) { console.log('[emails] live fetch failed:', err); return null; }
+}
+
+async function saveEmailTemplate(recordId, subject, body) {
+  const resp = await fetch(PB_URL + '/api/collections/email_templates/records/' + recordId, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': PB_TOKEN ? 'Bearer ' + PB_TOKEN : '',
+    },
+    body: JSON.stringify({ subject: subject, body: body }),
+  });
+  if (!resp.ok) {
+    let msg = 'Save failed (' + resp.status + ')';
+    try { const j = await resp.json(); if (j && j.message) msg += ': ' + j.message; } catch (_) {}
+    throw new Error(msg);
+  }
+  return resp.json();
+}
+
+function startEditEmail(recordId) {
+  _emailEditingId = recordId;
+  renderEmails();
+}
+
+function cancelEditEmail() {
+  _emailEditingId = null;
+  renderEmails();
+}
+
+async function commitEditEmail(recordId) {
+  const subjectEl = document.getElementById('emails-edit-subject-' + recordId);
+  const bodyEl = document.getElementById('emails-edit-body-' + recordId);
+  if (!subjectEl || !bodyEl) return;
+  const newSubject = subjectEl.value;
+  const newBody = bodyEl.value;
+  const btn = document.getElementById('emails-save-btn-' + recordId);
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+  try {
+    await saveEmailTemplate(recordId, newSubject, newBody);
+    if (_emailTemplatesLive) {
+      const idx = _emailTemplatesLive.findIndex(r => r.id === recordId);
+      if (idx >= 0) {
+        _emailTemplatesLive[idx].subject = newSubject;
+        _emailTemplatesLive[idx].body = newBody;
+      }
+    }
+    _emailEditingId = null;
+    renderEmails();
+  } catch (err) {
+    alert(String(err && err.message ? err.message : err));
+    if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+  }
+}
+
+function renderEmailCardLive(rec) {
+  const isEditing = _emailEditingId === rec.id;
+  const kind = (rec.kind === 'sms') ? 'SMS' : 'Email';
+  const isEmail = rec.kind !== 'sms';
+  const to = isEmail
+    ? (rec.template_id === 'weekly-health-report' ? 'Taya (admin)' : 'Client')
+    : 'Client';
+  const subjectRow = (isEmail && (rec.subject || isEditing))
+    ? (isEditing
+        ? '<div style="font-size:0.78rem;color:var(--gray-600);margin-bottom:4px;">Subject</div>' +
+          '<input id="emails-edit-subject-' + rec.id + '" type="text" value="' + escapeHtmlForEmails(rec.subject || '') + '" style="width:100%;font-family:Lora,serif;font-size:0.95rem;font-weight:600;padding:10px 12px;border:1px solid var(--gray-300,#ddd);border-radius:7px;margin-bottom:12px;color:var(--accent-1,#4a1942);">'
+        : '<div style="font-size:0.78rem;color:var(--gray-600);margin-bottom:4px;">Subject</div>' +
+          '<div style="font-family:Lora,serif;font-size:0.95rem;font-weight:600;margin-bottom:14px;">' +
+          escapeHtmlForEmails(rec.subject) + '</div>')
+    : '';
+  const bodyRow = isEditing
+    ? '<div style="font-size:0.78rem;color:var(--gray-600);margin-bottom:4px;">Body</div>' +
+      '<textarea id="emails-edit-body-' + rec.id + '" style="width:100%;min-height:220px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.82rem;line-height:1.55;padding:12px 14px;border:1px solid var(--gray-300,#ddd);border-radius:8px;background:var(--gray-50,#fafafa);color:var(--accent-1,#4a1942);resize:vertical;">' +
+      escapeHtmlForEmails(rec.body || '') + '</textarea>'
+    : '<div style="font-size:0.78rem;color:var(--gray-600);margin-bottom:4px;">Body</div>' +
+      '<pre style="background:var(--gray-50,#fafafa);border:1px solid var(--gray-200,#eee);border-radius:8px;padding:12px 14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.82rem;line-height:1.55;white-space:pre-wrap;word-break:break-word;margin:0;">' +
+      escapeHtmlForEmails(rec.body || '') + '</pre>';
+  const buttons = isEditing
+    ? '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">' +
+      '<button class="modal-btn secondary" onclick="cancelEditEmail()" style="font-size:0.82rem;padding:7px 14px;">Cancel</button>' +
+      '<button id="emails-save-btn-' + rec.id + '" class="modal-btn primary" onclick="commitEditEmail(\'' + rec.id + '\')" style="font-size:0.82rem;padding:7px 14px;">Save</button>' +
+      '</div>'
+    : '<div style="text-align:right;margin-top:10px;">' +
+      '<button class="modal-btn secondary" onclick="startEditEmail(\'' + rec.id + '\')" style="font-size:0.78rem;padding:6px 14px;">Edit</button>' +
+      '</div>';
+  return '<div style="background:var(--white);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow);margin-bottom:14px;' +
+    (isEditing ? 'outline:2px solid var(--accent-1,#4a1942);' : '') + '">' +
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px;flex-wrap:wrap;">' +
+      '<h3 style="margin:0;font-size:1.05rem;">' + escapeHtmlForEmails(rec.label || rec.template_id || 'Template') + '</h3>' +
+      '<span style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:1px;">' + kind + ' · to ' + escapeHtmlForEmails(to) + '</span>' +
+    '</div>' +
+    (rec.trigger_description ? '<p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:14px;">' + escapeHtmlForEmails(rec.trigger_description) + '</p>' : '') +
+    subjectRow +
+    bodyRow +
+    buttons +
+    '</div>';
+}
+
+async function renderEmails() {
   const el = document.getElementById('emails-content');
   if (!el) return;
+  // Show stale-while-revalidate: render cached/seed first, then refresh.
+  if (!_emailTemplatesLive) {
+    el.innerHTML = '<div style="padding:18px;color:var(--gray-600);font-size:0.9rem;text-align:center;">Loading templates&hellip;</div>';
+  }
+  const fetched = await fetchLiveEmailTemplates();
+  let live;
+  if (fetched && fetched.length) {
+    _emailTemplatesLive = fetched;
+    live = fetched;
+  } else if (_emailTemplatesLive) {
+    live = _emailTemplatesLive;
+  } else {
+    // Fallback to hardcoded seeds (read-only).
+    live = EMAIL_TEMPLATES.concat(SMS_TEMPLATES).map(t => Object.assign({}, t, { id: t.id || t.template_id, template_id: t.template_id || t.id }));
+  }
+  const usingLive = !!fetched;
+
   let html = '<div style="background:var(--white);border-radius:12px;padding:16px 20px;box-shadow:var(--shadow);margin-bottom:18px;">' +
     '<h2 style="margin:0 0 6px 0;font-size:1.2rem;">Auto emails &amp; SMS</h2>' +
     '<p style="font-size:0.88rem;color:var(--gray-700);margin:0 0 8px 0;">' +
@@ -2178,16 +2307,20 @@ function renderEmails() {
       "Tokens like <code>{firstName}</code> and <code>{date}</code> get filled in when each message goes out." +
     '</p>' +
     '<p style="font-size:0.78rem;color:var(--gray-600);margin:0;">' +
-      'Editing the wording: change <code>pocketbase/pb_hooks/notifications.pb.js</code> and run <code>deploy-update.sh</code>. ' +
-      'An in-place editor is on the to-do list.' +
+      (usingLive
+        ? 'Edits save back to PocketBase and take effect on the next send. No deploy needed.'
+        : '<strong>Read-only fallback:</strong> couldn’t reach the server, so showing the seeded defaults. Edits will be available again when PocketBase is reachable.') +
     '</p>' +
   '</div>';
 
+  const emails = live.filter(r => r.kind !== 'sms');
+  const smses = live.filter(r => r.kind === 'sms');
+
   html += '<h3 style="margin:18px 4px 10px 4px;font-size:1rem;color:var(--gray-700);text-transform:uppercase;letter-spacing:1px;font-weight:600;">Email templates</h3>';
-  EMAIL_TEMPLATES.forEach(t => { html += renderEmailCard(t, 'Email'); });
+  emails.forEach(r => { html += renderEmailCardLive(r); });
 
   html += '<h3 style="margin:24px 4px 10px 4px;font-size:1rem;color:var(--gray-700);text-transform:uppercase;letter-spacing:1px;font-weight:600;">SMS templates</h3>';
-  SMS_TEMPLATES.forEach(t => { html += renderEmailCard(t, 'SMS'); });
+  smses.forEach(r => { html += renderEmailCardLive(r); });
 
   el.innerHTML = html;
 }
