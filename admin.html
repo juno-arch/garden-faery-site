@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap" media="print" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap"></noscript>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap" media="print" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap"></noscript>
 <link rel="stylesheet" href="shared.css">
 <style>
 body {
@@ -3452,7 +3452,7 @@ function renderDay() {
             '<button class="action-btn" onclick="textClient(\'' + phoneAttr(b.clientPhone) + '\')">Text</button>' +
             '<button class="action-btn" onclick="openReschedule(\'' + b.id + '\')">Reschedule</button>' +
             '<button class="action-btn danger" onclick="cancelBooking(\'' + b.id + '\')">Cancel</button>' +
-            (b.recurringSeriesId ? '<button class="action-btn danger" onclick="cancelSeries(\'' + b.recurringSeriesId + '\')">Cancel Series</button>' : '') +
+            (b.recurringSeriesId && String(b.recurringSeriesId).startsWith('rec_') ? '<button class="action-btn danger" onclick="cancelSeries(\'' + b.recurringSeriesId + '\')">Cancel Series</button>' : '') +
           '</div></div></div>';
       } else {
         const b = item.data;
@@ -3602,7 +3602,7 @@ function renderUpcoming() {
         (phone ? '<button class="action-btn" onclick="textClient(\'' + phoneAttr(phone) + '\')">Text</button>' : '') +
         '<button class="action-btn" onclick="openReschedule(\'' + b.id + '\')">Reschedule</button>' +
         '<button class="action-btn danger" onclick="cancelBooking(\'' + b.id + '\')">Cancel</button>' +
-        (b.recurringSeriesId ? '<button class="action-btn danger" onclick="cancelSeries(\'' + b.recurringSeriesId + '\')">Cancel Series</button>' : '') +
+        (b.recurringSeriesId && String(b.recurringSeriesId).startsWith('rec_') ? '<button class="action-btn danger" onclick="cancelSeries(\'' + b.recurringSeriesId + '\')">Cancel Series</button>' : '') +
       '</div>' +
     '</div>';
   });
@@ -3652,7 +3652,11 @@ async function syncMoonConflicts() {
       status: b.status,
       canceledBy: b.canceled_by,
       moonExempt: !!b.moon_exempt,
-      isRecurring: !!b.recurring_series_id,
+      // Only treat true recurring series ('rec_' prefix) as recurring;
+      // 'multi_' prefix was a one-time multi-date booking and shouldn't
+      // be flagged as a regular's series. seriesId was retired 2026-04-25
+      // so new bookings have no prefix at all.
+      isRecurring: !!b.recurring_series_id && String(b.recurring_series_id).startsWith('rec_'),
     }));
 
     moonConflicts = [];
@@ -4244,9 +4248,11 @@ async function saveOBO() {
   if (!firstName) { alert("Enter the client's first name."); document.getElementById('obo-first-name').focus(); return; }
   if (!lastName)  { alert("Enter the client's last name. Both first and last are required so we can tell clients apart."); document.getElementById('obo-last-name').focus(); return; }
 
-  // Link multi-date bookings under one series id so they show up grouped
-  // in the calendar/manage views (same as the client-side multi flow).
-  const seriesId = allDates.length > 1 ? 'multi_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) : null;
+  // Recurring/series booking removed 2026-04-25. Each booking is now an
+  // independent record. Existing 'rec_'-prefixed Kenzie bookings keep
+  // their series IDs in the database for backward compatibility, but
+  // new admin OBO bookings never get a seriesId.
+  const seriesId = null;
   const targets = allDates.map(d => ({ date: d, eventType: eventType }));
 
   // --- Duplicate prevention ---
@@ -4306,9 +4312,7 @@ async function saveOBO() {
         gardenNotes: notes,
         status: 'confirmed',
         createdAt: new Date().toISOString(),
-        bookedBy: 'admin',
-        recurringSeriesId: seriesId,
-        recurringFrequency: null
+        bookedBy: 'admin'
       };
       await DB.saveBooking(booking);
       booked++;

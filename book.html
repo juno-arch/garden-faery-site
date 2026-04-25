@@ -44,9 +44,9 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap" media="print" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap"></noscript>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap" media="print" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap"></noscript>
 <link rel="stylesheet" href="shared.css">
 <link rel="preload" as="fetch" href="botanicals.svg" crossorigin="anonymous">
 <link rel="preload" as="image" href="hero-sprouts.jpg" fetchpriority="high">
@@ -1041,6 +1041,15 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
         <label for="f-notes">Garden notes</label>
         <textarea id="f-notes" placeholder="Anything I should know? Dogs, gate codes, what you'd like help with..."></textarea>
       </div>
+      <div class="form-group" style="background: var(--cream); padding: 12px 14px; border-radius: 8px; margin-top: 4px;">
+        <label for="f-auto-reschedule" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-weight: 600; margin-bottom: 0;">
+          <input type="checkbox" id="f-auto-reschedule" style="margin-top: 3px; flex-shrink: 0;">
+          <span>
+            🌧️ Auto-reschedule if it rains
+            <span style="display: block; font-weight: 400; color: var(--gray-600); font-size: 0.85em; margin-top: 4px;">I'll quietly move your visit to the next sunny slot and email you the new time. (Faery's choice for the soggy days.)</span>
+          </span>
+        </label>
+      </div>
     </div>
     <p style="font-size: 0.78rem; color: var(--gray-600); line-height: 1.5; margin: 14px 2px 0;">
       By booking, you agree to receive SMS appointment confirmations and reminders from Garden Faery at the phone number provided. Message and data rates may apply. Reply STOP to opt out, HELP for help. See our <a href="privacy.html" style="color: var(--plum); text-decoration: underline;">Privacy Policy</a> and <a href="terms.html" style="color: var(--plum); text-decoration: underline;">Terms</a>.
@@ -1195,6 +1204,7 @@ const DB = {
       garden_notes: booking.gardenNotes,
       status: booking.status || 'confirmed',
       booked_by: booking.bookedBy || 'client',
+      auto_reschedule_on_rain: !!booking.autoRescheduleOnRain,
     };
     if (booking.recurringSeriesId) payload.recurring_series_id = booking.recurringSeriesId;
     if (booking.recurringFrequency) payload.recurring_frequency = booking.recurringFrequency;
@@ -1868,6 +1878,7 @@ async function submitBooking() {
       return;
     }
     let saved = 0;
+    const autoReschedule = !!document.getElementById('f-auto-reschedule')?.checked;
     try {
       for (const ds of multiDates) {
         const b = {
@@ -1884,6 +1895,7 @@ async function submitBooking() {
           gardenNotes: notes,
           status: 'confirmed',
           bookedBy: 'client',
+          autoRescheduleOnRain: autoReschedule,
           createdAt: new Date().toISOString()
         };
         await DB.saveBooking(b);
@@ -1914,6 +1926,7 @@ async function submitBooking() {
     gardenNotes: notes,
     status: 'confirmed',
     bookedBy: 'client',
+    autoRescheduleOnRain: !!document.getElementById('f-auto-reschedule')?.checked,
     createdAt: new Date().toISOString()
   };
 
