@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bookings | Tidal Taxi Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --plum: #1c3a52;            /* deep ocean navy (was plum) */
+  --cream: #f4efe6;           /* warm Alaskan parchment */
+  --petal-pink: #b88a3c;      /* nautical brass / tidal gold */
+  --petal-pink-light: #ead9b6;
+  --spring-sage: #6f9598;     /* muted ocean teal */
+  --pollen-gold: #c9a24a;     /* deep amber */
+  --sage-light: #d6e2e3;      /* pale ocean mist */
+  --white: #ffffff;
+  --gray-100: #ece6db;
+  --gray-200: #d4ccbe;
+  --gray-400: #9a9085;
+  --gray-600: #5a5048;
+  --red-light: #f0d4d4;
+  --red: #a03020;
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(28,58,82,0.10);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--cream);
+  color: var(--plum);
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
+
+.container { max-width: 520px; margin: 0 auto; padding: 16px; }
+
+/* Top bar */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+  margin-bottom: 8px;
+}
+.top-bar h1 { font-size: 1.5rem; }
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--gray-100);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+}
+.tab {
+  flex: 1;
+  padding: 10px 8px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--gray-600);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  text-align: center;
+}
+.tab.active { background: var(--white); color: var(--plum); box-shadow: var(--shadow); }
+
+/* Day view */
+.day-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.day-nav h2 {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.day-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--plum);
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+.day-btn:hover { background: var(--gray-100); }
+.today-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 2px solid var(--gray-200);
+  background: var(--white);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--plum);
+  cursor: pointer;
+}
+.today-btn:hover { border-color: var(--spring-sage); }
+
+/* Timeline */
+.timeline {
+  position: relative;
+  margin-left: 54px;
+  border-left: 2px solid var(--gray-200);
+  padding-left: 16px;
+  min-height: 300px;
+}
+.time-marker {
+  position: relative;
+  padding: 4px 0 28px;
+}
+.time-label {
+  position: absolute;
+  left: -70px;
+  top: 2px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--gray-400);
+  width: 48px;
+  text-align: right;
+}
+.time-dot {
+  position: absolute;
+  left: -23px;
+  top: 7px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gray-200);
+}
+
+/* Booking card */
+.booking-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 14px;
+  box-shadow: var(--shadow);
+  margin-bottom: 8px;
+  border-left: 4px solid var(--spring-sage);
+  position: relative;
+}
+.booking-card.morning { border-left-color: var(--pollen-gold); }
+.booking-card.afternoon { border-left-color: var(--petal-pink); }
+.booking-card.monday { border-left-color: var(--spring-sage); }
+.booking-card.blocked { border-left-color: var(--gray-400); background: var(--gray-100); }
+.series-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: var(--petal-pink-light);
+  color: var(--plum);
+  margin-left: 6px;
+}
+
+.booking-card h3 {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 2px;
+}
+.booking-meta {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+  margin-bottom: 8px;
+}
+.booking-client {
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.booking-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.action-btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--gray-200);
+  background: var(--white);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--plum);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.action-btn:hover { border-color: var(--spring-sage); }
+.action-btn.danger { color: var(--red); border-color: var(--red-light); }
+.action-btn.danger:hover { background: var(--red-light); }
+
+/* Empty state */
+.empty-day {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--gray-400);
+}
+
+
+/* Week view */
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.week-day {
+  text-align: center;
+  padding: 8px 4px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.week-day:hover { background: var(--gray-100); }
+.week-day.active { background: var(--sage-light); }
+.week-day.today-marker { box-shadow: inset 0 0 0 2px var(--pollen-gold); }
+.week-day .dow { font-size: 0.7rem; font-weight: 700; color: var(--gray-400); }
+.week-day .dom { font-size: 1.1rem; font-weight: 700; }
+.week-day .dots { min-height: 8px; margin-top: 4px; display: flex; justify-content: center; gap: 3px; }
+.week-day .dot { width: 6px; height: 6px; border-radius: 50%; }
+.dot.morning-dot { background: var(--pollen-gold); }
+.dot.afternoon-dot { background: var(--petal-pink); }
+.dot.monday-dot { background: var(--spring-sage); }
+.dot.blocked-dot { background: var(--gray-400); }
+
+/* Block time modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 100;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--white);
+  border-radius: 16px 16px 0 0;
+  padding: 24px 20px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.modal h2 {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+}
+.modal .form-group { margin-bottom: 14px; }
+.modal label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+.modal input, .modal select, .modal textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--gray-200);
+  border-radius: 8px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.9rem;
+  color: var(--plum);
+}
+.modal input:focus, .modal select:focus, .modal textarea:focus {
+  outline: none;
+  border-color: var(--spring-sage);
+}
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+.modal-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+.modal-btn.primary { background: var(--petal-pink); color: var(--white); }
+.modal-btn.secondary { background: var(--gray-100); color: var(--plum); }
+
+/* Bottom action bar */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--white);
+  border-top: 1px solid var(--gray-200);
+  padding: 10px 16px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  z-index: 50;
+}
+.fab {
+  padding: 12px 20px;
+  border-radius: 24px;
+  border: none;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.fab-primary { background: var(--petal-pink); color: var(--white); }
+.fab-secondary { background: var(--sage-light); color: var(--plum); }
+
+@media (max-width: 400px) {
+  .container { padding: 12px; }
+  .timeline { margin-left: 48px; }
+  .time-label { left: -62px; width: 42px; font-size: 0.7rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="top-bar">
+    <div>
+      <div style="font-family:'Lora',serif; font-size:0.78rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--petal-pink); font-weight:700; margin-bottom:2px;">Tidal Taxi &middot; Sitka</div>
+      <h1>My Bookings</h1>
+    </div>
+    <button class="today-btn" onclick="goToday()">Today</button>
+  </div>
+
+  <!-- Week strip -->
+  <div class="week-grid" id="week-grid"></div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="day" onclick="switchTab('day')">Day</button>
+    <button class="tab" data-tab="upcoming" onclick="switchTab('upcoming')">Upcoming</button>
+    <button class="tab" data-tab="clients" onclick="switchTab('clients')">Clients</button>
+  </div>
+
+  <!-- Day view -->
+  <div class="tab-panel active" id="tab-day">
+    <div id="day-content"></div>
+  </div>
+
+  <!-- Upcoming view -->
+  <div class="tab-panel" id="tab-upcoming" style="display:none;">
+    <div id="upcoming-content"></div>
+  </div>
+
+  <!-- Clients view -->
+  <div class="tab-panel" id="tab-clients" style="display:none;">
+    <div id="clients-content"></div>
+  </div>
+</div>
+
+<!-- Block time modal -->
+<div class="modal-overlay" id="modal-block">
+  <div class="modal">
+    <h2>Block Off Time</h2>
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="block-date">
+    </div>
+    <div class="form-group">
+      <label>What</label>
+      <select id="block-type">
+        <option value="all">Whole day off</option>
+        <option value="morning">Morning only (9am to 2pm)</option>
+        <option value="afternoon">Afternoon only (2:30 to 4:30pm)</option>
+        <option value="custom">Custom time</option>
+      </select>
+    </div>
+    <div class="form-group" id="block-custom-times" style="display:none;">
+      <label>Start</label>
+      <input type="time" id="block-start" value="09:00">
+      <label style="margin-top:8px;">End</label>
+      <input type="time" id="block-end" value="14:00">
+    </div>
+    <div class="form-group">
+      <label>Reason (optional)</label>
+      <input type="text" id="block-reason" placeholder="Dentist, day off, etc.">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-block')">Cancel</button>
+      <button class="modal-btn primary" onclick="saveBlock()">Block It</button>
+    </div>
+  </div>
+</div>
+
+<!-- Book on behalf modal -->
+<div class="modal-overlay" id="modal-book">
+  <div class="modal">
+    <h2>Book for a Client</h2>
+    <div class="form-group">
+      <label>Pick a client</label>
+      <select id="obo-client-picker" onchange="fillClientFromPicker()">
+        <option value="">— New client —</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Service</label>
+      <select id="obo-event">
+        <option value="morning">Morning Tour (9am to 12pm)</option>
+        <option value="afternoon">Afternoon Tour (1pm to 4pm)</option>
+        <option value="monday">Cruise Day Tour (8am to 11:30am)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="obo-date">
+    </div>
+    <div class="form-group">
+      <label>Recurring?</label>
+      <select id="obo-recurring">
+        <option value="none">One-time visit</option>
+        <option value="weekly">Weekly (same day each week)</option>
+        <option value="biweekly">Every other week</option>
+      </select>
+    </div>
+    <div class="form-group" id="obo-weeks-group" style="display:none;">
+      <label>How many weeks?</label>
+      <select id="obo-weeks">
+        <option value="4">4 weeks</option>
+        <option value="6">6 weeks</option>
+        <option value="8">8 weeks</option>
+        <option value="10">10 weeks</option>
+        <option value="12" selected>12 weeks</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Client name</label>
+      <input type="text" id="obo-name" placeholder="First and last name">
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="obo-email" placeholder="client@email.com">
+    </div>
+    <div class="form-group">
+      <label>Phone</label>
+      <input type="tel" id="obo-phone" placeholder="(707) 555-1234">
+    </div>
+    <div class="form-group">
+      <label>Address</label>
+      <input type="text" id="obo-address" placeholder="Client address">
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <input type="text" id="obo-notes" placeholder="Pickup spot, group size, ship name, requests...">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-book')">Cancel</button>
+      <button class="modal-btn primary" onclick="saveOBO()">Book It</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reschedule modal -->
+<div class="modal-overlay" id="modal-reschedule">
+  <div class="modal">
+    <h2>Reschedule Booking</h2>
+    <div id="reschedule-info"></div>
+    <div class="form-group">
+      <label>New date</label>
+      <input type="date" id="reschedule-date">
+    </div>
+    <div class="form-group">
+      <label>New time slot</label>
+      <select id="reschedule-slot">
+        <option value="morning">Morning Tour (9:00am)</option>
+        <option value="afternoon">Afternoon Tour (1:00pm)</option>
+        <option value="monday">Cruise Day Tour (8:00am)</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-reschedule')">Cancel</button>
+      <button class="modal-btn primary" onclick="confirmReschedule()">Reschedule</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom bar -->
+<div class="bottom-bar">
+  <button class="fab fab-primary" onclick="openModal('modal-book')">+ Book Client</button>
+  <button class="fab fab-secondary" onclick="openModal('modal-block')">Block Time</button>
+</div>
+
+<script>
+// ============================================
+// Tidal Taxi Admin Dashboard — preview (re-skinned from Garden Faery)
+// PocketBase backend with localStorage fallback
+// ============================================
+
+// --- PocketBase Config ---
+const PB_URL = ''; // demo runs on localStorage seed (no backend)
+let PB_TOKEN = ''; // Set after admin login
+
+// ============================================
+// DATA LAYER
+// ============================================
+const DB = {
+  _usePB: !!PB_URL,
+
+  async _pb(method, path, body) {
+    const opts = {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+    };
+    if (PB_TOKEN) opts.headers['Authorization'] = 'Bearer ' + PB_TOKEN;
+    if (body) opts.body = JSON.stringify(body);
+    const resp = await fetch(PB_URL + '/api/collections/' + path, opts);
+    if (!resp.ok) throw new Error('PocketBase error: ' + resp.status);
+    return resp.json();
+  },
+
+  // --- Bookings ---
+  async getBookings() {
+    if (!this._usePB) {
+      try { return JSON.parse(localStorage.getItem('gf_bookings_v1') || '[]'); }
+      catch { return []; }
+    }
+    const data = await this._pb('GET', 'bookings/records?perPage=500&sort=-date');
+    return (data.items || []).map(r => ({
+      id: r.id,
+      eventType: r.event_type,
+      eventName: r.event_name,
+      date: r.date,
+      time: r.time,
+      duration: r.duration,
+      clientName: r.client_name,
+      clientEmail: r.client_email,
+      clientPhone: r.client_phone,
+      clientAddress: r.client_address,
+      gardenNotes: r.garden_notes,
+      status: r.status,
+      bookedBy: r.booked_by,
+      rescheduledAt: r.rescheduled_at,
+      canceledAt: r.canceled_at,
+      canceledBy: r.canceled_by,
+      recurringSeriesId: r.recurring_series_id,
+      recurringFrequency: r.recurring_frequency,
+      createdAt: r.created,
+    }));
+  },
+
+  async saveBooking(booking) {
+    if (!this._usePB) {
+      const bookings = await this.getBookings();
+      bookings.push(booking);
+      localStorage.setItem('gf_bookings_v1', JSON.stringify(bookings));
+      return booking;
+    }
+    const data = await this._pb('POST', 'bookings/records', {
+      event_type: booking.eventType,
+      event_name: booking.eventName,
+      date: booking.date,
+      time: booking.time,
+      duration: booking.duration,
+      client_name: booking.clientName,
+      client_email: booking.clientEmail,
+      client_phone: booking.clientPhone,
+      client_address: booking.clientAddress,
+      garden_notes: booking.gardenNotes,
+      status: booking.status || 'confirmed',
+      booked_by: booking.bookedBy || 'admin',
+      recurring_series_id: booking.recurringSeriesId || null,
+      recurring_frequency: booking.recurringFrequency || null,
+    });
+    booking.id = data.id;
+    return booking;
+  },
+
+  async saveBookings(bookings) {
+    if (!this._usePB) {
+      localStorage.setItem('gf_bookings_v1', JSON.stringify(bookings));
+      return;
+    }
+    // For PocketBase, batch update each changed record
+    for (const b of bookings) {
+      if (b._dirty && b.id) {
+        await this._pb('PATCH', 'bookings/records/' + b.id, {
+          status: b.status,
+          canceled_at: b.canceledAt,
+        });
+      }
+    }
+  },
+
+  async updateBooking(id, updates) {
+    if (!this._usePB) {
+      const bookings = await this.getBookings();
+      const idx = bookings.findIndex(b => b.id === id);
+      if (idx >= 0) {
+        Object.assign(bookings[idx], updates);
+        localStorage.setItem('gf_bookings_v1', JSON.stringify(bookings));
+      }
+      return;
+    }
+    const pbUpdates = {};
+    if (updates.date !== undefined) pbUpdates.date = updates.date;
+    if (updates.eventType !== undefined) pbUpdates.event_type = updates.eventType;
+    if (updates.eventName !== undefined) pbUpdates.event_name = updates.eventName;
+    if (updates.time !== undefined) pbUpdates.time = updates.time;
+    if (updates.status !== undefined) pbUpdates.status = updates.status;
+    if (updates.rescheduledAt !== undefined) pbUpdates.rescheduled_at = updates.rescheduledAt;
+    return this._pb('PATCH', 'bookings/records/' + id, pbUpdates);
+  },
+
+  // --- Blocked times ---
+  async getBlocks() {
+    if (!this._usePB) {
+      try { return JSON.parse(localStorage.getItem('gf_blocks_v1') || '[]'); }
+      catch { return []; }
+    }
+    const data = await this._pb('GET', 'blocked_times/records?perPage=500');
+    return (data.items || []).map(r => ({
+      id: r.id,
+      date: r.date,
+      allDay: r.all_day,
+      startTime: r.start_time,
+      endTime: r.end_time,
+      reason: r.reason,
+    }));
+  },
+
+  async saveBlock(block) {
+    if (!this._usePB) {
+      const blocks = await this.getBlocks();
+      blocks.push(block);
+      localStorage.setItem('gf_blocks_v1', JSON.stringify(blocks));
+      return block;
+    }
+    const data = await this._pb('POST', 'blocked_times/records', {
+      date: block.date,
+      all_day: block.allDay,
+      start_time: block.startTime,
+      end_time: block.endTime,
+      reason: block.reason,
+    });
+    block.id = data.id;
+    return block;
+  },
+
+  async removeBlock(id) {
+    if (!this._usePB) {
+      const blocks = (await this.getBlocks()).filter(b => b.id !== id);
+      localStorage.setItem('gf_blocks_v1', JSON.stringify(blocks));
+      return;
+    }
+    await fetch(PB_URL + '/api/collections/blocked_times/records/' + id, {
+      method: 'DELETE',
+      headers: PB_TOKEN ? { 'Authorization': 'Bearer ' + PB_TOKEN } : {},
+    });
+  },
+};
+
+// --- Sync cache for rendering ---
+let _cachedBookings = [];
+let _cachedBlocks = [];
+
+async function refreshData() {
+  try {
+    _cachedBookings = await DB.getBookings();
+    _cachedBlocks = await DB.getBlocks();
+  } catch (err) {
+    console.log('Data refresh error:', err);
+  }
+}
+
+function getBookings() { return _cachedBookings; }
+function getBlocks() { return _cachedBlocks; }
+
+const EVENT_LABELS = {
+  morning: 'Morning Tour',
+  afternoon: 'Afternoon Tour',
+  monday: 'Cruise Day Tour'
+};
+const EVENT_TIMES = {
+  morning: '9:00am to 12:00pm',
+  afternoon: '1:00pm to 4:00pm',
+  monday: '8:00am to 11:30am'
+};
+const EVENT_TIME_SLOTS = {
+  morning: '9:00am',
+  afternoon: '1:00pm',
+  monday: '8:00am'
+};
+const EVENT_DURATIONS = {
+  morning: 180,
+  afternoon: 180,
+  monday: 210
+};
+
+let viewDate = new Date();
+viewDate.setHours(0,0,0,0);
+
+// --- Tab switching ---
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+  document.getElementById('tab-' + tab).style.display = 'block';
+  if (tab === 'day') renderDay();
+  if (tab === 'upcoming') renderUpcoming();
+  if (tab === 'clients') renderClients();
+}
+
+// --- Week strip ---
+function renderWeekStrip() {
+  const grid = document.getElementById('week-grid');
+  const dayNames = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // Find Monday of current week
+  const weekStart = new Date(viewDate);
+  weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
+
+  const bookings = getBookings().filter(b => b.status !== 'canceled');
+  let html = '';
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart);
+    d.setDate(d.getDate() + i);
+    const ds = formatDate(d);
+    const isToday = d.getTime() === today.getTime();
+    const isActive = d.getTime() === viewDate.getTime();
+
+    const dayBookings = bookings.filter(b => b.date === ds);
+    let dots = '';
+    if (dayBookings.some(b => b.eventType === 'morning')) dots += '<span class="dot morning-dot"></span>';
+    if (dayBookings.some(b => b.eventType === 'afternoon')) dots += '<span class="dot afternoon-dot"></span>';
+    if (dayBookings.some(b => b.eventType === 'monday')) dots += '<span class="dot monday-dot"></span>';
+    const dayBlocks = getBlocks().filter(b => b.date === ds);
+    if (dayBlocks.length > 0) dots += '<span class="dot blocked-dot"></span>';
+
+    let cls = 'week-day';
+    if (isActive) cls += ' active';
+    if (isToday) cls += ' today-marker';
+
+    html += '<div class="' + cls + '" onclick="jumpToDate(\'' + ds + '\')">' +
+      '<div class="dow">' + dayNames[d.getDay()] + '</div>' +
+      '<div class="dom">' + d.getDate() + '</div>' +
+      '<div class="dots">' + dots + '</div></div>';
+  }
+  grid.innerHTML = html;
+}
+
+function jumpToDate(ds) {
+  const parts = ds.split('-');
+  viewDate = new Date(parts[0], parts[1]-1, parts[2]);
+  renderAll();
+}
+
+function goToday() {
+  viewDate = new Date();
+  viewDate.setHours(0,0,0,0);
+  renderAll();
+}
+
+// --- Day view ---
+function renderDay() {
+  const container = document.getElementById('day-content');
+  const ds = formatDate(viewDate);
+  const bookings = getBookings().filter(b => b.date === ds && b.status !== 'canceled');
+  const blocks = getBlocks().filter(b => b.date === ds);
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  const dateLabel = dayNames[viewDate.getDay()] + ', ' + monthNames[viewDate.getMonth()] + ' ' + viewDate.getDate();
+
+  let html = '<div class="day-nav">' +
+    '<button class="day-btn" onclick="prevDay()">&#8592;</button>' +
+    '<h2>' + dateLabel + '</h2>' +
+    '<button class="day-btn" onclick="nextDay()">&#8594;</button></div>';
+
+  if (bookings.length === 0 && blocks.length === 0) {
+    const dow = viewDate.getDay();
+    html += '<div class="empty-day"><p>Nothing booked. Wide open for tours.</p></div>';
+  } else {
+    html += '<div class="timeline">';
+
+    // Sort by time
+    const allItems = [];
+    bookings.forEach(b => {
+      const sortTime = b.eventType === 'morning' ? '09:00' :
+                       b.eventType === 'monday' ? '13:00' :
+                       b.eventType === 'afternoon' ? '14:30' : '17:00';
+      allItems.push({ type: 'booking', data: b, sortTime });
+    });
+    blocks.forEach(b => {
+      allItems.push({ type: 'block', data: b, sortTime: b.startTime || '00:00' });
+    });
+    allItems.sort((a, b) => a.sortTime.localeCompare(b.sortTime));
+
+    allItems.forEach(item => {
+      if (item.type === 'booking') {
+        const b = item.data;
+        html += '<div class="time-marker">' +
+          '<span class="time-label">' + b.time + '</span>' +
+          '<span class="time-dot" style="background: var(--' +
+            (b.eventType === 'morning' ? 'pollen-gold' : b.eventType === 'afternoon' ? 'petal-pink' : 'spring-sage') +
+          ')"></span>' +
+          '<div class="booking-card ' + b.eventType + '">' +
+          '<h3>' + b.clientName +
+            (b.recurringSeriesId ? '<span class="series-badge">' + (b.recurringFrequency || 'recurring') + '</span>' : '') +
+          '</h3>' +
+          '<div class="booking-meta">' + EVENT_LABELS[b.eventType] + ' (' + EVENT_TIMES[b.eventType] + ')</div>' +
+          '<div class="booking-client">' +
+            (b.clientPhone ? b.clientPhone : '') +
+            (b.clientAddress ? ' &middot; ' + b.clientAddress : '') +
+          '</div>' +
+          (b.gardenNotes ? '<div class="booking-meta" style="margin-top:6px;font-style:italic;">"' + b.gardenNotes + '"</div>' : '') +
+          '<div class="booking-actions">' +
+            '<button class="action-btn" onclick="callClient(\'' + (b.clientPhone || '') + '\')">Call</button>' +
+            '<button class="action-btn" onclick="textClient(\'' + (b.clientPhone || '') + '\')">Text</button>' +
+            '<button class="action-btn" onclick="openReschedule(\'' + b.id + '\')">Reschedule</button>' +
+            '<button class="action-btn danger" onclick="cancelBooking(\'' + b.id + '\')">Cancel</button>' +
+            (b.recurringSeriesId ? '<button class="action-btn danger" onclick="cancelSeries(\'' + b.recurringSeriesId + '\')">Cancel Series</button>' : '') +
+          '</div></div></div>';
+      } else {
+        const b = item.data;
+        html += '<div class="time-marker">' +
+          '<span class="time-label">' + (b.allDay ? 'all day' : b.startTime) + '</span>' +
+          '<span class="time-dot" style="background: var(--gray-400)"></span>' +
+          '<div class="booking-card blocked">' +
+          '<h3>Blocked: ' + (b.reason || 'Time off') + '</h3>' +
+          '<div class="booking-meta">' + (b.allDay ? 'All day' : b.startTime + ' to ' + b.endTime) + '</div>' +
+          '<div class="booking-actions">' +
+            '<button class="action-btn danger" onclick="removeBlock(\'' + b.id + '\')">Remove</button>' +
+          '</div></div></div>';
+      }
+    });
+
+    html += '</div>';
+  }
+
+  container.innerHTML = html;
+}
+
+function prevDay() {
+  viewDate.setDate(viewDate.getDate() - 1);
+  renderAll();
+}
+function nextDay() {
+  viewDate.setDate(viewDate.getDate() + 1);
+  renderAll();
+}
+
+// --- Upcoming view ---
+function renderUpcoming() {
+  const container = document.getElementById('upcoming-content');
+  const today = formatDate(new Date());
+  const bookings = getBookings()
+    .filter(b => b.date >= today && b.status !== 'canceled')
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  if (bookings.length === 0) {
+    container.innerHTML = '<div class="empty-day"><p>No upcoming bookings. Time to put the word out!</p></div>';
+    return;
+  }
+
+  let html = '';
+  let lastDate = '';
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  bookings.forEach(b => {
+    if (b.date !== lastDate) {
+      const parts = b.date.split('-');
+      const d = new Date(parts[0], parts[1]-1, parts[2]);
+      const label = dayNames[d.getDay()] + ', ' + monthNames[d.getMonth()] + ' ' + d.getDate();
+      html += '<div style="font-weight:700; font-size:0.85rem; color:var(--gray-400); margin: 16px 0 8px; text-transform: uppercase;">' + label + '</div>';
+      lastDate = b.date;
+    }
+    html += '<div class="booking-card ' + b.eventType + '">' +
+      '<h3>' + b.clientName + '</h3>' +
+      '<div class="booking-meta">' + EVENT_LABELS[b.eventType] + ' at ' + b.time + '</div>' +
+      '<div class="booking-client">' +
+        (b.clientPhone ? b.clientPhone : '') +
+        (b.clientAddress ? ' &middot; ' + b.clientAddress : '') +
+      '</div></div>';
+  });
+
+  container.innerHTML = html;
+}
+
+// --- Clients view ---
+function renderClients() {
+  const container = document.getElementById('clients-content');
+  const bookings = getBookings().filter(b => b.status !== 'canceled');
+
+  // Group by client email
+  const clients = {};
+  bookings.forEach(b => {
+    const key = b.clientEmail || b.clientName;
+    if (!clients[key]) {
+      clients[key] = {
+        name: b.clientName,
+        email: b.clientEmail,
+        phone: b.clientPhone,
+        address: b.clientAddress,
+        visits: 0,
+        lastVisit: b.date
+      };
+    }
+    clients[key].visits++;
+    if (b.date > clients[key].lastVisit) clients[key].lastVisit = b.date;
+    if (b.clientPhone && !clients[key].phone) clients[key].phone = b.clientPhone;
+  });
+
+  const sorted = Object.values(clients).sort((a, b) => b.visits - a.visits);
+
+  if (sorted.length === 0) {
+    container.innerHTML = '<div class="empty-day"><p>No clients yet. They\'ll show up here as bookings come in.</p></div>';
+    return;
+  }
+
+  let html = '';
+  sorted.forEach(c => {
+    html += '<div class="booking-card" style="border-left-color: var(--plum);">' +
+      '<h3>' + c.name + '</h3>' +
+      '<div class="booking-meta">' + c.visits + ' visit' + (c.visits > 1 ? 's' : '') + ' &middot; Last: ' + c.lastVisit + '</div>' +
+      '<div class="booking-client">' +
+        (c.phone ? c.phone + ' ' : '') +
+        (c.email ? c.email : '') +
+      '</div>' +
+      '<div class="booking-actions">' +
+        (c.phone ? '<button class="action-btn" onclick="callClient(\'' + c.phone + '\')">Call</button>' +
+        '<button class="action-btn" onclick="textClient(\'' + c.phone + '\')">Text</button>' : '') +
+      '</div></div>';
+  });
+  container.innerHTML = html;
+}
+
+// --- Actions ---
+function callClient(phone) {
+  if (phone) window.location.href = 'tel:' + phone.replace(/[^\d+]/g, '');
+}
+function textClient(phone) {
+  if (phone) window.location.href = 'sms:' + phone.replace(/[^\d+]/g, '');
+}
+
+async function cancelBooking(id) {
+  if (!confirm('Cancel this booking? The client won\'t be notified automatically, so you\'ll want to text them.')) return;
+  try {
+    await DB.updateBooking(id, { status: 'canceled' });
+    await refreshData();
+    renderAll();
+  } catch (err) {
+    alert('Could not cancel booking. Try again.');
+  }
+}
+
+async function cancelSeries(seriesId) {
+  const bookings = getBookings();
+  const today = formatDate(new Date());
+  const futureInSeries = bookings.filter(b =>
+    b.recurringSeriesId === seriesId && b.status !== 'canceled' && b.date >= today
+  );
+
+  if (!confirm('Cancel all ' + futureInSeries.length + ' upcoming visits in this series? Past visits stay on record. You\'ll want to text the client.')) return;
+
+  try {
+    for (const b of futureInSeries) {
+      await DB.updateBooking(b.id, { status: 'canceled' });
+    }
+    await refreshData();
+    renderAll();
+  } catch (err) {
+    alert('Could not cancel series. Try again.');
+  }
+}
+
+async function removeBlock(id) {
+  if (!confirm('Remove this blocked time?')) return;
+  try {
+    await DB.removeBlock(id);
+    await refreshData();
+    renderAll();
+  } catch (err) {
+    alert('Could not remove block. Try again.');
+  }
+}
+
+// --- Modals ---
+function openModal(id) {
+  const modal = document.getElementById(id);
+  const dateInput = modal.querySelector('input[type="date"]');
+  if (dateInput) dateInput.value = formatDate(viewDate);
+  if (id === 'modal-book') {
+    populateClientDropdown();
+    clearOBOFields();
+  }
+  modal.classList.add('open');
+}
+
+// --- Client picker (Book for a Client modal) ---
+// Builds a unique client list from existing bookings, most-recent booking wins
+// for contact details. Data lives on window so fillClientFromPicker can read it.
+function buildClientList() {
+  const map = {};
+  const bookings = (getBookings() || []).slice().sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  for (const b of bookings) {
+    const name = (b.clientName || '').trim();
+    if (!name) continue;
+    const key = name.toLowerCase();
+    if (!map[key]) map[key] = { name: name, email: '', phone: '', address: '' };
+    // later bookings overwrite earlier ones so the freshest contact info wins
+    if (b.clientEmail)   map[key].email   = b.clientEmail;
+    if (b.clientPhone)   map[key].phone   = b.clientPhone;
+    if (b.clientAddress) map[key].address = b.clientAddress;
+    // keep the most recently-used capitalization of the name
+    map[key].name = name;
+  }
+  return Object.values(map).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function populateClientDropdown() {
+  const select = document.getElementById('obo-client-picker');
+  if (!select) return;
+  const clients = buildClientList();
+  window._oboClientMap = {};
+  let html = '<option value="">— New client —</option>';
+  for (const c of clients) {
+    const key = c.name.toLowerCase();
+    window._oboClientMap[key] = c;
+    html += '<option value="' + key.replace(/"/g, '&quot;') + '">'
+         + c.name.replace(/</g, '&lt;') + '</option>';
+  }
+  select.innerHTML = html;
+  select.value = '';
+}
+
+function fillClientFromPicker() {
+  const key = document.getElementById('obo-client-picker').value;
+  if (!key) { clearOBOFields(); return; }
+  const c = (window._oboClientMap || {})[key];
+  if (!c) return;
+  document.getElementById('obo-name').value    = c.name    || '';
+  document.getElementById('obo-email').value   = c.email   || '';
+  document.getElementById('obo-phone').value   = c.phone   || '';
+  document.getElementById('obo-address').value = c.address || '';
+}
+
+function clearOBOFields() {
+  ['obo-name','obo-email','obo-phone','obo-address','obo-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+document.getElementById('block-type').addEventListener('change', function() {
+  document.getElementById('block-custom-times').style.display = this.value === 'custom' ? 'block' : 'none';
+});
+
+document.getElementById('obo-recurring').addEventListener('change', function() {
+  document.getElementById('obo-weeks-group').style.display = this.value === 'none' ? 'none' : 'block';
+});
+
+async function saveBlock() {
+  const date = document.getElementById('block-date').value;
+  const type = document.getElementById('block-type').value;
+  const reason = document.getElementById('block-reason').value.trim();
+
+  if (!date) { alert('Pick a date.'); return; }
+
+  const block = {
+    id: 'blk_' + Date.now(),
+    date: date,
+    allDay: type === 'all',
+    startTime: type === 'morning' ? '09:00' : type === 'afternoon' ? '14:30' : type === 'custom' ? document.getElementById('block-start').value : null,
+    endTime: type === 'morning' ? '14:00' : type === 'afternoon' ? '16:30' : type === 'custom' ? document.getElementById('block-end').value : null,
+    reason: reason
+  };
+
+  try {
+    await DB.saveBlock(block);
+    closeModal('modal-block');
+    await refreshData();
+    renderAll();
+  } catch (err) {
+    alert('Could not save block. Try again.');
+  }
+}
+
+async function saveOBO() {
+  const eventType = document.getElementById('obo-event').value;
+  const date = document.getElementById('obo-date').value;
+  const name = document.getElementById('obo-name').value.trim();
+  const email = document.getElementById('obo-email').value.trim();
+  const phone = document.getElementById('obo-phone').value.trim();
+  const address = document.getElementById('obo-address').value.trim();
+  const notes = document.getElementById('obo-notes').value.trim();
+  const recurring = document.getElementById('obo-recurring').value;
+  const weeks = parseInt(document.getElementById('obo-weeks').value) || 12;
+
+  if (!date || !name) { alert('Need at least a date and client name.'); return; }
+
+  const seriesId = recurring !== 'none' ? 'series_' + Date.now() : null;
+  const interval = recurring === 'biweekly' ? 14 : 7;
+  const count = recurring === 'none' ? 1 : weeks;
+
+  let booked = 0;
+  try {
+    for (let i = 0; i < count; i++) {
+      const d = new Date(date + 'T12:00:00');
+      d.setDate(d.getDate() + (i * interval));
+      const ds = formatDate(d);
+
+      const booking = {
+        id: 'b_' + Date.now() + '_' + i,
+        eventType: eventType,
+        eventName: EVENT_LABELS[eventType],
+        date: ds,
+        time: EVENT_TIME_SLOTS[eventType],
+        duration: EVENT_DURATIONS[eventType],
+        clientName: name,
+        clientEmail: email,
+        clientPhone: phone,
+        clientAddress: address,
+        gardenNotes: notes,
+        status: 'confirmed',
+        createdAt: new Date().toISOString(),
+        bookedBy: 'admin',
+        recurringSeriesId: seriesId,
+        recurringFrequency: recurring !== 'none' ? recurring : null
+      };
+      await DB.saveBooking(booking);
+      booked++;
+    }
+
+    closeModal('modal-book');
+
+    // Reset recurring fields
+    document.getElementById('obo-recurring').value = 'none';
+    document.getElementById('obo-weeks-group').style.display = 'none';
+
+    if (booked > 1) {
+      alert('Booked ' + name + ' for ' + booked + ' ' + recurring + ' visits starting ' + date + '.');
+    }
+    await refreshData();
+    renderAll();
+  } catch (err) {
+    alert('Could not save booking. Try again.');
+  }
+}
+
+// --- Reschedule ---
+let rescheduleBookingId = null;
+
+function openReschedule(id) {
+  rescheduleBookingId = id;
+  const bookings = getBookings();
+  const b = bookings.find(x => x.id === id);
+  if (!b) return;
+
+  document.getElementById('reschedule-info').innerHTML =
+    '<div style="padding:10px 0; margin-bottom:12px; border-bottom:1px solid var(--gray-200);">' +
+    '<strong>' + b.clientName + '</strong><br>' +
+    '<span style="color:var(--gray-600); font-size:0.9rem;">' + b.eventName + ' on ' + b.date + ' at ' + b.time + '</span></div>';
+
+  document.getElementById('reschedule-date').value = b.date;
+  document.getElementById('reschedule-slot').value = b.eventType;
+  document.getElementById('modal-reschedule').classList.add('open');
+}
+
+async function confirmReschedule() {
+  if (!rescheduleBookingId) return;
+  const newDate = document.getElementById('reschedule-date').value;
+  const newSlot = document.getElementById('reschedule-slot').value;
+  if (!newDate) { alert('Pick a new date.'); return; }
+
+  try {
+    await DB.updateBooking(rescheduleBookingId, {
+      date: newDate,
+      eventType: newSlot,
+      eventName: EVENT_LABELS[newSlot],
+      time: EVENT_TIME_SLOTS[newSlot],
+      status: 'confirmed',
+      rescheduledAt: new Date().toISOString(),
+    });
+    closeModal('modal-reschedule');
+    rescheduleBookingId = null;
+    await refreshData();
+    renderAll();
+  } catch (err) {
+    alert('Could not reschedule. Try again.');
+  }
+}
+
+// --- Helpers ---
+function formatDate(date) {
+  return date.getFullYear() + '-' +
+    String(date.getMonth() + 1).padStart(2, '0') + '-' +
+    String(date.getDate()).padStart(2, '0');
+}
+
+function renderAll() {
+  renderWeekStrip();
+  renderDay();
+}
+
+// --- Demo seed: populate localStorage with realistic Tidal Taxi bookings on first visit ---
+(function seedDemoData() {
+  if (localStorage.getItem('gf_seeded_tidal_v1')) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const fmt = (d) => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  const at = (offsetDays) => { const d = new Date(today); d.setDate(d.getDate() + offsetDays); return fmt(d); };
+  const id = () => 'd' + Math.random().toString(36).slice(2, 12);
+
+  const bookings = [
+    { id: id(), eventType: 'monday',    eventName: 'Cruise Day Tour', date: at(0),  time: '8:00am',  duration: 210, clientName: 'Norwegian Bliss — Patel party (6)', clientEmail: 'rpatel@example.com',   clientPhone: '(206) 555-0142', clientAddress: 'Sitka cruise dock', gardenNotes: 'Wildlife focus, eagle viewing top priority. Back to ship by 11:45.', status: 'confirmed', bookedBy: 'admin' },
+    { id: id(), eventType: 'morning',   eventName: 'Morning Tour',    date: at(1),  time: '9:00am',  duration: 180, clientName: 'Janet & Mike Halvorsen',            clientEmail: 'jhalvor@example.com',  clientPhone: '(907) 555-0188', clientAddress: 'Totem Square Inn',  gardenNotes: 'Returning customers. Asked for Indian River + Castle Hill.',         status: 'confirmed', bookedBy: 'client' },
+    { id: id(), eventType: 'afternoon', eventName: 'Afternoon Tour',  date: at(1),  time: '1:00pm',  duration: 180, clientName: 'Smith family (4)',                  clientEmail: 'asmith@example.com',   clientPhone: '(503) 555-0119', clientAddress: 'Westmark Sitka',    gardenNotes: 'Kids 8 + 11. Easy hikes only.',                                       status: 'confirmed', bookedBy: 'client' },
+    { id: id(), eventType: 'monday',    eventName: 'Cruise Day Tour', date: at(2),  time: '8:00am',  duration: 210, clientName: 'Holland America — Brown party (4)', clientEmail: 'sbrown@example.com',   clientPhone: '(415) 555-0173', clientAddress: 'Sitka cruise dock', gardenNotes: 'Cruise debarks 7:30. Hard cap 11:30 return.',                         status: 'confirmed', bookedBy: 'admin' },
+    { id: id(), eventType: 'morning',   eventName: 'Morning Tour',    date: at(3),  time: '9:00am',  duration: 180, clientName: 'Wilkins couple',                    clientEmail: 'twilkins@example.com', clientPhone: '(907) 555-0156', clientAddress: 'Sitka Hotel',       gardenNotes: 'Anniversary trip — bring camera stops.',                              status: 'confirmed', bookedBy: 'client' },
+    { id: id(), eventType: 'afternoon', eventName: 'Afternoon Tour',  date: at(4),  time: '1:00pm',  duration: 180, clientName: 'Davis & Park (2)',                  clientEmail: 'kdavis@example.com',   clientPhone: '(206) 555-0184', clientAddress: 'Aspen Suites',      gardenNotes: 'Photography focused. Wants Whale Park + Fortress of the Bear.',       status: 'confirmed', bookedBy: 'client' },
+    { id: id(), eventType: 'monday',    eventName: 'Cruise Day Tour', date: at(7),  time: '8:00am',  duration: 210, clientName: 'Princess Ruby — Anna Holt (2)',     clientEmail: 'aholt@example.com',    clientPhone: '(303) 555-0162', clientAddress: 'Sitka cruise dock', gardenNotes: 'Mobility-limited, no long walks.',                                    status: 'confirmed', bookedBy: 'admin' },
+    { id: id(), eventType: 'morning',   eventName: 'Morning Tour',    date: at(8),  time: '9:00am',  duration: 180, clientName: 'Riley & Tomas',                     clientEmail: 'briley@example.com',   clientPhone: '(415) 555-0198', clientAddress: 'Longliner Lodge',   gardenNotes: '',                                                                    status: 'confirmed', bookedBy: 'client' },
+    { id: id(), eventType: 'afternoon', eventName: 'Afternoon Tour',  date: at(9),  time: '1:00pm',  duration: 180, clientName: 'Garcia family (5)',                 clientEmail: 'mgarcia@example.com',  clientPhone: '(602) 555-0144', clientAddress: 'Sitka Cabins',      gardenNotes: 'Two littles in carseats — please confirm seating.',                   status: 'confirmed', bookedBy: 'client' },
+    { id: id(), eventType: 'monday',    eventName: 'Cruise Day Tour', date: at(11), time: '8:00am',  duration: 210, clientName: 'Carnival Spirit — Lindstrom (8)',   clientEmail: 'plindstrom@example.com',clientPhone: '(612) 555-0177',clientAddress: 'Sitka cruise dock', gardenNotes: 'Big group — they asked for two vehicles.',                            status: 'confirmed', bookedBy: 'admin' },
+    { id: id(), eventType: 'morning',   eventName: 'Morning Tour',    date: at(14), time: '9:00am',  duration: 180, clientName: 'Janet & Mike Halvorsen',            clientEmail: 'jhalvor@example.com',  clientPhone: '(907) 555-0188', clientAddress: 'Totem Square Inn',  gardenNotes: 'Their second trip — try Mosquito Cove this time.',                    status: 'confirmed', bookedBy: 'client' },
+  ];
+
+  const blocks = [
+    { id: id(), date: at(5), allDay: false, startTime: '09:00', endTime: '13:00', reason: 'Vehicle maintenance — Kia in shop' },
+    { id: id(), date: at(6), allDay: true,  startTime: '',      endTime: '',      reason: 'Day off' },
+  ];
+
+  localStorage.setItem('gf_bookings_v1', JSON.stringify(bookings));
+  localStorage.setItem('gf_blocks_v1', JSON.stringify(blocks));
+  localStorage.setItem('gf_seeded_tidal_v1', '1');
+})();
+
+// --- Init ---
+refreshData().then(() => renderAll());
+</script>
+</body>
+</html>
