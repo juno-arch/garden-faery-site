@@ -938,21 +938,19 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
       -->
     </div>
 
-    <!-- Booking type chooser removed: multi-date is the only mode now.
-         Picking a service jumps straight to the calendar; pick 1 day for
-         one visit or N for several. Hidden stubs kept so legacy JS that
-         still references these IDs doesn't throw. -->
+    <!-- Recurring booking flow removed 2026-04-25. Each booking is now
+         standalone (or part of a one-time multi-date selection). Regulars
+         (Kenzie) are managed via existing booking history, not via a
+         system-wide recurring series flag. -->
     <div id="booking-type-section" style="display:none;">
       <button type="button" id="bt-once" style="display:none;"></button>
       <button type="button" id="bt-multiple" style="display:none;"></button>
       <button type="button" id="bt-recurring" style="display:none;"></button>
     </div>
     <div id="recurring-setup" style="display:none;">
-      <div id="weekday-chips"></div>
-      <select id="recur-frequency"><option value="weekly">Weekly</option></select>
-      <input type="date" id="recur-start">
-      <input type="date" id="recur-end">
-      <div id="recurring-preview" style="display:none;"></div>
+      <select id="recur-frequency" style="display:none;"><option value="weekly">Weekly</option></select>
+      <input type="date" id="recur-start" style="display:none;">
+      <input type="date" id="recur-end" style="display:none;">
     </div>
     <div id="step-0-continue" style="display:none;">
       <button id="btn-step0-continue"></button>
@@ -1859,49 +1857,8 @@ async function submitBooking() {
 
   const et = EVENT_TYPES[selectedEvent];
 
-  if (bookingType === 'recurring') {
-    const okDates = recurDates.filter(d => d.status === 'ok');
-    if (okDates.length === 0) {
-      alert('No available dates for this recurring schedule. Please go back and adjust.');
-      btn.disabled = false;
-      btn.textContent = 'Book My Visit';
-      return;
-    }
-    const seriesId = 'rec_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-    let saved = 0;
-    try {
-      for (const d of okDates) {
-        const b = {
-          id: 'b_' + Date.now() + '_' + saved,
-          eventType: selectedEvent,
-          eventName: et.name,
-          date: d.date,
-          time: et.slots[0],
-          duration: et.duration,
-          clientName: name,
-          clientEmail: email,
-          clientPhone: phone,
-          clientAddress: address,
-          gardenNotes: notes,
-          status: 'confirmed',
-          bookedBy: 'client',
-          recurringSeriesId: seriesId,
-          recurringFrequency: recurFrequency,
-          createdAt: new Date().toISOString()
-        };
-        await DB.saveBooking(b);
-        saved++;
-      }
-      showRecurringConfirmation(et, okDates, seriesId);
-      goStep(3);
-    } catch (err) {
-      console.log('Recurring booking error:', err);
-      alert('Saved ' + saved + ' of ' + okDates.length + ' visits, then hit:\n\n' + (err && err.message ? err.message : err) + '\n\nPlease contact Taya if anything looks off.');
-      btn.disabled = false;
-      btn.textContent = 'Book My Visit';
-    }
-    return;
-  }
+  // Recurring booking flow removed 2026-04-25. Multi-date is the only
+  // mode now. Each booking is independent with no recurringSeriesId.
 
   if (bookingType === 'multiple') {
     if (multiDates.length === 0) {
@@ -1910,7 +1867,6 @@ async function submitBooking() {
       btn.textContent = 'Book My Visits';
       return;
     }
-    const seriesId = 'multi_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
     let saved = 0;
     try {
       for (const ds of multiDates) {
@@ -1928,14 +1884,12 @@ async function submitBooking() {
           gardenNotes: notes,
           status: 'confirmed',
           bookedBy: 'client',
-          recurringSeriesId: seriesId,
-          recurringFrequency: null,
           createdAt: new Date().toISOString()
         };
         await DB.saveBooking(b);
         saved++;
       }
-      showMultipleConfirmation(et, multiDates.slice(), seriesId);
+      showMultipleConfirmation(et, multiDates.slice(), null);
       goStep(3);
     } catch (err) {
       console.log('Multi-date booking error:', err);
