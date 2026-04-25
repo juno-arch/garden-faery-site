@@ -319,76 +319,11 @@
       color: white;
     }
 
-    /* Planting Calendar */
-    .planting-calendar {
-      margin-bottom: 28px;
-      background: var(--food-rose-light);
-      border-radius: 12px;
-      padding: 20px;
-    }
-
     .calendar-title {
       font-family: var(--font-heading);
       font-size: 1.3rem;
       margin-bottom: 12px;
       color: var(--text-primary);
-    }
-
-    .calendar-grid {
-      display: grid;
-      grid-template-columns: 140px repeat(12, 1fr);
-      gap: 2px;
-      font-size: 0.75rem;
-      overflow-x: auto;
-    }
-
-    .calendar-header {
-      text-align: center;
-      font-weight: 700;
-      padding: 6px 2px;
-      background: var(--food-rose);
-      color: white;
-      border-radius: 4px;
-    }
-
-    .calendar-plant-name {
-      padding: 6px 8px;
-      font-weight: 600;
-      background: white;
-      border-radius: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .calendar-cell {
-      text-align: center;
-      padding: 6px 2px;
-      border-radius: 4px;
-      background: white;
-    }
-
-    .calendar-cell.start-indoors {
-      background: #ffe4b5;
-    }
-
-    .calendar-cell.direct-sow {
-      background: #b5e4b5;
-    }
-
-    .calendar-cell.transplant {
-      background: #b5d4e4;
-    }
-
-    .calendar-cell.harvest {
-      background: #f4c2c2;
-    }
-
-    .calendar-legend {
-      display: flex;
-      gap: 16px;
-      margin-top: 10px;
-      flex-wrap: wrap;
     }
 
     .legend-item {
@@ -797,11 +732,6 @@
 
     /* Responsive */
     @media (max-width: 900px) {
-      .calendar-grid {
-        grid-template-columns: 100px repeat(12, 1fr);
-        font-size: 0.7rem;
-      }
-
       .card-meta {
         grid-template-columns: 1fr;
       }
@@ -815,11 +745,6 @@
 
       .plants-grid {
         grid-template-columns: 1fr;
-      }
-
-      .calendar-grid {
-        font-size: 0.65rem;
-        grid-template-columns: 80px repeat(12, 1fr);
       }
 
       .tab-nav {
@@ -1386,46 +1311,6 @@
       font-style: italic;
     }
 
-    /* Interactive calendar */
-    .calendar-header {
-      cursor: pointer;
-      user-select: none;
-      transition: transform 0.15s, background 0.15s;
-    }
-    .calendar-header:hover { transform: translateY(-1px); }
-    .calendar-header.today {
-      background: var(--text-primary);
-      box-shadow: 0 0 0 3px rgba(74, 25, 66, 0.2);
-    }
-    .calendar-header.focus-month {
-      background: var(--highlight);
-      color: var(--text-primary);
-    }
-    .calendar-cell.dim { opacity: 0.25; }
-    .calendar-cell.focus-col { box-shadow: 0 0 0 2px var(--text-primary) inset; }
-    .calendar-plant-name { cursor: pointer; transition: background 0.15s; }
-    .calendar-plant-name:hover { background: var(--food-rose); color: white; }
-    .calendar-focus-info {
-      grid-column: 1 / -1;
-      padding: 10px 14px;
-      margin-top: 6px;
-      background: white;
-      border-radius: 6px;
-      font-size: 13px;
-      line-height: 1.55;
-      color: var(--text-primary);
-    }
-    .calendar-focus-info strong { color: var(--food-rose); }
-    .calendar-focus-clear {
-      background: none;
-      border: none;
-      color: rgba(74, 25, 66, 0.55);
-      font-size: 12px;
-      cursor: pointer;
-      text-decoration: underline;
-      margin-left: 8px;
-    }
-
     /* Toast */
     .toast {
       position: fixed;
@@ -1514,7 +1399,7 @@
     .companion-chip.unknown:hover { background: white; }
 
     @media print {
-      nav, .hero, .tab-nav, .lifecycle-filters, .planting-calendar, .succession-calendar,
+      nav, .hero, .tab-nav, .lifecycle-filters, .succession-calendar,
       .plants-grid, .filter-toolbar, .this-month, .result-count, footer, .my-garden-fab,
       .overlay, .modal, .drawer-close, .drawer-footer .fav-action-btn.ghost { display: none !important; }
       .drawer {
@@ -1608,116 +1493,6 @@
     </div>
 
     <p class="result-count" id="result-count"></p>
-
-    <!-- Planting Calendar -->
-    <div class="planting-calendar">
-      <div class="calendar-title">When to Plant in Humboldt County</div>
-      <div class="calendar-grid">
-        <div class="calendar-header" style="background:transparent"></div>
-        <div class="calendar-header">J</div><div class="calendar-header">F</div>
-        <div class="calendar-header">M</div><div class="calendar-header">A</div>
-        <div class="calendar-header">M</div><div class="calendar-header">J</div>
-        <div class="calendar-header">J</div><div class="calendar-header">A</div>
-        <div class="calendar-header">S</div><div class="calendar-header">O</div>
-        <div class="calendar-header">N</div><div class="calendar-header">D</div>
-
-        <!-- Tomatoes -->
-        <div class="calendar-plant-name">Tomatoes</div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell start-indoors">S</div>
-        <div class="calendar-cell start-indoors">S</div>
-        <div class="calendar-cell start-indoors">S</div>
-        <div class="calendar-cell transplant">T</div>
-        <div class="calendar-cell transplant">T</div>
-        <div class="calendar-cell harvest">H</div>
-        <div class="calendar-cell harvest">H</div>
-        <div class="calendar-cell harvest">H</div>
-        <div class="calendar-cell harvest">H</div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell"></div>
-
-        <!-- Kale -->
-        <div class="calendar-plant-name">Kale</div>
-        <div class="calendar-cell direct-sow">D</div>
-        <div class="calendar-cell direct-sow">D</div>
-        <div class="calendar-cell direct-sow">D</div>
-        <div class="calendar-cell direct-sow">D</div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell direct-sow">D</div>
-        <div class="calendar-cell direct-sow">D</div>
-        <div class="calendar-cell harvest">H</div>
-        <div class="calendar-cell harvest">H</div>
-        <div class="calendar-cell harvest">H</div>
-
-        <!-- Garlic -->
-        <div class="calendar-plant-name">Garlic</div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell harvest">H</div>
-        <div class="calendar-cell harvest">H</div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell direct-sow">D</div>
-        <div class="calendar-cell direct-sow">D</div>
-        <div class="calendar-cell"></div>
-
-        <!-- Blueberry -->
-        <div class="calendar-plant-name">Blueberry</div>
-        <div class="calendar-cell transplant">T</div>
-        <div class="calendar-cell transplant">T</div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell harvest">H</div>
-        <div class="calendar-cell harvest">H</div>
-        <div class="calendar-cell harvest">H</div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell transplant">T</div>
-        <div class="calendar-cell transplant">T</div>
-
-        <!-- Lettuce -->
-        <div class="calendar-plant-name">Lettuce</div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell start-indoors">S</div>
-        <div class="calendar-cell direct-sow">D</div>
-        <div class="calendar-cell direct-sow">D</div>
-        <div class="calendar-cell direct-sow">D</div>
-        <div class="calendar-cell direct-sow">D</div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell direct-sow">D</div>
-        <div class="calendar-cell direct-sow">D</div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell"></div>
-
-        <!-- Strawberry -->
-        <div class="calendar-plant-name">Strawberry</div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell transplant">T</div>
-        <div class="calendar-cell transplant">T</div>
-        <div class="calendar-cell"></div>
-        <div class="calendar-cell harvest">H</div>
-        <div class="calendar-cell harvest">H</div>
-        <div class="calendar-cell harvest">H</div>
-        <div class="calendar-cell harvest">H</div>
-        <div class="calendar-cell harvest">H</div>
-        <div class="calendar-cell harvest">H</div>
-        <div class="calendar-cell transplant">T</div>
-        <div class="calendar-cell"></div>
-      </div>
-      <div class="calendar-legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#ffe4b5"></div> Start Indoors</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#b5e4b5"></div> Direct Sow</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#b5d4e4"></div> Transplant</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#f4c2c2"></div> Harvest</div>
-      </div>
-    </div>
 
     <!-- Succession Planting Calendar -->
     <div class="succession-calendar">
@@ -2638,7 +2413,6 @@
     let currentLifecycle = 'all';
     let currentSub = 'all';
     let currentMonth = new Date().getMonth(); // 0-indexed
-    let focusedMonth = null; // for calendar interactivity
 
     function loadFavorites() {
       try {
@@ -2883,106 +2657,6 @@
       panel.querySelectorAll('button[data-slug]').forEach(btn => {
         btn.addEventListener('click', () => openModal(btn.dataset.slug));
       });
-    }
-
-    // ---- Calendar interactivity ----
-    function enhanceCalendar() {
-      const cal = document.querySelector('.planting-calendar .calendar-grid');
-      if (!cal) return;
-
-      // Identify the 12 month headers (skip the first blank one)
-      const headers = Array.from(cal.querySelectorAll('.calendar-header'));
-      const monthHeaders = headers.filter(h => h.textContent.trim().length > 0);
-      monthHeaders.forEach((h, idx) => {
-        h.dataset.month = idx;
-        h.setAttribute('role', 'button');
-        h.setAttribute('tabindex', '0');
-        h.setAttribute('aria-label', 'Focus ' + MONTH_NAMES[idx]);
-        if (idx === currentMonth) h.classList.add('today');
-        h.addEventListener('click', () => focusCalendarMonth(idx));
-        h.addEventListener('keydown', e => {
-          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); focusCalendarMonth(idx); }
-        });
-      });
-
-      // Make plant names clickable → open modal
-      cal.querySelectorAll('.calendar-plant-name').forEach(el => {
-        const name = el.textContent.trim();
-        const p = plants.find(x => x.name.toLowerCase().startsWith(name.toLowerCase()) || name.toLowerCase().startsWith(x.name.toLowerCase()));
-        if (!p) return;
-        el.setAttribute('role', 'button');
-        el.setAttribute('tabindex', '0');
-        el.title = 'View ' + p.name;
-        el.addEventListener('click', () => openModal(p.slug));
-        el.addEventListener('keydown', e => {
-          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(p.slug); }
-        });
-      });
-    }
-
-    function focusCalendarMonth(monthIdx) {
-      const cal = document.querySelector('.planting-calendar .calendar-grid');
-      if (!cal) return;
-      if (focusedMonth === monthIdx) { clearCalendarFocus(); return; }
-      focusedMonth = monthIdx;
-
-      const headers = Array.from(cal.querySelectorAll('.calendar-header'));
-      const monthHeaders = headers.filter(h => h.textContent.trim().length > 0);
-      monthHeaders.forEach((h, i) => h.classList.toggle('focus-month', i === monthIdx));
-
-      // Build plant rows: column position = 2 + monthIdx (1-indexed: first col is plant name)
-      // Grid layout: 13 cols total (1 label + 12 months). We iterate each row.
-      const rows = [];
-      let row = [];
-      const cells = Array.from(cal.children);
-      cells.forEach(cell => {
-        row.push(cell);
-        if (row.length === 13) { rows.push(row); row = []; }
-      });
-
-      rows.forEach((r, idx) => {
-        if (idx === 0) return; // header row
-        const label = r[0];
-        const target = r[1 + monthIdx];
-        r.forEach((cell, ci) => {
-          if (ci === 0) return;
-          if (cell.classList.contains('calendar-cell')) {
-            cell.classList.toggle('dim', ci !== 1 + monthIdx);
-            cell.classList.toggle('focus-col', ci === 1 + monthIdx);
-          }
-        });
-      });
-
-      // Build an info row under the grid
-      let info = document.querySelector('.calendar-focus-info-wrap');
-      if (!info) {
-        info = document.createElement('div');
-        info.className = 'calendar-focus-info-wrap';
-        info.style.marginTop = '12px';
-        cal.parentElement.insertBefore(info, cal.nextSibling);
-      }
-      const toPlant = plants.filter(p => p._plantMonths.includes(monthIdx));
-      const toHarvest = plants.filter(p => p._harvestMonths.includes(monthIdx));
-      info.innerHTML =
-        '<div class="calendar-focus-info">' +
-          '<strong>' + MONTH_NAMES[monthIdx] + ':</strong> ' +
-          (toPlant.length ? 'plant ' + toPlant.slice(0, 8).map(p => p.name).join(', ') + (toPlant.length > 8 ? ' and ' + (toPlant.length - 8) + ' more' : '') : 'no planting on the main list') +
-          (toHarvest.length ? '; harvest ' + toHarvest.slice(0, 8).map(p => p.name).join(', ') + (toHarvest.length > 8 ? ' and ' + (toHarvest.length - 8) + ' more' : '') : '') +
-          '.<button class="calendar-focus-clear" id="calendar-focus-clear">Clear</button>' +
-        '</div>';
-      document.getElementById('calendar-focus-clear').addEventListener('click', clearCalendarFocus);
-    }
-
-    function clearCalendarFocus() {
-      focusedMonth = null;
-      const cal = document.querySelector('.planting-calendar .calendar-grid');
-      if (cal) {
-        cal.querySelectorAll('.calendar-header.focus-month').forEach(h => h.classList.remove('focus-month'));
-        cal.querySelectorAll('.calendar-cell.dim').forEach(c => c.classList.remove('dim'));
-        cal.querySelectorAll('.calendar-cell.focus-col').forEach(c => c.classList.remove('focus-col'));
-      }
-      const wrap = document.querySelector('.calendar-focus-info-wrap');
-      if (wrap) wrap.remove();
     }
 
     // ---- Modal ----
@@ -3273,7 +2947,6 @@
         installGlobalHooks();
         applyFilters();
         renderThisMonth();
-        enhanceCalendar();
       }, 0);
 
       // Tag toggles
@@ -3314,7 +2987,7 @@
       });
 
       document.addEventListener('keydown', e => {
-        if (e.key === 'Escape') { closeModal(); closeDrawer(); clearCalendarFocus(); }
+        if (e.key === 'Escape') { closeModal(); closeDrawer(); }
       });
 
       const params = new URLSearchParams(location.search);
