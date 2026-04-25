@@ -284,6 +284,15 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   cursor: default;
   color: var(--gray-400);
   transition: all 0.15s;
+  position: relative;
+}
+.cal-day .rain-mark {
+  position: absolute;
+  top: 1px;
+  right: 3px;
+  font-size: 0.7rem;
+  opacity: 0.85;
+  pointer-events: none;
 }
 .cal-day.available {
   color: var(--plum);
@@ -1264,16 +1273,32 @@ const DB = {
       reason: r.reason,
     }));
   },
+
+  // --- Rainy forecast dates (cached server-side by weather.pb.js Sunday cron) ---
+  async getRainyDates() {
+    if (!this._usePB) return [];
+    const today = new Date().toISOString().slice(0, 10);
+    try {
+      const filter = encodeURIComponent('date >= "' + today + '" && is_rainy = true');
+      const data = await this._pb('GET', 'weather_forecasts/records?perPage=200&filter=' + filter);
+      return (data.items || []).map(r => r.date);
+    } catch (err) {
+      return [];
+    }
+  },
 };
 
 // --- Sync helpers (cache for synchronous calendar rendering) ---
 let _cachedBookings = [];
 let _cachedBlocks = [];
+let _cachedRainyDates = new Set();
 
 async function refreshData() {
   try {
     _cachedBookings = await DB.getBookings();
     _cachedBlocks = await DB.getBlocks();
+    const rainyDates = await DB.getRainyDates();
+    _cachedRainyDates = new Set(rainyDates);
   } catch (err) {
     console.log('Data refresh error:', err);
   }
@@ -1281,6 +1306,7 @@ async function refreshData() {
 
 function getBookings() { return _cachedBookings; }
 function getBlocks() { return _cachedBlocks; }
+function getRainyDates() { return _cachedRainyDates; }
 
 function isDateBlocked(dateStr, eventType) {
   const blocks = getBlocks();
@@ -1586,12 +1612,18 @@ function renderCalendar() {
     const isMoonDay = dayBlocks.some(b => (b.reason || '').toLowerCase().startsWith('moon days'));
     if (isMoonDay) classes += ' moon-day';
 
+    // Mark heavy-rain days from the cached forecast
+    const isRainy = !isPast && getRainyDates().has(dateStr);
+    const rainMark = isRainy
+      ? '<span class="rain-mark" aria-hidden="true" title="Heavy rain in the forecast">🌧️</span>'
+      : '';
+
     if (available) {
-      html += '<div class="' + classes + '" data-date="' + calYear + '-' + (calMonth+1) + '-' + d + '" onclick="selectDate(this)">' + d + '</div>';
+      html += '<div class="' + classes + '" data-date="' + calYear + '-' + (calMonth+1) + '-' + d + '" onclick="selectDate(this)">' + d + rainMark + '</div>';
     } else if (isMoonDay && !isPast) {
-      html += '<div class="' + classes + '" title="Moon days - Taya is resting">' + d + '<span class="moon-mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span></div>';
+      html += '<div class="' + classes + '" title="Moon days - Taya is resting">' + d + '<span class="moon-mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>' + rainMark + '</div>';
     } else {
-      html += '<div class="' + classes + '">' + d + '</div>';
+      html += '<div class="' + classes + '">' + d + rainMark + '</div>';
     }
   }
 
@@ -2256,12 +2288,17 @@ function renderRescheduleCalendar(id) {
     if (isSelected) classes += ' selected';
     if (isMoonDay) classes += ' moon-day';
 
+    const isRainy = !isPast && getRainyDates().has(dateStr);
+    const rainMark = isRainy
+      ? '<span class="rain-mark" aria-hidden="true" title="Heavy rain in the forecast">🌧️</span>'
+      : '';
+
     if (available) {
-      html += '<div class="' + classes + '" data-date="' + dateStr + '" onclick="reschedPickDate(\'' + id + '\',\'' + dateStr + '\')">' + d + '</div>';
+      html += '<div class="' + classes + '" data-date="' + dateStr + '" onclick="reschedPickDate(\'' + id + '\',\'' + dateStr + '\')">' + d + rainMark + '</div>';
     } else if (isMoonDay && !isPast) {
-      html += '<div class="' + classes + '" title="Moon days - Taya is resting">' + d + '<span class="moon-mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span></div>';
+      html += '<div class="' + classes + '" title="Moon days - Taya is resting">' + d + '<span class="moon-mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>' + rainMark + '</div>';
     } else {
-      html += '<div class="' + classes + '">' + d + '</div>';
+      html += '<div class="' + classes + '">' + d + rainMark + '</div>';
     }
   }
   html += '</div>';

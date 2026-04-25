@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reschedule your visit | Garden Faery</title>
+  <meta name="robots" content="noindex">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Nunito:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="shared.css">
+  <link rel="icon" href="favicon-32.png">
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--cream);
+      color: var(--text-primary);
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 36px 32px;
+      max-width: 480px;
+      width: 100%;
+    }
+    .logo-wrap { text-align: center; margin-bottom: 16px; }
+    .logo-wrap img { width: 80px; height: auto; }
+    h1 {
+      font-family: 'Lora', serif;
+      font-weight: 400;
+      font-size: 1.6rem;
+      text-align: center;
+      margin: 0 0 8px;
+      color: var(--plum);
+    }
+    .lede {
+      text-align: center;
+      color: var(--gray-600);
+      margin: 0 0 28px;
+      font-size: 0.95rem;
+    }
+    .booking-info {
+      background: var(--cream);
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin-bottom: 24px;
+      font-size: 0.95rem;
+    }
+    .booking-info .label {
+      color: var(--gray-600);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .booking-info .value { font-weight: 600; }
+    .booking-info .struck { text-decoration: line-through; color: var(--gray-400); font-weight: 400; }
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      margin-top: 16px;
+    }
+    input[type="date"], input[type="time"] {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--gray-200);
+      border-radius: 8px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem;
+      background: var(--white);
+      box-sizing: border-box;
+    }
+    input:focus { outline: 2px solid var(--spring-sage); outline-offset: 1px; }
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 24px;
+      background: var(--plum);
+      color: var(--white);
+      border: none;
+      border-radius: 8px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button:hover:not(:disabled) { background: #6b2861; }
+    button:disabled { background: var(--gray-400); cursor: not-allowed; }
+    .msg { padding: 12px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem; }
+    .msg.error { background: var(--red-light); color: var(--red); }
+    .msg.success { background: var(--sage-light); color: var(--leaf-green); }
+    .hidden { display: none; }
+    .footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 0.85rem;
+      color: var(--gray-600);
+    }
+    .footer a { color: var(--plum); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo-wrap">
+      <img src="garden-faery-logo.png" alt="Garden Faery" onerror="this.style.display='none'">
+    </div>
+
+    <div id="loading-state">
+      <h1>Looking up your visit...</h1>
+    </div>
+
+    <div id="error-state" class="hidden">
+      <h1>Hmm, something's off</h1>
+      <p class="lede" id="error-message">This reschedule link looks invalid or expired.</p>
+      <p class="footer">Just <a href="mailto:taya@gardenfaery.love">email Taya</a> and we'll sort it.</p>
+    </div>
+
+    <div id="form-state" class="hidden">
+      <h1>Where faeries go in the rain</h1>
+      <p class="lede">Pick a new date and time that works for you.</p>
+
+      <div class="booking-info">
+        <div class="label">Currently scheduled</div>
+        <div class="value struck" id="current-info">--</div>
+      </div>
+
+      <div id="form-error" class="msg error hidden"></div>
+
+      <label for="new-date">New date</label>
+      <input type="date" id="new-date" required>
+
+      <label for="new-time">New time</label>
+      <input type="time" id="new-time" required>
+
+      <button id="submit-btn" onclick="submitReschedule()">Reschedule my visit</button>
+
+      <p class="footer">Or just <a href="mailto:taya@gardenfaery.love">email Taya</a> if you'd rather chat about it.</p>
+    </div>
+
+    <div id="success-state" class="hidden">
+      <h1>All set</h1>
+      <p class="lede">Your visit has been moved. You'll get a confirmation email in a moment.</p>
+
+      <div class="booking-info">
+        <div class="label">New visit</div>
+        <div class="value" id="success-info">--</div>
+      </div>
+
+      <p class="footer">See you in the garden 🌿</p>
+    </div>
+  </div>
+
+  <script>
+    const PB_URL = 'https://bookings.gardenfaery.love';
+
+    function getToken() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('token') || '';
+    }
+
+    function showState(id) {
+      ['loading-state', 'error-state', 'form-state', 'success-state'].forEach((s) => {
+        document.getElementById(s).classList.add('hidden');
+      });
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function showError(msg) {
+      document.getElementById('error-message').textContent = msg;
+      showState('error-state');
+    }
+
+    function fmtDate(iso) {
+      try {
+        const d = new Date(iso + 'T12:00:00');
+        return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+      } catch (e) { return iso; }
+    }
+
+    let currentBooking = null;
+
+    async function loadBooking() {
+      const token = getToken();
+      if (!token) {
+        showError('No reschedule link in the URL. Try clicking the link in your email again.');
+        return;
+      }
+      try {
+        const resp = await fetch(PB_URL + '/api/reschedule/by-token?token=' + encodeURIComponent(token));
+        if (resp.status === 404) {
+          showError('This link has already been used or expired. If you still need to reschedule, email Taya.');
+          return;
+        }
+        if (resp.status === 410) {
+          showError('This booking is no longer active.');
+          return;
+        }
+        if (!resp.ok) {
+          showError('Something went wrong loading your booking. Please try again or email Taya.');
+          return;
+        }
+        currentBooking = await resp.json();
+        document.getElementById('current-info').textContent =
+          currentBooking.event_name + ' on ' + fmtDate(currentBooking.date) + ' at ' + currentBooking.time;
+        // Default new date to tomorrow
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('new-date').value = tomorrow.toISOString().slice(0, 10);
+        document.getElementById('new-time').value = currentBooking.time || '09:00';
+        showState('form-state');
+      } catch (err) {
+        showError('Could not connect. Please check your internet and try again.');
+      }
+    }
+
+    async function submitReschedule() {
+      const date = document.getElementById('new-date').value;
+      const time = document.getElementById('new-time').value;
+      const errorEl = document.getElementById('form-error');
+      errorEl.classList.add('hidden');
+
+      if (!date || !time) {
+        errorEl.textContent = 'Please pick both a date and a time.';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+      const today = new Date().toISOString().slice(0, 10);
+      if (date < today) {
+        errorEl.textContent = 'Please pick a date in the future.';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        const resp = await fetch(PB_URL + '/api/reschedule/by-token', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: getToken(), date: date, time: time }),
+        });
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          errorEl.textContent = err.error || 'Could not reschedule. Please try again or email Taya.';
+          errorEl.classList.remove('hidden');
+          btn.disabled = false;
+          btn.textContent = 'Reschedule my visit';
+          return;
+        }
+        const data = await resp.json();
+        document.getElementById('success-info').textContent =
+          fmtDate(data.date) + ' at ' + data.time;
+        showState('success-state');
+      } catch (err) {
+        errorEl.textContent = 'Could not connect. Please try again.';
+        errorEl.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Reschedule my visit';
+      }
+    }
+
+    loadBooking();
+  </script>
+</body>
+</html>
