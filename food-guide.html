@@ -1463,37 +1463,6 @@
 
   <div class="tab-content">
 
-    <!-- This Month panel -->
-    <div class="this-month" id="this-month-panel"></div>
-
-    <!-- Lifecycle Filters + sort -->
-    <div class="lifecycle-filters">
-      <span class="lifecycle-label">Show:</span>
-      <button class="lifecycle-pill active" data-type="all" onclick="filterLifecycle('all', this)">All</button>
-      <button class="lifecycle-pill" data-type="perennial" onclick="filterLifecycle('perennial', this)">Perennial</button>
-      <button class="lifecycle-pill" data-type="annual" onclick="filterLifecycle('annual', this)">Annual</button>
-      <button class="lifecycle-pill" data-type="semi" onclick="filterLifecycle('semi', this)">Semi-Perennial</button>
-    </div>
-
-    <div class="filter-toolbar" role="group" aria-label="Refine by traits">
-      <button class="tag-toggle" data-tag="full-sun">Full Sun</button>
-      <button class="tag-toggle" data-tag="part-shade">Part Shade</button>
-      <button class="tag-toggle" data-tag="low-water">Low Water</button>
-      <button class="tag-toggle" data-tag="this-month">Plant This Month</button>
-      <button class="tag-toggle" data-tag="favorites-only">Saved Only</button>
-      <label class="sort-wrap">
-        Sort:
-        <select id="sort-select" class="sort-select" aria-label="Sort crops">
-          <option value="original">Default</option>
-          <option value="alpha">A to Z</option>
-          <option value="alpha-reverse">Z to A</option>
-          <option value="lifecycle">By lifecycle</option>
-        </select>
-      </label>
-    </div>
-
-    <p class="result-count" id="result-count"></p>
-
     <!-- Succession Planting Calendar -->
     <div class="succession-calendar">
       <div class="calendar-title">Succession Planting Calendar</div>
@@ -1708,6 +1677,37 @@
         <span class="succession-tip">Numbers show which sowing round. Skip hot summer months for cool-season crops.</span>
       </div>
     </div>
+
+    <!-- This Month panel -->
+    <div class="this-month" id="this-month-panel"></div>
+
+    <!-- Lifecycle Filters + sort -->
+    <div class="lifecycle-filters">
+      <span class="lifecycle-label">Show:</span>
+      <button class="lifecycle-pill active" data-type="all" onclick="filterLifecycle('all', this)">All</button>
+      <button class="lifecycle-pill" data-type="perennial" onclick="filterLifecycle('perennial', this)">Perennial</button>
+      <button class="lifecycle-pill" data-type="annual" onclick="filterLifecycle('annual', this)">Annual</button>
+      <button class="lifecycle-pill" data-type="semi" onclick="filterLifecycle('semi', this)">Semi-Perennial</button>
+    </div>
+
+    <div class="filter-toolbar" role="group" aria-label="Refine by traits">
+      <button class="tag-toggle" data-tag="full-sun">Full Sun</button>
+      <button class="tag-toggle" data-tag="part-shade">Part Shade</button>
+      <button class="tag-toggle" data-tag="low-water">Low Water</button>
+      <button class="tag-toggle" data-tag="this-month">Plant This Month</button>
+      <button class="tag-toggle" data-tag="favorites-only">Saved Only</button>
+      <label class="sort-wrap">
+        Sort:
+        <select id="sort-select" class="sort-select" aria-label="Sort crops">
+          <option value="original">Default</option>
+          <option value="alpha">A to Z</option>
+          <option value="alpha-reverse">Z to A</option>
+          <option value="lifecycle">By lifecycle</option>
+        </select>
+      </label>
+    </div>
+
+    <p class="result-count" id="result-count"></p>
 
     <!-- Plant Cards Grid -->
     <div class="plants-grid" id="plants-grid">
