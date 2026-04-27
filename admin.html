@@ -253,6 +253,15 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   transition: transform 0.15s;
 }
 .receipt-thumb:hover { transform: scale(1.05); }
+.receipt-thumb-pdf {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--plum);
+  background: var(--petal-pink-light);
+  cursor: pointer;
+}
 .receipt-lightbox {
   display: none;
   position: fixed;
@@ -2461,7 +2470,9 @@ async function renderExpenses() {
         : '';
       const cardLabel = cardDisplayLabel(e.card);
       const thumb = e.receipt && e._collection && e.id
-        ? `<img class="receipt-thumb" src="${receiptUrl(e)}" alt="Receipt thumbnail" onclick="openReceiptLightbox('${receiptUrl(e)}')" loading="lazy" decoding="async">`
+        ? (/\.pdf(\?|$)/i.test(e.receipt)
+            ? `<div class="receipt-thumb receipt-thumb-pdf" onclick="openReceiptLightbox('${receiptUrl(e)}')" title="Open PDF receipt"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span style="font-size:0.62rem;font-weight:700;letter-spacing:0.04em;margin-top:2px;">PDF</span></div>`
+            : `<img class="receipt-thumb" src="${receiptUrl(e)}" alt="Receipt thumbnail" onclick="openReceiptLightbox('${receiptUrl(e)}')" loading="lazy" decoding="async">`)
         : '';
       html += `
         <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100);gap:10px;">
@@ -2921,9 +2932,15 @@ function receiptUrl(e) {
   return PB_URL + '/api/files/' + e._collection + '/' + e.id + '/' + encodeURIComponent(e.receipt);
 }
 function openReceiptLightbox(url) {
+  if (!url) return;
+  // PDFs can't render in an <img>; open in a new tab so Safari/Chrome render them inline.
+  if (/\.pdf(\?|$)/i.test(url)) {
+    window.open(url, '_blank', 'noopener');
+    return;
+  }
   const lb = document.getElementById('receipt-lightbox');
   const img = document.getElementById('receipt-lightbox-img');
-  if (!lb || !img || !url) return;
+  if (!lb || !img) return;
   img.src = url;
   lb.classList.add('open');
   document.body.style.overflow = 'hidden';
