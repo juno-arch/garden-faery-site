@@ -145,6 +145,21 @@ footer a:hover { text-decoration: underline; }
 /* --- Section eyebrow (uppercase, letterspaced label above headings) --- */
 .eyebrow { display: inline-block; text-transform: uppercase; letter-spacing: 0.18em; color: var(--coral); font-weight: 700; font-size: 0.78rem; margin-bottom: 8px; font-family: var(--font-body); }
 
+/* --- Logo mask utility ---
+   For places that need the faery silhouette in a non-default brand color
+   (e.g. peach on a wine background, cream on a dark hero). The shape comes
+   from garden-faery-logo.svg and the color comes from the element's
+   `background-color` (or `color`, since we set it to currentColor). Sized
+   via width/height. Example:
+     <span class="gf-mark" style="width:32px;height:32px;color:var(--peach)"></span>
+*/
+.gf-mark {
+  display: inline-block;
+  background-color: currentColor;
+  -webkit-mask: url(garden-faery-logo.svg) no-repeat center / contain;
+          mask: url(garden-faery-logo.svg) no-repeat center / contain;
+}
+
 /* --- Visual refresh: pull pre-existing per-page button classes into the
    coral-pill brand. Per-page <style> blocks defined these earlier with their
    own colors / radii; this override unifies them without touching every page.
