@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Mockup v1 | Garden Faery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap">
+<style>
+  :root {
+    /* New palette — pulled from the warm dahlia/Floret vibe.
+       Keeps the deep anchor of the old plum but warmer, with coral/peach
+       and butter yellow accents. Cream stays as the paper. */
+    --wine:    #5a1230;   /* deepest dahlia, replaces plum for anchor color */
+    --rose:    #c2557a;   /* mid-tone warm rose */
+    --coral:   #e8896f;   /* peach-coral */
+    --peach:   #f7d5b9;   /* soft peach */
+    --butter:  #f0c878;   /* warm butter yellow (zinnia/dahlia center) */
+    --sage:    #9bbd85;   /* a single green note, kept from old palette */
+    --cream:   #faf5ee;   /* warm cream paper */
+    --ink:     #2a1424;   /* near-black with a wine tint for body text */
+    --gray:    #7a6f6a;   /* warm gray for secondary text */
+    --hairline:#e6dcd1;   /* subtle dividers */
+    --shadow:  0 2px 18px rgba(90, 18, 48, 0.07);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Nunito', system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--cream);
+    line-height: 1.55;
+    font-size: 17px;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { font-family: 'Lora', Georgia, serif; font-weight: 600; line-height: 1.2; color: var(--wine); }
+  h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); letter-spacing: -0.01em; }
+  h2 { font-size: clamp(1.6rem, 3.4vw, 2.1rem); margin-bottom: 0.5em; }
+  h3 { font-size: 1.15rem; margin-bottom: 0.35em; }
+  p  { margin-bottom: 0.8em; color: var(--ink); }
+  a  { color: var(--wine); }
+
+  .wordmark {
+    font-family: 'Elsie Swash Caps', Georgia, serif;
+    font-weight: 900;
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    color: var(--wine);
+    line-height: 1;
+    letter-spacing: 0.01em;
+  }
+
+  .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+
+  /* --- Mockup notice --- */
+  .mock-bar {
+    background: var(--wine);
+    color: #fff;
+    font-size: 0.82rem;
+    text-align: center;
+    padding: 8px 16px;
+    letter-spacing: 0.04em;
+  }
+  .mock-bar strong { letter-spacing: 0.18em; font-weight: 700; }
+  .mock-bar a { color: var(--peach); margin-left: 12px; text-decoration: underline; }
+
+  /* --- Photo toggle --- */
+  .photo-picker {
+    background: #fff;
+    border-bottom: 1px solid var(--hairline);
+    padding: 14px 0;
+  }
+  .photo-picker .row {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    justify-content: center; font-size: 0.9rem; color: var(--gray);
+  }
+  .photo-picker label {
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 4px;
+    transition: border-color 0.15s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .photo-picker label.active { border-color: var(--coral); }
+  .photo-picker img { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; display: block; }
+  .photo-picker input[type=radio] { position: absolute; opacity: 0; pointer-events: none; }
+
+  /* --- Header / Nav --- */
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 0;
+  }
+  .nav-mark {
+    font-family: 'Elsie Swash Caps', Georgia, serif;
+    font-weight: 900;
+    font-size: 1.5rem;
+    color: var(--wine);
+  }
+  .nav-links {
+    display: flex; gap: 28px;
+    font-size: 0.94rem;
+    font-weight: 600;
+  }
+  .nav-links a {
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    padding-bottom: 2px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .nav-links a:hover { color: var(--wine); border-bottom-color: var(--coral); }
+  @media (max-width: 700px) { .nav-links { display: none; } }
+
+  /* --- Hero --- */
+  .hero {
+    position: relative;
+    min-height: 78vh;
+    display: grid;
+    align-items: end;
+    background-size: cover;
+    background-position: center;
+    color: #fff;
+    margin-bottom: 80px;
+    border-radius: 0 0 28px 28px;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(42,20,36,0) 35%, rgba(42,20,36,0.55) 100%);
+  }
+  .hero .inner {
+    position: relative; z-index: 1;
+    padding: 0 28px 56px 28px;
+    max-width: 1140px; margin: 0 auto;
+    width: 100%;
+  }
+  .hero .wordmark { color: #fff; text-shadow: 0 2px 16px rgba(0,0,0,0.25); }
+  .hero p.tagline {
+    color: #fff;
+    font-size: clamp(1.05rem, 1.8vw, 1.3rem);
+    font-weight: 500;
+    max-width: 540px;
+    margin-top: 14px;
+    text-shadow: 0 1px 8px rgba(0,0,0,0.35);
+  }
+  .hero .cta-row { margin-top: 28px; display: flex; gap: 12px; flex-wrap: wrap; }
+
+  /* --- Buttons --- */
+  .btn {
+    display: inline-block;
+    padding: 14px 26px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.98rem;
+    text-decoration: none;
+    border: 2px solid transparent;
+    transition: transform 0.12s, box-shadow 0.12s, background 0.15s;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+  }
+  .btn-primary {
+    background: var(--coral);
+    color: var(--wine);
+    box-shadow: 0 2px 14px rgba(232, 137, 111, 0.4);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 18px rgba(232, 137, 111, 0.5); }
+  .btn-ghost {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border-color: rgba(255,255,255,0.6);
+    backdrop-filter: blur(4px);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.25); }
+
+  /* --- Section --- */
+  section { padding: 60px 0; }
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--coral);
+    font-weight: 700;
+    font-size: 0.78rem;
+    margin-bottom: 8px;
+  }
+  .section-head { text-align: center; max-width: 640px; margin: 0 auto 44px auto; }
+  .section-head p { color: var(--gray); }
+
+  /* --- Services grid --- */
+  .services { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+  .svc-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 28px 24px 26px 24px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--hairline);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .svc-card:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(90, 18, 48, 0.1); }
+  .svc-card .num {
+    font-family: 'Lora', serif;
+    font-size: 0.95rem;
+    color: var(--coral);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .svc-card p { color: var(--gray); font-size: 0.95rem; margin-bottom: 0; }
+
+  /* --- Gallery strip --- */
+  .gallery-strip {
+    background: var(--peach);
+    padding: 60px 0;
+  }
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 28px;
+  }
+  .gallery-grid img {
+    width: 100%; aspect-ratio: 1 / 1.1; object-fit: cover;
+    border-radius: 14px; display: block;
+    box-shadow: var(--shadow);
+  }
+
+  /* --- About row --- */
+  .about-row {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 50px;
+    align-items: center;
+  }
+  @media (max-width: 760px) { .about-row { grid-template-columns: 1fr; } }
+  .about-photo {
+    aspect-ratio: 4 / 5;
+    background-size: cover; background-position: center;
+    border-radius: 22px;
+    box-shadow: var(--shadow);
+    background-image: url('taya-selfie.jpg'), linear-gradient(135deg, var(--peach), var(--rose));
+  }
+  .about-text p { font-size: 1.05rem; }
+  .about-text p:first-of-type { font-family: 'Lora', serif; font-size: 1.18rem; color: var(--wine); font-style: italic; }
+
+  /* --- Service area band --- */
+  .area-band {
+    background: var(--wine);
+    color: #fff;
+    text-align: center;
+    padding: 38px 24px;
+    margin: 0;
+  }
+  .area-band p { color: rgba(255,255,255,0.85); margin-bottom: 0; }
+  .area-band .cities {
+    font-family: 'Lora', serif;
+    font-size: 1.35rem;
+    margin-top: 6px;
+    letter-spacing: 0.02em;
+    color: var(--peach);
+  }
+
+  /* --- Footer --- */
+  footer {
+    background: var(--ink);
+    color: rgba(255,255,255,0.78);
+    padding: 50px 0 30px 0;
+    text-align: center;
+    font-size: 0.92rem;
+  }
+  footer .brand {
+    font-family: 'Elsie Swash Caps', serif;
+    font-weight: 900;
+    font-size: 1.5rem;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  footer a { color: var(--peach); text-decoration: none; margin: 0 10px; }
+
+  /* --- Annotation pills (dev notes for Taya) --- */
+  .anno {
+    background: var(--butter);
+    color: var(--wine);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 0.86rem;
+    margin: 18px auto;
+    max-width: 600px;
+    text-align: center;
+    border: 1px dashed var(--coral);
+  }
+  .anno b { font-family: 'Lora', serif; }
+
+</style>
+</head>
+<body>
+
+<div class="mock-bar"><strong>MOCKUP v1</strong> &nbsp; Toggle the hero photo below. Not live. <a href="index.html">back to live site</a></div>
+
+<div class="photo-picker">
+  <div class="row">
+    <span>Hero photo:</span>
+    <label class="active" data-hero="A">
+      <input type="radio" name="hero" value="A" checked>
+      <img src="https://images.unsplash.com/photo-1771657570894-36f1d5cf5da3?fm=jpg&q=60&w=160&auto=format&fit=crop" alt="">
+      Option A (overhead dahlias)
+    </label>
+    <label data-hero="B">
+      <input type="radio" name="hero" value="B">
+      <img src="https://images.unsplash.com/photo-1537586959254-6c89172dac38?fm=jpg&q=60&w=160&auto=format&fit=crop" alt="">
+      Option B (warm zinnias)
+    </label>
+  </div>
+</div>
+
+<div class="hero" id="hero">
+  <div class="inner">
+    <nav class="nav" style="margin-bottom: 80px;">
+      <span class="nav-mark" style="color:#fff;">Garden Faery</span>
+      <div class="nav-links">
+        <a href="#" style="color:#fff;">Services</a>
+        <a href="#" style="color:#fff;">Gallery</a>
+        <a href="#" style="color:#fff;">About</a>
+        <a href="#" style="color:#fff;">Book</a>
+      </div>
+    </nav>
+    <span class="wordmark">Garden Faery</span>
+    <p class="tagline">Garden care, raised beds, bee swarm relocation, and pet &amp; plant sitting in Humboldt County, California.</p>
+    <div class="cta-row">
+      <a href="#" class="btn btn-primary">Book a Visit</a>
+      <a href="#" class="btn btn-ghost">See My Work</a>
+    </div>
+  </div>
+</div>
+
+<section class="container">
+  <div class="section-head">
+    <div class="eyebrow">What I do</div>
+    <h2>A whole season of small loving acts.</h2>
+    <p>I look after gardens the way I'd look after my own — with patience, real attention, and an eye for the long game. No big crews. Just me and your plot.</p>
+  </div>
+
+  <div class="services">
+    <div class="svc-card">
+      <div class="num">01</div>
+      <h3>Garden Care</h3>
+      <p>Weeding, pruning, deadheading, mulching, watering setup. Weekly, biweekly, or one-time visits.</p>
+    </div>
+    <div class="svc-card">
+      <div class="num">02</div>
+      <h3>Raised Beds</h3>
+      <p>From design to planting. I'll build out a productive bed that fits your space and your favorite vegetables.</p>
+    </div>
+    <div class="svc-card">
+      <div class="num">03</div>
+      <h3>Bee Swarm Relocation</h3>
+      <p>Found a swarm in your yard? I'll move them safely, no kill needed, to a new home where they can thrive.</p>
+    </div>
+    <div class="svc-card">
+      <div class="num">04</div>
+      <h3>Pet &amp; Plant Sitting</h3>
+      <p>Going out of town? I'll keep the watering schedule and the cat happy while you're away.</p>
+    </div>
+  </div>
+</section>
+
+<div class="gallery-strip">
+  <div class="container">
+    <div class="section-head" style="margin-bottom: 8px;">
+      <div class="eyebrow" style="color:var(--wine);">From the garden</div>
+      <h2>Lately in Humboldt.</h2>
+    </div>
+    <div class="gallery-grid">
+      <img src="gallery/calendula-flowers-hand.jpg" alt="" loading="lazy">
+      <img src="gallery/honeybees-hive-frame.jpg" alt="" loading="lazy">
+      <img src="gallery/flower-field-dianthus.jpg" alt="" loading="lazy">
+      <img src="gallery/fresh-beet-harvest.jpg" alt="" loading="lazy">
+      <img src="gallery/honeybee-on-finger.jpg" alt="" loading="lazy">
+    </div>
+  </div>
+</div>
+
+<section class="container">
+  <div class="about-row">
+    <div class="about-photo" role="img" aria-label="Taya"></div>
+    <div class="about-text">
+      <div class="eyebrow">About Taya</div>
+      <h2>Hi, I'm your local gardener.</h2>
+      <p>I started Garden Faery to do the kind of work I love at the pace I love it. Slow, careful, attentive.</p>
+      <p>I work in Arcata, Bayside, McKinleyville, and Eureka. Most weeks I'm in client gardens Tuesday through Friday, with a Monday afternoon spot for regulars.</p>
+      <p>If you're looking for someone who'll show up, listen, and treat your plot like a living thing instead of a chore list, I'd love to hear from you.</p>
+      <a href="#" class="btn btn-primary" style="margin-top: 8px;">Get in touch</a>
+    </div>
+  </div>
+</section>
+
+<div class="area-band">
+  <div class="container">
+    <p style="text-transform: uppercase; letter-spacing: 0.16em; font-size: 0.78rem; font-weight: 700; color: var(--peach);">My faery wings reach</p>
+    <div class="cities">Arcata &nbsp;·&nbsp; Bayside &nbsp;·&nbsp; McKinleyville &nbsp;·&nbsp; Eureka</div>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="brand">Garden Faery</div>
+    <p>Local gardener in Humboldt County, California.</p>
+    <p style="margin-top: 12px;">
+      <a href="#">Book</a>·
+      <a href="#">Services</a>·
+      <a href="#">Gallery</a>·
+      <a href="#">Contact</a>
+    </p>
+    <p style="margin-top: 24px; font-size: 0.78rem; opacity: 0.6;">© 2026 Garden Faery</p>
+  </div>
+</footer>
+
+<div class="anno" style="margin-top:18px; margin-bottom:18px;">
+  <b>What's different here:</b> warmer dahlia-pulled palette · photo-led hero · no animated meadow · no flying bee · cleaner type hierarchy · service cards numbered · single area band before footer.
+</div>
+
+<script>
+  // Hero photo toggle. Two large CDN images preloaded by the picker thumbs.
+  const HERO_A = 'https://images.unsplash.com/photo-1771657570894-36f1d5cf5da3?fm=jpg&q=85&w=2400&auto=format&fit=crop';
+  const HERO_B = 'https://images.unsplash.com/photo-1537586959254-6c89172dac38?fm=jpg&q=85&w=2400&auto=format&fit=crop';
+  const heroEl = document.getElementById('hero');
+  function setHero(which) {
+    heroEl.style.backgroundImage = "url('" + (which === 'B' ? HERO_B : HERO_A) + "')";
+    document.querySelectorAll('.photo-picker label').forEach(l => {
+      l.classList.toggle('active', l.dataset.hero === which);
+    });
+  }
+  setHero('A');
+  document.querySelectorAll('.photo-picker input[type=radio]').forEach(r => {
+    r.addEventListener('change', () => setHero(r.value));
+  });
+</script>
+
+</body>
+</html>
