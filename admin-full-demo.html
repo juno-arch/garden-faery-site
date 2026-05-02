@@ -373,7 +373,7 @@ h1, h2, h3 { font-family: 'Lora', serif; font-weight: 400; }
   display: inline-flex; align-items: center;
   padding: 5px 10px; font-size: 0.85rem; font-weight: 600;
   background: var(--sage-light, #eef3e6); color: var(--plum);
-  border: 1.5px solid var(--spring-sage, #a3b88c);
+  border: 1.5px solid var(--spring-sage, #9bbd85);
   border-radius: 999px; cursor: pointer; font-family: inherit;
   transition: background 0.15s, border-color 0.15s;
 }
@@ -1585,7 +1585,7 @@ function renderObOAvailability() {
     } else if (conflict) {
       statusHtml = '<span style="color:var(--gray-500,#888);font-size:0.82rem;">already booked</span>';
     } else {
-      statusHtml = '<button type="button" onclick="addOboDate(\'' + ds + '\')" style="background:var(--accent-1,#4a1942);color:#fff;border:none;border-radius:6px;padding:5px 11px;font-size:0.8rem;font-weight:600;cursor:pointer;">+ ' + eventTime + '</button>';
+      statusHtml = '<button type="button" onclick="addOboDate(\'' + ds + '\')" style="background:var(--accent-1,#5a1230);color:#fff;border:none;border-radius:6px;padding:5px 11px;font-size:0.8rem;font-weight:600;cursor:pointer;">+ ' + eventTime + '</button>';
     }
 
     const rowBg = isAlreadySelected ? 'rgba(74,138,74,0.06)' : (isAvailableDay && !conflict ? '#fff' : 'transparent');
@@ -1726,7 +1726,7 @@ async function renderDashboard() {
         </div>
         <div>
           <div style="font-size:0.7rem;color:var(--gray-600);">Tax Reserve</div>
-          <div style="font-size:1.15rem;font-weight:700;color:#c48bb0;">${fmt(ytdTaxReserve)}</div>
+          <div style="font-size:1.15rem;font-weight:700;color:#c2557a;">${fmt(ytdTaxReserve)}</div>
           <div style="font-size:0.68rem;color:var(--gray-400);">
             <input type="number" min="10" max="50" step="1" value="${Math.round(taxPct*100)}" onchange="setTaxReservePct(this.value/100)" style="width:36px;padding:1px 2px;font-size:0.68rem;border:1px solid var(--gray-200);border-radius:4px;">% of net
           </div>
@@ -1776,7 +1776,7 @@ async function renderDashboard() {
           </div>
         </div>
         <div>
-          <div style="font-size:1.4rem;font-weight:700;color:${overdueTotal>0?'#c48bb0':'#6b8f52'};text-align:right;">${fmt(overdueTotal)}</div>
+          <div style="font-size:1.4rem;font-weight:700;color:${overdueTotal>0?'#c2557a':'#6b8f52'};text-align:right;">${fmt(overdueTotal)}</div>
           ${overdueTotal > 0 ? '<button class="modal-btn secondary" style="padding:4px 10px;font-size:0.8rem;margin-top:4px;" onclick="switchTab(\'income\')">See list →</button>' : ''}
         </div>
       </div>
@@ -1800,7 +1800,7 @@ async function renderDashboard() {
 
   // 6-7. Service mix pie + Expense donut (side-by-side on wider screens)
   // Service mix: aggregate YTD revenue by event type
-  const SVC_COLORS = { morning: '#e8b828', afternoon: '#c48bb0', monday: '#a3b88c', other: '#a89e96' };
+  const SVC_COLORS = { morning: '#e8b828', afternoon: '#c2557a', monday: '#9bbd85', other: '#a89e96' };
   const SVC_LABELS = { morning: 'Morning', afternoon: 'Afternoon', monday: 'Monday', other: 'Other' };
   const svcTotals = { morning: 0, afternoon: 0, monday: 0, other: 0 };
   ytdBookings.forEach(b => {
@@ -1814,8 +1814,8 @@ async function renderDashboard() {
 
   // Expense categories donut
   const EXP_COLORS = {
-    plants: '#6b8f52', soil_amendments: '#8b6b45', tools: '#4a1942', equipment: '#7a3b4e',
-    fuel: '#c9553a', vehicle: '#a67c52', supplies: '#8fb0a5', marketing: '#c48bb0',
+    plants: '#6b8f52', soil_amendments: '#8b6b45', tools: '#5a1230', equipment: '#7a3b4e',
+    fuel: '#c9553a', vehicle: '#a67c52', supplies: '#8fb0a5', marketing: '#c2557a',
     software: '#506a6e', professional_services: '#b5c99a', other: '#a89e96'
   };
   const EXP_LABELS = {
@@ -1926,7 +1926,7 @@ async function renderDashboard() {
           <div style="flex:1;min-width:0;">
             <div style="font-weight:600;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
             <div style="height:4px;background:var(--gray-100);border-radius:2px;margin-top:4px;overflow:hidden;">
-              <div style="width:${pct}%;height:100%;background:#c48bb0;"></div>
+              <div style="width:${pct}%;height:100%;background:#c2557a;"></div>
             </div>
           </div>
           <div style="text-align:right;flex-shrink:0;">
@@ -2082,7 +2082,7 @@ async function renderTaxes() {
         <div><div style="font-size:0.7rem;color:var(--gray-600);">Gross Income</div><div style="font-size:1.05rem;font-weight:700;color:#6b8f52;">${fmt(yearGross)}</div><div style="font-size:0.65rem;color:var(--gray-400);">SchC Line 1</div></div>
         <div><div style="font-size:0.7rem;color:var(--gray-600);">Biz Expenses</div><div style="font-size:1.05rem;font-weight:700;color:var(--red);">${fmt(yearExpensesTotal)}</div><div style="font-size:0.65rem;color:var(--gray-400);">SchC Line 28</div></div>
         <div><div style="font-size:0.7rem;color:var(--gray-600);">Net Profit</div><div style="font-size:1.05rem;font-weight:700;color:${yearNet>=0?'#6b8f52':'var(--red)'};">${fmt(yearNet)}</div><div style="font-size:0.65rem;color:var(--gray-400);">SchC Line 31</div></div>
-        <div><div style="font-size:0.7rem;color:var(--gray-600);">Est. Tax Reserve</div><div style="font-size:1.05rem;font-weight:700;color:#c48bb0;">${fmt(Math.max(0, yearNet) * taxPct)}</div><div style="font-size:0.65rem;color:var(--gray-400);">${Math.round(taxPct*100)}% of net</div></div>
+        <div><div style="font-size:0.7rem;color:var(--gray-600);">Est. Tax Reserve</div><div style="font-size:1.05rem;font-weight:700;color:#c2557a;">${fmt(Math.max(0, yearNet) * taxPct)}</div><div style="font-size:0.65rem;color:var(--gray-400);">${Math.round(taxPct*100)}% of net</div></div>
       </div>
     </div>
   `;
@@ -2119,7 +2119,7 @@ async function renderTaxes() {
         <div style="display:flex;justify-content:space-between;font-size:0.78rem;"><span style="color:var(--gray-600);">Gross</span><span style="font-weight:600;">${fmt(q.gross)}</span></div>
         <div style="display:flex;justify-content:space-between;font-size:0.78rem;"><span style="color:var(--gray-600);">Expenses</span><span style="font-weight:600;">${fmt(q.exp)}</span></div>
         <div style="display:flex;justify-content:space-between;font-size:0.78rem;border-top:1px solid rgba(0,0,0,0.06);padding-top:3px;margin-top:3px;"><span style="color:var(--gray-600);">Net</span><span style="font-weight:700;">${fmt(q.net)}</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-top:4px;padding-top:4px;border-top:1px solid rgba(0,0,0,0.06);"><span style="color:var(--gray-600);">Est. tax due</span><span style="font-weight:700;color:#c48bb0;">${fmt(q.estTax)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-top:4px;padding-top:4px;border-top:1px solid rgba(0,0,0,0.06);"><span style="color:var(--gray-600);">Est. tax due</span><span style="font-weight:700;color:#c2557a;">${fmt(q.estTax)}</span></div>
         <div style="font-size:0.65rem;color:var(--gray-400);text-align:right;margin-top:3px;">by ${q.due}</div>
       </div>
     `;
@@ -2543,14 +2543,14 @@ function renderEmailCardLive(rec) {
   const subjectRow = (isEmail && (rec.subject || isEditing))
     ? (isEditing
         ? '<div style="font-size:0.78rem;color:var(--gray-600);margin-bottom:4px;">Subject</div>' +
-          '<input id="emails-edit-subject-' + rec.id + '" type="text" value="' + escapeHtmlForEmails(rec.subject || '') + '" style="width:100%;font-family:Lora,serif;font-size:0.95rem;font-weight:600;padding:10px 12px;border:1px solid var(--gray-300,#ddd);border-radius:7px;margin-bottom:12px;color:var(--accent-1,#4a1942);">'
+          '<input id="emails-edit-subject-' + rec.id + '" type="text" value="' + escapeHtmlForEmails(rec.subject || '') + '" style="width:100%;font-family:Lora,serif;font-size:0.95rem;font-weight:600;padding:10px 12px;border:1px solid var(--gray-300,#ddd);border-radius:7px;margin-bottom:12px;color:var(--accent-1,#5a1230);">'
         : '<div style="font-size:0.78rem;color:var(--gray-600);margin-bottom:4px;">Subject</div>' +
           '<div style="font-family:Lora,serif;font-size:0.95rem;font-weight:600;margin-bottom:14px;">' +
           escapeHtmlForEmails(rec.subject) + '</div>')
     : '';
   const bodyRow = isEditing
     ? '<div style="font-size:0.78rem;color:var(--gray-600);margin-bottom:4px;">Body</div>' +
-      '<textarea id="emails-edit-body-' + rec.id + '" style="width:100%;min-height:220px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.82rem;line-height:1.55;padding:12px 14px;border:1px solid var(--gray-300,#ddd);border-radius:8px;background:var(--gray-50,#fafafa);color:var(--accent-1,#4a1942);resize:vertical;">' +
+      '<textarea id="emails-edit-body-' + rec.id + '" style="width:100%;min-height:220px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.82rem;line-height:1.55;padding:12px 14px;border:1px solid var(--gray-300,#ddd);border-radius:8px;background:var(--gray-50,#fafafa);color:var(--accent-1,#5a1230);resize:vertical;">' +
       escapeHtmlForEmails(rec.body || '') + '</textarea>'
     : '<div style="font-size:0.78rem;color:var(--gray-600);margin-bottom:4px;">Body</div>' +
       '<pre style="background:var(--gray-50,#fafafa);border:1px solid var(--gray-200,#eee);border-radius:8px;padding:12px 14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.82rem;line-height:1.55;white-space:pre-wrap;word-break:break-word;margin:0;">' +
@@ -2564,7 +2564,7 @@ function renderEmailCardLive(rec) {
       '<button class="modal-btn secondary" onclick="startEditEmail(\'' + rec.id + '\')" style="font-size:0.78rem;padding:6px 14px;">Edit</button>' +
       '</div>';
   return '<div style="background:var(--white);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow);margin-bottom:14px;' +
-    (isEditing ? 'outline:2px solid var(--accent-1,#4a1942);' : '') + '">' +
+    (isEditing ? 'outline:2px solid var(--accent-1,#5a1230);' : '') + '">' +
     '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px;flex-wrap:wrap;">' +
       '<h3 style="margin:0;font-size:1.05rem;">' + escapeHtmlForEmails(rec.label || rec.template_id || 'Template') + '</h3>' +
       '<span style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:1px;">' + kind + ' · to ' + escapeHtmlForEmails(to) + '</span>' +
@@ -2740,7 +2740,7 @@ async function renderExpenses() {
     inMonth.sort((a,b) => (b.date||'').localeCompare(a.date||''));
     inMonth.forEach(e => {
       const bizTag = e.onBiz
-        ? `<span style="background:#dfe8d4;color:#4a1942;padding:2px 6px;border-radius:8px;font-size:0.7rem;font-weight:700;">BIZ</span>`
+        ? `<span style="background:#dfe8d4;color:#5a1230;padding:2px 6px;border-radius:8px;font-size:0.7rem;font-weight:700;">BIZ</span>`
         : `<span style="background:var(--gray-100);color:var(--gray-600);padding:2px 6px;border-radius:8px;font-size:0.7rem;font-weight:700;">personal</span>`;
       // Mixed-receipt badge: any line item flagged personal means the
       // expense amount is already business-only, but the full receipt
@@ -3013,7 +3013,7 @@ function renderLineItems(items) {
     const amt = Number(i.amount || 0).toFixed(2);
     const cat = i.category || '';
     const personal = !!i.personal;
-    const learned = i._learned ? '<span title="Auto-applied from a past correction" style="background:#dfe8d4;color:#4a1942;padding:1px 6px;border-radius:8px;font-size:0.65rem;font-weight:700;margin-left:4px;">learned</span>' : '';
+    const learned = i._learned ? '<span title="Auto-applied from a past correction" style="background:#dfe8d4;color:#5a1230;padding:1px 6px;border-radius:8px;font-size:0.65rem;font-weight:700;margin-left:4px;">learned</span>' : '';
     const rowPersonalClass = personal ? ' li-row-personal' : '';
     h += '<div class="line-item-row' + rowPersonalClass + '" data-idx="' + idx + '" style="display:grid;grid-template-columns:1fr 70px 130px 32px;gap:6px;align-items:center;margin-bottom:4px;font-size:0.8rem;">' +
       '<div class="li-desc" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + escAttr(desc) + '">' + escAttr(desc) + learned + '</div>' +
@@ -3750,7 +3750,7 @@ function renderIncome() {
     filtered.forEach(b => {
       const price = Number(b.price)||0;
       const paidBadge = b.paid
-        ? '<span style="background:#dfe8d4;color:#4a1942;padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:700;white-space:nowrap;">PAID' + (b.paymentMethod ? ' &middot; ' + escapeHtml(b.paymentMethod) : '') + '</span>'
+        ? '<span style="background:#dfe8d4;color:#5a1230;padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:700;white-space:nowrap;">PAID' + (b.paymentMethod ? ' &middot; ' + escapeHtml(b.paymentMethod) : '') + '</span>'
         : (price > 0
             ? '<span style="background:var(--red-light);color:var(--red);padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:700;white-space:nowrap;">UNPAID</span>'
             : '<span style="color:var(--gray-400);font-size:0.8rem;white-space:nowrap;">no price</span>');

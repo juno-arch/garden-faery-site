@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#4a1942">
+  <meta name="theme-color" content="#5a1230">
   <meta name="description" content="Garden Faery. Your local gardener in Arcata and Humboldt County, CA. Garden care, creative raised beds, bee swarm relocation, and pet sitting. Book a visit today.">
   <meta property="og:title" content="Garden Faery | Gardener in Arcata & Humboldt County, CA">
   <meta property="og:description" content="Your local gardener in Arcata and Humboldt County. Garden care, creative raised beds, beekeeping, and pet sitting. Book a visit today.">
@@ -134,16 +134,16 @@
 
     /* Service Cards (photo tiles) */
     .service-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 1080px; margin: 0 auto; padding: 0 20px 40px; }
-    .service-chip { display: block; position: relative; overflow: hidden; aspect-ratio: 4/3; border-radius: 18px; font-family: var(--font-body); font-size: 15px; font-weight: 700; color: #fff; text-decoration: none; transition: transform 0.25s ease, box-shadow 0.25s ease; box-shadow: 0 4px 16px rgba(74,25,66,0.12); }
+    .service-chip { display: block; position: relative; overflow: hidden; aspect-ratio: 4/3; border-radius: 18px; font-family: var(--font-body); font-size: 15px; font-weight: 700; color: #fff; text-decoration: none; transition: transform 0.25s ease, box-shadow 0.25s ease; box-shadow: 0 4px 16px rgba(90, 18, 48,0.12); }
     .service-chip img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
-    .service-chip::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(74,25,66,0.05) 0%, rgba(74,25,66,0.75) 100%); }
+    .service-chip::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(90, 18, 48,0.05) 0%, rgba(90, 18, 48,0.75) 100%); }
     .service-chip span { position: absolute; left: 14px; right: 14px; bottom: 12px; z-index: 2; text-shadow: 0 2px 8px rgba(0,0,0,0.4); font-family: var(--font-heading); font-size: 17px; font-weight: 600; letter-spacing: 0.3px; }
-    .service-chip:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(74,25,66,0.22); }
+    .service-chip:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(90, 18, 48,0.22); }
     .service-chip:hover img { transform: scale(1.06); }
     @media (min-width: 700px) { .service-chips { grid-template-columns: repeat(4, 1fr); } }
 
     /* Meet Taya card */
-    .meet-card { display: flex; gap: 18px; align-items: center; background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.7); border-radius: 20px; padding: 18px; margin: 8px 0 32px; box-shadow: 0 4px 20px rgba(74,25,66,0.06); }
+    .meet-card { display: flex; gap: 18px; align-items: center; background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.7); border-radius: 20px; padding: 18px; margin: 8px 0 32px; box-shadow: 0 4px 20px rgba(90, 18, 48,0.06); }
     .meet-img-wrap { width: 110px; height: 110px; flex-shrink: 0; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
     .meet-img-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: center 18%; display: block; transform: scale(1.25); transform-origin: center 25%; }
     .meet-card .meet-text { font-size: 15px; line-height: 1.55; }
@@ -154,7 +154,7 @@
     .photo-strip-section { margin: 8px 0 32px; }
     .photo-strip-section h2 { font-size: 22px; font-weight: 700; text-align: center; margin-bottom: 14px; }
     .photo-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .photo-strip a { display: block; aspect-ratio: 1; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(74,25,66,0.08); transition: transform 0.25s ease; }
+    .photo-strip a { display: block; aspect-ratio: 1; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(90, 18, 48,0.08); transition: transform 0.25s ease; }
     .photo-strip a:hover { transform: scale(1.03); }
     .photo-strip img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .photo-strip-link { text-align: center; margin-top: 14px; }
@@ -185,21 +185,21 @@
       background: white;
       border-radius: 14px;
       overflow: hidden;
-      box-shadow: 0 4px 16px rgba(74, 25, 66, 0.08);
-      border: 1.5px solid rgba(196, 139, 176, 0.2);
+      box-shadow: 0 4px 16px rgba(90, 18, 48, 0.08);
+      border: 1.5px solid rgba(194, 85, 122, 0.2);
       text-decoration: none;
       color: var(--text-primary);
       transition: transform 0.2s, box-shadow 0.2s;
     }
     .potm-card:hover {
       transform: translateY(-3px);
-      box-shadow: 0 8px 24px rgba(74, 25, 66, 0.15);
+      box-shadow: 0 8px 24px rgba(90, 18, 48, 0.15);
     }
     .potm-image {
       width: 100%;
       height: 100%;
       min-height: 220px;
-      background: #f0e4ec;
+      background: #f7d5b9;
       overflow: hidden;
     }
     .potm-image img {
@@ -270,7 +270,7 @@
       gap: 18px;
       align-items: center;
       background: linear-gradient(135deg, rgba(222,188,93,0.18) 0%, rgba(155,189,133,0.18) 100%);
-      border: 1.5px solid rgba(74,25,66,0.12);
+      border: 1.5px solid rgba(90, 18, 48,0.12);
       border-radius: 14px;
       padding: 16px 18px;
       text-decoration: none;
@@ -394,13 +394,13 @@
       overflow: hidden;
       text-decoration: none;
       color: white;
-      box-shadow: 0 2px 10px rgba(74,25,66,0.08);
+      box-shadow: 0 2px 10px rgba(90, 18, 48,0.08);
       transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
-    .season-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(74,25,66,0.18); }
+    .season-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(90, 18, 48,0.18); }
     .season-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
     .season-card:hover img { transform: scale(1.06); }
-    .season-card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(74,25,66,0.0) 30%, rgba(74,25,66,0.78) 100%); }
+    .season-card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(90, 18, 48,0.0) 30%, rgba(90, 18, 48,0.78) 100%); }
     .season-card-name {
       position: absolute;
       left: 10px;
@@ -421,8 +421,8 @@
     .newsletter { border-radius: 16px; padding: 22px 20px; margin-bottom: 32px; text-align: center; background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.6); }
     .newsletter h2 { font-size: 24px; font-weight: 900; margin-bottom: 6px; }
     .newsletter p { font-size: 13px; color: var(--text-secondary); margin-bottom: 14px; }
-    .newsletter-input { flex: 1; padding: 11px 14px; border: 1px solid rgba(74,25,66,0.15); border-radius: 8px; font-family: inherit; font-size: 14px; background: rgba(255,255,255,0.6); color: var(--text-primary); }
-    .newsletter-input:focus { outline: none; border-color: var(--accent-1); box-shadow: 0 0 0 3px rgba(196,139,176,0.2); }
+    .newsletter-input { flex: 1; padding: 11px 14px; border: 1px solid rgba(90, 18, 48,0.15); border-radius: 8px; font-family: inherit; font-size: 14px; background: rgba(255,255,255,0.6); color: var(--text-primary); }
+    .newsletter-input:focus { outline: none; border-color: var(--accent-1); box-shadow: 0 0 0 3px rgba(194, 85, 122,0.2); }
     .newsletter-btn { padding: 11px 18px; background: var(--accent-1); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; font-family: var(--font-heading); white-space: nowrap; transition: background 0.2s; }
     .newsletter-btn:hover { background: var(--highlight); }
 
@@ -524,8 +524,8 @@
   <div class="season-section">
     <div class="season-header">
       <div>
-        <div class="season-title">In Season Now <em id="season-name"></em></div>
-        <div class="season-subtitle" id="season-subtitle">What's looking its best in Humboldt right now</div>
+        <div class="season-title">Plant this <em id="season-name"></em></div>
+        <div class="season-subtitle" id="season-subtitle">Wheel-of-the-year planting cues for Humboldt</div>
       </div>
     </div>
     <div class="season-grid" id="season-grid"></div>
@@ -533,21 +533,6 @@
   </div>
 
   <div class="content">
-    <div class="photo-strip-section">
-      <h2>Recent Garden Love</h2>
-      <div class="photo-strip">
-        <a href="gallery.html"><img src="gallery/greenhouse-growing.jpg" alt="Greenhouse growing" loading="lazy" decoding="async"></a>
-        <a href="gallery.html"><img src="gallery/tomato-tomatillo-harvest.jpg" alt="Tomato and tomatillo harvest" loading="lazy" decoding="async"></a>
-        <a href="gallery.html"><img src="gallery/calendula-flowers-hand.jpg" alt="Calendula flowers" loading="lazy" decoding="async"></a>
-        <a href="gallery.html"><img src="gallery/garlic-harvest-drying.jpg" alt="Garlic harvest drying" loading="lazy" decoding="async"></a>
-        <a href="gallery.html"><img src="gallery/honeybee-on-finger.jpg" alt="Honeybee on a finger" loading="lazy" decoding="async"></a>
-        <a href="gallery.html"><img src="gallery/fresh-carrot-harvest.jpg" alt="Fresh carrot harvest" loading="lazy" decoding="async"></a>
-      </div>
-      <p class="photo-strip-link"><a href="gallery.html">See the full gallery &rarr;</a></p>
-    </div>
-
-    <div class="faery-divider"><div class="faery-divider-line"></div><img src="garden-faery-logo-alt.png" alt="Garden Faery logo, fairy kneeling with shovel" style="height:100px; opacity:0.75; filter: drop-shadow(0 1px 3px rgba(74,25,66,0.2));" decoding="async"><div class="faery-divider-line"></div></div>
-
     <div class="newsletter">
       <h2>Get the Dirt</h2>
       <p>Seasonal garden wisdom, project updates, and new offerings. No spam, just good green vibes.</p>
@@ -590,7 +575,7 @@
       var month = new Date().getMonth();
       var root = document.documentElement;
       var seasons = {
-        spring: { bg: '#f8f4ed', a1: '#c48bb0', a2: '#a3b88c', hl: '#d4c27a',
+        spring: { bg: '#faf5ee', a1: '#c2557a', a2: '#9bbd85', hl: '#f0c878',
           headline: 'Your Garden,<br>Tended with Care',
           subtitle: 'Ongoing garden care for folks who love to grow. I show up so your garden keeps thriving.',
           cta: 'Book with Me',
@@ -620,7 +605,7 @@
       root.style.setProperty('--accent-1', s.a1);
       root.style.setProperty('--accent-2', s.a2);
       root.style.setProperty('--highlight', s.hl);
-      root.style.setProperty('--text-color', '#4a1942');
+      root.style.setProperty('--text-color', '#5a1230');
       document.getElementById('hero-headline').innerHTML = s.headline;
       document.getElementById('hero-subtitle').textContent = s.subtitle;
       document.getElementById('hero-cta').textContent = s.cta;
@@ -677,7 +662,7 @@
       img.alt = spot.name;
       img.onerror = function() {
         img.style.display = 'none';
-        img.parentElement.innerHTML += '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:Lora,serif;font-size:48px;color:rgba(74,25,66,0.2);"></div>';
+        img.parentElement.innerHTML += '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:Lora,serif;font-size:48px;color:rgba(90, 18, 48,0.2);"></div>';
       };
       document.getElementById('potm-eyebrow').textContent = MONTHS[spot.month] + ' Plant of the Month';
       document.getElementById('potm-name').textContent = spot.name;
@@ -755,49 +740,107 @@
       }
     })();
 
-    // In Season Now - curated list of 8 plants per season
+    // Wheel of the Year — eight pagan sabbats marking the seasonal turns.
+    // Each one nudges what's worth getting in the ground in coastal Humboldt.
+    // Dates are the traditional sabbat starts; the cell containing today's
+    // date is the active one until the next sabbat begins.
     (function() {
-      var SEASONS = {
-        spring: {
-          label: 'this Spring',
-          subtitle: 'Long days, fog mornings, riot of bloom - these are the stars right now',
+      // Plant slugs match files in plant-guide/<slug>.jpg. Slugs that don't
+       // have an image fall through to a peach placeholder (see onerror in
+       // the render below); curated to keep all eight cells visual.
+      var SABBATS = {
+        imbolc: {
+          label: 'Imbolc',
+          subtitle: 'Quickening of the year. Start seeds indoors, prep beds, sow sweet peas and hardy greens.',
           plants: [
-            'california-poppy', 'ceanothus', 'oregon-grape', 'foxglove',
-            'douglas-iris', 'western-bleeding-heart', 'sweet-pea', 'anemone'
+            'sweet-pea', 'spinach', 'cilantro', 'lettuce',
+            'kale', 'chard', 'calendula', 'hellebore'
           ]
         },
-        summer: {
-          label: 'this Summer',
-          subtitle: 'Peak color, peak pollinators - the garden is humming',
+        ostara: {
+          label: 'Ostara',
+          subtitle: 'Spring equinox. Cool-season sowing — lettuces, brassicas, and the first direct-sown roots.',
           plants: [
-            'lavender', 'dahlia', 'zinnia', 'sunflower',
-            'cosmos', 'hummingbird-sage', 'bee-balm', 'echinacea'
+            'lettuce', 'kale', 'broccoli', 'cabbage',
+            'radish', 'beet', 'carrot', 'chard'
           ]
         },
-        fall: {
-          label: 'this Fall',
-          subtitle: 'Late nectar, golden grasses, the slow turn into rest',
+        beltane: {
+          label: 'Beltane',
+          subtitle: 'Peak planting. Soil is warm, frost is past — the heat-lovers go in now.',
           plants: [
-            'pacific-aster', 'japanese-anemone', 'persimmon', 'gaura-siskiyou-pink',
-            'japanese-maple', 'smoke-bush', 'ornamental-grasses', 'witch-hazel'
+            'tomatoes', 'zucchini', 'cucumber', 'basil',
+            'dahlia', 'zinnia', 'sunflower', 'cosmos'
           ]
         },
-        winter: {
-          label: 'this Winter',
-          subtitle: 'Evergreen structure, fragrant surprises, quiet beauty',
+        litha: {
+          label: 'Litha',
+          subtitle: 'Summer solstice. Succession sow basil and cukes; tuck in warm-season flowers.',
           plants: [
-            'camellia', 'hellebore', 'daphne', 'witch-hazel',
-            'rosemary', 'sword-fern', 'autumn-fern', 'hinoki-false-cypress'
+            'basil', 'cucumber', 'zucchini', 'dahlia',
+            'cosmos', 'zinnia', 'sunflower', 'nasturtium'
+          ]
+        },
+        lammas: {
+          label: 'Lammas',
+          subtitle: 'First harvest. Start fall greens and brassicas while the days are still long.',
+          plants: [
+            'kale', 'broccoli', 'cauliflower', 'cabbage',
+            'chard', 'spinach', 'beet', 'lettuce'
+          ]
+        },
+        mabon: {
+          label: 'Mabon',
+          subtitle: 'Autumn equinox. Cover crops, last salads, and the start of garlic prep.',
+          plants: [
+            'lettuce', 'spinach', 'cilantro', 'radish',
+            'sweet-pea', 'calendula', 'chamomile', 'garlic'
+          ]
+        },
+        samhain: {
+          label: 'Samhain',
+          subtitle: 'The garden lays down. Garlic cloves, hardy alliums, and bulbs for spring go in.',
+          plants: [
+            'garlic', 'onion', 'leek', 'tulip',
+            'daffodil', 'hellebore', 'rosemary', 'witch-hazel'
+          ]
+        },
+        yule: {
+          label: 'Yule',
+          subtitle: 'Winter solstice. Rest, dream, plan. Order seeds for the year ahead.',
+          plants: [
+            'hellebore', 'camellia', 'daphne', 'witch-hazel',
+            'rosemary', 'autumn-fern', 'sweet-pea', 'calendula'
           ]
         }
       };
 
-      function currentSeason() {
-        var m = new Date().getMonth();
-        if (m >= 2 && m <= 4) return 'spring';
-        if (m >= 5 && m <= 7) return 'summer';
-        if (m >= 8 && m <= 10) return 'fall';
-        return 'winter';
+      // Sabbat starts in the northern hemisphere (cross-quarter days
+      // approximated to the 1st; equinoxes/solstices to the 21st).
+      // Each entry is [month-1, day]; the active sabbat is the most recent
+      // one whose start is on or before today.
+      var SABBAT_STARTS = [
+        ['imbolc',  [1,  1]],   // Feb 1
+        ['ostara',  [2, 21]],   // Mar 21 (vernal equinox)
+        ['beltane', [4,  1]],   // May 1
+        ['litha',   [5, 21]],   // Jun 21 (summer solstice)
+        ['lammas',  [7,  1]],   // Aug 1
+        ['mabon',   [8, 21]],   // Sep 21 (autumn equinox)
+        ['samhain', [9, 31]],   // Oct 31
+        ['yule',    [11, 21]]   // Dec 21 (winter solstice)
+      ];
+
+      function currentSabbat() {
+        var now = new Date();
+        var m = now.getMonth(), d = now.getDate();
+        // Walk backwards through sabbat starts; first one <= today wins.
+        // Yule wraps the year, so if nothing in this year matches we're
+        // still in Yule (Dec 21 of last year).
+        for (var i = SABBAT_STARTS.length - 1; i >= 0; i--) {
+          var s = SABBAT_STARTS[i][1];
+          if (m > s[0] || (m === s[0] && d >= s[1])) return SABBAT_STARTS[i][0];
+        }
+        return 'yule';
       }
 
       function plantTitle(slug) {
@@ -806,14 +849,14 @@
 
       var grid = document.getElementById('season-grid');
       if (!grid) return;
-      var season = SEASONS[currentSeason()];
-      document.getElementById('season-name').textContent = season.label;
-      document.getElementById('season-subtitle').textContent = season.subtitle;
+      var sabbat = SABBATS[currentSabbat()];
+      document.getElementById('season-name').textContent = sabbat.label;
+      document.getElementById('season-subtitle').textContent = sabbat.subtitle;
 
-      grid.innerHTML = season.plants.map(function(slug) {
+      grid.innerHTML = sabbat.plants.map(function(slug) {
         return '<a class="season-card" href="plant-guide.html?plant=' + slug + '">' +
           '<img src="plant-guide/' + slug + '.jpg" alt="' + plantTitle(slug) + '" loading="lazy" ' +
-          'onerror="this.style.display=\'none\';this.parentElement.style.background=\'#e8d4dc\';" decoding="async">' +
+          'onerror="this.style.display=\'none\';this.parentElement.style.background=\'#f7d5b9\';" decoding="async">' +
           '<div class="season-card-name">' + plantTitle(slug) + '</div>' +
           '</a>';
       }).join('');
