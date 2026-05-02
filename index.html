@@ -134,15 +134,20 @@
       .hero-overlay { padding: 110px 32px 80px; }
     }
 
-    /* Service Cards (photo tiles) */
-    .service-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 1080px; margin: 0 auto; padding: 0 20px 40px; }
-    .service-chip { display: block; position: relative; overflow: hidden; aspect-ratio: 4/3; border-radius: 18px; font-family: var(--font-body); font-size: 15px; font-weight: 700; color: #fff; text-decoration: none; transition: transform 0.25s ease, box-shadow 0.25s ease; box-shadow: 0 4px 16px rgba(90, 18, 48,0.12); }
-    .service-chip img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
-    .service-chip::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(90, 18, 48,0.05) 0%, rgba(90, 18, 48,0.75) 100%); }
-    .service-chip span { position: absolute; left: 14px; right: 14px; bottom: 12px; z-index: 2; text-shadow: 0 2px 8px rgba(0,0,0,0.4); font-family: var(--font-heading); font-size: 17px; font-weight: 600; letter-spacing: 0.3px; }
-    .service-chip:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(90, 18, 48,0.22); }
-    .service-chip:hover img { transform: scale(1.06); }
-    @media (min-width: 700px) { .service-chips { grid-template-columns: repeat(4, 1fr); } }
+    /* Service cards — clean numbered cards, no photos. Mirrors the mockup's
+       "What I do" grid: a numbered eyebrow + title + short description, on
+       a soft white card with a hover lift. */
+    .services-section { max-width: 1080px; margin: 0 auto; padding: 0 24px 64px; }
+    .services-head { text-align: center; max-width: 640px; margin: 0 auto 36px; }
+    .services-head .eyebrow { display: inline-block; text-transform: uppercase; letter-spacing: 0.18em; color: var(--coral); font-weight: 700; font-size: 0.78rem; margin-bottom: 8px; font-family: var(--font-body); }
+    .services-head h2 { font-family: var(--font-heading); font-size: clamp(1.6rem, 3.4vw, 2.1rem); font-weight: 600; color: var(--wine); margin-bottom: 8px; }
+    .services-head p { color: var(--gray-600); font-size: 1rem; line-height: 1.55; }
+    .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 22px; }
+    .svc-card { display: block; background: #fff; border-radius: 18px; padding: 28px 24px 26px; box-shadow: 0 2px 14px rgba(90, 18, 48, 0.07); border: 1px solid rgba(90, 18, 48, 0.06); text-decoration: none; color: inherit; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .svc-card:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(90, 18, 48, 0.12); }
+    .svc-card .num { font-family: var(--font-heading); font-size: 0.95rem; color: var(--coral); font-weight: 600; margin-bottom: 8px; }
+    .svc-card h3 { font-family: var(--font-heading); font-size: 1.15rem; color: var(--wine); margin-bottom: 6px; line-height: 1.2; }
+    .svc-card p { color: var(--gray-600); font-size: 0.94rem; line-height: 1.5; margin: 0; }
 
     /* Meet Taya card */
     .meet-card { display: flex; gap: 18px; align-items: center; background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.7); border-radius: 20px; padding: 18px; margin: 8px 0 32px; box-shadow: 0 4px 20px rgba(90, 18, 48,0.06); }
@@ -491,12 +496,35 @@
     </div>
   </div>
 
-  <div class="service-chips">
-    <a href="services.html" class="service-chip" id="chip-1"><img src="gallery/beds.jpg" alt="Lush garden bed" decoding="async"><span>Garden Tending</span></a>
-    <a href="services.html" class="service-chip" id="chip-2"><img src="gallery/fresh-beet-harvest.jpg" alt="Fresh beet harvest" decoding="async"><span>Raised Beds</span></a>
-    <a href="services.html" class="service-chip" id="chip-3"><img src="gallery/honeybees-hive-frame.jpg" alt="Honeybees on hive frame" decoding="async"><span>Bee Services</span></a>
-    <a href="services.html" class="service-chip" id="chip-4"><img src="gallery/flower-field-dianthus.jpg" alt="Flower field" decoding="async"><span>Pet &amp; Plant Sitting</span></a>
-  </div>
+  <section class="services-section">
+    <div class="services-head">
+      <span class="eyebrow">What I do</span>
+      <h2>A whole season of small loving acts.</h2>
+      <p>Patient, attentive garden care across Humboldt — no big crews, just me and your plot.</p>
+    </div>
+    <div class="services-grid">
+      <a href="services.html" class="svc-card">
+        <div class="num">01</div>
+        <h3>Garden Tending</h3>
+        <p>Weeding, pruning, deadheading, mulching, watering setup. Weekly, biweekly, or one-time.</p>
+      </a>
+      <a href="services.html" class="svc-card">
+        <div class="num">02</div>
+        <h3>Raised Beds</h3>
+        <p>From design to planting. I'll build out a productive bed that fits your space and your favorite vegetables.</p>
+      </a>
+      <a href="services.html" class="svc-card">
+        <div class="num">03</div>
+        <h3>Bee Services</h3>
+        <p>Found a swarm in your yard? I'll move them safely to a new home where they can thrive.</p>
+      </a>
+      <a href="services.html" class="svc-card">
+        <div class="num">04</div>
+        <h3>Pet &amp; Plant Sitting</h3>
+        <p>Going out of town? I'll keep the watering schedule and the cat happy while you're away.</p>
+      </a>
+    </div>
+  </section>
 
   <div class="potm">
     <a class="potm-card" id="potm-card" href="plant-guide.html">
