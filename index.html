@@ -483,19 +483,9 @@
   <main>
   <div class="hero">
     <div class="hero-overlay">
-      <h1 id="hero-headline">Your Garden,<br>Tended with Care</h1>
-      <p id="hero-subtitle">Ongoing garden care for folks who love to grow. I show up so your garden keeps thriving.</p>
+      <h1 id="hero-headline">Hi, I'm Taya.</h1>
+      <p id="hero-subtitle">Your local garden faery. I show up weekly to weed, prune, plant, and keep your garden happy so you don't have to. Roots in permaculture, beekeeping, and microgreen cultivation. Let me tend what you love.</p>
       <a class="hero-cta" href="book.html" id="hero-cta" data-bee-landing>Book with Me</a>
-    </div>
-  </div>
-
-  <div class="content">
-    <div class="meet-card">
-      <div class="meet-img-wrap"><img src="farm.jpg" alt="Taya, Garden Faery, smiling in the garden" decoding="async"></div>
-      <div class="meet-text">
-        <strong>Hi, I&rsquo;m Taya</strong>
-        Your local garden faery. I show up weekly to weed, prune, plant, and keep your garden happy so you don&rsquo;t have to. Roots in permaculture, beekeeping, and microgreen cultivation. Let me tend what you love.
-      </div>
     </div>
   </div>
 
@@ -570,55 +560,11 @@
   </footer>
 
   <script>
-    // Seasonal system
-    (function applySeason() {
-      var month = new Date().getMonth();
-      var root = document.documentElement;
-      var seasons = {
-        spring: { bg: '#faf5ee', a1: '#c2557a', a2: '#9bbd85', hl: '#f0c878',
-          headline: 'Your Garden,<br>Tended with Care',
-          subtitle: 'Ongoing garden care for folks who love to grow. I show up so your garden keeps thriving.',
-          cta: 'Book with Me',
-          chips: ['Garden Tending', 'Raised Beds', 'Bee Services', 'Pet & Plant Sitting'] },
-        summer: { bg: '#faf6f1', a1: '#e8b828', a2: '#b5c99a', hl: '#7b2d6e',
-          headline: 'Let\u2019s Keep It<br>Growing All Summer',
-          subtitle: 'Regular garden visits to keep your beds happy, your bees buzzing, and your harvest rolling in.',
-          cta: 'Book with Me',
-          chips: ['Garden Tending', 'Raised Beds', 'Bee Services', 'Pet & Plant Sitting'] },
-        autumn: { bg: '#faf3ea', a1: '#d4943a', a2: '#a67c52', hl: '#7a3b4e',
-          headline: 'Harvest Season.<br>Tend, Gather, Rest',
-          subtitle: 'Fall cleanup, garden prep, and getting your space ready for the quiet months.',
-          cta: 'Book with Me',
-          chips: ['Garden Tending', 'Fall Cleanup', 'Bed Prep', 'Pet & Plant Sitting'] },
-        winter: { bg: '#f5f3f0', a1: '#8fb0a5', a2: '#506a6e', hl: '#c4b5a0',
-          headline: 'Winter Rest.<br>We\u2019ve Got Your Critters',
-          subtitle: 'Traveling for the holidays? Your pets and plants are in good hands.',
-          cta: 'Book with Me',
-          chips: ['Garden Planning', 'Winter Pruning', 'Raised Beds', 'Pet & Plant Sitting'] }
-      };
-      var s;
-      if (month >= 2 && month <= 4) s = seasons.spring;
-      else if (month >= 5 && month <= 7) s = seasons.summer;
-      else if (month >= 8 && month <= 10) s = seasons.autumn;
-      else s = seasons.winter;
-      root.style.setProperty('--bg', s.bg);
-      root.style.setProperty('--accent-1', s.a1);
-      root.style.setProperty('--accent-2', s.a2);
-      root.style.setProperty('--highlight', s.hl);
-      root.style.setProperty('--text-color', '#5a1230');
-      document.getElementById('hero-headline').innerHTML = s.headline;
-      document.getElementById('hero-subtitle').textContent = s.subtitle;
-      document.getElementById('hero-cta').textContent = s.cta;
-      document.getElementById('hero-cta').href = 'book.html';
-      for (var i = 0; i < s.chips.length; i++) {
-        var chip = document.getElementById('chip-' + (i + 1));
-        if (chip) {
-          var label = chip.querySelector('span');
-          if (label) label.textContent = s.chips[i];
-          else chip.textContent = s.chips[i];
-        }
-      }
-    })();
+    // Seasonal hero swap retired in the 2026 brand refresh \u2014 the hero is
+    // now a single evergreen "Hi, I'm Taya" intro on the zinnia photo,
+    // and brand colors are owned by shared.css instead of being overridden
+    // per season. Sabbat-based seasonal cues live below in the
+    // "Plant this <Sabbat>" block.
 
     // Plant of the Month rotation
     (function renderPotm() {
