@@ -164,11 +164,15 @@
   // a meadow flower. Uses position:fixed so it drifts in viewport space
   // regardless of scroll. Skipped when prefers-reduced-motion is set.
   function injectBee(meadowInfo) {
-    if (!meadowInfo) return;
     if (document.querySelector('.gf-bee')) return;
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    const { meadowEl, flowers, VW } = meadowInfo;
+    // The meadow was retired in the visual refresh; the bee now cruises
+    // around the viewport without landing on flowers, but still does its
+    // opening act on any [data-bee-landing] element (e.g. the homepage CTA).
+    const meadowEl = meadowInfo && meadowInfo.meadowEl;
+    const flowers  = (meadowInfo && meadowInfo.flowers) || [];
+    const VW       = (meadowInfo && meadowInfo.VW) || 1200;
 
     const bee = document.createElement('div');
     bee.className = 'gf-bee';
@@ -177,23 +181,56 @@
     bee.setAttribute('aria-label', 'friendly bee');
     bee.innerHTML =
       // wrapper is what gets the facing flip + wiggle-on-click transform,
-      // so the outer div's translate (from WAAPI) doesn't get clobbered
+      // so the outer div's translate (from WAAPI) doesn't get clobbered.
+      // Honeybee redrawn with two-segment body (thorax + abdomen), curved
+      // stripes, antennae, and a hint of legs — replaces the cartoon round
+      // body so the bee reads more like a real Apis mellifera at small size.
       '<div class="gf-bee-wrap">'
       + '<svg viewBox="-12 -10 24 20" xmlns="http://www.w3.org/2000/svg">'
-      // wings (drawn first so they sit behind the body)
-      + '<ellipse class="wing wing-l" cx="-3" cy="-7" rx="6" ry="3.5"'
-      +   ' fill="rgba(255,255,255,0.65)" stroke="rgba(80,60,30,0.45)" stroke-width="0.5"/>'
-      + '<ellipse class="wing wing-r" cx="3" cy="-7" rx="6" ry="3.5"'
-      +   ' fill="rgba(255,255,255,0.65)" stroke="rgba(80,60,30,0.45)" stroke-width="0.5"/>'
-      // fuzzy body
-      + '<ellipse cx="0" cy="0" rx="7.5" ry="4.5" fill="#f4c430"/>'
-      // stripes
-      + '<rect x="-6" y="-4.5" width="2" height="9" fill="#2c1810" rx="0.8"/>'
-      + '<rect x="-1.5" y="-4.5" width="2" height="9" fill="#2c1810" rx="0.8"/>'
-      + '<rect x="3" y="-4.5" width="2" height="9" fill="#2c1810" rx="0.8"/>'
+      // wings — translucent, two pairs (front pair smaller, behind back pair)
+      + '<g class="wing wing-l">'
+      +   '<path d="M-2,-3 Q-9.5,-9.5 -8.5,-4.5 Q-7,-1.5 -2,-2.5 Z"'
+      +     ' fill="rgba(255,255,255,0.55)" stroke="rgba(60,40,20,0.45)" stroke-width="0.35"/>'
+      +   '<path d="M-1.5,-2.5 Q-6,-7 -6,-3 Q-5,-1.5 -1.5,-2 Z"'
+      +     ' fill="rgba(255,255,255,0.4)" stroke="rgba(60,40,20,0.35)" stroke-width="0.3"/>'
+      + '</g>'
+      + '<g class="wing wing-r">'
+      +   '<path d="M2,-3 Q9.5,-9.5 8.5,-4.5 Q7,-1.5 2,-2.5 Z"'
+      +     ' fill="rgba(255,255,255,0.55)" stroke="rgba(60,40,20,0.45)" stroke-width="0.35"/>'
+      +   '<path d="M1.5,-2.5 Q6,-7 6,-3 Q5,-1.5 1.5,-2 Z"'
+      +     ' fill="rgba(255,255,255,0.4)" stroke="rgba(60,40,20,0.35)" stroke-width="0.3"/>'
+      + '</g>'
+      // legs — thin, behind the body
+      + '<g stroke="#2a1810" stroke-width="0.32" stroke-linecap="round" opacity="0.75">'
+      +   '<path d="M-2.5,2.5 Q-3,4 -3.8,5.4"/>'
+      +   '<path d="M-0.5,3 Q-0.5,4.5 -1.2,6"/>'
+      +   '<path d="M2.2,2.8 Q2.7,4.4 3.4,5.6"/>'
+      + '</g>'
+      // abdomen (rear segment) — warm honey amber
+      + '<ellipse cx="-2" cy="0" rx="5.5" ry="3.5" fill="#dba12d"/>'
+      // abdomen stripes — curved bands following body
+      + '<path d="M-6.6,-1.6 Q-6.4,1.8 -5,2.6 L-4.2,2.5 Q-5.6,1.6 -5.6,-1.8 Z" fill="#2a1810"/>'
+      + '<path d="M-3.2,-2.6 Q-3,2.6 -2,3 L-1.3,2.7 Q-2.3,2.4 -2.3,-2.7 Z" fill="#2a1810"/>'
+      + '<path d="M0.2,-2.4 Q0.4,2.4 1,2.7 L1.4,2.3 Q0.6,2 0.6,-2.5 Z" fill="#2a1810"/>'
+      // thorax (front segment) — fuzzy, browner amber
+      + '<ellipse cx="3.5" cy="0" rx="2.6" ry="2.9" fill="#9c6418"/>'
+      // thorax fuzz hairs (top edge)
+      + '<g stroke="#d99848" stroke-width="0.3" stroke-linecap="round" opacity="0.85">'
+      +   '<path d="M2,-2.6 L2.1,-3.4"/>'
+      +   '<path d="M3,-2.9 L3,-3.8"/>'
+      +   '<path d="M4.1,-2.6 L3.9,-3.4"/>'
+      +   '<path d="M5,-1.8 L5.5,-2.5"/>'
+      + '</g>'
       // head
-      + '<circle cx="6.5" cy="0" r="2.8" fill="#2c1810"/>'
-      + '<circle cx="7.3" cy="-1" r="0.7" fill="#fff"/>'
+      + '<ellipse cx="6.4" cy="0" rx="2.3" ry="2.5" fill="#1a0e08"/>'
+      // compound eye
+      + '<ellipse cx="6.5" cy="-0.4" rx="1.3" ry="1.6" fill="#3d2818"/>'
+      + '<ellipse cx="6.8" cy="-0.7" rx="0.4" ry="0.5" fill="#fff" opacity="0.7"/>'
+      // antennae
+      + '<path d="M5.9,-2.2 Q6.7,-3.6 7.4,-4.3" stroke="#1a0e08" stroke-width="0.32" fill="none" stroke-linecap="round"/>'
+      + '<path d="M5.3,-2.2 Q4.7,-3.6 4.1,-4.5" stroke="#1a0e08" stroke-width="0.32" fill="none" stroke-linecap="round"/>'
+      + '<circle cx="7.4" cy="-4.3" r="0.28" fill="#1a0e08"/>'
+      + '<circle cx="4.1" cy="-4.5" r="0.28" fill="#1a0e08"/>'
       + '</svg>'
       + '</div>';
     document.body.appendChild(bee);
@@ -309,6 +346,7 @@
     }
 
     function meadowInViewport() {
+      if (!meadowEl) return false;
       const r = meadowEl.getBoundingClientRect();
       return r.top < innerHeight && r.bottom > 0;
     }
@@ -440,7 +478,10 @@
 
   ready(() => {
     injectBotanicals();
-    const meadowInfo = injectMeadow();
-    injectBee(meadowInfo);
+    // Meadow retired in the 2026 brand refresh — see injectMeadow() above
+    // for the implementation, kept for reference. The bee now cruises
+    // without a meadow but still uses [data-bee-landing] for its opening
+    // act on pages that nominate a CTA.
+    injectBee(null);
   });
 })();

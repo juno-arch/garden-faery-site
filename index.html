@@ -30,7 +30,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" media="print" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Lora:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="shared.css">
-  <script src="shared.js" defer></script>
+  <script src="shared.js?v=2026-05-02" defer></script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -62,18 +62,78 @@
   }
   </script>
   <style>
-    /* Hero */
-    .hero { text-align: center; padding: 0; position: relative; overflow: hidden; height: 340px; }
-    .hero-video { position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; transform: translate(-50%, -50%); object-fit: cover; z-index: 0; }
-    .hero-overlay { position: absolute; top: 0; bottom: 0; left: 0; right: 0; padding: 40px 20px 36px; background: rgba(74,25,66,0.65); display: flex; flex-direction: column; justify-content: flex-end; align-items: center; z-index: 1; }
-    .hero h1 { font-size: 32px; font-weight: 900; letter-spacing: 0.5px; margin-bottom: 8px; line-height: 1.15; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-    .hero p { font-size: 15px; color: rgba(255,255,255,0.9); max-width: 420px; margin: 0 auto 18px; text-shadow: 0 1px 4px rgba(0,0,0,0.3); }
-    .hero-cta { display: inline-block; padding: 12px 32px; background: var(--accent-1); color: white; text-decoration: none; font-family: var(--font-body); font-size: 15px; font-weight: 700; border-radius: 10px; transition: background 0.2s, transform 0.2s; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
-    .hero-cta:hover { background: var(--highlight); transform: scale(1.03); }
-    @media (min-width: 600px) { .hero { height: 420px; } .hero h1 { font-size: 42px; } .hero-overlay { padding: 50px 20px 44px; } }
+    /* Hero — photo-led with the warm zinnia rainbow as the backdrop. The
+       gradient overlay is darker only at the bottom so the text stays
+       legible without dimming the flowers themselves. */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      min-height: 70vh;
+      padding: 0;
+      background-image: url('hero-zinnias.jpg');
+      background-size: cover;
+      background-position: center;
+      border-radius: 0 0 28px 28px;
+      isolation: isolate;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(42,20,36,0) 30%, rgba(42,20,36,0.55) 100%);
+      z-index: 1;
+    }
+    .hero-overlay {
+      position: relative;
+      z-index: 2;
+      padding: 90px 24px 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      text-align: center;
+      min-height: 70vh;
+    }
+    .hero h1 {
+      font-family: 'Lora', Georgia, serif;
+      font-size: clamp(2rem, 5.2vw, 3.4rem);
+      font-weight: 600;
+      letter-spacing: -0.005em;
+      margin-bottom: 14px;
+      line-height: 1.15;
+      color: #fff;
+      text-shadow: 0 2px 14px rgba(0,0,0,0.35);
+      max-width: 14ch;
+    }
+    .hero p {
+      font-size: clamp(1rem, 1.6vw, 1.2rem);
+      color: rgba(255,255,255,0.94);
+      max-width: 540px;
+      margin: 0 auto 24px;
+      text-shadow: 0 1px 8px rgba(0,0,0,0.35);
+      line-height: 1.55;
+    }
+    .hero-cta {
+      display: inline-block;
+      padding: 14px 32px;
+      background: var(--coral);
+      color: var(--wine);
+      text-decoration: none;
+      font-family: var(--font-body, 'Nunito', sans-serif);
+      font-size: 1rem;
+      font-weight: 700;
+      border-radius: 999px;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 18px rgba(232, 137, 111, 0.45);
+      letter-spacing: 0.01em;
+    }
+    .hero-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(232, 137, 111, 0.55); }
+    @media (min-width: 700px) {
+      .hero-overlay { padding: 110px 32px 80px; }
+    }
 
     /* Service Cards (photo tiles) */
-    .service-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 720px; margin: 0 auto; padding: 0 20px 40px; }
+    .service-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 1080px; margin: 0 auto; padding: 0 20px 40px; }
     .service-chip { display: block; position: relative; overflow: hidden; aspect-ratio: 4/3; border-radius: 18px; font-family: var(--font-body); font-size: 15px; font-weight: 700; color: #fff; text-decoration: none; transition: transform 0.25s ease, box-shadow 0.25s ease; box-shadow: 0 4px 16px rgba(74,25,66,0.12); }
     .service-chip img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
     .service-chip::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(74,25,66,0.05) 0%, rgba(74,25,66,0.75) 100%); }
@@ -84,8 +144,8 @@
 
     /* Meet Taya card */
     .meet-card { display: flex; gap: 18px; align-items: center; background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.7); border-radius: 20px; padding: 18px; margin: 8px 0 32px; box-shadow: 0 4px 20px rgba(74,25,66,0.06); }
-    .meet-img-wrap { width: 96px; height: 96px; flex-shrink: 0; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); background: var(--accent-1); padding: 4px; box-sizing: border-box; }
-    .meet-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .meet-img-wrap { width: 110px; height: 110px; flex-shrink: 0; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
+    .meet-img-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: center 18%; display: block; transform: scale(1.25); transform-origin: center 25%; }
     .meet-card .meet-text { font-size: 15px; line-height: 1.55; }
     .meet-card .meet-text strong { font-family: var(--font-heading); font-size: 19px; display: block; margin-bottom: 4px; }
     @media (max-width: 500px) { .meet-card { flex-direction: column; text-align: center; } .meet-img-wrap { width: 110px; height: 110px; } }
@@ -100,7 +160,10 @@
     .photo-strip-link { text-align: center; margin-top: 14px; }
     .photo-strip-link a { color: var(--accent-1); text-decoration: none; font-weight: 700; font-size: 14px; border-bottom: 2px solid var(--accent-1); padding-bottom: 2px; }
 
-    .content { max-width: 580px; margin: 0 auto; padding: 0 20px; }
+    .content { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+    /* Long-form text inside .content stays readable by capping its line length
+       on its own. Visual blocks (cards, grids, photos) get the full width. */
+    .content > p, .content > .intro, .content > .meet-card { max-width: 760px; margin-left: auto; margin-right: auto; }
     .faery-divider { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 8px 0; margin: 8px 0; }
     .faery-divider-line { flex: 1; height: 2px; border-radius: 1px; background: var(--accent-1); }
     .section-divider { height: 3px; border-radius: 2px; background: var(--accent-1); margin: 36px 0; opacity: 0.6; }
@@ -111,9 +174,9 @@
 
     /* Plant of the Month */
     .potm {
-      max-width: 780px;
+      max-width: 1080px;
       margin: 28px auto;
-      padding: 0 16px;
+      padding: 0 24px;
     }
     .potm-card {
       display: grid;
@@ -419,10 +482,6 @@
 
   <main>
   <div class="hero">
-    <video class="hero-video" autoplay muted loop playsinline poster="hero-garden-new.jpg" preload="none">
-      <source src="hero-video.mp4" type="video/mp4">
-      <!-- Fallback: if no video support, the poster image shows -->
-    </video>
     <div class="hero-overlay">
       <h1 id="hero-headline">Your Garden,<br>Tended with Care</h1>
       <p id="hero-subtitle">Ongoing garden care for folks who love to grow. I show up so your garden keeps thriving.</p>

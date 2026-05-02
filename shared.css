@@ -13,28 +13,40 @@
    CSS keeps working without a rewrite.
 */
 :root {
-  /* Primary palette */
-  --plum: #4a1942;
-  --plum-soft: rgba(74, 25, 66, 0.78);
-  --cream: #f8f4ed;
-  --petal-pink: #d498b6;        /* warmer, a touch rosier */
-  --petal-pink-light: #ecd2e0;
-  --spring-sage: #9bbd85;       /* slightly greener, less olive */
+  /* Primary palette — pulled from the warm dahlia/zinnia rainbow look. The
+     deep wine replaces the old plum as the brand anchor; coral, peach,
+     butter, and rose carry the warm florals. Sage stays as the one green
+     note. Legacy --plum / --pollen-gold / --petal-pink names are kept as
+     aliases below so older pages keep rendering correctly. */
+  --wine:    #5a1230;
+  --wine-soft: rgba(90, 18, 48, 0.78);
+  --rose:    #c2557a;
+  --coral:   #e8896f;
+  --peach:   #f7d5b9;
+  --butter:  #f0c878;
+  --cream:   #faf5ee;
+
+  /* Aliases so existing pages keep working with the new palette underneath. */
+  --plum: var(--wine);
+  --plum-soft: var(--wine-soft);
+  --petal-pink: var(--rose);
+  --petal-pink-light: var(--peach);
+  --pollen-gold: var(--butter);
+  --spring-sage: #9bbd85;       /* kept — single green nod */
   --sage-light: #e0ecd2;
-  --pollen-gold: #debc5d;       /* sunnier, more honey */
-  --leaf-green: #5ea040;        /* deeper botanical green for illustrations */
+  --leaf-green: #5ea040;        /* kept — for any inline botanical SVGs */
 
   /* Neutrals + utility */
   --white: #ffffff;
-  --gray-100: #f2efe8;
-  --gray-200: #e0dbd3;
-  --gray-400: #a89e96;
-  --gray-600: #6b5f56;
+  --gray-100: #f3eee5;
+  --gray-200: #e3dccf;
+  --gray-400: #a89c91;
+  --gray-600: #6e5f55;
   --red: #a03020;
   --red-light: #f0d4d4;
   --radius: 12px;
-  --shadow: 0 2px 12px rgba(74, 25, 66, 0.08);
-  --shadow-hover: 0 6px 16px rgba(74, 25, 66, 0.15);
+  --shadow: 0 2px 14px rgba(90, 18, 48, 0.08);
+  --shadow-hover: 0 6px 18px rgba(90, 18, 48, 0.14);
 
   /* Moon-page tokens */
   --moon: #8a6b9e;
