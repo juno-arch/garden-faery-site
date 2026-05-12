@@ -2472,7 +2472,7 @@ async function renderExpenses() {
         <select onchange="expenseViewYear=this.value;expenseViewMonth='all';renderExpenses()" style="flex:0 0 100px;padding:8px;border-radius:8px;border:1px solid var(--gray-200);">${yearOpts}</select>
         <select onchange="expenseViewMonth=this.value;renderExpenses()" style="flex:1;min-width:140px;padding:8px;border-radius:8px;border:1px solid var(--gray-200);">${monthOpts}</select>
         <button class="modal-btn primary" style="padding:8px 12px;" onclick="openExpenseModal()">+ Add</button>
-        <button class="modal-btn secondary" style="padding:8px 12px;" onclick="exportExpenseCsv()">CSV</button>
+        <button class="modal-btn secondary" style="padding:8px 12px;" onclick="exportExpenseCsv()" title="Download a ZIP of the CSV plus all attached receipt photos for the selected scope">Export</button>
       </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;">
         <div><div style="font-size:0.7rem;color:var(--gray-600);">Income</div><div style="font-size:1.05rem;font-weight:700;">$${gross.toFixed(0)}</div></div>
@@ -2946,22 +2946,115 @@ async function saveExpense() {
   }
 }
 
-function exportExpenseCsv() {
+// Lazy-load JSZip from a CDN (only when an export with receipts is requested).
+// Cached on window so subsequent exports don't re-fetch the library.
+async function _ensureJSZip() {
+  if (window.JSZip) return window.JSZip;
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('Failed to load JSZip from CDN'));
+    document.head.appendChild(s);
+  });
+  return window.JSZip;
+}
+
+// Make a filesystem-friendly slug out of vendor names like "Ace Hardware - Sunnybrae (Arcata, CA)".
+function _slug(s) {
+  return String(s || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+}
+
+async function exportExpenseCsv() {
   // Match the visible scope: when "All <year>" is picked, export the whole
   // year; otherwise export the selected month.
   const scopePrefix = (expenseViewMonth === 'all') ? expenseViewYear : expenseViewMonth;
   const prefixLen   = scopePrefix.length;
   const inScope = _cachedExpenses.filter(e => (e.date||'').slice(0, prefixLen) === scopePrefix);
-  const rows = [['Date','Vendor','Amount','Category','Card','On Biz','Notes']];
   inScope.sort((a,b) => (a.date||'').localeCompare(b.date||''));
-  inScope.forEach(e => {
-    rows.push([e.date, e.vendor, e.amount.toFixed(2), e.category, e.card, e.onBiz?'yes':'no', (e.notes||'').replace(/"/g,'""')]);
+
+  const withReceipts = inScope.filter(e => e.receipt && receiptUrl(e));
+  // If nothing has an attached photo, fall back to a plain CSV download —
+  // no need to build a ZIP for a single text file.
+  if (withReceipts.length === 0) {
+    _downloadCsv(inScope, 'expenses-' + scopePrefix + '.csv', null);
+    return;
+  }
+
+  // Otherwise: zip the CSV together with the receipt images so the
+  // accountant gets both in one bundle.
+  let JSZip;
+  try { JSZip = await _ensureJSZip(); }
+  catch (err) {
+    alert('Could not load the ZIP library — exporting a plain CSV instead.');
+    _downloadCsv(inScope, 'expenses-' + scopePrefix + '.csv', null);
+    return;
+  }
+  const zip = new JSZip();
+  const receiptsDir = zip.folder('receipts');
+
+  // Reserve filenames so two same-date-same-vendor receipts don't collide.
+  const usedNames = new Set();
+  const filenameFor = (e) => {
+    const url = receiptUrl(e);
+    const ext = (url.match(/\.([a-z0-9]{3,4})(?:\?|$)/i) || [,'jpg'])[1].toLowerCase();
+    const base = `${e.date}_${_slug(e.vendor)}_${e.amount.toFixed(2)}`;
+    let name = `${base}.${ext}`, i = 2;
+    while (usedNames.has(name)) name = `${base}-${i++}.${ext}`;
+    usedNames.add(name);
+    return name;
+  };
+
+  const filenames = new Map(); // expense.id -> filename in zip
+
+  // Download all receipt blobs in parallel, then add to the zip.
+  await Promise.all(withReceipts.map(async (e) => {
+    try {
+      const url = receiptUrl(e);
+      const r = await fetch(url, {
+        headers: PB_TOKEN ? { 'Authorization': PB_TOKEN } : {}
+      });
+      if (!r.ok) throw new Error(r.status);
+      const blob = await r.blob();
+      const name = filenameFor(e);
+      receiptsDir.file(name, blob);
+      filenames.set(e.id, 'receipts/' + name);
+    } catch (err) {
+      console.warn('receipt download failed for', e.id, err);
+    }
+  }));
+
+  // CSV with an extra column pointing at the bundled receipt filename.
+  const csv = _buildCsv(inScope, filenames);
+  zip.file('expenses-' + scopePrefix + '.csv', csv);
+
+  const zipBlob = await zip.generateAsync({ type: 'blob' });
+  const url = URL.createObjectURL(zipBlob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'expenses-' + scopePrefix + '.zip'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function _buildCsv(rows, filenamesById) {
+  const header = ['Date','Vendor','Amount','Category','Card','On Biz','Notes','Receipt'];
+  const out = [header];
+  rows.forEach(e => {
+    const receiptRef = (filenamesById && filenamesById.get(e.id)) || '';
+    out.push([e.date, e.vendor, e.amount.toFixed(2), e.category, e.card, e.onBiz?'yes':'no', (e.notes||'').replace(/"/g,'""'), receiptRef]);
   });
-  const csv = rows.map(r => r.map(c => `"${String(c||'')}"`).join(',')).join('\n');
+  return out.map(r => r.map(c => `"${String(c||'')}"`).join(',')).join('\n');
+}
+
+function _downloadCsv(rows, filename, filenamesById) {
+  const csv = _buildCsv(rows, filenamesById);
   const blob = new Blob([csv], { type:'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'expenses-' + scopePrefix + '.csv'; a.click();
+  a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
 }
 
