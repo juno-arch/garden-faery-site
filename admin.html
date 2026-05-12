@@ -2386,6 +2386,10 @@ function clearApiKey() {
 
 // --- Expenses ---
 let expenseViewMonth = (() => { const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); })();
+// Year filter for the Expenses tab. Independent from expenseViewMonth so
+// the month dropdown can be set to 'all' (= the whole year). Default is
+// the current year — matches the default month above.
+let expenseViewYear  = String(new Date().getFullYear());
 let _cachedExpenses = [];
 let _editingExpenseId = null;
 let _pendingReceiptFile = null;
@@ -2421,25 +2425,52 @@ async function renderExpenses() {
   await loadExpenses();
   const el = document.getElementById('expenses-content');
   const all = _cachedExpenses;
-  const months = Array.from(new Set(all.map(e => (e.date||'').slice(0,7)).filter(Boolean))).sort().reverse();
-  if (!months.includes(expenseViewMonth)) months.unshift(expenseViewMonth);
 
-  const inMonth = all.filter(e => (e.date||'').slice(0,7) === expenseViewMonth);
-  const total = inMonth.reduce((s,e) => s + e.amount, 0);
-  const bizTotal = inMonth.filter(e => e.onBiz).reduce((s,e) => s + e.amount, 0);
+  // Build year + month options. The month dropdown is scoped to the
+  // currently-selected year, with an extra "All <year>" entry that pulls
+  // every receipt from that year (the "year filter" Taya asked for).
+  const allYears = Array.from(new Set(all.map(e => (e.date||'').slice(0,4)).filter(Boolean))).sort().reverse();
+  if (!allYears.includes(expenseViewYear)) allYears.unshift(expenseViewYear);
+
+  // If the saved expenseViewMonth no longer matches the selected year, snap
+  // it to "all" (whole-year view) so we don't show an empty list.
+  if (expenseViewMonth !== 'all' && expenseViewMonth.slice(0,4) !== expenseViewYear) {
+    expenseViewMonth = 'all';
+  }
+
+  const monthsInYear = Array.from(new Set(
+    all.map(e => (e.date||'').slice(0,7))
+       .filter(m => m && m.slice(0,4) === expenseViewYear)
+  )).sort().reverse();
+
+  // The active scope: a string prefix to match `e.date` against.
+  // - 'all' means filter by year only (4-char prefix)
+  // - YYYY-MM means filter by month (7-char prefix)
+  const scopePrefix = (expenseViewMonth === 'all') ? expenseViewYear : expenseViewMonth;
+  const prefixLen   = scopePrefix.length;
+
+  const inScope = all.filter(e => (e.date||'').slice(0, prefixLen) === scopePrefix);
+  const total = inScope.reduce((s,e) => s + e.amount, 0);
+  const bizTotal = inScope.filter(e => e.onBiz).reduce((s,e) => s + e.amount, 0);
   const personalTotal = total - bizTotal;
 
-  // Income for same month (P&L)
-  const incomeMonth = getBookings().filter(b => b.status !== 'canceled' && (b.date||'').slice(0,7) === expenseViewMonth);
-  const gross = incomeMonth.reduce((s,b) => s + (Number(b.price)||0), 0);
+  // Income for same scope (P&L)
+  const incomeScope = getBookings().filter(b => b.status !== 'canceled' && (b.date||'').slice(0, prefixLen) === scopePrefix);
+  const gross = incomeScope.reduce((s,b) => s + (Number(b.price)||0), 0);
   const net = gross - total;
 
-  const monthOpts = months.map(m => `<option value="${m}"${m===expenseViewMonth?' selected':''}>${m}</option>`).join('');
+  const yearOpts  = allYears.map(y => `<option value="${y}"${y===expenseViewYear?' selected':''}>${y}</option>`).join('');
+  const monthOpts = '<option value="all"' + (expenseViewMonth==='all'?' selected':'') + '>All ' + expenseViewYear + '</option>' +
+                    monthsInYear.map(m => `<option value="${m}"${m===expenseViewMonth?' selected':''}>${m}</option>`).join('');
+
+  // List heading reflects scope so the user knows what they're looking at.
+  const scopeLabel = (expenseViewMonth === 'all') ? 'in ' + expenseViewYear : 'this month';
 
   let html = `
     <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
-        <select onchange="expenseViewMonth=this.value;renderExpenses()" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--gray-200);">${monthOpts}</select>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+        <select onchange="expenseViewYear=this.value;expenseViewMonth='all';renderExpenses()" style="flex:0 0 100px;padding:8px;border-radius:8px;border:1px solid var(--gray-200);">${yearOpts}</select>
+        <select onchange="expenseViewMonth=this.value;renderExpenses()" style="flex:1;min-width:140px;padding:8px;border-radius:8px;border:1px solid var(--gray-200);">${monthOpts}</select>
         <button class="modal-btn primary" style="padding:8px 12px;" onclick="openExpenseModal()">+ Add</button>
         <button class="modal-btn secondary" style="padding:8px 12px;" onclick="exportExpenseCsv()">CSV</button>
       </div>
@@ -2452,7 +2483,11 @@ async function renderExpenses() {
     </div>
   `;
 
-  html += '<div style="background:var(--white);border-radius:12px;padding:12px;box-shadow:var(--shadow);"><h3 style="margin-bottom:8px;font-size:1rem;">Expenses this month</h3>';
+  // From here on, inScope replaces what the old code called inMonth, and
+  // scopeLabel is rendered in the list heading.
+  const inMonth = inScope;
+
+  html += '<div style="background:var(--white);border-radius:12px;padding:12px;box-shadow:var(--shadow);"><h3 style="margin-bottom:8px;font-size:1rem;">Expenses ' + scopeLabel + '</h3>';
   if (!inMonth.length) {
     html += '<div style="color:var(--gray-600);font-size:0.9rem;">No expenses logged.</div>';
   } else {
@@ -2912,17 +2947,21 @@ async function saveExpense() {
 }
 
 function exportExpenseCsv() {
-  const inMonth = _cachedExpenses.filter(e => (e.date||'').slice(0,7) === expenseViewMonth);
+  // Match the visible scope: when "All <year>" is picked, export the whole
+  // year; otherwise export the selected month.
+  const scopePrefix = (expenseViewMonth === 'all') ? expenseViewYear : expenseViewMonth;
+  const prefixLen   = scopePrefix.length;
+  const inScope = _cachedExpenses.filter(e => (e.date||'').slice(0, prefixLen) === scopePrefix);
   const rows = [['Date','Vendor','Amount','Category','Card','On Biz','Notes']];
-  inMonth.sort((a,b) => (a.date||'').localeCompare(b.date||''));
-  inMonth.forEach(e => {
+  inScope.sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  inScope.forEach(e => {
     rows.push([e.date, e.vendor, e.amount.toFixed(2), e.category, e.card, e.onBiz?'yes':'no', (e.notes||'').replace(/"/g,'""')]);
   });
   const csv = rows.map(r => r.map(c => `"${String(c||'')}"`).join(',')).join('\n');
   const blob = new Blob([csv], { type:'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'expenses-' + expenseViewMonth + '.csv'; a.click();
+  a.href = url; a.download = 'expenses-' + scopePrefix + '.csv'; a.click();
   URL.revokeObjectURL(url);
 }
 
