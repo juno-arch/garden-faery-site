@@ -311,6 +311,104 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
 .today-season-card .ts-section-body > :first-child { margin-top: 0; }
 .today-season-card .ts-section-body > h4:first-child { display: none; }
 
+/* Sky tab — astrology layer */
+.sky-card .sky-head {
+  font-family: 'Prata', serif;
+  font-size: 1.1rem;
+  color: var(--moon-accent);
+  letter-spacing: 0.3px;
+  margin: 0 0 14px;
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+}
+.sky-card .sky-head .sky-head-emoji { font-size: 1.3rem; line-height: 1; }
+.sky-card .sky-stack { display: flex; flex-direction: column; gap: 14px; }
+.sky-card .sky-block {
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--moon-line);
+}
+.sky-card .sky-block .sky-eyebrow {
+  font-size: 0.68rem; letter-spacing: 1.1px; text-transform: uppercase;
+  color: var(--moon-dim); font-weight: 700; margin-bottom: 6px;
+}
+.sky-card .sky-block .sky-title {
+  font-family: 'Prata', serif; font-size: 1.05rem; color: var(--moon-accent);
+  margin: 0 0 6px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+}
+.sky-card .sky-block .sky-glyph { font-size: 1.4rem; line-height: 1; }
+.sky-card .sky-block .sky-meta {
+  font-size: 0.74rem; color: var(--moon-dim); letter-spacing: 0.3px;
+}
+.sky-card .sky-block .sky-vibe {
+  font-size: 0.92rem; line-height: 1.5; color: var(--moon-text);
+  margin: 6px 0 0; font-style: italic;
+}
+.sky-card .sky-pair {
+  padding: 12px 14px;
+  background: linear-gradient(135deg, rgba(181,139,255,0.12) 0%, rgba(255,217,139,0.07) 100%);
+  border-left: 3px solid var(--moon-glow);
+  border-radius: 0 12px 12px 0;
+  font-size: 0.92rem; line-height: 1.5; color: var(--moon-text);
+}
+.sky-card .sky-pair strong { color: var(--moon-glow); font-weight: 600; }
+
+/* Big 3 birth chart */
+.big3-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+.big3-cell {
+  text-align: center;
+  padding: 14px 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--moon-line);
+  border-radius: 12px;
+}
+.big3-cell .b3-eyebrow {
+  font-size: 0.65rem; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--moon-dim); margin-bottom: 6px;
+}
+.big3-cell .b3-glyph {
+  font-size: 1.6rem; line-height: 1; margin-bottom: 4px;
+  filter: drop-shadow(0 0 8px rgba(181,139,255,0.35));
+}
+.big3-cell .b3-name {
+  font-family: 'Prata', serif; font-size: 0.95rem;
+  color: var(--moon-accent);
+}
+.big3-cell.empty .b3-glyph { opacity: 0.3; filter: none; }
+.big3-cell.empty .b3-name { color: var(--moon-dim); font-style: italic; font-size: 0.8rem; }
+.big3-note {
+  font-size: 0.72rem; color: var(--moon-dim); font-style: italic;
+  margin-top: 10px; line-height: 1.5;
+}
+.birth-form { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.birth-form .form-field { display: flex; flex-direction: column; gap: 4px; }
+.birth-form label { font-size: 0.74rem; color: var(--moon-dim); letter-spacing: 0.3px; }
+.birth-form input {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--moon-line);
+  color: var(--moon-text);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-family: inherit; font-size: 0.92rem;
+}
+.birth-form input:focus { outline: none; border-color: var(--moon-glow); }
+.birth-form .birth-save {
+  background: linear-gradient(135deg, var(--moon-glow) 0%, var(--moon-pink) 100%);
+  color: var(--moon-bg);
+  border: none; border-radius: 12px;
+  padding: 11px; margin-top: 4px;
+  font-family: inherit; font-size: 0.9rem; font-weight: 700; cursor: pointer;
+}
+.birth-form .birth-clear {
+  background: transparent; border: none; color: var(--moon-dim);
+  font-size: 0.78rem; padding: 6px; cursor: pointer; text-decoration: underline;
+}
+
 /* Fertile badge on Today card */
 .fertile-badge {
   display: inline-block; margin-top: 10px; padding: 6px 12px;
@@ -481,6 +579,7 @@ body.view-today    [data-section]:not([data-section="today"])    { display: none
 body.view-calendar [data-section]:not([data-section="calendar"]) { display: none; }
 body.view-trends   [data-section]:not([data-section="trends"])   { display: none; }
 body.view-learn    [data-section]:not([data-section="learn"])    { display: none; }
+body.view-sky      [data-section]:not([data-section="sky"])      { display: none; }
 body.view-settings [data-section]:not([data-section="settings"]) { display: none; }
 
 /* Bottom spacer so tab bar doesn't cover the last card */
@@ -741,6 +840,56 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
     </div>
   </div>
 
+  <!-- Sky: today's sky -->
+  <div class="card sky-card" data-section="sky">
+    <h3 class="sky-head"><span class="sky-head-emoji">✨</span><span>Today's sky</span></h3>
+    <div class="sky-stack">
+      <div class="sky-block" id="sky-moonphase">
+        <div class="sky-eyebrow">Moon phase</div>
+        <h4 class="sky-title"><span class="sky-glyph" id="sky-moonphase-glyph">·</span><span id="sky-moonphase-name">—</span></h4>
+        <div class="sky-meta" id="sky-moonphase-meta">—</div>
+        <p class="sky-vibe" id="sky-moonphase-vibe">—</p>
+      </div>
+      <div class="sky-block" id="sky-moonsign">
+        <div class="sky-eyebrow">Moon sign · ~2.5 days</div>
+        <h4 class="sky-title"><span class="sky-glyph" id="sky-moonsign-glyph">·</span><span id="sky-moonsign-name">—</span></h4>
+        <div class="sky-meta" id="sky-moonsign-meta">—</div>
+        <p class="sky-vibe" id="sky-moonsign-vibe">—</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sky: cycle × sky pairing -->
+  <div class="card sky-card" data-section="sky" id="sky-pair-card" hidden>
+    <h3 class="sky-head"><span class="sky-head-emoji">⚯</span><span>Your alignment</span></h3>
+    <div class="sky-meta" style="margin-bottom:10px;">Where your body and the sky are pointed the same direction today.</div>
+    <div class="sky-pair" id="sky-pair-text">—</div>
+  </div>
+
+  <!-- Sky: Big 3 birth chart -->
+  <div class="card sky-card" data-section="sky">
+    <h3 class="sky-head"><span class="sky-head-emoji">⛢</span><span>Your stars · Big 3</span></h3>
+    <div class="sky-meta" style="margin-bottom:6px;">Sun = your spark. Moon = your inner weather. Rising = the door you open.</div>
+    <div class="big3-grid" id="big3-grid"></div>
+    <p class="big3-note" id="big3-note"></p>
+    <div class="birth-form" id="birth-form">
+      <div class="form-field">
+        <label for="birth-date">Birth date</label>
+        <input type="date" id="birth-date">
+      </div>
+      <div class="form-field">
+        <label for="birth-time">Birth time <span style="opacity:0.65">(optional · enables Moon + Rising)</span></label>
+        <input type="time" id="birth-time">
+      </div>
+      <div class="form-field">
+        <label for="birth-place">Birth place <span style="opacity:0.65">(optional · enables Rising)</span></label>
+        <input type="text" id="birth-place" placeholder="City, State / Country">
+      </div>
+      <button type="button" class="birth-save" onclick="saveBirthInfo()">Save</button>
+      <button type="button" class="birth-clear" onclick="clearBirthInfo()" id="birth-clear-btn" hidden>Clear birth info</button>
+    </div>
+  </div>
+
   <!-- Hormone curve -->
   <div class="card" data-section="trends">
     <h3>Hormone curve</h3>
@@ -952,6 +1101,7 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
   <nav class="tab-bar" role="tablist" aria-label="Main navigation">
     <button class="tab-btn" data-tab="today" onclick="setTab('today')" role="tab"><span class="tab-icon">🌙</span>Today</button>
     <button class="tab-btn" data-tab="calendar" onclick="setTab('calendar')" role="tab"><span class="tab-icon">📅</span>Calendar</button>
+    <button class="tab-btn" data-tab="sky" onclick="setTab('sky')" role="tab"><span class="tab-icon">✨</span>Sky</button>
     <button class="tab-btn" data-tab="trends" onclick="setTab('trends')" role="tab"><span class="tab-icon">📈</span>Trends</button>
     <button class="tab-btn" data-tab="learn" onclick="setTab('learn')" role="tab"><span class="tab-icon">📖</span>Learn</button>
     <button class="tab-btn" data-tab="settings" onclick="setTab('settings')" role="tab"><span class="tab-icon">⚙️</span>Settings</button>
@@ -1384,6 +1534,80 @@ function accordionizeLearnHTML(html) {
   });
 
   return out.innerHTML;
+}
+
+// Sky tab renderer — moon phase prompt, moon-in-sign, cycle×sky pair, Big 3.
+function renderSky() {
+  const now = new Date();
+  const phase = moonPhase(now);
+  const pKey = moonPhaseKey(phase);
+  const pPrompt = MOON_PHASE_PROMPTS[pKey];
+  document.getElementById('sky-moonphase-glyph').innerHTML = moonGlyph(phase);
+  document.getElementById('sky-moonphase-name').textContent = MOON_PHASE_LABEL[pKey];
+  document.getElementById('sky-moonphase-meta').textContent =
+    Math.round(moonIllumination(phase) * 100) + '% illuminated · ' + pPrompt.verb;
+  document.getElementById('sky-moonphase-vibe').textContent = pPrompt.line;
+
+  const lon = moonLongitude(now);
+  const moonSign = signFromLongitude(lon);
+  const degIntoSign = Math.floor(lon % 30);
+  document.getElementById('sky-moonsign-glyph').textContent = moonSign.glyph;
+  document.getElementById('sky-moonsign-name').textContent = 'Moon in ' + moonSign.name;
+  document.getElementById('sky-moonsign-meta').textContent =
+    degIntoSign + '° · ' + moonSign.element + ' · ruler ' + moonSign.ruler;
+  document.getElementById('sky-moonsign-vibe').textContent = moonSign.vibe;
+
+  // Cycle × sky pairing
+  const last = periods.length ? periods[periods.length - 1] : null;
+  const cd = last ? (daysBetween(last.start, todayStr()) + 1) : null;
+  const innerKey = phaseKey(cd, avgCycle());
+  const pair = cycleSkyPairing(innerKey, pKey);
+  const pairCard = document.getElementById('sky-pair-card');
+  if (pair) {
+    document.getElementById('sky-pair-text').innerHTML =
+      '<strong>' + (innerKey ? PHASE_LABELS[innerKey] : '—') + '</strong> &middot; ' +
+      '<strong>' + MOON_PHASE_LABEL[pKey] + '</strong><br>' + pair;
+    pairCard.hidden = false;
+  } else {
+    pairCard.hidden = true;
+  }
+
+  // Big 3
+  const birth = loadBirthInfo();
+  const grid = document.getElementById('big3-grid');
+  const note = document.getElementById('big3-note');
+  const clearBtn = document.getElementById('birth-clear-btn');
+  const sun = birth ? sunSignFromDate(birth.date) : null;
+  const cells = [
+    { label: 'Sun',     sign: sun,   need: 'date' },
+    { label: 'Moon',    sign: null,  need: 'time' },
+    { label: 'Rising',  sign: null,  need: 'place' }
+  ];
+  grid.innerHTML = cells.map(c => {
+    if (c.sign) {
+      return '<div class="big3-cell"><div class="b3-eyebrow">' + c.label + '</div>' +
+             '<div class="b3-glyph">' + c.sign.glyph + '</div>' +
+             '<div class="b3-name">' + c.sign.name + '</div></div>';
+    }
+    const want = c.need === 'date' ? 'add a date' :
+                 c.need === 'time' ? 'add a time' : 'add a place';
+    return '<div class="big3-cell empty"><div class="b3-eyebrow">' + c.label + '</div>' +
+           '<div class="b3-glyph">·</div>' +
+           '<div class="b3-name">' + want + '</div></div>';
+  }).join('');
+  if (sun) {
+    note.textContent = "Moon + Rising need precise time + place. Coming soon — for now your Sun is set.";
+  } else {
+    note.textContent = "Add your birth date below to unlock your Sun. Everything stays on this device.";
+  }
+  if (birth) {
+    document.getElementById('birth-date').value  = birth.date  || '';
+    document.getElementById('birth-time').value  = birth.time  || '';
+    document.getElementById('birth-place').value = birth.place || '';
+    clearBtn.hidden = false;
+  } else {
+    clearBtn.hidden = true;
+  }
 }
 
 function openLearnForCurrentPhase() {
@@ -1900,6 +2124,127 @@ function moonGlyph(phase) {
   return MOON_PHASE.waning_crescent;
 }
 
+function moonPhaseKey(phase) {
+  if (phase < 0.03125 || phase >= 0.96875) return 'new';
+  if (phase < 0.21875) return 'waxing_crescent';
+  if (phase < 0.28125) return 'first_quarter';
+  if (phase < 0.46875) return 'waxing_gibbous';
+  if (phase < 0.53125) return 'full';
+  if (phase < 0.71875) return 'waning_gibbous';
+  if (phase < 0.78125) return 'last_quarter';
+  return 'waning_crescent';
+}
+const MOON_PHASE_PROMPTS = {
+  new:              { verb: 'Plant',   line: "Dark sky. Set quiet intentions — the seed doesn't need an audience." },
+  waxing_crescent:  { verb: 'Tend',    line: "A sliver. Tend what you planted. Don't overwater the new thing." },
+  first_quarter:    { verb: 'Push',    line: "Halfway up. Effort matters here. Make the harder choice." },
+  waxing_gibbous:   { verb: 'Refine',  line: "Almost full. Polish what's working. Cut what's not." },
+  full:             { verb: 'Bloom',   line: "Peak light. Show the thing. Also notice what's gotten too loud." },
+  waning_gibbous:   { verb: 'Share',   line: "Energy turns outward. Teach, gift, say it out loud." },
+  last_quarter:     { verb: 'Shed',    line: "Half-light. What's done is done. Compost it on purpose." },
+  waning_crescent:  { verb: 'Distill', line: "Last sliver. Rest. Distill what this month actually meant." }
+};
+const MOON_PHASE_LABEL = {
+  new: 'New moon', waxing_crescent: 'Waxing crescent', first_quarter: 'First quarter',
+  waxing_gibbous: 'Waxing gibbous', full: 'Full moon', waning_gibbous: 'Waning gibbous',
+  last_quarter: 'Last quarter', waning_crescent: 'Waning crescent'
+};
+
+/* ---------- Zodiac + ecliptic math ---------- */
+const ZODIAC = [
+  { key: 'aries',       name: 'Aries',       glyph: '♈', element: 'fire',  ruler: 'Mars',    dates: 'Mar 21 – Apr 19', vibe: 'Initiate. Move first, refine later. The body wants forward.' },
+  { key: 'taurus',      name: 'Taurus',      glyph: '♉', element: 'earth', ruler: 'Venus',   dates: 'Apr 20 – May 20', vibe: 'Slow down. Touch real things. Eat well. Don\'t be rushed.' },
+  { key: 'gemini',      name: 'Gemini',      glyph: '♊', element: 'air',   ruler: 'Mercury', dates: 'May 21 – Jun 20', vibe: 'Talk, ask, scribble. The mind is wide open — feed it a question.' },
+  { key: 'cancer',      name: 'Cancer',      glyph: '♋', element: 'water', ruler: 'Moon',    dates: 'Jun 21 – Jul 22', vibe: 'Nest. Feel. Soft work, soft food, people who get it.' },
+  { key: 'leo',         name: 'Leo',         glyph: '♌', element: 'fire',  ruler: 'Sun',     dates: 'Jul 23 – Aug 22', vibe: 'Be seen on purpose. Make the thing dramatic. Generosity flatters you.' },
+  { key: 'virgo',       name: 'Virgo',       glyph: '♍', element: 'earth', ruler: 'Mercury', dates: 'Aug 23 – Sep 22', vibe: 'Sort it. Lists, fixes, small good things. Service is love here.' },
+  { key: 'libra',       name: 'Libra',       glyph: '♎', element: 'air',   ruler: 'Venus',   dates: 'Sep 23 – Oct 22', vibe: 'Beauty, balance, the company you keep. Aesthetics are a form of care.' },
+  { key: 'scorpio',     name: 'Scorpio',     glyph: '♏', element: 'water', ruler: 'Pluto',   dates: 'Oct 23 – Nov 21', vibe: 'Deep waters. Be honest with what wants to go. Truth over comfort.' },
+  { key: 'sagittarius', name: 'Sagittarius', glyph: '♐', element: 'fire',  ruler: 'Jupiter', dates: 'Nov 22 – Dec 21', vibe: 'Aim wide. Books, distance, big ideas, the long view.' },
+  { key: 'capricorn',   name: 'Capricorn',   glyph: '♑', element: 'earth', ruler: 'Saturn',  dates: 'Dec 22 – Jan 19', vibe: 'Build the thing. Long-game energy. Boundaries are blessings.' },
+  { key: 'aquarius',    name: 'Aquarius',    glyph: '♒', element: 'air',   ruler: 'Uranus',  dates: 'Jan 20 – Feb 18', vibe: 'Weird ideas welcome. Future-facing. Chosen family over default.' },
+  { key: 'pisces',      name: 'Pisces',      glyph: '♓', element: 'water', ruler: 'Neptune', dates: 'Feb 19 – Mar 20', vibe: 'Dream, drift, listen between the lines. Art is medicine.' }
+];
+
+// Moon's ecliptic longitude — simplified Meeus (accurate within ~1°, fine for sign).
+function moonLongitude(date) {
+  const JD = date.getTime()/86400000 + 2440587.5;
+  const T = (JD - 2451545.0) / 36525;
+  const d2r = Math.PI / 180;
+  let L  = 218.3164477 + 481267.88123421 * T;
+  const D  = (297.8501921 + 445267.1114034 * T) * d2r;
+  const M  = (357.5291092 + 35999.0502909 * T)  * d2r;
+  const Mm = (134.9633964 + 477198.8675055 * T) * d2r;
+  L += 6.289  * Math.sin(Mm);
+  L -= 1.274  * Math.sin(2*D - Mm);
+  L += 0.658  * Math.sin(2*D);
+  L -= 0.186  * Math.sin(M);
+  L -= 0.214  * Math.sin(2*Mm);
+  L += 0.114  * Math.sin(2*D + Mm);
+  return ((L % 360) + 360) % 360;
+}
+function signFromLongitude(lon) { return ZODIAC[Math.floor(lon / 30) % 12]; }
+function moonSignToday() { return signFromLongitude(moonLongitude(new Date())); }
+
+// Sun sign from a YYYY-MM-DD birth date.
+function sunSignFromDate(dateStr) {
+  if (!dateStr) return null;
+  const [, mStr, dStr] = dateStr.split('-');
+  const md = (+mStr) * 100 + (+dStr);
+  if (md >= 321 && md <= 419) return ZODIAC[0];
+  if (md >= 420 && md <= 520) return ZODIAC[1];
+  if (md >= 521 && md <= 620) return ZODIAC[2];
+  if (md >= 621 && md <= 722) return ZODIAC[3];
+  if (md >= 723 && md <= 822) return ZODIAC[4];
+  if (md >= 823 && md <= 922) return ZODIAC[5];
+  if (md >= 923 && md <= 1022) return ZODIAC[6];
+  if (md >= 1023 && md <= 1121) return ZODIAC[7];
+  if (md >= 1122 && md <= 1221) return ZODIAC[8];
+  if (md >= 1222 || md <= 119) return ZODIAC[9];
+  if (md >= 120 && md <= 218) return ZODIAC[10];
+  return ZODIAC[11];
+}
+
+// Birth-data storage (local only — privacy first).
+const BIRTH_KEY = 'moon-cycle-birth-info';
+function loadBirthInfo() {
+  try { return JSON.parse(localStorage.getItem(BIRTH_KEY) || 'null'); } catch { return null; }
+}
+function saveBirthInfo() {
+  const date  = document.getElementById('birth-date').value.trim();
+  const time  = document.getElementById('birth-time').value.trim();
+  const place = document.getElementById('birth-place').value.trim();
+  if (!date) { alert('A birth date is the minimum needed for your Sun.'); return; }
+  localStorage.setItem(BIRTH_KEY, JSON.stringify({ date, time, place }));
+  renderSky();
+}
+function clearBirthInfo() {
+  localStorage.removeItem(BIRTH_KEY);
+  document.getElementById('birth-date').value = '';
+  document.getElementById('birth-time').value = '';
+  document.getElementById('birth-place').value = '';
+  renderSky();
+}
+
+// Cycle × sky thematic pairings. Falsy → don't show the pairing card.
+const CYCLE_SKY_PAIRS = {
+  'winter_new':              "Both bleeding and a brand-new sky. The deepest reset of the month for you. Plant nothing yet — rest is the practice.",
+  'winter_waning_crescent':  "Period + last sliver. Both arriving at zero on schedule. Let it.",
+  'winter_full':             "Inner winter under a full moon. Body says hide, sky says shine. Honor the body first; the sky will wait.",
+  'spring_waxing_crescent':  "Inner spring + waxing sky. Building energy in stereo — the seed's up, estrogen's climbing. Use it.",
+  'spring_first_quarter':    "Inner spring + first quarter. Pure go-energy from both directions. Pick one hard thing and do it today.",
+  'spring_waxing_gibbous':   "Inner spring + nearly-full. Refine the thing you started after your period. Almost peak.",
+  'summer_full':             "Ovulation + full moon. Peak peak peak. Body and sky pointed the same direction — say the thing out loud.",
+  'summer_waxing_gibbous':   "Ovulation + waxing gibbous. Brightness on the way. Charisma stack.",
+  'autumn_waning_gibbous':   "Luteal + waning gibbous. Both winding down on schedule. Share what you finished, then nap.",
+  'autumn_last_quarter':     "Luteal + last quarter. Release in stereo. Old projects, old feelings — out they go.",
+  'autumn_waning_crescent':  "Late luteal + last sliver. Both arriving at the threshold. Distill, don't decide."
+};
+function cycleSkyPairing(innerKey, phaseK) {
+  if (!innerKey || !phaseK) return null;
+  return CYCLE_SKY_PAIRS[innerKey + '_' + phaseK] || null;
+}
+
 function moonName(phase) {
   if (phase < 0.03125 || phase >= 0.96875) return 'New moon';
   if (phase < 0.21875) return 'Waxing crescent';
@@ -1978,7 +2323,7 @@ async function showApp() {
 
 // Bottom-nav tab switching
 function setTab(name) {
-  ['today','calendar','trends','learn','settings'].forEach(n =>
+  ['today','calendar','sky','trends','learn','settings'].forEach(n =>
     document.body.classList.toggle('view-' + n, n === name));
   document.querySelectorAll('.tab-btn').forEach(b =>
     b.classList.toggle('active', b.dataset.tab === name));
@@ -2133,6 +2478,7 @@ function render() {
   renderHormoneChart();
   renderTempChart();
   renderPatterns();
+  renderSky();
 
   // Stats
   document.getElementById('s-last').textContent = last ? last.start : '—';
