@@ -3057,21 +3057,33 @@ function populateScanConfirm(p) {
   if (lis.length) {
     wrap.style.display = '';
     _srPersonalFlags = new Array(lis.length).fill(false);
-    document.getElementById('sr-line-items').innerHTML = lis.map((li, i) => {
+    // Use a <table> — bulletproof column layout that ignores all the inherited
+    // .modal CSS that was breaking flex/grid attempts. table-layout:fixed +
+    // explicit column widths means no surprises across browsers.
+    let rows = '';
+    rows += '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">';
+    rows += '<colgroup>' +
+      '<col style="width:32px;">' +
+      '<col>' +
+      '<col style="width:70px;">' +
+      '</colgroup>';
+    lis.forEach((li, i) => {
       const rawDesc = String(li.description || '').trim();
       const hasDesc = rawDesc.length > 0;
-      const desc = hasDesc ? rawDesc : '⚠ Item ' + (i + 1) + ' — Claude couldn\'t read description';
-      const style = hasDesc
+      const desc = hasDesc ? rawDesc : '⚠ Item ' + (i + 1) + ' — unreadable';
+      const descStyle = hasDesc
         ? 'color:var(--plum);font-weight:400;'
         : 'color:var(--plum);font-weight:400;font-style:italic;opacity:0.7;';
-      // Use <div> instead of <label> to avoid the global `.modal label { display:block }`
-      // rule that was overriding our grid layout. Click target wired via onclick.
-      return '<div onclick="toggleSrLineItem(' + i + ', event)" style="display:grid;grid-template-columns:24px 1fr auto;gap:10px;align-items:start;padding:8px 0;border-bottom:1px solid var(--gray-200);cursor:pointer;width:100%;box-sizing:border-box;font-weight:400;">' +
-        '<input type="checkbox" data-li-idx="' + i + '" onchange="onScanPersonalToggle(' + i + ', this.checked)" onclick="event.stopPropagation()" style="margin-top:3px;">' +
-        '<span style="word-break:break-word;line-height:1.35;min-width:0;' + style + '">' + escapeHtml(desc) + '</span>' +
-        '<span style="font-variant-numeric:tabular-nums;color:var(--plum);text-align:right;white-space:nowrap;font-weight:400;">$' + (Number(li.amount) || 0).toFixed(2) + '</span>' +
-      '</div>';
-    }).join('');
+      rows += '<tr onclick="toggleSrLineItem(' + i + ', event)" style="cursor:pointer;border-bottom:1px solid var(--gray-200);">' +
+        '<td style="padding:8px 0;vertical-align:top;">' +
+          '<input type="checkbox" data-li-idx="' + i + '" onchange="onScanPersonalToggle(' + i + ', this.checked)" onclick="event.stopPropagation()">' +
+        '</td>' +
+        '<td style="padding:8px;vertical-align:top;word-break:break-word;line-height:1.35;' + descStyle + '">' + escapeHtml(desc) + '</td>' +
+        '<td style="padding:8px 0;vertical-align:top;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--plum);font-weight:400;">$' + (Number(li.amount) || 0).toFixed(2) + '</td>' +
+      '</tr>';
+    });
+    rows += '</table>';
+    document.getElementById('sr-line-items').innerHTML = rows;
     updateScanSplitSummary();
     showScanMathWarning(p);
   } else {
