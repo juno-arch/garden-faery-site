@@ -877,6 +877,36 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
   </div>
 </div>
 
+<!-- Categorize bank transaction modal -->
+<div class="modal-overlay" id="modal-categorize-bank">
+  <div class="modal" style="max-width:480px;">
+    <h2>Categorize transaction</h2>
+    <div id="cb-info" style="margin-bottom:12px;color:var(--gray-600);font-size:0.9rem;"></div>
+    <div class="form-group">
+      <label>Category</label>
+      <select id="cb-category" style="width:100%;"></select>
+    </div>
+    <div class="form-group">
+      <label>Vendor / payee (clean name for reports)</label>
+      <input type="text" id="cb-vendor" placeholder="optional — overrides bank's payee text">
+    </div>
+    <div class="form-group" id="cb-create-exp-wrap" style="display:none;">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:normal;">
+        <input type="checkbox" id="cb-create-exp" checked>
+        <span>Also create a row in the Expenses tab (recommended for biz expenses)</span>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="cb-notes" rows="2" placeholder="optional"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-categorize-bank')">Cancel</button>
+      <button class="modal-btn primary" onclick="submitCategorizeBank()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Log Payment modal — manual cash/check/etc. entry for payments outside Square webhook flow -->
 <div class="modal-overlay" id="modal-log-payment">
   <div class="modal">
@@ -2787,19 +2817,76 @@ function closeExpenseModal() {
 
 // Category options shared between the main dropdown and per-line-item dropdowns.
 // Keep in sync with the <select id="exp-category"> options and SCHEDULE_C map.
+// Categories — organized by Schedule C line (the IRS form your FYHF Schedule C
+// flows through). The first group is what was already in use; the second group
+// adds missing Schedule C lines + a few garden-biz specifics. The third group
+// is non-P&L flows (don't hit profit/loss — owner draws, transfers, taxes paid).
+//
+// `group` is purely for UI grouping; `sch_c` is the Schedule C line for reports.
 const EXPENSE_CATEGORIES = [
-  { v: 'plants',                l: 'Plants' },
-  { v: 'soil_amendments',       l: 'Soil / Amendments' },
-  { v: 'tools',                 l: 'Tools' },
-  { v: 'equipment',             l: 'Equipment' },
-  { v: 'fuel',                  l: 'Fuel' },
-  { v: 'vehicle',               l: 'Vehicle' },
-  { v: 'supplies',              l: 'Supplies' },
-  { v: 'marketing',             l: 'Marketing' },
-  { v: 'software',              l: 'Software' },
-  { v: 'professional_services', l: 'Professional Services' },
-  { v: 'other',                 l: 'Other' }
+  // Garden-specific (Schedule C Line 22 Supplies, mostly)
+  { v: 'plants',                l: 'Plants',                       group: 'Garden',     sch_c: 'Supplies (22)' },
+  { v: 'soil_amendments',       l: 'Soil / Amendments',            group: 'Garden',     sch_c: 'Supplies (22)' },
+  { v: 'tools',                 l: 'Tools',                        group: 'Garden',     sch_c: 'Supplies (22)' },
+  { v: 'equipment',             l: 'Equipment',                    group: 'Garden',     sch_c: 'Depreciation (13) or Supplies (22)' },
+  { v: 'supplies',              l: 'Supplies (generic)',           group: 'Garden',     sch_c: 'Supplies (22)' },
+  // Vehicle (Schedule C Line 9)
+  { v: 'fuel',                  l: 'Fuel',                         group: 'Vehicle',    sch_c: 'Car/truck (9)' },
+  { v: 'vehicle',               l: 'Vehicle (other)',              group: 'Vehicle',    sch_c: 'Car/truck (9)' },
+  { v: 'mileage',               l: 'Mileage',                      group: 'Vehicle',    sch_c: 'Car/truck (9)' },
+  // Standard Schedule C operating expenses
+  { v: 'advertising',           l: 'Advertising',                  group: 'Operating',  sch_c: 'Advertising (8)' },
+  { v: 'marketing',             l: 'Marketing',                    group: 'Operating',  sch_c: 'Advertising (8)' },
+  { v: 'insurance',             l: 'Insurance (biz liability)',    group: 'Operating',  sch_c: 'Insurance (15)' },
+  { v: 'legal_professional',    l: 'Legal / Tax prep',             group: 'Operating',  sch_c: 'Legal & professional (17)' },
+  { v: 'professional_services', l: 'Professional services',        group: 'Operating',  sch_c: 'Legal & professional (17)' },
+  { v: 'bank_fees',             l: 'Bank fees',                    group: 'Operating',  sch_c: 'Legal & professional (17)' },
+  { v: 'office_expense',        l: 'Office expense',               group: 'Operating',  sch_c: 'Office expense (18)' },
+  { v: 'software',              l: 'Software / SaaS',              group: 'Operating',  sch_c: 'Office (18) or Other (27)' },
+  { v: 'subscriptions',         l: 'Subscriptions',                group: 'Operating',  sch_c: 'Other (27)' },
+  { v: 'rent_lease',            l: 'Rent or lease',                group: 'Operating',  sch_c: 'Rent or lease (20)' },
+  { v: 'repairs_maintenance',   l: 'Repairs & maintenance',        group: 'Operating',  sch_c: 'Repairs (21)' },
+  { v: 'taxes_licenses',        l: 'Taxes & licenses (biz)',       group: 'Operating',  sch_c: 'Taxes & licenses (23)' },
+  { v: 'travel',                l: 'Travel',                       group: 'Operating',  sch_c: 'Travel (24a)' },
+  { v: 'meals',                 l: 'Meals (50% deductible)',       group: 'Operating',  sch_c: 'Meals (24b)' },
+  { v: 'utilities',             l: 'Utilities',                    group: 'Operating',  sch_c: 'Utilities (25)' },
+  { v: 'contract_labor',        l: 'Contract labor (1099)',        group: 'Operating',  sch_c: 'Contract labor (11)' },
+  { v: 'education',             l: 'Education / training',         group: 'Operating',  sch_c: 'Other (27)' },
+  { v: 'other_expense',         l: 'Other expense',                group: 'Operating',  sch_c: 'Other (27)' },
+  // Income (for bank_transactions categorization)
+  { v: 'revenue',               l: 'Revenue (client payment)',     group: 'Income',     sch_c: 'Gross receipts (1)' },
+  { v: 'refund_received',       l: 'Refund received',              group: 'Income',     sch_c: 'Returns/allowances (2)' },
+  { v: 'interest_income',       l: 'Interest income',              group: 'Income',     sch_c: 'Other income (6)' },
+  { v: 'other_income',          l: 'Other income',                 group: 'Income',     sch_c: 'Other income (6)' },
+  // Non-P&L (don't appear on Schedule C — capital flows)
+  { v: 'owner_contribution',    l: 'Owner contribution (in)',      group: 'Non-P&L',    sch_c: '— (capital)' },
+  { v: 'owner_draw',            l: 'Owner draw (out)',             group: 'Non-P&L',    sch_c: '— (capital)' },
+  { v: 'transfer_in',           l: 'Transfer from own account',    group: 'Non-P&L',    sch_c: '—' },
+  { v: 'transfer_out',          l: 'Transfer to own account',      group: 'Non-P&L',    sch_c: '—' },
+  { v: 'loan_proceeds',         l: 'Loan proceeds (in)',           group: 'Non-P&L',    sch_c: '— (liability)' },
+  { v: 'loan_payment',          l: 'Loan payment (out)',           group: 'Non-P&L',    sch_c: '— (only interest on Line 16)' },
+  { v: 'tax_payment',           l: 'Estimated tax payment',        group: 'Non-P&L',    sch_c: '— (personal, not biz)' },
+  { v: 'personal_expense',      l: 'Personal expense (mistake)',   group: 'Non-P&L',    sch_c: '— (not deductible)' },
+  // Fallback
+  { v: 'other',                 l: 'Other (uncategorized)',        group: 'Other',      sch_c: 'Other (27)' },
 ];
+
+// For the Bank tab categorize modal — group by `group` for visual structure.
+function categoryGroups() {
+  const groups = {};
+  EXPENSE_CATEGORIES.forEach(c => {
+    if (!groups[c.group]) groups[c.group] = [];
+    groups[c.group].push(c);
+  });
+  // Stable order
+  const order = ['Income', 'Garden', 'Vehicle', 'Operating', 'Non-P&L', 'Other'];
+  return order.filter(g => groups[g]).map(g => ({ name: g, items: groups[g] }));
+}
+
+function categoryLabel(v) {
+  const c = EXPENSE_CATEGORIES.find(c => c.v === v);
+  return c ? c.l : (v || '');
+}
 
 function escAttr(s) {
   return String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/</g, '&lt;');
@@ -3545,6 +3632,11 @@ async function loadBank() {
       memo: r.memo,
       matchStatus: r.match_status,
       paymentIds: r.payment_ids,
+      category: r.category || '',
+      vendor: r.vendor || '',
+      expenseId: r.expense_id || '',
+      categorizedAt: r.categorized_at || '',
+      notes: r.notes || '',
     }));
   } catch (err) {
     console.error('loadBank failed:', err);
@@ -3597,17 +3689,30 @@ async function renderBank() {
       const amtSign = isCredit ? '+' : '';
       const matchPill = bankMatchPill(t.matchStatus);
       const desc = t.description || t.payee || 'transaction';
+      const displayName = t.vendor || desc;
+
+      // Category badge — shows current categorization or "uncategorized"
+      let catBadge;
+      if (t.category) {
+        catBadge = '<span style="background:rgba(74,25,66,0.1);color:var(--plum);padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:600;">' + escapeHtml(categoryLabel(t.category)) + '</span>';
+      } else {
+        catBadge = '<span style="background:var(--gray-200);color:var(--gray-600);padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:600;">uncategorized</span>';
+      }
 
       html += '<div class="booking-card" style="border-left-color:' + (isCredit ? 'var(--spring-sage)' : 'var(--gray-400)') + ';">' +
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">' +
           '<div style="min-width:0;flex:1;">' +
-            '<h3 style="margin-bottom:2px;font-size:0.95rem;">' + escapeHtml(desc.slice(0, 60)) + '</h3>' +
-            '<div class="booking-meta" style="font-size:0.75rem;">' + dateStr + '</div>' +
+            '<h3 style="margin-bottom:2px;font-size:0.95rem;">' + escapeHtml(String(displayName).slice(0, 60)) + '</h3>' +
+            '<div class="booking-meta" style="font-size:0.75rem;">' + dateStr + (t.expenseId ? ' · linked to expense' : '') + '</div>' +
           '</div>' +
           '<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;">' +
             '<div style="font-size:1rem;font-weight:700;color:' + amtColor + ';">' + amtSign + '$' + (Math.abs(t.amountCents)/100).toFixed(2) + '</div>' +
             matchPill +
           '</div>' +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px;flex-wrap:wrap;">' +
+          catBadge +
+          '<button class="modal-btn secondary" style="padding:4px 10px;font-size:0.75rem;" onclick="openCategorizeBank(\'' + t.id + '\')">' + (t.category ? 'Re-categorize' : 'Categorize') + '</button>' +
         '</div>' +
       '</div>';
     });
@@ -3617,6 +3722,86 @@ async function renderBank() {
   }
 
   container.innerHTML = html;
+}
+
+// --- Categorize a bank transaction ---
+let _categorizingBankId = null;
+
+function openCategorizeBank(bankId) {
+  const t = _bankTransactions.find(x => x.id === bankId);
+  if (!t) return;
+  _categorizingBankId = bankId;
+
+  // Build grouped category dropdown
+  const sel = document.getElementById('cb-category');
+  let opts = '<option value="">— pick a category —</option>';
+  categoryGroups().forEach(g => {
+    opts += '<optgroup label="' + escapeHtml(g.name) + '">';
+    g.items.forEach(c => {
+      opts += '<option value="' + c.v + '"' + (c.v === t.category ? ' selected' : '') + '>' + escapeHtml(c.l) + '</option>';
+    });
+    opts += '</optgroup>';
+  });
+  sel.innerHTML = opts;
+
+  // Pre-fill vendor + notes
+  document.getElementById('cb-vendor').value = t.vendor || t.payee || '';
+  document.getElementById('cb-notes').value = t.notes || '';
+
+  // Header info
+  const isCredit = t.amountCents > 0;
+  const amt = (isCredit ? '+' : '-') + '$' + (Math.abs(t.amountCents)/100).toFixed(2);
+  const date = t.postedAt ? (new Date(t.postedAt)).toLocaleDateString() : '?';
+  document.getElementById('cb-info').innerHTML =
+    '<strong>' + amt + '</strong> · ' + date + '<br>' +
+    '<span style="font-size:0.85rem;">' + escapeHtml((t.description || t.payee || '').slice(0, 100)) + '</span>';
+
+  // Only show "Create expense row" toggle for debits without an existing expense link
+  const wrap = document.getElementById('cb-create-exp-wrap');
+  const cb = document.getElementById('cb-create-exp');
+  if (!isCredit && !t.expenseId) {
+    wrap.style.display = '';
+    cb.checked = true;
+  } else {
+    wrap.style.display = 'none';
+    cb.checked = false;
+  }
+
+  document.getElementById('modal-categorize-bank').classList.add('open');
+}
+
+async function submitCategorizeBank() {
+  if (!_categorizingBankId) return;
+  const category = document.getElementById('cb-category').value;
+  const vendor = document.getElementById('cb-vendor').value.trim();
+  const notes = document.getElementById('cb-notes').value.trim();
+  const createExp = document.getElementById('cb-create-exp').checked;
+  if (!category) { alert('Pick a category.'); return; }
+
+  try {
+    const resp = await fetch(PB_URL + '/api/admin/categorize-bank-tx', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+      body: JSON.stringify({
+        bank_transaction_id: _categorizingBankId,
+        category: category,
+        vendor: vendor,
+        notes: notes,
+        create_expense: createExp,
+      }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      alert('Categorize failed: ' + (data.error || resp.status));
+      return;
+    }
+    closeModal('modal-categorize-bank');
+    _categorizingBankId = null;
+    await loadBank();
+    renderBank();
+  } catch (err) {
+    alert('Network error: ' + err.message);
+  }
 }
 
 function bankMatchPill(status) {
