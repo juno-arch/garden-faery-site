@@ -882,9 +882,12 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
   <div class="modal">
     <h2>📸 Scan receipt</h2>
     <div id="sr-step-pick" class="sr-step">
-      <p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:14px;">Snap a photo of the receipt or pick one from your photos. Claude reads it and pre-fills the fields. You confirm before saving.</p>
+      <p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:14px;">Snap a photo of the receipt and Claude reads it. Or skip the photo and enter it yourself.</p>
       <input type="file" id="sr-file" accept="image/*" capture="environment" style="display:none;" onchange="onScanReceiptFile(event)">
       <button class="modal-btn primary" style="width:100%;padding:14px;font-size:1rem;" onclick="document.getElementById('sr-file').click()">📷 Take photo / pick image</button>
+      <div style="text-align:center;margin-top:10px;">
+        <button onclick="skipScanGoManual()" style="background:none;border:none;color:var(--plum);font-family:Nunito,sans-serif;font-size:0.85rem;text-decoration:underline;cursor:pointer;padding:6px;">Skip photo — enter manually</button>
+      </div>
       <div class="modal-actions" style="margin-top:14px;">
         <button class="modal-btn secondary" onclick="closeModal('modal-scan-receipt')">Cancel</button>
       </div>
@@ -2618,8 +2621,7 @@ async function renderExpenses() {
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
         <select onchange="expenseViewYear=this.value;expenseViewMonth='all';renderExpenses()" style="flex:0 0 100px;padding:8px;border-radius:8px;border:1px solid var(--gray-200);">${yearOpts}</select>
         <select onchange="expenseViewMonth=this.value;renderExpenses()" style="flex:1;min-width:140px;padding:8px;border-radius:8px;border:1px solid var(--gray-200);">${monthOpts}</select>
-        <button class="modal-btn primary" style="padding:8px 12px;" onclick="openExpenseModal()">+ Add</button>
-        <button class="modal-btn secondary" style="padding:8px 12px;" onclick="openScanReceipt()" title="Scan a receipt with your phone camera — Claude reads the image and pre-fills the fields">📸 Scan</button>
+        <button class="modal-btn primary" style="padding:8px 12px;" onclick="openScanReceipt()" title="Scan a receipt photo (Claude OCR pre-fills the fields) or skip the photo and enter manually">+ Expense</button>
         <button class="modal-btn secondary" style="padding:8px 12px;" onclick="exportExpenseCsv()" title="Download a ZIP of the CSV plus all attached receipt photos for the selected scope">Export</button>
       </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;">
@@ -2918,6 +2920,19 @@ function openScanReceipt() {
   document.getElementById('modal-scan-receipt').classList.add('open');
 }
 
+// Skip the photo entirely — open the confirm step with empty fields for manual entry.
+function skipScanGoManual() {
+  _srImageDataUrl = '';
+  _srParsed = { date: formatDate(new Date()), vendor: '', amount: 0, category_guess: '', line_items: [], notes: '', card_last4: '', payment_method: '', tax: null };
+  _srPersonalFlags = [];
+  populateScanConfirm(_srParsed);
+  // Hide the small preview img since we have no photo
+  document.getElementById('sr-preview-small').style.display = 'none';
+  // Hide the "Claude's read" header — we have nothing to display
+  document.getElementById('sr-confirm-info').innerHTML = '<strong>Manual entry</strong><br><span style="font-size:0.85rem;color:var(--gray-600);">No photo — fill in the fields yourself.</span>';
+  showScanStep('sr-step-confirm');
+}
+
 function resetScanReceipt() {
   _srImageDataUrl = '';
   _srParsed = null;
@@ -2995,15 +3010,18 @@ function populateScanConfirm(p) {
   if (lis.length) {
     wrap.style.display = '';
     _srPersonalFlags = new Array(lis.length).fill(false);
-    document.getElementById('sr-line-items').innerHTML = lis.map((li, i) =>
-      '<label style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--gray-200);gap:8px;cursor:pointer;">' +
+    document.getElementById('sr-line-items').innerHTML = lis.map((li, i) => {
+      const rawDesc = String(li.description || '').trim();
+      const desc = rawDesc || ('Item ' + (i + 1) + ' (description unreadable)');
+      const descColor = rawDesc ? 'var(--plum)' : 'var(--gray-400)';
+      return '<label style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--gray-200);gap:8px;cursor:pointer;">' +
         '<span style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;">' +
           '<input type="checkbox" data-li-idx="' + i + '" onchange="onScanPersonalToggle(' + i + ', this.checked)">' +
-          '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(String(li.description || '')) + '</span>' +
+          '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:' + descColor + ';' + (rawDesc ? '' : 'font-style:italic;') + '">' + escapeHtml(desc) + '</span>' +
         '</span>' +
         '<span style="flex-shrink:0;">$' + (Number(li.amount) || 0).toFixed(2) + '</span>' +
-      '</label>'
-    ).join('');
+      '</label>';
+    }).join('');
     updateScanSplitSummary();
   } else {
     wrap.style.display = 'none';
