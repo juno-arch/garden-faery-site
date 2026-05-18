@@ -667,9 +667,8 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
     <button class="tab" data-tab="month" onclick="switchTab('month')">Month</button>
     <button class="tab" data-tab="upcoming" onclick="switchTab('upcoming')">Upcoming</button>
     <button class="tab" data-tab="clients" onclick="switchTab('clients')">Clients</button>
-    <button class="tab" data-tab="income" onclick="switchTab('income')">Income</button>
+    <button class="tab" data-tab="money-in" onclick="switchTab('money-in')">Money In</button>
     <button class="tab" data-tab="expenses" onclick="switchTab('expenses')">Expenses</button>
-    <button class="tab" data-tab="payments" onclick="switchTab('payments')">Payments</button>
     <button class="tab" data-tab="taxes" onclick="switchTab('taxes')">Taxes</button>
     <button class="tab" data-tab="emails" onclick="switchTab('emails')">Emails</button>
     <button class="tab" data-tab="settings" aria-label="Settings" onclick="switchTab('settings')"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -708,19 +707,19 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
     <div id="clients-content"></div>
   </div>
 
-  <!-- Income view -->
-  <div class="tab-panel" id="tab-income" style="display:none;">
+  <!-- Money In — merged Income (bookings.paid) + Payments (atomic transactions) -->
+  <div class="tab-panel" id="tab-money-in" style="display:none;">
     <div id="income-content"></div>
+    <div style="margin: 28px 0 0; padding-top: 20px; border-top: 1px solid var(--gray-200);">
+      <h2 style="font-family: Lora, serif; font-weight: 400; color: var(--plum); font-size: 1.3rem; margin-bottom: 4px;">Payments collected</h2>
+      <p style="font-size: 0.8rem; color: var(--gray-600); margin-bottom: 14px;">Atomic transactions — Square webhooks + manually logged cash/check. Backs the 1099-K ledger.</p>
+      <div id="payments-content"></div>
+    </div>
   </div>
 
   <!-- Expenses view -->
   <div class="tab-panel" id="tab-expenses" style="display:none;">
     <div id="expenses-content"></div>
-  </div>
-
-  <!-- Payments view (Square webhook ingest + manual cash/check log) -->
-  <div class="tab-panel" id="tab-payments" style="display:none;">
-    <div id="payments-content"></div>
   </div>
 
   <!-- Taxes view -->
@@ -1389,9 +1388,8 @@ function switchTab(tab) {
   if (tab === 'month') renderMonth();
   if (tab === 'upcoming') renderUpcoming();
   if (tab === 'clients') renderClients();
-  if (tab === 'income') renderIncome();
+  if (tab === 'money-in') renderMoneyIn();
   if (tab === 'expenses') renderExpenses();
-  if (tab === 'payments') renderPayments();
   if (tab === 'taxes') renderTaxes();
   if (tab === 'emails') renderEmails();
   if (tab === 'settings') renderSettings();
@@ -3519,6 +3517,13 @@ function rerenderClients() {
 
 function setClientsStatus(s)   { clientsFilterStatus = s; rerenderClients(); }
 function clearClientsFilters() { clientsFilterStatus = 'all'; clientsSearch = ''; rerenderClients(); }
+
+// Money In = bookings-driven income (top) + atomic payments ledger (bottom).
+// Both render into their own divs inside the #tab-money-in panel.
+function renderMoneyIn() {
+  renderIncome();
+  renderPayments();
+}
 
 function renderIncome() {
   const el = document.getElementById('income-content');
