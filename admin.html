@@ -2867,6 +2867,17 @@ function onScanPersonalToggle(idx, isPersonal) {
   updateScanSplitSummary();
 }
 
+// Click anywhere on the row toggles the checkbox (previously the <label>
+// wrapper did this; switched to <div> to avoid global .modal label CSS).
+function toggleSrLineItem(idx, evt) {
+  // Bail if the click was on the checkbox itself (its onchange already handles it).
+  if (evt && evt.target && evt.target.tagName === 'INPUT') return;
+  const cb = document.querySelector('#sr-line-items input[data-li-idx="' + idx + '"]');
+  if (!cb) return;
+  cb.checked = !cb.checked;
+  onScanPersonalToggle(idx, cb.checked);
+}
+
 // Compute biz/personal subtotals from line items + tax pro-ration.
 function computeScanSplit() {
   const p = _srParsed || {};
@@ -3051,15 +3062,15 @@ function populateScanConfirm(p) {
       const hasDesc = rawDesc.length > 0;
       const desc = hasDesc ? rawDesc : '⚠ Item ' + (i + 1) + ' — Claude couldn\'t read description';
       const style = hasDesc
-        ? 'color:var(--plum);'
-        : 'color:var(--plum);font-style:italic;opacity:0.7;';
-      // Use CSS grid so columns get predictable widths even with long no-space
-      // SKUs in descriptions. min-width:0 on the desc cell lets word-break work.
-      return '<label style="display:grid;grid-template-columns:24px 1fr auto;gap:10px;align-items:start;padding:6px 0;border-bottom:1px solid var(--gray-200);cursor:pointer;width:100%;box-sizing:border-box;">' +
-        '<input type="checkbox" data-li-idx="' + i + '" onchange="onScanPersonalToggle(' + i + ', this.checked)" style="margin-top:3px;">' +
+        ? 'color:var(--plum);font-weight:400;'
+        : 'color:var(--plum);font-weight:400;font-style:italic;opacity:0.7;';
+      // Use <div> instead of <label> to avoid the global `.modal label { display:block }`
+      // rule that was overriding our grid layout. Click target wired via onclick.
+      return '<div onclick="toggleSrLineItem(' + i + ', event)" style="display:grid;grid-template-columns:24px 1fr auto;gap:10px;align-items:start;padding:8px 0;border-bottom:1px solid var(--gray-200);cursor:pointer;width:100%;box-sizing:border-box;font-weight:400;">' +
+        '<input type="checkbox" data-li-idx="' + i + '" onchange="onScanPersonalToggle(' + i + ', this.checked)" onclick="event.stopPropagation()" style="margin-top:3px;">' +
         '<span style="word-break:break-word;line-height:1.35;min-width:0;' + style + '">' + escapeHtml(desc) + '</span>' +
-        '<span style="font-variant-numeric:tabular-nums;color:var(--plum);text-align:right;white-space:nowrap;">$' + (Number(li.amount) || 0).toFixed(2) + '</span>' +
-      '</label>';
+        '<span style="font-variant-numeric:tabular-nums;color:var(--plum);text-align:right;white-space:nowrap;font-weight:400;">$' + (Number(li.amount) || 0).toFixed(2) + '</span>' +
+      '</div>';
     }).join('');
     updateScanSplitSummary();
     showScanMathWarning(p);
