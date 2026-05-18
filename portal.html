@@ -310,6 +310,24 @@ body {
   border: none;
 }
 .modal-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.tip-opt {
+  padding: 12px 8px;
+  border-radius: 8px;
+  border: 2px solid var(--gray-200);
+  background: #fff;
+  color: var(--plum);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.tip-opt:hover { border-color: var(--plum); }
+.tip-opt.selected {
+  background: var(--plum);
+  color: #fff;
+  border-color: var(--plum);
+}
 </style>
 </head>
 <body>
@@ -395,7 +413,10 @@ body {
 
     <div id="pane-visits" class="portal-pane active">
       <div class="portal-card">
-        <h2>Upcoming</h2>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <h2>Upcoming</h2>
+          <button class="btn-portal-secondary" onclick="exportIcs()" title="Download an .ics file you can import into Apple/Google/Outlook calendar">Add to calendar</button>
+        </div>
         <div id="upcoming-list"></div>
       </div>
       <div class="portal-card">
@@ -476,6 +497,27 @@ body {
   </section>
 
 </main>
+
+<!-- Tip selector modal -->
+<div class="modal-overlay" id="modal-tip">
+  <div class="modal-content">
+    <h2>Add a tip?</h2>
+    <div id="tip-info" style="margin-bottom:14px;color:var(--gray-600);font-size:0.9rem;"></div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;">
+      <button type="button" class="tip-opt" data-pct="0" onclick="selectTip(0)">No tip</button>
+      <button type="button" class="tip-opt" data-pct="15" onclick="selectTip(15)">15%</button>
+      <button type="button" class="tip-opt" data-pct="20" onclick="selectTip(20)">20%</button>
+      <button type="button" class="tip-opt" data-pct="25" onclick="selectTip(25)">25%</button>
+    </div>
+    <label for="tip-custom">Custom tip ($)</label>
+    <input type="number" id="tip-custom" min="0" step="0.50" placeholder="0.00" oninput="onCustomTipInput()">
+    <div id="tip-total-preview" style="margin-top:14px;padding:10px 12px;background:var(--cream);border-radius:8px;font-size:0.95rem;color:var(--plum);"></div>
+    <div class="modal-actions">
+      <button class="cancel-btn" onclick="closeTipModal()">Cancel</button>
+      <button class="save-btn" id="tip-continue" onclick="continueWithTip()">Continue to payment</button>
+    </div>
+  </div>
+</div>
 
 <!-- Add card modal -->
 <div class="modal-overlay" id="modal-add-card">
@@ -961,16 +1003,28 @@ async function deleteCard(cardId) {
   } catch (err) { alert('Network error: ' + err.message); }
 }
 
-// One-tap charge using a saved card.
+// Entry point: saved-card one-tap charge. Opens tip modal first.
 async function payWithCard(bookingId, cardId, btnEl) {
   if (!bookingId || !cardId) return;
+  const b = (_data.outstanding || []).find(x => x.booking_id === bookingId);
+  if (!b) return;
+  if (btnEl) { btnEl.disabled = true; }
+  const card = _savedCards.find(c => c.id === cardId);
+  const cardLabel = card ? ((card.card_brand || 'CARD').slice(0, 4) + ' ' + card.last_4) : 'card';
+  openTipModal({
+    mode: 'card', bookingId: bookingId, cardId: cardId, btnEl: btnEl,
+    btnText: cardLabel, baseCents: Math.round((b.price || 0) * 100),
+  });
+}
+
+async function doPayWithCard(bookingId, cardId, tipCents, btnEl) {
   if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Charging...'; }
   const token = localStorage.getItem(STORAGE_TOKEN);
   try {
     const resp = await fetch(PB_URL + '/api/portal/pay-with-card', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: token, booking_id: bookingId, card_id: cardId }),
+      body: JSON.stringify({ token: token, booking_id: bookingId, card_id: cardId, tip_cents: tipCents }),
     });
     const data = await resp.json().catch(() => ({}));
     if (!resp.ok) {
@@ -978,7 +1032,6 @@ async function payWithCard(bookingId, cardId, btnEl) {
       if (btnEl) { btnEl.disabled = false; btnEl.textContent = 'Pay'; }
       return;
     }
-    // Success — refresh portal so the booking shows paid.
     await loadPortal();
   } catch (err) {
     alert('Network error: ' + err.message);
@@ -1191,6 +1244,75 @@ async function submitEditProfile() {
   finally { btn.disabled = false; btn.textContent = 'Save'; }
 }
 
+// ----- CALENDAR EXPORT (.ics) -----
+// Generates an ICS feed of upcoming visits and triggers a download. Works
+// across Apple Calendar, Google Calendar, Outlook — they all consume RFC 5545.
+function exportIcs() {
+  if (!_data || !_data.upcoming || _data.upcoming.length === 0) {
+    alert('Nothing upcoming to add to calendar.');
+    return;
+  }
+  const pad = n => String(n).padStart(2, '0');
+  const fmtIcsLocal = (date, time) => {
+    // date = "YYYY-MM-DD", time = "9:00am" etc.
+    const m = String(time || '').trim().toLowerCase().match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/);
+    let h = 9, min = 0;
+    if (m) {
+      h = parseInt(m[1], 10);
+      min = parseInt(m[2], 10);
+      if (m[3] === 'am' && h === 12) h = 0;
+      if (m[3] === 'pm' && h !== 12) h += 12;
+    }
+    return date.replace(/-/g, '') + 'T' + pad(h) + pad(min) + '00';
+  };
+  const fmtIcsUtc = () => {
+    const d = new Date();
+    return d.getUTCFullYear() + pad(d.getUTCMonth() + 1) + pad(d.getUTCDate()) + 'T' +
+      pad(d.getUTCHours()) + pad(d.getUTCMinutes()) + pad(d.getUTCSeconds()) + 'Z';
+  };
+  const fold = s => String(s).replace(/[\\,;]/g, m => '\\' + m).replace(/\n/g, '\\n');
+
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Garden Faery//Portal//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'X-WR-CALNAME:Garden Faery visits',
+  ];
+  const nowStamp = fmtIcsUtc();
+  for (const b of _data.upcoming) {
+    if (!b.date) continue;
+    const startLocal = fmtIcsLocal(b.date, b.time || '9:00am');
+    const endLocal = fmtIcsLocal(b.date, b.end_time || '2:00pm');
+    const eventLabel = (b.event_name || b.event_type || 'Garden Faery visit')
+      .replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    lines.push('BEGIN:VEVENT');
+    lines.push('UID:' + b.booking_id + '@gardenfaery.love');
+    lines.push('DTSTAMP:' + nowStamp);
+    // TZID floats — local America/Los_Angeles. Most calendar apps interpret
+    // floating times correctly for personal use.
+    lines.push('DTSTART;TZID=America/Los_Angeles:' + startLocal);
+    lines.push('DTEND;TZID=America/Los_Angeles:' + endLocal);
+    lines.push('SUMMARY:' + fold(eventLabel));
+    lines.push('DESCRIPTION:' + fold('Garden Faery visit. Manage at https://gardenfaery.love/portal.html'));
+    if (b.garden_notes) lines.push('DESCRIPTION:' + fold(b.garden_notes));
+    lines.push('END:VEVENT');
+  }
+  lines.push('END:VCALENDAR');
+  const ics = lines.join('\r\n');
+
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'garden-faery-visits.ics';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 // ----- TABS -----
 function switchPortalTab(tab) {
   document.querySelectorAll('.portal-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
@@ -1201,16 +1323,89 @@ function switchPortalTab(tab) {
 }
 
 // ----- PAY -----
+// Two entry points: payBooking (Square hosted checkout) and payWithCard
+// (saved-card direct charge). Both now go through the tip modal first.
+// _pendingPay holds whichever flow was triggered so continueWithTip knows
+// what to run after the user picks a tip.
+let _pendingPay = null; // { mode: 'link'|'card', bookingId, cardId?, btnEl?, baseCents }
+
+function openTipModal(opts) {
+  _pendingPay = opts;
+  document.getElementById('tip-custom').value = '';
+  document.querySelectorAll('.tip-opt').forEach(b => b.classList.remove('selected'));
+  selectTip(0); // default: no tip
+  const dollars = (opts.baseCents / 100).toFixed(2);
+  document.getElementById('tip-info').innerHTML =
+    'Visit total: <strong>$' + dollars + '</strong>. Tips are optional and go directly to Taya.';
+  document.getElementById('modal-tip').classList.add('open');
+}
+function closeTipModal() {
+  document.getElementById('modal-tip').classList.remove('open');
+  if (_pendingPay && _pendingPay.btnEl) {
+    _pendingPay.btnEl.disabled = false;
+    _pendingPay.btnEl.textContent = _pendingPay.mode === 'card'
+      ? 'Pay with ' + (_pendingPay.btnText || 'card')
+      : 'Pay';
+  }
+  _pendingPay = null;
+}
+function selectTip(pct) {
+  if (!_pendingPay) return;
+  document.querySelectorAll('.tip-opt').forEach(b => b.classList.toggle('selected', String(b.dataset.pct) === String(pct)));
+  let tipCents = 0;
+  if (pct > 0) tipCents = Math.round(_pendingPay.baseCents * (pct / 100));
+  document.getElementById('tip-custom').value = pct > 0 ? (tipCents / 100).toFixed(2) : '';
+  _pendingPay.tipCents = tipCents;
+  updateTipPreview();
+}
+function onCustomTipInput() {
+  if (!_pendingPay) return;
+  const v = parseFloat(document.getElementById('tip-custom').value || '0');
+  const cents = Math.max(0, Math.round(v * 100));
+  _pendingPay.tipCents = cents;
+  document.querySelectorAll('.tip-opt').forEach(b => b.classList.remove('selected'));
+  updateTipPreview();
+}
+function updateTipPreview() {
+  if (!_pendingPay) return;
+  const total = _pendingPay.baseCents + (_pendingPay.tipCents || 0);
+  const tipDollar = ((_pendingPay.tipCents || 0) / 100).toFixed(2);
+  const totalDollar = (total / 100).toFixed(2);
+  document.getElementById('tip-total-preview').innerHTML =
+    'Tip: <strong>$' + tipDollar + '</strong> &middot; Total: <strong>$' + totalDollar + '</strong>';
+}
+async function continueWithTip() {
+  if (!_pendingPay) return;
+  const p = _pendingPay;
+  document.getElementById('modal-tip').classList.remove('open');
+  if (p.mode === 'card') {
+    await doPayWithCard(p.bookingId, p.cardId, p.tipCents || 0, p.btnEl);
+  } else {
+    await doPayBooking(p.bookingId, p.tipCents || 0, p.btnEl);
+  }
+  _pendingPay = null;
+}
+
+// Entry point: Square hosted checkout. Opens tip modal first.
 async function payBooking(bookingId, btnEl) {
   if (!bookingId) return;
   const token = localStorage.getItem(STORAGE_TOKEN);
   if (!token) { showStep('step-email'); return; }
-  if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Opening Square…'; }
+  // Find the booking to know its price.
+  const b = (_data.outstanding || []).find(x => x.booking_id === bookingId);
+  if (!b) return;
+  if (btnEl) { btnEl.disabled = true; }
+  openTipModal({ mode: 'link', bookingId: bookingId, btnEl: btnEl, baseCents: Math.round((b.price || 0) * 100) });
+}
+
+async function doPayBooking(bookingId, tipCents, btnEl) {
+  if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Opening Square...'; }
+  const token = localStorage.getItem(STORAGE_TOKEN);
   try {
     const resp = await fetch(PB_URL + '/api/portal/pay', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: token, booking_id: bookingId }),
+      body: JSON.stringify({ token: token, booking_id: bookingId, tip_cents: tipCents }),
     });
     const data = await resp.json().catch(() => ({}));
     if (!resp.ok || !data.url) {
