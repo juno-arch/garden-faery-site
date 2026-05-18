@@ -879,21 +879,21 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
 
 <!-- Categorize bank transaction modal -->
 <div class="modal-overlay" id="modal-categorize-bank">
-  <div class="modal" style="max-width:480px;">
+  <div class="modal">
     <h2>Categorize transaction</h2>
-    <div id="cb-info" style="margin-bottom:12px;color:var(--gray-600);font-size:0.9rem;"></div>
+    <div id="cb-info" style="margin-bottom:12px;color:var(--gray-600);font-size:0.9rem;word-break:break-word;"></div>
     <div class="form-group">
       <label>Category</label>
-      <select id="cb-category" style="width:100%;"></select>
+      <select id="cb-category"></select>
     </div>
     <div class="form-group">
-      <label>Vendor / payee (clean name for reports)</label>
-      <input type="text" id="cb-vendor" placeholder="optional — overrides bank's payee text">
+      <label>Vendor / payee</label>
+      <input type="text" id="cb-vendor" placeholder="clean name for reports">
     </div>
     <div class="form-group" id="cb-create-exp-wrap" style="display:none;">
-      <label style="display:flex;align-items:center;gap:8px;font-weight:normal;">
-        <input type="checkbox" id="cb-create-exp" checked>
-        <span>Also create a row in the Expenses tab (recommended for biz expenses)</span>
+      <label>
+        <input type="checkbox" id="cb-create-exp" checked style="margin-right:6px;">
+        Also create a row in Expenses
       </label>
     </div>
     <div class="form-group">
