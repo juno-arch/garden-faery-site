@@ -232,13 +232,13 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
   color: var(--moon-text); font-style: italic;
 }
 
-/* Today inner-season guide card (mirrors Learn deep-dive) */
+/* Today inner-season guide card (mirrors Learn deep-dive, accordion-styled) */
 .today-season-card .ts-head {
   font-family: 'Prata', serif;
   font-size: 1.15rem;
   color: var(--moon-accent);
   letter-spacing: 0.3px;
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
@@ -246,12 +246,24 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
   line-height: 1.25;
 }
 .today-season-card .ts-head .ts-emoji { font-size: 1.25rem; line-height: 1; }
+.today-season-card .ts-tagline {
+  font-size: 0.95rem;
+  font-style: italic;
+  line-height: 1.4;
+  color: var(--moon-text);
+  margin: 0 0 4px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(181,139,255,0.10) 0%, rgba(255,143,177,0.07) 100%);
+  border-left: 3px solid var(--moon-glow);
+  border-radius: 0 12px 12px 0;
+}
 .today-season-card .ts-sub {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--moon-dim);
   font-style: italic;
-  margin: 0 0 14px;
+  margin: 0 0 12px;
   line-height: 1.5;
+  letter-spacing: 0.2px;
 }
 .today-season-card .ts-sub a {
   color: var(--moon-accent);
@@ -261,6 +273,43 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
   font-style: normal;
 }
 .today-season-card .ts-sub a:hover { text-decoration-color: var(--moon-accent); }
+
+/* Accordion sections inside the Today inner-season card */
+.today-season-card .ts-section {
+  border-top: 1px solid var(--moon-line);
+}
+.today-season-card .ts-section:first-of-type { border-top: none; }
+.today-season-card .ts-section > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 12px 2px;
+  font-size: 0.74rem;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+  color: var(--moon-dim);
+  font-weight: 700;
+  list-style: none;
+  transition: color 0.15s;
+}
+.today-season-card .ts-section > summary::-webkit-details-marker { display: none; }
+.today-season-card .ts-section > summary::after {
+  content: '＋';
+  font-size: 0.9rem;
+  color: var(--moon-accent);
+  font-weight: 400;
+  margin-left: 8px;
+  transition: transform 0.2s, color 0.15s;
+  opacity: 0.7;
+}
+.today-season-card .ts-section[open] > summary::after { content: '−'; opacity: 1; }
+.today-season-card .ts-section > summary:hover { color: var(--moon-accent); }
+.today-season-card .ts-section > summary:hover::after { opacity: 1; }
+.today-season-card .ts-section-body { padding: 2px 0 12px; }
+/* learn-body inside accordion: tighten top spacing so first p hugs summary */
+.today-season-card .ts-section-body > :first-child { margin-top: 0; }
+.today-season-card .ts-section-body > h4:first-child { display: none; }
 
 /* Fertile badge on Today card */
 .fertile-badge {
@@ -646,7 +695,8 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
   <!-- Inner season guide (auto-switches with current phase) -->
   <div class="card today-season-card" data-section="today" id="t-season-card" hidden>
     <h3 class="ts-head"><span class="ts-emoji" id="t-season-emoji"></span><span id="t-season-titletxt"></span></h3>
-    <p class="ts-sub">Your guide for this phase. Full deep-dive on the <a href="#" onclick="openLearnForCurrentPhase();return false;">Learn tab</a>.</p>
+    <p class="ts-tagline" id="t-season-tagline"></p>
+    <p class="ts-sub">Full deep-dive on the <a href="#" onclick="openLearnForCurrentPhase();return false;">Learn tab</a>.</p>
     <div class="learn-body" id="t-season-body"></div>
   </div>
 
@@ -1171,6 +1221,7 @@ function closeHerbModal() { document.getElementById('herb-modal-backdrop').class
 const LEARN_CONTENT = {
   winter: {
     emoji: '🌑', label: 'Winter', title: 'Inner winter · menstrual · days 1-5',
+    tagline: "Day 1 = your body's official not-pregnant memo. Read receipts on.",
     html: `
       <h4>What's up in there</h4>
       <p>Day 1 is the day you bleed. Your uterus is peeling off its plush lining — the velvet nursery it built last month in case an embryo needed a home. No embryo moved in, so the lining releases.</p>
@@ -1185,6 +1236,7 @@ const LEARN_CONTENT = {
   },
   spring: {
     emoji: '🌱', label: 'Spring', title: 'Inner spring · follicular · days 6-13',
+    tagline: "Estrogen up. Brain on. Body says: try things, plant things, hair looking suspiciously good.",
     html: `
       <h4>What's up in there</h4>
       <p>Period's done. Your uterus is building a fresh lining — new nursery going up floor by floor. Cervix is rising, opening slightly, making sticky-then-creamy mucus.</p>
@@ -1199,6 +1251,7 @@ const LEARN_CONTENT = {
   },
   summer: {
     emoji: '☀️', label: 'Summer', title: 'Inner summer · ovulation · days 14-16',
+    tagline: "Peak charm, peak energy, peak you. 3–4 days only — ride it, don't torch the adrenals.",
     html: `
       <h4>What's up in there — the big day</h4>
       <p>The dominant follicle has grown to about 2cm (almost an inch). Estrogen hits peak. Your pituitary gland releases a flood of <strong>LH</strong> — the Luteinizing Hormone surge.</p>
@@ -1217,6 +1270,7 @@ const LEARN_CONTENT = {
   },
   autumn: {
     emoji: '🍂', label: 'Autumn', title: 'Inner autumn · luteal · days 17-28',
+    tagline: "Cozy → finishing things → full PMS symphony. The whole luteal arc. Not you being broken, just hormones plummeting on schedule.",
     html: `
       <h4>What's up in there</h4>
       <p>The empty follicle that released your egg has transformed into the <strong>corpus luteum</strong> — a temporary hormone-making gland. Its one job: pump out progesterone to keep your uterine lining cushy and nesting in case an embryo implants.</p>
@@ -1238,6 +1292,7 @@ const LEARN_CONTENT = {
   },
   ovulation: {
     emoji: '🥚', label: 'Egg Drop', title: 'The ovulation moment',
+    tagline: "One egg. 24-hour window. Make a person or don't — your call, your body, your magic.",
     html: `
       <h4>Here's what actually happens mid-cycle</h4>
       <p>About <strong>14 days BEFORE your next period</strong> (not 14 days after the last one started — this is the source of most calendar-method failure), ONE follicle in ONE ovary releases ONE egg.</p>
@@ -1275,6 +1330,62 @@ function renderLearn() {
   body.innerHTML = '<h3 style="font-family:Prata,serif;font-size:1.15rem;margin:0 0 12px;color:var(--moon-accent);letter-spacing:0.3px;">' + c.title + '</h3>' + c.html;
 }
 function setLearnTab(k) { learnTab = k; renderLearn(); }
+// Transform LEARN_CONTENT html into accordion sections for the Today card.
+// h4 → <details><summary>; trailing .phase-* callouts → grouped under "Tend yourself".
+function accordionizeLearnHTML(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  const out = document.createElement('div');
+  let cur = null;
+  let curBody = null;
+  let careBody = null;
+  let firstSection = true;
+
+  const newSection = (label, openByDefault) => {
+    const sec = document.createElement('details');
+    sec.className = 'ts-section';
+    if (openByDefault) sec.open = true;
+    const summary = document.createElement('summary');
+    summary.textContent = label;
+    sec.appendChild(summary);
+    const body = document.createElement('div');
+    body.className = 'ts-section-body';
+    sec.appendChild(body);
+    out.appendChild(sec);
+    return body;
+  };
+
+  Array.from(tmp.childNodes).forEach(node => {
+    const isEl = node.nodeType === 1;
+    const tag = isEl ? node.tagName : '';
+    const isCare = isEl && node.classList && (
+      node.classList.contains('phase-move') ||
+      node.classList.contains('phase-nourish') ||
+      node.classList.contains('phase-practice') ||
+      node.classList.contains('phase-gift')
+    );
+
+    if (isCare) {
+      if (!careBody) careBody = newSection('Tend yourself', false);
+      careBody.appendChild(node.cloneNode(true));
+      return;
+    }
+    if (tag === 'H4') {
+      cur = newSection(node.textContent, firstSection);
+      curBody = cur;
+      firstSection = false;
+      return;
+    }
+    if (cur) {
+      cur.appendChild(node.cloneNode(true));
+    } else {
+      out.appendChild(node.cloneNode(true));
+    }
+  });
+
+  return out.innerHTML;
+}
+
 function openLearnForCurrentPhase() {
   const last = periods.length ? periods[periods.length - 1] : null;
   const cd = last ? (daysBetween(last.start, todayStr()) + 1) : null;
@@ -2005,7 +2116,8 @@ function render() {
     const c = LEARN_CONTENT[todayPhase];
     document.getElementById('t-season-emoji').textContent = c.emoji;
     document.getElementById('t-season-titletxt').textContent = c.title;
-    document.getElementById('t-season-body').innerHTML = c.html;
+    document.getElementById('t-season-tagline').textContent = c.tagline || '';
+    document.getElementById('t-season-body').innerHTML = accordionizeLearnHTML(c.html);
     seasonCard.hidden = false;
   } else {
     seasonCard.hidden = true;
