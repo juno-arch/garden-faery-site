@@ -84,7 +84,8 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
   margin-bottom: 14px;
   box-shadow: 0 8px 30px rgba(0,0,0,0.25);
 }
-.card h3 { font-size: 1.05rem; margin-bottom: 12px; letter-spacing: 0.3px; }
+.card h3 { font-size: 1.05rem; margin-bottom: 12px; letter-spacing: 0.3px; display: flex; align-items: center; gap: 8px; }
+.card h3 [data-icon] { display: inline-flex; color: var(--moon-accent); font-size: 1.1rem; line-height: 1; flex: 0 0 auto; }
 
 /* Today moon card */
 .today-card {
@@ -485,6 +486,8 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
   border-radius: 999px; font-size: 0.78rem; font-weight: 600;
   letter-spacing: 0.3px;
 }
+.fertile-badge { display: inline-flex; align-items: center; gap: 6px; }
+.fertile-badge .fb-ico { display: inline-flex; line-height: 1; font-size: 0.95rem; }
 .fertile-badge.fertile { background: rgba(255,217,139,0.18); color: var(--moon-gold); border: 1px solid rgba(255,217,139,0.4); }
 .fertile-badge.infertile { background: rgba(163,184,140,0.15); color: #c4d8b1; border: 1px solid rgba(163,184,140,0.4); }
 .fertile-badge.unknown { background: rgba(255,255,255,0.06); color: var(--moon-dim); border: 1px solid rgba(255,255,255,0.15); }
@@ -540,6 +543,7 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
 .learn-body li { margin-bottom: 4px; }
 .learn-body strong { color: var(--moon-accent); font-weight: 600; }
 .learn-body em.witch { color: var(--moon-pink2); font-style: normal; font-weight: 600; }
+.learn-body em.witch .witch-heart { display: inline-flex; vertical-align: -2px; font-size: 0.85em; }
 .learn-body .phase-gift {
   margin: 4px 0 14px; padding: 11px 14px;
   background: rgba(192, 131, 11, 0.1);
@@ -912,7 +916,7 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
 
   <!-- Sky: today's sky -->
   <div class="card sky-card" data-section="sky">
-    <h3 class="sky-head"><span class="sky-head-emoji">✨</span><span>Today's sky</span></h3>
+    <h3 class="sky-head"><span class="sky-head-emoji" data-icon="sparkles"></span><span>Today's sky</span></h3>
     <div class="sky-stack">
       <div class="sky-block" id="sky-moonphase">
         <div class="sky-eyebrow">Moon phase</div>
@@ -931,14 +935,14 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
 
   <!-- Sky: cycle × sky pairing -->
   <div class="card sky-card" data-section="sky" id="sky-pair-card" hidden>
-    <h3 class="sky-head"><span class="sky-head-emoji">⚯</span><span>Your alignment</span></h3>
+    <h3 class="sky-head"><span class="sky-head-emoji" data-icon="link2"></span><span>Your alignment</span></h3>
     <div class="sky-meta" style="margin-bottom:10px;">Where your body and the sky are pointed the same direction today.</div>
     <div class="sky-pair" id="sky-pair-text">—</div>
   </div>
 
   <!-- Sky: Big 3 birth chart -->
   <div class="card sky-card" data-section="sky">
-    <h3 class="sky-head"><span class="sky-head-emoji">⛢</span><span>Your stars · Big 3</span></h3>
+    <h3 class="sky-head"><span class="sky-head-emoji" data-icon="target"></span><span>Your stars · Big 3</span></h3>
     <div class="sky-meta" style="margin-bottom:6px;">Sun = your spark. Moon = your inner weather. Rising = the door you open.</div>
     <div class="big3-grid" id="big3-grid"></div>
     <p class="big3-note" id="big3-note"></p>
@@ -996,17 +1000,17 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
 
   <!-- Patterns -->
   <div class="card" data-section="trends">
-    <h3>🔍 Your patterns</h3>
+    <h3><span data-icon="search"></span>Your patterns</h3>
     <div style="font-size:0.82rem;color:var(--moon-dim);margin-bottom:10px;">How your symptoms + energy shift across the cycle.</div>
     <div id="patterns-body"></div>
   </div>
 
   <!-- Subscribe calendar -->
   <div class="card cal-sub-card" data-section="settings">
-    <h3>📅 Subscribe to your moon days</h3>
+    <h3><span data-icon="calendar"></span>Subscribe to your moon days</h3>
     <div class="cal-sub-desc">Auto-block period + projected days on any booking tool. Pick the path that matches your calendar.</div>
     <a href="webcal://bookings.gardenfaery.love/moon-days.ics" class="btn cal-sub-btn">
-      <span aria-hidden="true">📅</span>&nbsp;Add to Apple / iOS Calendar
+      <span aria-hidden="true" data-icon="calendar"></span>&nbsp;Add to Apple / iOS Calendar
     </a>
     <div class="cal-sub-or">— or, paste this URL into Google / Outlook —</div>
     <div class="cal-sub-url-row">
@@ -1018,17 +1022,17 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
 
   <!-- Export -->
   <div class="card" data-section="settings">
-    <h3>📋 Export</h3>
+    <h3><span data-icon="pages"></span>Export</h3>
     <div style="font-size:0.82rem;color:var(--moon-dim);margin-bottom:12px;">Print a summary for your care provider, or back up your full data.</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <button class="btn" onclick="openReport()" style="flex:1;min-width:140px;">🖨️ Print report</button>
-      <button class="btn secondary" onclick="downloadJSON()" style="flex:1;min-width:140px;">💾 Download data</button>
+      <button class="btn" onclick="openReport()" style="flex:1;min-width:140px;"><span data-icon="printer"></span>&nbsp;Print report</button>
+      <button class="btn secondary" onclick="downloadJSON()" style="flex:1;min-width:140px;"><span data-icon="download"></span>&nbsp;Download data</button>
     </div>
   </div>
 
   <!-- Cyclical Living Principles: Usha's cross-cutting teachings -->
   <div class="card" data-section="learn">
-    <h3>🕯️ Cyclical living</h3>
+    <h3><span data-icon="candle"></span>Cyclical living</h3>
     <p style="font-size:0.88rem;color:var(--moon-dim);font-style:italic;margin:0 0 14px;line-height:1.55;">Usha Anandi's framing: these principles hold across the whole cycle, not just one phase.</p>
 
     <div class="yoni-section">
@@ -1082,7 +1086,7 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
 
   <!-- Yoni Steam: ancestral womb practice -->
   <div class="card yoni-card" data-section="learn">
-    <h3>🌿 Yoni steam</h3>
+    <h3><span data-icon="flame"></span>Yoni steam</h3>
     <p class="intro">The word <em>yoni</em> is Sanskrit for womb / vulva / sacred portal. The practice is ancient — traceable across Mayan, Korean, Russian, African, and indigenous curanderisma traditions. You sit over a pot of hot herbal water, wrapped to the waist in a blanket. Steam carries the herbs' volatiles to your vulva and cervix.</p>
 
     <div class="yoni-section">
@@ -1131,13 +1135,13 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
     <div class="yoni-section">
       <h4>Herbs (pick 3-5)</h4>
       <div class="yoni-herbs">
-        <div class="yoni-herb"><span class="em">🌹</span>Rose — heart opening</div>
-        <div class="yoni-herb"><span class="em">🌙</span>Mugwort — gentle flow (mindful)</div>
-        <div class="yoni-herb"><span class="em">🌼</span>Calendula — lymph, gentle</div>
-        <div class="yoni-herb"><span class="em">💜</span>Lavender — calm, spirit</div>
-        <div class="yoni-herb"><span class="em">🤍</span>Yarrow — womb tone</div>
-        <div class="yoni-herb"><span class="em">🍃</span>Raspberry leaf — tonic</div>
-        <div class="yoni-herb"><span class="em">🤲</span>Chamomile — soft nervine</div>
+        <div class="yoni-herb"><span class="em" data-icon="flower"></span>Rose — heart opening</div>
+        <div class="yoni-herb"><span class="em" data-icon="moon"></span>Mugwort — gentle flow (mindful)</div>
+        <div class="yoni-herb"><span class="em" data-icon="sun"></span>Calendula — lymph, gentle</div>
+        <div class="yoni-herb"><span class="em" data-icon="sprout"></span>Lavender — calm, spirit</div>
+        <div class="yoni-herb"><span class="em" data-icon="heart"></span>Yarrow — womb tone</div>
+        <div class="yoni-herb"><span class="em" data-icon="leaf"></span>Raspberry leaf — tonic</div>
+        <div class="yoni-herb"><span class="em" data-icon="waves"></span>Chamomile — soft nervine</div>
       </div>
       <p style="font-size:0.78rem;color:var(--moon-dim);margin-top:8px;">Your nose knows. If something's calling, follow it.</p>
     </div>
@@ -1149,7 +1153,7 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
 
   <!-- Learn: body literacy -->
   <div class="card" data-section="learn">
-    <h3>🌸 Learn your body</h3>
+    <h3><span data-icon="flower"></span>Learn your body</h3>
     <div style="font-size:0.82rem;color:var(--moon-dim);margin-bottom:10px;font-style:italic;">Alchemizing science + the sacred. Tap a phase.</div>
     <div class="learn-nav" id="learn-nav"></div>
     <div class="learn-body" id="learn-body"></div>
@@ -1176,12 +1180,12 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
 
   <!-- Bottom tab navigation -->
   <nav class="tab-bar" role="tablist" aria-label="Main navigation">
-    <button class="tab-btn" data-tab="today" onclick="setTab('today')" role="tab"><span class="tab-icon">🌙</span>Today</button>
-    <button class="tab-btn" data-tab="calendar" onclick="setTab('calendar')" role="tab"><span class="tab-icon">📅</span>Calendar</button>
-    <button class="tab-btn" data-tab="sky" onclick="setTab('sky')" role="tab"><span class="tab-icon">✨</span>Sky</button>
-    <button class="tab-btn" data-tab="trends" onclick="setTab('trends')" role="tab"><span class="tab-icon">📈</span>Trends</button>
-    <button class="tab-btn" data-tab="learn" onclick="setTab('learn')" role="tab"><span class="tab-icon">📖</span>Learn</button>
-    <button class="tab-btn" data-tab="settings" onclick="setTab('settings')" role="tab"><span class="tab-icon">⚙️</span>Settings</button>
+    <button class="tab-btn" data-tab="today" onclick="setTab('today')" role="tab"><span class="tab-icon" data-icon="moon"></span>Today</button>
+    <button class="tab-btn" data-tab="calendar" onclick="setTab('calendar')" role="tab"><span class="tab-icon" data-icon="calendar"></span>Calendar</button>
+    <button class="tab-btn" data-tab="sky" onclick="setTab('sky')" role="tab"><span class="tab-icon" data-icon="sparkles"></span>Sky</button>
+    <button class="tab-btn" data-tab="trends" onclick="setTab('trends')" role="tab"><span class="tab-icon" data-icon="chart_line"></span>Trends</button>
+    <button class="tab-btn" data-tab="learn" onclick="setTab('learn')" role="tab"><span class="tab-icon" data-icon="book"></span>Learn</button>
+    <button class="tab-btn" data-tab="settings" onclick="setTab('settings')" role="tab"><span class="tab-icon" data-icon="gear"></span>Settings</button>
   </nav>
 </div>
 
@@ -1447,7 +1451,7 @@ function closeHerbModal() { document.getElementById('herb-modal-backdrop').class
 // --- Body-literacy content: Learn phase deep-dives ---
 const LEARN_CONTENT = {
   winter: {
-    emoji: '🌑', label: 'Winter', title: 'Inner winter · menstrual · days 1-5',
+    emoji: 'moon', label: 'Winter', title: 'Inner winter · menstrual · days 1-5',
     tagline: "Day 1 = your body's official not-pregnant memo. Read receipts on.",
     html: `
       <h4>What's up in there</h4>
@@ -1462,7 +1466,7 @@ const LEARN_CONTENT = {
     `
   },
   spring: {
-    emoji: '🌱', label: 'Spring', title: 'Inner spring · follicular · days 6-13',
+    emoji: 'sprout', label: 'Spring', title: 'Inner spring · follicular · days 6-13',
     tagline: "Estrogen up. Brain on. Body says: try things, plant things, hair looking suspiciously good.",
     html: `
       <h4>What's up in there</h4>
@@ -1477,7 +1481,7 @@ const LEARN_CONTENT = {
     `
   },
   summer: {
-    emoji: '☀️', label: 'Summer', title: 'Inner summer · ovulation · days 14-16',
+    emoji: 'sun', label: 'Summer', title: 'Inner summer · ovulation · days 14-16',
     tagline: "Peak charm, peak energy, peak you. 3–4 days only — ride it, don't torch the adrenals.",
     html: `
       <h4>What's up in there — the big day</h4>
@@ -1496,7 +1500,7 @@ const LEARN_CONTENT = {
     `
   },
   autumn: {
-    emoji: '🍂', label: 'Autumn', title: 'Inner autumn · luteal · days 17-28',
+    emoji: 'leaf', label: 'Autumn', title: 'Inner autumn · luteal · days 17-28',
     tagline: "Cozy → finishing things → full PMS symphony. The whole luteal arc. Not you being broken, just hormones plummeting on schedule.",
     html: `
       <h4>What's up in there</h4>
@@ -1518,7 +1522,7 @@ const LEARN_CONTENT = {
     `
   },
   ovulation: {
-    emoji: '🥚', label: 'Egg Drop', title: 'The ovulation moment',
+    emoji: 'egg', label: 'Egg Drop', title: 'The ovulation moment',
     tagline: "One egg. 24-hour window. Make a person or don't — your call, your body, your magic.",
     html: `
       <h4>Here's what actually happens mid-cycle</h4>
@@ -1539,7 +1543,7 @@ const LEARN_CONTENT = {
       <p>It's retrospective. It tells you "ovulation was 3 days ago," not "it's about to happen." Good for confirming you're in the safe post-ovulation window. Bad for timing sex to conceive — for that, watch mucus + LH strips.</p>
       <h4>Avoiding pregnancy with this info</h4>
       <p>Don't rely on BBT alone. The <strong>sympto-thermal method</strong> (mucus + temp + calendar + cervix) used perfectly has a Pearl Index ~0.4 (comparable to the pill). Used typically: ~1.8. It requires strict daily observation + abstinence (or backup) during the fertile window.</p>
-      <p><em class="witch">We show you your fertile window. Your choices are yours. ♥</em></p>
+      <p><em class="witch">We show you your fertile window. Your choices are yours. <span class="witch-heart" data-icon="heart_solid"></span></em></p>
     `
   }
 };
@@ -1551,10 +1555,12 @@ function renderLearn() {
   nav.innerHTML = order.map(k => {
     const c = LEARN_CONTENT[k];
     return '<div class="tab' + (k === learnTab ? ' active' : '') + '" onclick="setLearnTab(\'' + k + '\')">' +
-           '<span class="emoji">' + c.emoji + '</span>' + c.label + '</div>';
+           '<span class="emoji">' + (ICON[c.emoji] || '') + '</span>' + c.label + '</div>';
   }).join('');
   const c = LEARN_CONTENT[learnTab];
   body.innerHTML = '<h3 style="font-family:Prata,serif;font-size:1.15rem;margin:0 0 12px;color:var(--moon-accent);letter-spacing:0.3px;">' + c.title + '</h3>' + c.html;
+  injectIcons(nav);
+  injectIcons(body);
 }
 function setLearnTab(k) { learnTab = k; renderLearn(); }
 // Transform LEARN_CONTENT html into accordion sections for the Today card.
@@ -2046,10 +2052,10 @@ function renderPatterns() {
   const wrap = document.getElementById('patterns-body'); if (!wrap) return;
   const p = computePatterns();
   const phases = {
-    winter: '🌑 Inner winter · menstrual',
-    spring: '🌱 Inner spring · follicular',
-    summer: '☀️ Inner summer · ovulation',
-    autumn: '🍂 Inner autumn · luteal'
+    winter: 'Inner winter · menstrual',
+    spring: 'Inner spring · follicular',
+    summer: 'Inner summer · ovulation',
+    autumn: 'Inner autumn · luteal'
   };
   if (p.cycles < 2) {
     wrap.innerHTML = '<div style="color:var(--moon-dim);font-size:0.88rem;padding:14px;text-align:center;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.1);border-radius:10px;">' +
@@ -2143,7 +2149,29 @@ const ICON = {
   shield:       IC('<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>'),
   sprout:       IC('<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8Z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2Z"/>'),
   x:            IC('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'),
+  calendar:     IC('<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>'),
+  chart_line:   IC('<path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-7"/>'),
+  book:         IC('<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/>'),
+  gear:         IC('<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/>'),
+  search:       IC('<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>'),
+  printer:      IC('<polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/>'),
+  download:     IC('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>'),
+  sun:          IC('<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>'),
+  egg:          IC('<path d="M12 22c5 0 8-4 8-9s-4-11-8-11-8 6-8 11 3 9 8 9Z"/>'),
+  link2:        IC('<path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 0 1 0 10h-2"/><line x1="8" x2="16" y1="12" y2="12"/>'),
+  candle:       IC('<path d="M9 13a3 3 0 1 0 6 0c0-2-3-4-3-7 0 3-3 5-3 7Z"/><rect x="9" y="15" width="6" height="7" rx="1"/>'),
+  flower:       IC('<circle cx="12" cy="12" r="3"/><path d="M12 9a4 4 0 0 1 0-7 4 4 0 0 1 0 7Z"/><path d="M12 15a4 4 0 0 0 0 7 4 4 0 0 0 0-7Z"/><path d="M9 12a4 4 0 0 1-7 0 4 4 0 0 1 7 0Z"/><path d="M15 12a4 4 0 0 0 7 0 4 4 0 0 0-7 0Z"/>'),
+  pages:        IC('<path d="M16 22H4a2 2 0 0 1-2-2V6"/><path d="M20 2h-8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z"/>'),
 };
+// Replaces every <span data-icon="key"> in the DOM with the matching SVG.
+// Used to keep static HTML free of inline SVG soup.
+function injectIcons(root) {
+  (root || document).querySelectorAll('[data-icon]').forEach(el => {
+    const k = el.dataset.icon;
+    if (ICON[k]) el.innerHTML = ICON[k];
+  });
+}
+
 // Moon-phase SVGs (distinct silhouettes for each cycle stage)
 const ICM = (inner) => '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">' + inner + '</svg>';
 const MOON_PHASE = {
@@ -2428,6 +2456,7 @@ async function showApp() {
   document.getElementById('login').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.getElementById('f-start').value = todayStr();
+  injectIcons();
   buildChips();
   setTab('today');
   await loadPeriods();
@@ -2575,7 +2604,7 @@ function render() {
   const seasonCard = document.getElementById('t-season-card');
   if (todayPhase && LEARN_CONTENT[todayPhase]) {
     const c = LEARN_CONTENT[todayPhase];
-    document.getElementById('t-season-emoji').textContent = c.emoji;
+    document.getElementById('t-season-emoji').innerHTML = ICON[c.emoji] || '';
     document.getElementById('t-season-titletxt').textContent = c.title;
     document.getElementById('t-season-tagline').textContent = c.tagline || '';
     document.getElementById('t-season-body').innerHTML = accordionizeLearnHTML(c.html);
@@ -2588,8 +2617,13 @@ function render() {
   const fs = fertileStatusToday();
   const badge = document.getElementById('t-fertile');
   badge.className = 'fertile-badge ' + fs.status;
-  const labels = { fertile: '🌿 Fertile window', infertile: '🛡️ Safe window', unknown: '🌙 Unknown' };
-  badge.textContent = labels[fs.status] + ' · ' + fs.detail;
+  const labels = {
+    fertile:   { icon: 'leaf',   text: 'Fertile window' },
+    infertile: { icon: 'shield', text: 'Safe window' },
+    unknown:   { icon: 'moon',   text: 'Unknown' }
+  };
+  const lab = labels[fs.status];
+  badge.innerHTML = '<span class="fb-ico">' + (ICON[lab.icon] || '') + '</span><span>' + lab.text + ' · ' + fs.detail + '</span>';
 
   renderHormoneChart();
   renderTempChart();
