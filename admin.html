@@ -654,9 +654,6 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
     <button class="today-btn" onclick="goToday()">Today</button>
   </div>
 
-  <!-- Tomorrow's schedule banner -->
-  <div class="tomorrow-banner" id="tomorrow-banner" style="display:none;"></div>
-
   <!-- Week strip -->
   <div class="week-grid" id="week-grid"></div>
 
@@ -5268,7 +5265,6 @@ function formatDisplayMonth(iso7) {
 
 function renderAll() {
   renderWeekStrip();
-  renderTomorrowBanner();
   renderDashboard();
   // Re-render whichever tab is currently visible so date navigation
   // (prevDay/nextDay/goToday/jumpToDate/jumpToDay) and post-save refreshes
@@ -5288,64 +5284,6 @@ function renderAll() {
 }
 
 // --- Tomorrow's schedule banner ---
-function renderTomorrowBanner() {
-  const banner = document.getElementById('tomorrow-banner');
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(0,0,0,0);
-  const ds = formatDate(tomorrow);
-  const dow = tomorrow.getDay();
-
-  const bookings = getBookings().filter(b => b.date === ds && b.status !== 'canceled');
-  const blocks = getBlocks().filter(b => b.date === ds);
-
-  // Don't show banner if it's Saturday evening (tomorrow = Sunday) or we're looking at a different day
-  if (dow === 0 || dow === 6) {
-    banner.style.display = 'none';
-    return;
-  }
-
-  if (bookings.length === 0 && blocks.length === 0) {
-    banner.style.display = 'block';
-    banner.innerHTML = '<h3>Tomorrow</h3><div class="tomorrow-empty">Nothing booked. Wide open!</div>';
-    return;
-  }
-
-  let html = '<h3>Tomorrow</h3>';
-
-  blocks.forEach(b => {
-    html += '<div class="tomorrow-item" style="color:var(--gray-600);">' +
-      '<div>Blocked: ' + (b.reason || 'Time off') +
-        ' (' + (b.allDay ? 'all day' : b.startTime + ' to ' + b.endTime) + ')</div>' +
-      '<div class="tomorrow-item-actions">' +
-        '<button class="action-btn danger" onclick="removeBlock(\'' + b.id + '\')">Remove</button>' +
-      '</div>' +
-    '</div>';
-  });
-
-  bookings.sort((a, b) => {
-    const timeA = a.eventType === 'morning' ? '09:00' : a.eventType === 'monday' ? '13:00' : '14:30';
-    const timeB = b.eventType === 'morning' ? '09:00' : b.eventType === 'monday' ? '13:00' : '14:30';
-    return timeA.localeCompare(timeB);
-  });
-
-  bookings.forEach(b => {
-    const phone = b.clientPhone || '';
-    html += '<div class="tomorrow-item">' +
-      '<div>' + b.time + ' ' + b.clientName + ' (' + EVENT_LABELS[b.eventType] + ')</div>' +
-      '<div class="tomorrow-item-actions">' +
-        (phone ? '<button class="action-btn" onclick="callClient(\'' + phoneAttr(phone) + '\')">Call</button>' : '') +
-        (phone ? '<button class="action-btn" onclick="textClient(\'' + phoneAttr(phone) + '\')">Text</button>' : '') +
-        '<button class="action-btn" onclick="openReschedule(\'' + b.id + '\')">Reschedule</button>' +
-        '<button class="action-btn danger" onclick="cancelBooking(\'' + b.id + '\')">Cancel</button>' +
-      '</div>' +
-    '</div>';
-  });
-
-  banner.style.display = 'block';
-  banner.innerHTML = html;
-}
-
 // --- Login ---
 const ADMIN_PIN_HASH_KEY = 'gf_admin_pin';
 const ADMIN_SESSION_KEY = 'gf_admin_session';
