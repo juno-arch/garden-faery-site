@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#5a1230">
+<meta name="apple-mobile-web-app-title" content="Garden Faery">
+<title>Sign in · Garden Faery</title>
+<meta name="description" content="Sign in to manage your Garden Faery visits and pay outstanding balances.">
+<meta name="robots" content="noindex,nofollow">
+<link rel="canonical" href="https://gardenfaery.love/portal.html">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Fraunces:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="shared.css?v=2026-05-02b">
+<script src="shared.js?v=2026-05-02" defer></script>
+<style>
+:root {
+  /* match the rest of the site palette */
+  --plum: #4a1942;
+  --plum-deep: #5a1230;
+  --cream: #f8f4ed;
+  --petal-pink: #c48bb0;
+  --petal-pink-light: #e8d0df;
+  --spring-sage: #a3b88c;
+  --pollen-gold: #d4c27a;
+  --gray-100: #f2efe8;
+  --gray-200: #e0dbd3;
+  --gray-400: #a89e96;
+  --gray-600: #6b5f56;
+  --red-light: #f0d4d4;
+  --red: #a03020;
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(74,25,66,0.08);
+}
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--cream);
+  color: var(--plum);
+  min-height: 100vh;
+  margin: 0;
+}
+.portal-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 28px 16px 80px;
+}
+.portal-h1 {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: 1.9rem;
+  margin: 0 0 8px;
+  color: var(--plum);
+}
+.portal-sub {
+  color: var(--gray-600);
+  font-size: 0.95rem;
+  margin: 0 0 24px;
+}
+.portal-card {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 22px 22px 18px;
+  box-shadow: var(--shadow);
+  margin-bottom: 18px;
+}
+.portal-card h2 {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: 1.2rem;
+  margin: 0 0 10px;
+  color: var(--plum);
+}
+.portal-card label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin: 14px 0 6px;
+  color: var(--plum);
+}
+.portal-card input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--gray-200);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  background: #fff;
+  color: var(--plum);
+  box-sizing: border-box;
+}
+.portal-card input:focus { outline: none; border-color: var(--plum); }
+.btn-portal-primary, .btn-portal-secondary, .btn-portal-link {
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  font-size: 1rem;
+}
+.btn-portal-primary {
+  width: 100%;
+  margin-top: 16px;
+  padding: 13px 18px;
+  border-radius: 8px;
+  background: var(--plum);
+  color: #fff;
+  border: none;
+}
+.btn-portal-primary:hover { opacity: 0.92; }
+.btn-portal-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-portal-secondary {
+  background: #fff;
+  color: var(--plum);
+  border: 1.5px solid var(--gray-200);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+.btn-portal-secondary:hover { border-color: var(--plum); }
+.btn-portal-link {
+  background: none;
+  border: none;
+  color: var(--plum);
+  text-decoration: underline;
+  padding: 0;
+  font-size: 0.85rem;
+}
+.error-banner {
+  color: var(--red);
+  background: var(--red-light);
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-top: 12px;
+}
+.success-banner {
+  color: #3a5a1f;
+  background: rgba(163,184,140,0.25);
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  margin-bottom: 18px;
+  font-family: 'Fraunces', serif;
+}
+.portal-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.portal-toolbar .hi {
+  font-family: 'Fraunces', serif;
+  font-size: 1.05rem;
+  color: var(--plum);
+}
+.portal-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--gray-100);
+  padding: 4px;
+  border-radius: 10px;
+  margin-bottom: 18px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.portal-tab {
+  flex: 1 1 auto;
+  min-width: 80px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--gray-600);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s, color 0.12s;
+}
+.portal-tab:hover { color: var(--plum); }
+.portal-tab.active {
+  background: #fff;
+  color: var(--plum);
+  box-shadow: 0 1px 4px rgba(74,25,66,0.08);
+}
+.portal-pane { display: none; }
+.portal-pane.active { display: block; }
+.booking-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--gray-200);
+}
+.booking-row:last-child { border-bottom: none; }
+.booking-row h3 {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: 1.05rem;
+  margin: 0 0 2px;
+  color: var(--plum);
+}
+.booking-meta { font-size: 0.82rem; color: var(--gray-600); }
+.booking-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  white-space: nowrap;
+}
+.booking-amount { font-weight: 700; font-size: 1.05rem; color: var(--plum); }
+.pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.pill-paid    { background: rgba(163,184,140,0.25); color: #3a5a1f; }
+.pill-owed    { background: rgba(212,194,122,0.25); color: #7a5f00; }
+.pill-upcoming{ background: var(--petal-pink-light); color: var(--plum); }
+.empty-pane {
+  text-align: center;
+  padding: 28px 12px;
+  color: var(--gray-600);
+}
+.empty-pane .emoji { font-size: 2rem; margin-bottom: 8px; }
+.account-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--gray-200); font-size: 0.95rem; }
+.account-row:last-child { border-bottom: none; }
+.account-row .label { color: var(--gray-600); }
+.account-row .value { color: var(--plum); font-weight: 500; text-align: right; }
+.book-callout {
+  background: var(--petal-pink-light);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+}
+.book-callout a {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 12px 22px;
+  background: var(--plum);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+}
+.loading { text-align: center; color: var(--gray-600); padding: 30px; }
+</style>
+</head>
+<body>
+
+<!-- ===== Marketing-site nav, copied from index.html ===== -->
+<nav class="site-nav">
+  <a href="index.html" class="nav-logo"><img src="garden-faery-logo.svg" alt="" class="nav-logo-img" aria-hidden="true" decoding="async">Garden Faery</a>
+  <button class="hamburger" onclick="var m=document.querySelector('.nav-links');m.classList.toggle('open');this.setAttribute('aria-expanded',m.classList.contains('open'))" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="services.html">Services</a>
+    <a href="gallery.html">Gallery</a>
+    <div class="nav-group">
+      <button class="nav-group-toggle" type="button" onclick="this.parentElement.classList.toggle('open')">Guides<span class="caret" aria-hidden="true">&#9662;</span></button>
+      <div class="nav-group-menu">
+        <a href="garden-styles.html">Garden Styles</a>
+        <a href="food-guide.html">Succession Planting</a>
+        <a href="seed-kit.html">Succession Planting Seed Kit</a>
+        <a href="estimator.html">Bed Builder</a>
+      </div>
+    </div>
+    <a href="book.html">Book</a>
+    <a href="portal.html" class="active">Sign in</a>
+  </div>
+</nav>
+
+<main class="portal-wrap">
+
+  <!-- ===== LOGIN STEP 1: email ===== -->
+  <section id="step-email" class="step">
+    <h1 class="portal-h1">Sign in</h1>
+    <p class="portal-sub">Enter your email and we'll send you a one-time code. No password needed.</p>
+    <div class="portal-card">
+      <label for="email">Email</label>
+      <input type="email" id="email" autocomplete="email" inputmode="email" placeholder="you@example.com">
+      <button class="btn-portal-primary" id="btn-send-code" onclick="sendCode()">Send me a code</button>
+      <div id="email-error" class="error-banner" style="display:none;"></div>
+    </div>
+    <div class="portal-card">
+      <h2>First time here?</h2>
+      <p style="color:var(--gray-600);font-size:0.92rem;">If you've never booked with Garden Faery before, start with <a href="book.html" style="color:var(--plum);">booking your first visit</a>.</p>
+    </div>
+  </section>
+
+  <!-- ===== LOGIN STEP 2: code ===== -->
+  <section id="step-code" class="step" style="display:none;">
+    <h1 class="portal-h1">Check your email</h1>
+    <p class="portal-sub">We sent a 6-digit code to <strong id="code-email-echo"></strong>.</p>
+    <div class="portal-card">
+      <label for="code">Code</label>
+      <input type="text" id="code" autocomplete="one-time-code" inputmode="numeric" maxlength="6" placeholder="123456">
+      <button class="btn-portal-primary" id="btn-verify" onclick="verifyLogin()">Sign in</button>
+      <div id="code-error" class="error-banner" style="display:none;"></div>
+      <div style="margin-top:14px;text-align:center;">
+        <button class="btn-portal-link" onclick="resetToEmail()">Wrong email? Start over</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== AUTHED: portal ===== -->
+  <section id="step-portal" class="step" style="display:none;">
+    <div id="payment-success-banner" class="success-banner" style="display:none;">
+      ✓ Payment received — thank you! Your visit has been marked paid.
+    </div>
+
+    <div class="portal-toolbar">
+      <div>
+        <h1 class="portal-h1" style="margin-bottom:2px;">Welcome, <span id="hello-name">there</span></h1>
+        <div class="portal-sub" style="margin:0;font-size:0.85rem;"><span id="hello-email"></span></div>
+      </div>
+      <button class="btn-portal-secondary" onclick="signOut()">Sign out</button>
+    </div>
+
+    <div class="portal-tabs">
+      <button class="portal-tab active" data-tab="visits" onclick="switchPortalTab('visits')">My Visits</button>
+      <button class="portal-tab" data-tab="pay" onclick="switchPortalTab('pay')">Pay</button>
+      <button class="portal-tab" data-tab="book" onclick="switchPortalTab('book')">Book</button>
+      <button class="portal-tab" data-tab="account" onclick="switchPortalTab('account')">Account</button>
+    </div>
+
+    <div id="pane-visits" class="portal-pane active">
+      <div class="portal-card">
+        <h2>Upcoming</h2>
+        <div id="upcoming-list"></div>
+      </div>
+      <div class="portal-card">
+        <h2>Past</h2>
+        <div id="past-list"></div>
+      </div>
+    </div>
+
+    <div id="pane-pay" class="portal-pane">
+      <div class="portal-card">
+        <h2>Outstanding</h2>
+        <p style="color:var(--gray-600);font-size:0.88rem;margin-bottom:14px;">Visits you haven't paid for yet. Tap Pay to checkout via Square.</p>
+        <div id="outstanding-list"></div>
+      </div>
+    </div>
+
+    <div id="pane-book" class="portal-pane">
+      <div class="portal-card">
+        <div class="book-callout">
+          <h2 style="font-family:'Fraunces',serif;font-weight:500;font-size:1.25rem;color:var(--plum);">Book a new visit</h2>
+          <p style="color:var(--gray-600);margin:8px 0 4px;">The booking flow is being moved into this portal — for now, use the standalone page.</p>
+          <a href="book.html">Open booking page →</a>
+        </div>
+      </div>
+    </div>
+
+    <div id="pane-account" class="portal-pane">
+      <div class="portal-card">
+        <h2>Your info</h2>
+        <p style="color:var(--gray-600);font-size:0.85rem;margin-bottom:14px;">From your most recent booking. To update, message Taya directly for now.</p>
+        <div id="account-info"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+const PB_URL = 'https://bookings.gardenfaery.love';
+const STORAGE_TOKEN = 'gf_portal_token';
+const STORAGE_EMAIL = 'gf_portal_email';
+
+let _email = '';
+let _data = null; // { profile, upcoming, past, outstanding }
+
+function showStep(id) {
+  document.querySelectorAll('.step').forEach(s => s.style.display = 'none');
+  document.getElementById(id).style.display = '';
+}
+function setError(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg || '';
+  el.style.display = msg ? '' : 'none';
+}
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' }[c]));
+}
+
+// ----- AUTH FLOW -----
+async function sendCode() {
+  const email = String(document.getElementById('email').value || '').trim().toLowerCase();
+  setError('email-error', '');
+  if (!email || email.indexOf('@') < 0) {
+    setError('email-error', 'Please enter a valid email.');
+    return;
+  }
+  const btn = document.getElementById('btn-send-code');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const resp = await fetch(PB_URL + '/api/booking/request-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      setError('email-error', data.error || ('Request failed: ' + resp.status));
+      return;
+    }
+    _email = email;
+    document.getElementById('code-email-echo').textContent = email;
+    showStep('step-code');
+    setTimeout(() => document.getElementById('code').focus(), 100);
+  } catch (err) {
+    setError('email-error', 'Network error: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send me a code';
+  }
+}
+
+async function verifyLogin() {
+  const code = String(document.getElementById('code').value || '').trim();
+  setError('code-error', '');
+  if (!/^\d{6}$/.test(code)) {
+    setError('code-error', 'Code should be 6 digits.');
+    return;
+  }
+  const btn = document.getElementById('btn-verify');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    const resp = await fetch(PB_URL + '/api/portal/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: _email, code: code }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      setError('code-error', data.error || ('Sign in failed: ' + resp.status));
+      return;
+    }
+    // Persist token + email
+    localStorage.setItem(STORAGE_TOKEN, data.token);
+    localStorage.setItem(STORAGE_EMAIL, data.email);
+    await loadPortal();
+    showStep('step-portal');
+  } catch (err) {
+    setError('code-error', 'Network error: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign in';
+  }
+}
+
+function resetToEmail() {
+  document.getElementById('code').value = '';
+  setError('code-error', '');
+  showStep('step-email');
+}
+
+async function signOut() {
+  const token = localStorage.getItem(STORAGE_TOKEN);
+  if (token) {
+    try {
+      await fetch(PB_URL + '/api/portal/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: token }),
+      });
+    } catch (_) { /* ignore */ }
+  }
+  localStorage.removeItem(STORAGE_TOKEN);
+  localStorage.removeItem(STORAGE_EMAIL);
+  _email = '';
+  _data = null;
+  document.getElementById('email').value = '';
+  document.getElementById('code').value = '';
+  showStep('step-email');
+}
+
+// ----- PORTAL LOAD -----
+async function loadPortal() {
+  const token = localStorage.getItem(STORAGE_TOKEN);
+  if (!token) { signOut(); return; }
+  try {
+    const resp = await fetch(PB_URL + '/api/portal/load', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: token }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      // Likely expired token — punt to login.
+      localStorage.removeItem(STORAGE_TOKEN);
+      localStorage.removeItem(STORAGE_EMAIL);
+      showStep('step-email');
+      setError('email-error', data.error || 'Session expired — sign in again');
+      return;
+    }
+    _data = data;
+    renderPortal();
+  } catch (err) {
+    setError('email-error', 'Network error: ' + err.message);
+  }
+}
+
+function renderPortal() {
+  if (!_data) return;
+  const firstName = (_data.profile.name || '').split(' ')[0] || 'there';
+  document.getElementById('hello-name').textContent = firstName;
+  document.getElementById('hello-email').textContent = _data.profile.email;
+  renderVisits();
+  renderOutstanding();
+  renderAccount();
+}
+
+function renderVisits() {
+  const renderList = (host, items, kind) => {
+    if (!items.length) {
+      host.innerHTML = kind === 'upcoming'
+        ? '<div class="empty-pane"><div class="emoji">🌱</div>Nothing booked yet.</div>'
+        : '<div class="empty-pane"><div class="emoji">📒</div>No past visits on file.</div>';
+      return;
+    }
+    host.innerHTML = items.map(b => bookingRowHtml(b, kind)).join('');
+  };
+  renderList(document.getElementById('upcoming-list'), _data.upcoming, 'upcoming');
+  renderList(document.getElementById('past-list'), _data.past, 'past');
+}
+
+function renderOutstanding() {
+  const host = document.getElementById('outstanding-list');
+  if (!_data.outstanding.length) {
+    host.innerHTML = '<div class="empty-pane"><div class="emoji">🌿</div>You\'re all paid up. Thank you!</div>';
+    return;
+  }
+  let total = 0;
+  let html = _data.outstanding.map(b => { total += b.price; return bookingRowHtml(b, 'outstanding'); }).join('');
+  if (_data.outstanding.length > 1) {
+    html += '<div style="display:flex;justify-content:space-between;padding-top:14px;margin-top:6px;border-top:1px solid var(--gray-200);font-weight:700;color:var(--plum);">' +
+      '<span>Total outstanding</span><span>$' + total.toFixed(2) + '</span>' +
+      '</div>';
+  }
+  host.innerHTML = html;
+}
+
+function bookingRowHtml(b, kind) {
+  const dateStr = b.date ? new Date(b.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '?';
+  const eventLabel = (b.event_name || b.event_type || 'Visit').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  let side = '';
+  if (kind === 'upcoming') {
+    side = '<span class="pill pill-upcoming">upcoming</span>';
+  } else if (kind === 'outstanding') {
+    side = '<div class="booking-amount">$' + (b.price).toFixed(2) + '</div>' +
+           '<button class="btn-portal-secondary" style="background:var(--petal-pink);color:#fff;border-color:var(--petal-pink);" onclick="payBooking(\'' + b.booking_id + '\', this)">Pay</button>';
+  } else { // past
+    if (b.paid) {
+      side = '<div class="booking-amount" style="color:var(--gray-600);">$' + (b.price).toFixed(2) + '</div>' +
+             '<span class="pill pill-paid">✓ paid</span>';
+    } else if (b.price > 0) {
+      side = '<div class="booking-amount">$' + (b.price).toFixed(2) + '</div>' +
+             '<span class="pill pill-owed">owed</span>';
+    } else {
+      side = '<span class="pill pill-paid">complete</span>';
+    }
+  }
+  return '<div class="booking-row">' +
+    '<div>' +
+      '<h3>' + escapeHtml(eventLabel) + '</h3>' +
+      '<div class="booking-meta">' + escapeHtml(dateStr) + (b.time ? ' · ' + escapeHtml(b.time) : '') + '</div>' +
+    '</div>' +
+    '<div class="booking-side">' + side + '</div>' +
+  '</div>';
+}
+
+function renderAccount() {
+  const p = _data.profile;
+  document.getElementById('account-info').innerHTML =
+    '<div class="account-row"><span class="label">Name</span><span class="value">' + escapeHtml(p.name || '—') + '</span></div>' +
+    '<div class="account-row"><span class="label">Email</span><span class="value">' + escapeHtml(p.email || '—') + '</span></div>' +
+    '<div class="account-row"><span class="label">Phone</span><span class="value">' + escapeHtml(p.phone || '—') + '</span></div>' +
+    '<div class="account-row"><span class="label">Address</span><span class="value">' + escapeHtml(p.address || '—') + '</span></div>';
+}
+
+// ----- TABS -----
+function switchPortalTab(tab) {
+  document.querySelectorAll('.portal-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.portal-pane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + tab));
+}
+
+// ----- PAY -----
+async function payBooking(bookingId, btnEl) {
+  if (!bookingId) return;
+  const token = localStorage.getItem(STORAGE_TOKEN);
+  if (!token) { showStep('step-email'); return; }
+  if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Opening Square…'; }
+  try {
+    const resp = await fetch(PB_URL + '/api/portal/pay', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: token, booking_id: bookingId }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok || !data.url) {
+      alert('Could not open checkout: ' + (data.error || ('HTTP ' + resp.status)));
+      if (btnEl) { btnEl.disabled = false; btnEl.textContent = 'Pay'; }
+      return;
+    }
+    window.location.href = data.url;
+  } catch (err) {
+    alert('Network error: ' + err.message);
+    if (btnEl) { btnEl.disabled = false; btnEl.textContent = 'Pay'; }
+  }
+}
+
+// ----- INIT -----
+(function init() {
+  // If we have a stored token, try restoring the session.
+  const token = localStorage.getItem(STORAGE_TOKEN);
+  if (token) {
+    showStep('step-portal');
+    loadPortal();
+  } else {
+    showStep('step-email');
+  }
+  // If Square redirected back with ?paid=<bookingId>, show success banner.
+  const url = new URL(window.location.href);
+  if (url.searchParams.has('paid')) {
+    document.getElementById('payment-success-banner').style.display = '';
+    // Clean the URL so refreshes don't keep showing the banner.
+    history.replaceState({}, '', url.pathname);
+  }
+})();
+</script>
+</body>
+</html>
