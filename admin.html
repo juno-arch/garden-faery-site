@@ -667,6 +667,7 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
     <button class="tab" data-tab="income" onclick="switchTab('income')">Income</button>
     <button class="tab" data-tab="bank" onclick="switchTab('bank')">Bank</button>
     <button class="tab" data-tab="invoices" onclick="switchTab('invoices')">Invoices</button>
+    <button class="tab" data-tab="coupons" onclick="switchTab('coupons')">Coupons</button>
     <button class="tab" data-tab="expenses" onclick="switchTab('expenses')">Expenses</button>
     <button class="tab" data-tab="taxes" onclick="switchTab('taxes')">Taxes</button>
     <button class="tab" data-tab="compliance" onclick="switchTab('compliance')">Compliance</button>
@@ -725,6 +726,11 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
   <!-- Invoices view -->
   <div class="tab-panel" id="tab-invoices" style="display:none;">
     <div id="invoices-content"></div>
+  </div>
+
+  <!-- Coupons view -->
+  <div class="tab-panel" id="tab-coupons" style="display:none;">
+    <div id="coupons-content"></div>
   </div>
 
   <!-- Expenses view -->
@@ -1535,6 +1541,7 @@ function switchTab(tab) {
   if (tab === 'income') renderIncome();
   if (tab === 'bank') renderBank();
   if (tab === 'invoices') renderInvoices();
+  if (tab === 'coupons') renderCoupons();
   if (tab === 'expenses') renderExpenses();
   if (tab === 'taxes') renderTaxes();
   if (tab === 'compliance') renderCompliance();
@@ -2493,6 +2500,313 @@ function renderEmailCardLive(rec) {
 }
 
 // ============================================
+// COUPONS TAB
+// ============================================
+// Promo codes / discounts. Codes apply to invoices (and later bookings).
+// /api/coupon/validate is public (returns discount without redeeming);
+// /api/admin/coupons/redeem is fired when an invoice with a coupon
+// is created/sent.
+let _coupons = [];
+let _couponsLoaded = false;
+let _couponsFilter = 'all'; // 'all' | 'active' | 'inactive' | 'expired'
+let _couponsSearch = '';
+
+async function loadCoupons() {
+  if (!PB_URL) { _couponsLoaded = true; return; }
+  try {
+    const data = await DB._pb('GET', 'coupons/records?perPage=500&sort=-created');
+    _coupons = data.items || [];
+    _couponsLoaded = true;
+  } catch (err) {
+    console.error('loadCoupons failed:', err);
+    _coupons = [];
+    _couponsLoaded = true;
+  }
+}
+
+async function renderCoupons() {
+  const root = document.getElementById('coupons-content');
+  root.innerHTML = '<p style="opacity:0.6;">Loading coupons...</p>';
+  if (!_couponsLoaded) await loadCoupons();
+  drawCoupons();
+}
+
+function drawCoupons() {
+  const root = document.getElementById('coupons-content');
+  const today = new Date().toISOString().slice(0, 10);
+
+  const active = _coupons.filter(c => c.active && (!c.expires_at || c.expires_at >= today));
+  const totalRedeemed = _coupons.reduce((s, c) => s + (c.usage_count || 0), 0);
+
+  const kpis =
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px;">' +
+      kpiCard('Active codes', String(active.length), '#0a7a3a') +
+      kpiCard('Total codes', String(_coupons.length), '#555') +
+      kpiCard('Total redemptions', String(totalRedeemed), '#555') +
+    '</div>';
+
+  const chip = (k, label) => {
+    const a = _couponsFilter === k;
+    const style = a ? 'background:#0a7a3a;color:#fff;border:1px solid #0a7a3a;' : 'background:transparent;color:#333;border:1px solid #ccc;';
+    return '<button class="modal-btn secondary" style="padding:6px 12px;font-size:0.8rem;' + style + '" onclick="setCouponFilter(\'' + k + '\')">' + label + '</button>';
+  };
+
+  const controls =
+    '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px;">' +
+      chip('all', 'All') + chip('active', 'Active') + chip('inactive', 'Off') + chip('expired', 'Expired') +
+      '<input type="text" placeholder="Search code or description…" value="' + escAttr(_couponsSearch) + '" oninput="setCouponSearch(this.value)" style="padding:6px 10px;border:1px solid #ccc;border-radius:4px;flex:1;min-width:200px;max-width:280px;font-size:0.85rem;">' +
+      '<button class="modal-btn primary" style="margin-left:auto;" onclick="openCouponCreateModal()">+ New code</button>' +
+    '</div>';
+
+  const q = _couponsSearch.trim().toLowerCase();
+  const rows = _coupons.filter(c => {
+    const isExpired = c.expires_at && c.expires_at < today;
+    if (_couponsFilter === 'active'   && (!c.active || isExpired)) return false;
+    if (_couponsFilter === 'inactive' &&  c.active) return false;
+    if (_couponsFilter === 'expired'  && !isExpired) return false;
+    if (q) {
+      const hay = ((c.code || '') + ' ' + (c.description || '')).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  let list;
+  if (rows.length === 0) {
+    list = '<p style="opacity:0.6;padding:20px;text-align:center;">No codes match.</p>';
+  } else {
+    list = '<div style="display:flex;flex-direction:column;gap:10px;">' + rows.map(couponRow).join('') + '</div>';
+  }
+
+  root.innerHTML = kpis + controls + list;
+}
+
+function setCouponFilter(f) { _couponsFilter = f; drawCoupons(); }
+function setCouponSearch(v) { _couponsSearch = v; drawCoupons(); }
+
+function couponRow(c) {
+  const today = new Date().toISOString().slice(0, 10);
+  const expired = c.expires_at && c.expires_at < today;
+  const notYet = c.starts_at && c.starts_at > today;
+  let statusBg = '#dcefe2', statusFg = '#0a7a3a', statusLabel = 'active';
+  if (!c.active) { statusBg = '#e8e8e8'; statusFg = '#666'; statusLabel = 'off'; }
+  else if (expired) { statusBg = '#fde2e2'; statusFg = '#a03020'; statusLabel = 'expired'; }
+  else if (notYet) { statusBg = '#fef0c4'; statusFg = '#7a5a00'; statusLabel = 'scheduled'; }
+
+  const valueStr = c.type === 'percent'
+    ? (c.value || 0) + '% off'
+    : '$' + ((c.value || 0) / 100).toFixed(2) + ' off';
+
+  const usage = (c.usage_count || 0) + (c.max_uses > 0 ? ' / ' + c.max_uses : '');
+
+  const limits = [];
+  if (c.min_amount_cents > 0) limits.push('min order $' + (c.min_amount_cents/100).toFixed(2));
+  if (c.max_discount_cents > 0 && c.type === 'percent') limits.push('cap $' + (c.max_discount_cents/100).toFixed(2) + ' off');
+  if (c.max_uses_per_client > 0) limits.push(c.max_uses_per_client + '/client');
+  if (c.applies_to && c.applies_to !== 'all') limits.push(String(c.applies_to).replace(/_/g, ' '));
+
+  return '<div style="background:#fff;border:1px solid #e6e6e6;border-radius:8px;padding:12px 14px;">' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;">' +
+      '<div style="flex:1;min-width:200px;">' +
+        '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">' +
+          '<strong style="font-family:monospace;font-size:1rem;letter-spacing:0.04em;">' + escHtml(c.code) + '</strong>' +
+          '<span style="display:inline-block;padding:2px 9px;border-radius:99px;font-size:0.72rem;background:' + statusBg + ';color:' + statusFg + ';font-weight:600;">' + statusLabel + '</span>' +
+          '<span style="font-weight:600;color:#0a7a3a;">' + valueStr + '</span>' +
+        '</div>' +
+        (c.description ? '<div style="margin-top:4px;font-size:0.85rem;">' + escHtml(c.description) + '</div>' : '') +
+        '<div style="margin-top:4px;font-size:0.78rem;opacity:0.6;">' +
+          'Used ' + usage + (c.expires_at ? ' &middot; exp ' + c.expires_at : '') +
+          (limits.length ? ' &middot; ' + limits.join(' · ') : '') +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
+        '<button class="modal-btn secondary" style="padding:5px 10px;font-size:0.76rem;" onclick="copyCouponCode(\'' + escAttr(c.code) + '\')">Copy</button>' +
+        '<button class="modal-btn secondary" style="padding:5px 10px;font-size:0.76rem;" onclick="openCouponEditModal(\'' + c.id + '\')">Edit</button>' +
+        '<button class="modal-btn secondary" style="padding:5px 10px;font-size:0.76rem;" onclick="toggleCoupon(\'' + c.id + '\')">' + (c.active ? 'Turn off' : 'Turn on') + '</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function copyCouponCode(code) {
+  try {
+    navigator.clipboard.writeText(code);
+    // small toast — reuse a simple alert for now
+    const t = document.createElement('div');
+    t.textContent = 'Copied: ' + code;
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--plum);color:#fff;padding:8px 16px;border-radius:8px;z-index:99999;font-size:0.88rem;';
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 1800);
+  } catch (_) {
+    prompt('Copy this code:', code);
+  }
+}
+
+async function toggleCoupon(id) {
+  try {
+    const res = await fetch(PB_URL + '/api/admin/coupons/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+      body: JSON.stringify({ id: id }),
+    });
+    const data = await res.json();
+    if (!data.ok) { alert('Toggle failed: ' + (data.error || res.status)); return; }
+    _couponsLoaded = false;
+    await renderCoupons();
+  } catch (err) { alert('Error: ' + err.message); }
+}
+
+// ----- Create / Edit modal -----
+function openCouponCreateModal() {
+  _couponDraft = {
+    id: null, code: '', description: '',
+    type: 'percent', value: 10,
+    min_amount_cents: 0, max_discount_cents: 0,
+    max_uses: 0, max_uses_per_client: 1,
+    active: true, starts_at: '', expires_at: '',
+    applies_to: 'all', notes: '',
+  };
+  showCouponModal();
+}
+
+function openCouponEditModal(id) {
+  const c = _coupons.find(x => x.id === id);
+  if (!c) return;
+  _couponDraft = {
+    id: c.id, code: c.code, description: c.description || '',
+    type: c.type, value: c.value,
+    min_amount_cents: c.min_amount_cents || 0,
+    max_discount_cents: c.max_discount_cents || 0,
+    max_uses: c.max_uses || 0,
+    max_uses_per_client: c.max_uses_per_client || 0,
+    active: c.active, starts_at: (c.starts_at || '').slice(0,10), expires_at: (c.expires_at || '').slice(0,10),
+    applies_to: c.applies_to || 'all',
+    notes: c.notes || '',
+  };
+  showCouponModal();
+}
+
+let _couponDraft = {};
+
+function showCouponModal() {
+  const d = _couponDraft;
+  let modal = document.getElementById('coupon-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'coupon-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    document.body.appendChild(modal);
+  }
+  const isEdit = !!d.id;
+  const opt = (v, label, selected) => '<option value="' + v + '"' + (selected ? ' selected' : '') + '>' + label + '</option>';
+  const typeOpts = opt('percent', 'Percent off', d.type === 'percent') + opt('fixed_cents', 'Fixed $ off', d.type === 'fixed_cents');
+  const appliesOpts = ['all','first_visit','service_specific','invoices_only'].map(v =>
+    opt(v, v.replace(/_/g,' '), d.applies_to === v)
+  ).join('');
+  const valueInput = d.type === 'percent'
+    ? '<input type="number" step="1" min="0" max="100" id="cp-value" value="' + (d.value || 0) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">'
+    : '<input type="number" step="0.01" min="0" id="cp-value-dollars" value="' + ((d.value || 0)/100).toFixed(2) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">';
+
+  modal.innerHTML =
+    '<div style="background:#fff;border-radius:10px;width:100%;max-width:620px;max-height:90vh;overflow:auto;padding:22px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">' +
+        '<h2 style="margin:0;font-size:1.2rem;">' + (isEdit ? 'Edit ' + escHtml(d.code) : 'New coupon') + '</h2>' +
+        '<button onclick="closeCouponModal()" style="background:transparent;border:none;cursor:pointer;font-size:1.4rem;">&times;</button>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Code</label>' +
+          (isEdit
+            ? '<input type="text" value="' + escAttr(d.code) + '" disabled style="width:100%;padding:6px 8px;border:1px solid #eee;background:#f5f5f5;border-radius:4px;font-family:monospace;text-transform:uppercase;">'
+            : '<input type="text" id="cp-code" value="' + escAttr(d.code) + '" placeholder="SPRING25" maxlength="30" oninput="this.value=this.value.toUpperCase()" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;font-family:monospace;text-transform:uppercase;">'
+          ) +
+        '</div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Type</label><select id="cp-type" onchange="_couponDraft.type=this.value;showCouponModal();" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">' + typeOpts + '</select></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">' + (d.type === 'percent' ? 'Percent off (0-100)' : 'Dollars off') + '</label>' + valueInput + '</div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Applies to</label><select id="cp-applies" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">' + appliesOpts + '</select></div>' +
+        '<div style="grid-column:span 2;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Description (shown to client)</label><input type="text" id="cp-desc" value="' + escAttr(d.description) + '" placeholder="10% off first garden visit" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+      '</div>' +
+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Min order $ (0=any)</label><input type="number" step="0.01" min="0" id="cp-min" value="' + ((d.min_amount_cents||0)/100).toFixed(2) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Max discount $ (0=any)</label><input type="number" step="0.01" min="0" id="cp-cap" value="' + ((d.max_discount_cents||0)/100).toFixed(2) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Per-client limit (0=any)</label><input type="number" step="1" min="0" id="cp-pc" value="' + (d.max_uses_per_client||0) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+      '</div>' +
+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Total uses cap (0=∞)</label><input type="number" step="1" min="0" id="cp-max" value="' + (d.max_uses||0) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Starts</label><input type="date" id="cp-starts" value="' + escAttr(d.starts_at) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Expires</label><input type="date" id="cp-expires" value="' + escAttr(d.expires_at) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+      '</div>' +
+
+      '<div style="margin-bottom:10px;"><label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;font-weight:normal;"><input type="checkbox" id="cp-active" ' + (d.active ? 'checked' : '') + '> Active</label></div>' +
+
+      '<div style="margin-bottom:14px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Internal notes</label><textarea id="cp-notes" rows="2" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">' + escHtml(d.notes) + '</textarea></div>' +
+
+      '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
+        '<button class="modal-btn secondary" onclick="closeCouponModal()">Cancel</button>' +
+        '<button class="modal-btn primary" onclick="saveCoupon()">' + (isEdit ? 'Save changes' : 'Create code') + '</button>' +
+      '</div>' +
+    '</div>';
+}
+
+function closeCouponModal() { const m = document.getElementById('coupon-modal'); if (m) m.remove(); }
+
+async function saveCoupon() {
+  const d = _couponDraft;
+  const isEdit = !!d.id;
+
+  let value;
+  if (d.type === 'percent') {
+    const el = document.getElementById('cp-value');
+    value = Math.round(Number(el ? el.value : 0));
+    if (value < 0 || value > 100) { alert('Percent must be 0-100.'); return; }
+  } else {
+    const el = document.getElementById('cp-value-dollars');
+    value = Math.round(Number(el ? el.value : 0) * 100);
+    if (value < 0) { alert('Dollars off must be ≥ 0.'); return; }
+  }
+
+  const body = {
+    description: document.getElementById('cp-desc').value.trim(),
+    type: d.type,
+    value: value,
+    min_amount_cents: Math.round(Number(document.getElementById('cp-min').value || 0) * 100),
+    max_discount_cents: Math.round(Number(document.getElementById('cp-cap').value || 0) * 100),
+    max_uses: Math.round(Number(document.getElementById('cp-max').value || 0)),
+    max_uses_per_client: Math.round(Number(document.getElementById('cp-pc').value || 0)),
+    active: document.getElementById('cp-active').checked,
+    starts_at: document.getElementById('cp-starts').value || '',
+    expires_at: document.getElementById('cp-expires').value || '',
+    applies_to: document.getElementById('cp-applies').value,
+    notes: document.getElementById('cp-notes').value,
+  };
+
+  let path, finalBody;
+  if (isEdit) {
+    path = '/api/admin/coupons/update';
+    finalBody = Object.assign({ id: d.id }, body);
+  } else {
+    const code = document.getElementById('cp-code').value.trim().toUpperCase();
+    if (!/^[A-Z0-9_-]{2,30}$/.test(code)) { alert('Code must be 2-30 chars: A-Z, 0-9, _, -'); return; }
+    path = '/api/admin/coupons/create';
+    finalBody = Object.assign({ code: code }, body);
+  }
+
+  try {
+    const res = await fetch(PB_URL + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+      body: JSON.stringify(finalBody),
+    });
+    const data = await res.json();
+    if (!data.ok) { alert('Save failed: ' + (data.error || res.status)); return; }
+    closeCouponModal();
+    _couponsLoaded = false;
+    await renderCoupons();
+  } catch (err) { alert('Save error: ' + err.message); }
+}
+
+// ============================================
 // INVOICES TAB
 // ============================================
 // First-class formal invoicing. invoices + invoice_counters collections
@@ -2696,6 +3010,10 @@ function openInvoiceCreateModal(prefill) {
     terms: (prefill && prefill.terms) || 'Net 14',
     notes: (prefill && prefill.notes) || '',
     internal_notes: (prefill && prefill.internal_notes) || '',
+    coupon_code: (prefill && prefill.coupon_code) || '',
+    coupon_discount_cents: (prefill && prefill.coupon_discount_cents) || 0,
+    coupon_message: (prefill && prefill.coupon_code) ? 'Code ' + prefill.coupon_code + ' previously applied' : '',
+    coupon_error: false,
   };
   showInvoiceModal();
 }
@@ -2759,6 +3077,16 @@ function showInvoiceModal() {
         '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Terms</label><input type="text" id="inv-terms" value="' + escAttr(s.terms) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
       '</div>' +
 
+      '<div style="margin-top:10px;background:var(--cream);border-radius:6px;padding:10px 12px;">' +
+        '<label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Coupon code (optional)</label>' +
+        '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">' +
+          '<input type="text" id="inv-coupon-code" value="' + escAttr(s.coupon_code || '') + '" placeholder="SPRING25" maxlength="30" style="flex:1;min-width:140px;padding:6px 8px;border:1px solid #ccc;border-radius:4px;font-family:monospace;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">' +
+          '<button class="modal-btn secondary" style="padding:6px 10px;font-size:0.8rem;" onclick="applyCouponToInvoiceDraft()">Apply</button>' +
+          (s.coupon_code ? '<button class="modal-btn secondary" style="padding:6px 10px;font-size:0.8rem;color:var(--red);" onclick="clearCouponFromInvoiceDraft()">Clear</button>' : '') +
+        '</div>' +
+        '<div id="inv-coupon-msg" style="font-size:0.78rem;margin-top:4px;' + (s.coupon_message ? '' : 'opacity:0.6;') + 'color:' + (s.coupon_error ? 'var(--red)' : 'var(--green,#0a7a3a)') + ';">' + escHtml(s.coupon_message || 'Codes apply to the invoice total below.') + '</div>' +
+      '</div>' +
+
       '<div data-totals style="margin-top:14px;background:#f7f7f4;border-radius:6px;padding:10px 14px;font-size:0.88rem;">' +
         invoiceTotalsRowsHtml(subtotal, discount, tax, total, s.tax_pct||0) +
       '</div>' +
@@ -2813,6 +3141,54 @@ function invItemSet(i, key, val) {
   if (totalsBox) totalsBox.innerHTML = invoiceTotalsRowsHtml(subtotal, discount, tax, total, _invDraftState.tax_pct||0);
 }
 
+async function applyCouponToInvoiceDraft() {
+  const code = (document.getElementById('inv-coupon-code').value || '').trim().toUpperCase();
+  if (!code) return;
+  const subtotal = _invDraftItems.reduce((s, it) => s + ((+it.qty||0) * (+it.unit_cents||0)), 0);
+  // Validate against pre-discount subtotal (server caps anyway).
+  try {
+    const res = await fetch(PB_URL + '/api/coupon/validate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code: code,
+        amount_cents: subtotal,
+        client_email: _invDraftState.client_email || '',
+        context: 'invoice',
+      }),
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      _invDraftState.coupon_message = data.message || data.error || 'Code not valid';
+      _invDraftState.coupon_error = true;
+      _invDraftState.coupon_code = '';
+      _invDraftState.coupon_discount_cents = 0;
+      _invDraftState.discount_cents = 0;
+      showInvoiceModal();
+      return;
+    }
+    _invDraftState.coupon_code = code;
+    _invDraftState.coupon_discount_cents = data.discount_cents;
+    _invDraftState.discount_cents = data.discount_cents;
+    _invDraftState.coupon_message = data.message || 'Code applied';
+    _invDraftState.coupon_error = false;
+    showInvoiceModal();
+  } catch (err) {
+    _invDraftState.coupon_message = 'Network error: ' + err.message;
+    _invDraftState.coupon_error = true;
+    showInvoiceModal();
+  }
+}
+
+function clearCouponFromInvoiceDraft() {
+  _invDraftState.coupon_code = '';
+  _invDraftState.coupon_discount_cents = 0;
+  _invDraftState.discount_cents = 0;
+  _invDraftState.coupon_message = '';
+  _invDraftState.coupon_error = false;
+  showInvoiceModal();
+}
+
 function invItemAdd() {
   _invDraftItems.push({description: '', qty: 1, unit_cents: 0});
   showInvoiceModal();
@@ -2865,6 +3241,31 @@ async function saveInvoice(asSent) {
     });
     const data = await res.json();
     if (!data.ok) { alert('Save failed: ' + (data.error || res.status)); return; }
+    const invoiceId = _invDraftState.id || data.id;
+
+    // Stamp coupon code on the invoice + record redemption (idempotent).
+    if (_invDraftState.coupon_code && invoiceId) {
+      try {
+        await DB._pb('PATCH', 'invoices/records/' + invoiceId, {
+          coupon_code: _invDraftState.coupon_code,
+          coupon_discount_cents: Number(_invDraftState.coupon_discount_cents) || 0,
+        });
+      } catch (_) {}
+      const subtotal = _invDraftItems.reduce((s, it) => s + ((+it.qty||0) * (+it.unit_cents||0)), 0);
+      try {
+        await fetch(PB_URL + '/api/admin/coupons/redeem', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+          body: JSON.stringify({
+            code: _invDraftState.coupon_code,
+            amount_cents: subtotal,
+            invoice_id: invoiceId,
+            client_email: _invDraftState.client_email || '',
+          }),
+        });
+      } catch (_) {}
+    }
+
     if (asSent && _invDraftState.id) {
       // Mark sent on existing too.
       await fetch(PB_URL + '/api/admin/invoices/mark-sent', {
@@ -2899,6 +3300,8 @@ async function openInvoiceEditModal(id) {
     terms: inv.terms,
     notes: inv.notes,
     internal_notes: inv.internal_notes,
+    coupon_code: inv.coupon_code || '',
+    coupon_discount_cents: inv.coupon_discount_cents || 0,
     items: items,
   });
 }
