@@ -365,9 +365,7 @@ body {
 }
 .bk-date-chip.selected .dow { color: rgba(255,255,255,0.85); }
 
-/* Frequency option cards — flex-wrap so labels never get crushed on phone.
- * Real .bk-freq-card containers (not raw labels with inline styles) so the
- * .portal-card label { display:block } global rule can't override. */
+/* Frequency option cards — <button> elements so no <label> CSS inheritance. */
 .bk-freq-row {
   display: flex;
   gap: 8px;
@@ -376,10 +374,6 @@ body {
 }
 .bk-freq-card {
   flex: 1 1 90px;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
   padding: 12px 10px;
   border: 2px solid var(--gray-200);
   border-radius: 8px;
@@ -387,12 +381,13 @@ body {
   background: #fff;
   font-weight: 600;
   font-size: 0.92rem;
+  font-family: inherit;
   color: var(--plum);
-  margin: 0 !important;
   white-space: nowrap;
+  text-align: center;
 }
-.bk-freq-card input[type="radio"] { margin: 0; flex-shrink: 0; }
-.bk-freq-card:has(input:checked) {
+.bk-freq-card:hover { border-color: var(--plum); }
+.bk-freq-card.selected {
   background: var(--plum);
   color: #fff;
   border-color: var(--plum);
@@ -520,18 +515,9 @@ body {
 
         <label style="margin-top:14px;">Frequency</label>
         <div class="bk-freq-row">
-          <label class="bk-freq-card">
-            <input type="radio" name="bk-freq" value="once" checked onchange="updateBkFreq()">
-            <span>One-time</span>
-          </label>
-          <label class="bk-freq-card">
-            <input type="radio" name="bk-freq" value="weekly" onchange="updateBkFreq()">
-            <span>Weekly</span>
-          </label>
-          <label class="bk-freq-card">
-            <input type="radio" name="bk-freq" value="biweekly" onchange="updateBkFreq()">
-            <span>Biweekly</span>
-          </label>
+          <button type="button" class="bk-freq-card selected" data-freq="once" onclick="selectBkFreq('once')">One-time</button>
+          <button type="button" class="bk-freq-card" data-freq="weekly" onclick="selectBkFreq('weekly')">Weekly</button>
+          <button type="button" class="bk-freq-card" data-freq="biweekly" onclick="selectBkFreq('biweekly')">Biweekly</button>
         </div>
         <p style="font-size:0.78rem;color:var(--gray-600);margin-top:4px;">Recurring visits repeat on the same weekday as your first date.</p>
 
@@ -1215,8 +1201,13 @@ function selectBkDate(iso, btnEl) {
 }
 
 function getBkFreq() {
-  const r = document.querySelector('input[name="bk-freq"]:checked');
-  return r ? r.value : 'once';
+  const b = document.querySelector('.bk-freq-card.selected');
+  return b ? b.dataset.freq : 'once';
+}
+
+function selectBkFreq(freq) {
+  document.querySelectorAll('.bk-freq-card').forEach(b => b.classList.toggle('selected', b.dataset.freq === freq));
+  updateBkFreq();
 }
 
 // Compute the list of dates for a recurring series starting from `startDate`,
@@ -1246,16 +1237,34 @@ function updateBkFreq() {
   detail.style.display = '';
   const date = document.getElementById('bk-date').value;
   const count = Math.max(2, Math.min(52, Number(document.getElementById('bk-count').value) || 8));
-  document.getElementById('bk-submit').textContent = 'Book ' + count + ' visits';
   if (!date) {
-    preview.textContent = 'Pick a start date to see the schedule.';
+    preview.innerHTML = 'Pick a start date to see the schedule.';
+    document.getElementById('bk-submit').textContent = 'Book ' + count + ' visits';
     return;
   }
   const dates = computeSeriesDates(date, freq, count);
+  // Filter against availability — _bkBlockedDates is populated by loadAvailableDates.
+  const available = dates.filter(d => !_bkBlockedDates.has(d));
+  const blocked   = dates.filter(d =>  _bkBlockedDates.has(d));
   const fmt = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-  const shown = dates.slice(0, 3).map(fmt).join(' · ');
-  const more = dates.length > 3 ? ' ... last: ' + fmt(dates[dates.length - 1]) : '';
-  preview.textContent = dates.length + ' visits — ' + shown + more;
+
+  let html = '<strong>' + available.length + ' available</strong> of ' + dates.length + ' requested';
+  if (available.length > 0) {
+    html += '<br><span style="color:var(--gray-600);">Books: ' +
+      available.slice(0, 3).map(fmt).join(', ') +
+      (available.length > 3 ? ', ... last ' + fmt(available[available.length - 1]) : '') +
+      '</span>';
+  }
+  if (blocked.length > 0) {
+    html += '<br><span style="color:var(--red);">Skipping ' + blocked.length + ' conflict' +
+      (blocked.length === 1 ? '' : 's') + ': ' + blocked.slice(0, 4).map(fmt).join(', ') +
+      (blocked.length > 4 ? ', ...' : '') + '</span>';
+  }
+  preview.innerHTML = html;
+  document.getElementById('bk-submit').textContent =
+    available.length === 0 ? 'No available dates' :
+    available.length === dates.length ? 'Book ' + available.length + ' visits' :
+    'Book ' + available.length + ' available (skip ' + blocked.length + ')';
 }
 
 async function submitBook() {
@@ -1281,7 +1290,15 @@ async function submitBook() {
     return;
   }
 
-  const dates = freq === 'once' ? [date] : computeSeriesDates(date, freq, count);
+  let dates = freq === 'once' ? [date] : computeSeriesDates(date, freq, count);
+  // Skip dates that we already know are blocked (filter pre-submit).
+  if (freq !== 'once') {
+    dates = dates.filter(d => !_bkBlockedDates.has(d));
+    if (dates.length === 0) {
+      setError('bk-error', 'None of the recurring dates are available. Pick a different start date.');
+      return;
+    }
+  }
   // For recurring, generate a series ID we'll stamp on every booking so they
   // can be managed together later (admin can cancel-all-future, etc).
   const seriesId = freq === 'once' ? '' : ('cs-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8));
@@ -1365,8 +1382,10 @@ async function submitBook() {
   // Reset the form.
   document.getElementById('bk-date').value = '';
   document.getElementById('bk-notes').value = '';
-  document.querySelector('input[name="bk-freq"][value="once"]').checked = true;
-  updateBkFreq();
+  document.querySelectorAll('.bk-date-chip').forEach(b => b.classList.remove('selected'));
+  selectBkFreq('once');
+  // Refresh availability so the dates we just consumed disappear.
+  loadAvailableDates();
 }
 
 // ----- EDIT PROFILE -----
