@@ -668,6 +668,7 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
     <button class="tab" data-tab="bank" onclick="switchTab('bank')">Bank</button>
     <button class="tab" data-tab="expenses" onclick="switchTab('expenses')">Expenses</button>
     <button class="tab" data-tab="taxes" onclick="switchTab('taxes')">Taxes</button>
+    <button class="tab" data-tab="compliance" onclick="switchTab('compliance')">Compliance</button>
     <button class="tab" data-tab="emails" onclick="switchTab('emails')">Emails</button>
     <button class="tab" data-tab="settings" aria-label="Settings" onclick="switchTab('settings')"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="3"/></svg></button>
   </div>
@@ -728,6 +729,11 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
   <!-- Taxes view -->
   <div class="tab-panel" id="tab-taxes" style="display:none;">
     <div id="taxes-content"></div>
+  </div>
+
+  <!-- Compliance view: List / Calendar / Todos sub-tabs -->
+  <div class="tab-panel" id="tab-compliance" style="display:none;">
+    <div id="compliance-content"></div>
   </div>
 
   <!-- Emails & SMS view -->
@@ -1492,6 +1498,7 @@ function switchTab(tab) {
   if (tab === 'bank') renderBank();
   if (tab === 'expenses') renderExpenses();
   if (tab === 'taxes') renderTaxes();
+  if (tab === 'compliance') renderCompliance();
   if (tab === 'emails') renderEmails();
   if (tab === 'settings') renderSettings();
 }
@@ -2444,6 +2451,460 @@ function renderEmailCardLive(rec) {
     bodyRow +
     buttons +
     '</div>';
+}
+
+// ============================================
+// COMPLIANCE TAB
+// ============================================
+// Three sub-tabs: List, Calendar, Todos. Data lives in compliance_items
+// and todos collections in PocketBase.
+let _complianceItems = [];
+let _todos = [];
+let _complianceSubTab = 'list'; // 'list' | 'calendar' | 'todos'
+let _complianceCalMonth = (new Date()).toISOString().slice(0, 7); // YYYY-MM
+let _complianceLoaded = false;
+
+async function loadComplianceItems() {
+  if (!PB_URL) { _complianceLoaded = true; return; }
+  try {
+    const data = await DB._pb('GET', 'compliance_items/records?perPage=500&sort=next_due');
+    _complianceItems = (data.items || []).map(r => ({
+      id: r.id,
+      entity: r.entity,
+      name: r.name,
+      description: r.description,
+      category: r.category,
+      frequency: r.frequency,
+      nextDue: r.next_due,
+      lastFiled: r.last_filed,
+      lastFiledReference: r.last_filed_reference,
+      estimatedAmount: r.estimated_amount,
+      filingUrl: r.filing_url,
+      snoozedUntil: r.snoozed_until,
+      notes: r.notes,
+      paused: !!r.paused,
+    }));
+  } catch (err) {
+    console.error('loadComplianceItems failed:', err);
+    _complianceItems = [];
+  }
+}
+
+async function loadTodos() {
+  if (!PB_URL) return;
+  try {
+    const data = await DB._pb('GET', 'todos/records?perPage=500&sort=-created');
+    _todos = (data.items || []).map(r => ({
+      id: r.id,
+      title: r.title,
+      description: r.description,
+      dueDate: r.due_date,
+      priority: r.priority,
+      status: r.status,
+      entity: r.entity,
+      relatedComplianceId: r.related_compliance_id,
+      completedAt: r.completed_at,
+      created: r.created,
+    }));
+  } catch (err) {
+    console.error('loadTodos failed:', err);
+    _todos = [];
+  }
+}
+
+async function renderCompliance() {
+  if (!_complianceLoaded) {
+    document.getElementById('compliance-content').innerHTML = '<div class="empty-day"><p>Loading...</p></div>';
+    await Promise.all([loadComplianceItems(), loadTodos()]);
+    _complianceLoaded = true;
+  }
+  renderComplianceShell();
+}
+
+function renderComplianceShell() {
+  const el = document.getElementById('compliance-content');
+  if (!el) return;
+
+  const tab = _complianceSubTab;
+  let html =
+    '<div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;">' +
+      tabBtnHtml('list', 'List', tab) +
+      tabBtnHtml('calendar', 'Calendar', tab) +
+      tabBtnHtml('todos', 'Todos', tab) +
+    '</div>' +
+    '<div id="compliance-subtab"></div>';
+  el.innerHTML = html;
+
+  if (tab === 'list') renderComplianceList();
+  else if (tab === 'calendar') renderComplianceCalendar();
+  else renderComplianceTodos();
+
+  function tabBtnHtml(key, label, current) {
+    const active = key === current;
+    const style = active
+      ? 'background:var(--plum);color:#fff;border-color:var(--plum);'
+      : '';
+    return '<button class="modal-btn secondary" style="padding:8px 14px;' + style + '" onclick="switchComplianceSubTab(\'' + key + '\')">' + label + '</button>';
+  }
+}
+
+function switchComplianceSubTab(t) {
+  _complianceSubTab = t;
+  renderComplianceShell();
+}
+
+// Compute a status pill for an item based on next_due + today.
+function complianceStatus(item) {
+  if (item.paused) return { key: 'paused', label: 'paused', bg: 'var(--gray-200)', fg: 'var(--gray-600)' };
+  const today = new Date().toISOString().slice(0, 10);
+  if (item.snoozedUntil && item.snoozedUntil > today) {
+    return { key: 'snoozed', label: 'snoozed', bg: 'var(--gray-200)', fg: 'var(--gray-600)' };
+  }
+  if (!item.nextDue) return { key: 'no-date', label: 'no date', bg: 'var(--gray-200)', fg: 'var(--gray-600)' };
+  if (item.nextDue < today) return { key: 'overdue', label: 'overdue', bg: 'var(--red-light)', fg: 'var(--red)' };
+  const daysOut = Math.ceil((new Date(item.nextDue) - new Date(today)) / 86400000);
+  if (daysOut <= 14) return { key: 'due_soon', label: 'due in ' + daysOut + 'd', bg: 'rgba(212,194,122,0.25)', fg: '#7a5f00' };
+  return { key: 'upcoming', label: 'in ' + daysOut + 'd', bg: 'rgba(163,184,140,0.25)', fg: '#3a5a1f' };
+}
+
+function entityPill(entity) {
+  const map = {
+    FYHF: { bg: 'var(--spring-sage)', fg: 'var(--plum)' },
+    WFS: { bg: 'var(--petal-pink-light, #e8d0df)', fg: 'var(--plum)' },
+    PERSONAL: { bg: 'var(--cream)', fg: 'var(--plum)' },
+    BOTH: { bg: 'var(--pollen-gold)', fg: 'var(--plum)' },
+    OTHER: { bg: 'var(--gray-200)', fg: 'var(--gray-600)' },
+  };
+  const m = map[entity] || map.OTHER;
+  return '<span style="background:' + m.bg + ';color:' + m.fg + ';padding:2px 8px;border-radius:10px;font-size:0.68rem;font-weight:600;">' + entity + '</span>';
+}
+
+// ----- LIST sub-tab -----
+function renderComplianceList() {
+  const host = document.getElementById('compliance-subtab');
+  if (!host) return;
+
+  // KPIs
+  const overdue = _complianceItems.filter(i => complianceStatus(i).key === 'overdue').length;
+  const dueSoon = _complianceItems.filter(i => complianceStatus(i).key === 'due_soon').length;
+  const upcoming = _complianceItems.filter(i => complianceStatus(i).key === 'upcoming').length;
+
+  let html =
+    '<div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;">' +
+      '<div style="display:flex;gap:14px;flex-wrap:wrap;">' +
+        '<span style="font-size:0.85rem;"><strong style="color:var(--red);">' + overdue + '</strong> overdue</span>' +
+        '<span style="font-size:0.85rem;"><strong style="color:#7a5f00;">' + dueSoon + '</strong> due soon</span>' +
+        '<span style="font-size:0.85rem;"><strong style="color:#3a5a1f;">' + upcoming + '</strong> upcoming</span>' +
+      '</div>' +
+      '<button class="modal-btn primary" onclick="openComplianceItemModal()">+ Add item</button>' +
+    '</div>';
+
+  if (!_complianceItems.length) {
+    html += '<div class="empty-day">No items yet. Add one above.</div>';
+  } else {
+    // Sort: overdue first, then due_soon, then upcoming, then paused/snoozed
+    const order = { overdue: 0, due_soon: 1, upcoming: 2, snoozed: 3, paused: 4, 'no-date': 5 };
+    const sorted = [..._complianceItems].sort((a, b) => {
+      const sa = order[complianceStatus(a).key] || 99;
+      const sb = order[complianceStatus(b).key] || 99;
+      if (sa !== sb) return sa - sb;
+      return (a.nextDue || '').localeCompare(b.nextDue || '');
+    });
+
+    sorted.forEach(item => {
+      const st = complianceStatus(item);
+      const dueStr = item.nextDue ? new Date(item.nextDue + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '?';
+      html += '<div class="booking-card" style="border-left-color:' + (st.key === 'overdue' ? 'var(--red)' : (st.key === 'due_soon' ? 'var(--pollen-gold)' : 'var(--spring-sage)')) + ';">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">' +
+          '<div style="min-width:0;flex:1;">' +
+            '<h3 style="margin-bottom:4px;font-size:1rem;">' + escapeHtml(item.name) + '</h3>' +
+            '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">' +
+              entityPill(item.entity) +
+              '<span style="background:var(--gray-200);color:var(--gray-600);padding:2px 8px;border-radius:10px;font-size:0.68rem;font-weight:600;">' + escapeHtml(item.category.replace(/_/g, ' ')) + '</span>' +
+              '<span style="background:var(--gray-200);color:var(--gray-600);padding:2px 8px;border-radius:10px;font-size:0.68rem;font-weight:600;">' + escapeHtml(item.frequency.replace(/_/g, ' ')) + '</span>' +
+            '</div>' +
+            '<div class="booking-meta" style="font-size:0.78rem;">Due: ' + escapeHtml(dueStr) + (item.estimatedAmount ? ' &middot; ~$' + Number(item.estimatedAmount).toFixed(2) : '') + (item.lastFiled ? ' &middot; last filed ' + escapeHtml(item.lastFiled) : '') + '</div>' +
+            (item.description ? '<div style="font-size:0.78rem;color:var(--gray-600);margin-top:4px;">' + escapeHtml(item.description) + '</div>' : '') +
+          '</div>' +
+          '<span style="background:' + st.bg + ';color:' + st.fg + ';padding:3px 10px;border-radius:10px;font-size:0.72rem;font-weight:600;flex-shrink:0;">' + escapeHtml(st.label) + '</span>' +
+        '</div>' +
+        '<div class="booking-actions" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">' +
+          '<button class="modal-btn primary" style="padding:6px 12px;font-size:0.78rem;" onclick="markComplianceFiled(\'' + item.id + '\')">Mark filed</button>' +
+          (item.filingUrl ? '<a href="' + escapeAttrSafe(item.filingUrl) + '" target="_blank" rel="noopener" class="modal-btn secondary" style="padding:6px 12px;font-size:0.78rem;text-decoration:none;">File on portal &rarr;</a>' : '') +
+          '<button class="modal-btn secondary" style="padding:6px 12px;font-size:0.78rem;" onclick="openComplianceItemModal(\'' + item.id + '\')">Edit</button>' +
+          '<button class="modal-btn secondary" style="padding:6px 12px;font-size:0.78rem;color:var(--red);" onclick="deleteComplianceItem(\'' + item.id + '\')">Delete</button>' +
+        '</div>' +
+      '</div>';
+    });
+  }
+
+  host.innerHTML = html;
+}
+
+function escapeAttrSafe(s) { return String(s || '').replace(/"/g, '&quot;'); }
+
+// ----- CALENDAR sub-tab -----
+function renderComplianceCalendar() {
+  const host = document.getElementById('compliance-subtab');
+  if (!host) return;
+
+  const ym = _complianceCalMonth; // YYYY-MM
+  const [yStr, mStr] = ym.split('-');
+  const y = parseInt(yStr, 10), m = parseInt(mStr, 10) - 1; // 0-indexed
+  const monthLabel = new Date(y, m, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+  const firstDay = new Date(y, m, 1).getDay(); // 0 = Sun
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+
+  // Map date -> items due that day
+  const byDate = {};
+  _complianceItems.forEach(item => {
+    if (!item.nextDue || item.paused) return;
+    if (item.nextDue.slice(0, 7) !== ym) return;
+    if (!byDate[item.nextDue]) byDate[item.nextDue] = [];
+    byDate[item.nextDue].push(item);
+  });
+
+  let html =
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">' +
+      '<button class="modal-btn secondary" onclick="shiftComplianceCal(-1)">&larr; Prev</button>' +
+      '<h2 style="font-family:Lora,serif;font-weight:500;font-size:1.2rem;margin:0;color:var(--plum);">' + escapeHtml(monthLabel) + '</h2>' +
+      '<button class="modal-btn secondary" onclick="shiftComplianceCal(1)">Next &rarr;</button>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:0.7rem;color:var(--gray-600);text-align:center;margin-bottom:4px;">' +
+      ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => '<div>' + d + '</div>').join('') +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">';
+
+  // Pad leading blanks
+  for (let i = 0; i < firstDay; i++) {
+    html += '<div></div>';
+  }
+
+  const todayIso = new Date().toISOString().slice(0, 10);
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const iso = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const items = byDate[iso] || [];
+    const isToday = iso === todayIso;
+    const cellBg = isToday ? 'var(--cream)' : '#fff';
+    let inner = '<div style="font-size:0.8rem;font-weight:' + (isToday ? '700' : '500') + ';color:var(--plum);">' + d + '</div>';
+    items.slice(0, 3).forEach(it => {
+      const st = complianceStatus(it);
+      inner += '<div style="font-size:0.62rem;background:' + st.bg + ';color:' + st.fg + ';padding:1px 4px;border-radius:3px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + escapeAttrSafe(it.name) + '">' + escapeHtml(it.name) + '</div>';
+    });
+    if (items.length > 3) inner += '<div style="font-size:0.62rem;color:var(--gray-600);margin-top:2px;">+' + (items.length - 3) + ' more</div>';
+    html += '<div style="border:1px solid var(--gray-200);border-radius:4px;padding:4px;background:' + cellBg + ';min-height:74px;">' + inner + '</div>';
+  }
+
+  html += '</div>';
+
+  // Below-calendar list of this month's items
+  const monthItems = _complianceItems.filter(i => i.nextDue && i.nextDue.slice(0, 7) === ym && !i.paused);
+  if (monthItems.length) {
+    html += '<div style="margin-top:18px;"><h3 style="font-family:Lora,serif;font-weight:500;font-size:1rem;margin-bottom:8px;">This month</h3>';
+    monthItems.sort((a, b) => (a.nextDue || '').localeCompare(b.nextDue || '')).forEach(item => {
+      const st = complianceStatus(item);
+      const dueStr = new Date(item.nextDue + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      html += '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--gray-200);gap:8px;">' +
+        '<span style="font-size:0.85rem;">' + escapeHtml(dueStr) + ' &middot; ' + escapeHtml(item.name) + '</span>' +
+        '<span style="background:' + st.bg + ';color:' + st.fg + ';padding:1px 8px;border-radius:8px;font-size:0.68rem;font-weight:600;">' + escapeHtml(st.label) + '</span>' +
+      '</div>';
+    });
+    html += '</div>';
+  }
+
+  host.innerHTML = html;
+}
+
+function shiftComplianceCal(dir) {
+  const [y, m] = _complianceCalMonth.split('-').map(Number);
+  const d = new Date(y, m - 1 + dir, 1);
+  _complianceCalMonth = d.toISOString().slice(0, 7);
+  renderComplianceCalendar();
+}
+
+// ----- TODOS sub-tab -----
+function renderComplianceTodos() {
+  const host = document.getElementById('compliance-subtab');
+  if (!host) return;
+
+  const open = _todos.filter(t => t.status !== 'done');
+  const done = _todos.filter(t => t.status === 'done');
+
+  let html =
+    '<div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;">' +
+      '<div style="font-size:0.85rem;"><strong>' + open.length + '</strong> open &middot; <span style="color:var(--gray-600);">' + done.length + ' done</span></div>' +
+      '<button class="modal-btn primary" onclick="openTodoModal()">+ Add todo</button>' +
+    '</div>';
+
+  if (!open.length && !done.length) {
+    html += '<div class="empty-day">No todos. Add one above.</div>';
+  } else {
+    if (open.length) {
+      html += '<h3 style="font-family:Lora,serif;font-weight:500;font-size:1rem;margin-bottom:8px;">Open</h3>';
+      // Sort by priority then due_date
+      const prOrder = { high: 0, medium: 1, low: 2 };
+      const sorted = [...open].sort((a, b) => {
+        const pa = prOrder[a.priority] != null ? prOrder[a.priority] : 3;
+        const pb = prOrder[b.priority] != null ? prOrder[b.priority] : 3;
+        if (pa !== pb) return pa - pb;
+        return (a.dueDate || '9999').localeCompare(b.dueDate || '9999');
+      });
+      sorted.forEach(t => { html += todoRowHtml(t); });
+    }
+    if (done.length) {
+      html += '<h3 style="font-family:Lora,serif;font-weight:500;font-size:1rem;margin-top:24px;margin-bottom:8px;color:var(--gray-600);">Done</h3>';
+      done.slice(0, 20).forEach(t => { html += todoRowHtml(t); });
+    }
+  }
+
+  host.innerHTML = html;
+}
+
+function todoRowHtml(t) {
+  const isDone = t.status === 'done';
+  const dueStr = t.dueDate ? new Date(t.dueDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+  const prMap = { high: 'var(--red)', medium: 'var(--pollen-gold)', low: 'var(--spring-sage)' };
+  const borderColor = isDone ? 'var(--gray-200)' : (prMap[t.priority] || 'var(--gray-400)');
+  return '<div class="booking-card" style="border-left-color:' + borderColor + ';' + (isDone ? 'opacity:0.55;' : '') + '">' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="display:flex;align-items:flex-start;gap:8px;">' +
+          '<input type="checkbox" ' + (isDone ? 'checked' : '') + ' onchange="toggleTodo(\'' + t.id + '\', this.checked)" style="margin-top:4px;flex-shrink:0;">' +
+          '<div>' +
+            '<div style="font-weight:600;font-size:0.95rem;' + (isDone ? 'text-decoration:line-through;' : '') + '">' + escapeHtml(t.title) + '</div>' +
+            (t.description ? '<div style="font-size:0.78rem;color:var(--gray-600);margin-top:2px;">' + escapeHtml(t.description) + '</div>' : '') +
+            '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">' +
+              (t.entity ? entityPill(t.entity) : '') +
+              (t.priority ? '<span style="background:var(--gray-200);color:var(--gray-600);padding:2px 8px;border-radius:10px;font-size:0.68rem;font-weight:600;">' + escapeHtml(t.priority) + '</span>' : '') +
+              (dueStr ? '<span style="font-size:0.7rem;color:var(--gray-600);align-self:center;">due ' + escapeHtml(dueStr) + '</span>' : '') +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="row-actions" style="display:flex;gap:4px;flex-shrink:0;">' +
+        '<button class="modal-btn secondary" style="padding:4px 8px;font-size:0.72rem;" onclick="openTodoModal(\'' + t.id + '\')">Edit</button>' +
+        '<button class="modal-btn secondary" style="padding:4px 8px;font-size:0.72rem;color:var(--red);" onclick="deleteTodo(\'' + t.id + '\')">&times;</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+// ----- Mutations -----
+async function markComplianceFiled(id) {
+  const it = _complianceItems.find(x => x.id === id);
+  if (!it) return;
+  const ref = prompt('Confirmation number / reference (optional)?', '');
+  if (ref === null) return; // cancelled
+  try {
+    const resp = await fetch(PB_URL + '/api/admin/compliance/mark-filed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+      body: JSON.stringify({ id: id, reference: ref }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) { alert('Failed: ' + (data.error || resp.status)); return; }
+    await loadComplianceItems();
+    renderComplianceShell();
+  } catch (err) { alert('Network error: ' + err.message); }
+}
+
+async function deleteComplianceItem(id) {
+  if (!confirm('Delete this compliance item? (You can re-add it later.)')) return;
+  try {
+    await DB._pb('DELETE', 'compliance_items/records/' + id);
+    await loadComplianceItems();
+    renderComplianceShell();
+  } catch (err) { alert('Network error: ' + err.message); }
+}
+
+async function toggleTodo(id, isDone) {
+  const t = _todos.find(x => x.id === id);
+  if (!t) return;
+  try {
+    await DB._pb('PATCH', 'todos/records/' + id, {
+      status: isDone ? 'done' : 'open',
+      completed_at: isDone ? new Date().toISOString() : '',
+    });
+    await loadTodos();
+    renderComplianceShell();
+  } catch (err) { alert('Network error: ' + err.message); }
+}
+
+async function deleteTodo(id) {
+  if (!confirm('Delete this todo?')) return;
+  try {
+    await DB._pb('DELETE', 'todos/records/' + id);
+    await loadTodos();
+    renderComplianceShell();
+  } catch (err) { alert('Network error: ' + err.message); }
+}
+
+// ----- Modals: compliance item edit + todo edit -----
+let _editingComplianceId = null;
+function openComplianceItemModal(id) {
+  _editingComplianceId = id || null;
+  const item = id ? _complianceItems.find(x => x.id === id) : {};
+  // Simple modal — reuse the existing modal-overlay pattern? Or prompt-based?
+  // For speed and minimum code, use a sequence of prompts.
+  const name = prompt('Item name:', item.name || '');
+  if (!name) return;
+  const entity = prompt('Entity (FYHF / WFS / PERSONAL / BOTH):', item.entity || 'FYHF');
+  if (!entity) return;
+  const category = prompt('Category (federal_tax / state_tax / state_registration / local_license / insurance / employment / fsa_loan / other):', item.category || 'other');
+  if (!category) return;
+  const frequency = prompt('Frequency (once / monthly / quarterly / semi_annual / annual / biennial / every_5_years):', item.frequency || 'annual');
+  if (!frequency) return;
+  const nextDue = prompt('Next due date (YYYY-MM-DD):', item.nextDue || '');
+  if (!nextDue || !/^\d{4}-\d{2}-\d{2}$/.test(nextDue)) { alert('Invalid date'); return; }
+  const filingUrl = prompt('Filing URL (optional):', item.filingUrl || '') || '';
+  const description = prompt('Description (optional):', item.description || '') || '';
+
+  const payload = {
+    name, entity, category, frequency, next_due: nextDue,
+    filing_url: filingUrl, description,
+  };
+
+  (async () => {
+    try {
+      if (id) {
+        await DB._pb('PATCH', 'compliance_items/records/' + id, payload);
+      } else {
+        await DB._pb('POST', 'compliance_items/records', payload);
+      }
+      await loadComplianceItems();
+      renderComplianceShell();
+    } catch (err) { alert('Save failed: ' + err.message); }
+  })();
+}
+
+let _editingTodoId = null;
+function openTodoModal(id) {
+  _editingTodoId = id || null;
+  const t = id ? _todos.find(x => x.id === id) : {};
+  const title = prompt('Todo title:', t.title || '');
+  if (!title) return;
+  const description = prompt('Description (optional):', t.description || '') || '';
+  const priority = prompt('Priority (low / medium / high):', t.priority || 'medium') || 'medium';
+  const entity = prompt('Entity (FYHF / WFS / PERSONAL / BOTH / OTHER) or blank:', t.entity || '') || '';
+  const dueDate = prompt('Due date YYYY-MM-DD (optional):', t.dueDate || '') || '';
+
+  const payload = { title, description, priority, status: t.status || 'open' };
+  if (entity) payload.entity = entity;
+  if (dueDate) payload.due_date = dueDate;
+  if (!id) payload.created = new Date().toISOString();
+
+  (async () => {
+    try {
+      if (id) {
+        await DB._pb('PATCH', 'todos/records/' + id, payload);
+      } else {
+        await DB._pb('POST', 'todos/records', payload);
+      }
+      await loadTodos();
+      renderComplianceShell();
+    } catch (err) { alert('Save failed: ' + err.message); }
+  })();
 }
 
 async function renderEmails() {
