@@ -426,6 +426,24 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
   background: transparent; border: none; color: var(--moon-dim);
   font-size: 0.78rem; padding: 6px; cursor: pointer; text-decoration: underline;
 }
+.birth-edit {
+  display: block; width: 100%; margin-top: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px dashed var(--moon-line);
+  color: var(--moon-dim);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-family: inherit; font-size: 0.78rem; font-weight: 500;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  text-align: center;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.birth-edit:hover {
+  color: var(--moon-accent);
+  border-color: rgba(181,139,255,0.4);
+  background: rgba(181,139,255,0.08);
+}
 
 /* Calendar subscription card */
 .cal-sub-card .cal-sub-desc {
@@ -946,6 +964,7 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
     <div class="sky-meta" style="margin-bottom:6px;">Sun = your spark. Moon = your inner weather. Rising = the door you open.</div>
     <div class="big3-grid" id="big3-grid"></div>
     <p class="big3-note" id="big3-note"></p>
+    <button type="button" class="birth-edit" id="birth-edit-btn" onclick="showBirthForm()" hidden>Edit birth info</button>
     <div class="birth-form" id="birth-form">
       <div class="form-field">
         <label for="birth-date">Birth date</label>
@@ -1660,11 +1679,32 @@ function renderSky() {
   const grid = document.getElementById('big3-grid');
   const note = document.getElementById('big3-note');
   const clearBtn = document.getElementById('birth-clear-btn');
-  const sun = birth ? sunSignFromDate(birth.date) : null;
+  const form = document.getElementById('birth-form');
+  const editBtn = document.getElementById('birth-edit-btn');
+
+  let sun = null, moonS = null, rising = null;
+  let cityMatch = null;
+  let unrecognized = false;
+  if (birth && birth.date) {
+    sun = sunSignFromDate(birth.date);
+    if (birth.time) {
+      cityMatch = lookupCity(birth.place || '');
+      const tz = cityMatch ? cityMatch.tz : Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const utcDob = localToUtc(birth.date, birth.time, tz);
+      moonS = signFromLongitude(moonLongitude(utcDob));
+      if (cityMatch) {
+        const ascDeg = ascendantLongitude(utcDob, cityMatch.lon, cityMatch.lat);
+        rising = signFromLongitude(ascDeg);
+      } else if (birth.place) {
+        unrecognized = true;
+      }
+    }
+  }
+
   const cells = [
-    { label: 'Sun',     sign: sun,   need: 'date' },
-    { label: 'Moon',    sign: null,  need: 'time' },
-    { label: 'Rising',  sign: null,  need: 'place' }
+    { label: 'Sun',    sign: sun,    need: 'date'  },
+    { label: 'Moon',   sign: moonS,  need: 'time'  },
+    { label: 'Rising', sign: rising, need: 'place' }
   ];
   grid.innerHTML = cells.map(c => {
     if (c.sign) {
@@ -1673,24 +1713,55 @@ function renderSky() {
              '<div class="b3-name">' + c.sign.name + '</div></div>';
     }
     const want = c.need === 'date' ? 'add a date' :
-                 c.need === 'time' ? 'add a time' : 'add a place';
+                 c.need === 'time' ? 'add a time' :
+                 unrecognized ? 'unknown city' : 'add a place';
     return '<div class="big3-cell empty"><div class="b3-eyebrow">' + c.label + '</div>' +
            '<div class="b3-glyph">·</div>' +
            '<div class="b3-name">' + want + '</div></div>';
   }).join('');
-  if (sun) {
-    note.textContent = "Moon + Rising need precise time + place. Coming soon — for now your Sun is set.";
-  } else {
+
+  // Note + form visibility
+  if (!birth) {
     note.textContent = "Add your birth date below to unlock your Sun. Everything stays on this device.";
-  }
-  if (birth) {
+    form.hidden = false;
+    editBtn.hidden = true;
+  } else {
+    if (sun && moonS && rising) {
+      note.innerHTML = 'All three set. <em>Sky is your weather; this is your wiring.</em>';
+    } else if (sun && moonS && unrecognized) {
+      note.innerHTML = 'Sun + Moon set. We don\'t recognize "' + (birth.place || '') + '" for the Rising — try "City, State" (e.g. "Gainesville, FL").';
+    } else if (sun && !birth.time) {
+      note.textContent = 'Sun set. Add your birth time to unlock Moon and Rising.';
+    } else if (sun) {
+      note.textContent = 'Sun set. Add your birth place to unlock Rising.';
+    } else {
+      note.textContent = '';
+    }
+    form.hidden = true;
+    editBtn.hidden = false;
+    editBtn.textContent = formatBirthSummary(birth);
+    // Pre-fill form fields for when user opens edit
     document.getElementById('birth-date').value  = birth.date  || '';
     document.getElementById('birth-time').value  = birth.time  || '';
     document.getElementById('birth-place').value = birth.place || '';
     clearBtn.hidden = false;
-  } else {
-    clearBtn.hidden = true;
   }
+}
+
+// Short summary line for the "Edit birth info" toggle
+function formatBirthSummary(birth) {
+  const parts = [];
+  if (birth.date) {
+    const d = new Date(birth.date + 'T12:00:00');
+    parts.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
+  }
+  if (birth.time) parts.push(birth.time);
+  if (birth.place) parts.push(birth.place);
+  return 'Edit · ' + (parts.join(' · ') || 'birth info');
+}
+function showBirthForm() {
+  document.getElementById('birth-form').hidden = false;
+  document.getElementById('birth-edit-btn').hidden = true;
 }
 
 function copyCalSubUrl(btn) {
@@ -2347,6 +2418,155 @@ function sunSignFromDate(dateStr) {
   if (md >= 1222 || md <= 119) return ZODIAC[9];
   if (md >= 120 && md <= 218) return ZODIAC[10];
   return ZODIAC[11];
+}
+
+// City lookup table — birth place → timezone + lat/lon for Moon & Rising calc.
+// Privacy-first: no geocoding API; user types a city we know, we have the data.
+// Anything else falls back to "Moon needs a known city" message.
+const CITIES = [
+  // California
+  { city: 'bayside',         state: 'ca', tz: 'America/Los_Angeles', lat: 40.84,  lon: -124.07 },
+  { city: 'arcata',          state: 'ca', tz: 'America/Los_Angeles', lat: 40.87,  lon: -124.08 },
+  { city: 'eureka',          state: 'ca', tz: 'America/Los_Angeles', lat: 40.80,  lon: -124.16 },
+  { city: 'los angeles',     state: 'ca', tz: 'America/Los_Angeles', lat: 34.05,  lon: -118.24 },
+  { city: 'san francisco',   state: 'ca', tz: 'America/Los_Angeles', lat: 37.77,  lon: -122.42 },
+  { city: 'san diego',       state: 'ca', tz: 'America/Los_Angeles', lat: 32.72,  lon: -117.16 },
+  { city: 'sacramento',      state: 'ca', tz: 'America/Los_Angeles', lat: 38.58,  lon: -121.49 },
+  { city: 'oakland',         state: 'ca', tz: 'America/Los_Angeles', lat: 37.80,  lon: -122.27 },
+  // Alaska
+  { city: 'sitka',           state: 'ak', tz: 'America/Sitka',       lat: 57.05,  lon: -135.33 },
+  { city: 'anchorage',       state: 'ak', tz: 'America/Anchorage',   lat: 61.22,  lon: -149.90 },
+  { city: 'juneau',          state: 'ak', tz: 'America/Juneau',      lat: 58.30,  lon: -134.42 },
+  { city: 'fairbanks',       state: 'ak', tz: 'America/Anchorage',   lat: 64.84,  lon: -147.72 },
+  // Florida
+  { city: 'gainesville',     state: 'fl', tz: 'America/New_York',    lat: 29.65,  lon: -82.34 },
+  { city: 'miami',           state: 'fl', tz: 'America/New_York',    lat: 25.76,  lon: -80.19 },
+  { city: 'orlando',         state: 'fl', tz: 'America/New_York',    lat: 28.54,  lon: -81.38 },
+  { city: 'tampa',           state: 'fl', tz: 'America/New_York',    lat: 27.95,  lon: -82.46 },
+  { city: 'jacksonville',    state: 'fl', tz: 'America/New_York',    lat: 30.33,  lon: -81.66 },
+  { city: 'tallahassee',     state: 'fl', tz: 'America/New_York',    lat: 30.44,  lon: -84.28 },
+  // Northeast
+  { city: 'new york',        state: 'ny', tz: 'America/New_York',    lat: 40.71,  lon: -74.01 },
+  { city: 'brooklyn',        state: 'ny', tz: 'America/New_York',    lat: 40.68,  lon: -73.94 },
+  { city: 'buffalo',         state: 'ny', tz: 'America/New_York',    lat: 42.89,  lon: -78.88 },
+  { city: 'boston',          state: 'ma', tz: 'America/New_York',    lat: 42.36,  lon: -71.06 },
+  { city: 'philadelphia',    state: 'pa', tz: 'America/New_York',    lat: 39.95,  lon: -75.17 },
+  { city: 'pittsburgh',      state: 'pa', tz: 'America/New_York',    lat: 40.44,  lon: -79.99 },
+  { city: 'washington',      state: 'dc', tz: 'America/New_York',    lat: 38.91,  lon: -77.04 },
+  { city: 'baltimore',       state: 'md', tz: 'America/New_York',    lat: 39.29,  lon: -76.61 },
+  // South
+  { city: 'atlanta',         state: 'ga', tz: 'America/New_York',    lat: 33.75,  lon: -84.39 },
+  { city: 'savannah',        state: 'ga', tz: 'America/New_York',    lat: 32.08,  lon: -81.10 },
+  { city: 'charlotte',       state: 'nc', tz: 'America/New_York',    lat: 35.23,  lon: -80.84 },
+  { city: 'asheville',       state: 'nc', tz: 'America/New_York',    lat: 35.60,  lon: -82.55 },
+  { city: 'nashville',       state: 'tn', tz: 'America/Chicago',     lat: 36.16,  lon: -86.78 },
+  { city: 'memphis',         state: 'tn', tz: 'America/Chicago',     lat: 35.15,  lon: -90.05 },
+  { city: 'new orleans',     state: 'la', tz: 'America/Chicago',     lat: 29.95,  lon: -90.07 },
+  { city: 'austin',          state: 'tx', tz: 'America/Chicago',     lat: 30.27,  lon: -97.74 },
+  { city: 'houston',         state: 'tx', tz: 'America/Chicago',     lat: 29.76,  lon: -95.37 },
+  { city: 'dallas',          state: 'tx', tz: 'America/Chicago',     lat: 32.78,  lon: -96.80 },
+  { city: 'san antonio',     state: 'tx', tz: 'America/Chicago',     lat: 29.42,  lon: -98.49 },
+  // Midwest
+  { city: 'chicago',         state: 'il', tz: 'America/Chicago',     lat: 41.88,  lon: -87.63 },
+  { city: 'minneapolis',     state: 'mn', tz: 'America/Chicago',     lat: 44.98,  lon: -93.27 },
+  { city: 'detroit',         state: 'mi', tz: 'America/Detroit',     lat: 42.33,  lon: -83.05 },
+  { city: 'milwaukee',       state: 'wi', tz: 'America/Chicago',     lat: 43.04,  lon: -87.91 },
+  { city: 'st louis',        state: 'mo', tz: 'America/Chicago',     lat: 38.63,  lon: -90.20 },
+  { city: 'kansas city',     state: 'mo', tz: 'America/Chicago',     lat: 39.10,  lon: -94.58 },
+  { city: 'indianapolis',    state: 'in', tz: 'America/Indiana/Indianapolis', lat: 39.77, lon: -86.16 },
+  { city: 'columbus',        state: 'oh', tz: 'America/New_York',    lat: 39.96,  lon: -83.00 },
+  { city: 'cleveland',       state: 'oh', tz: 'America/New_York',    lat: 41.50,  lon: -81.69 },
+  // Mountain
+  { city: 'denver',          state: 'co', tz: 'America/Denver',      lat: 39.74,  lon: -104.99 },
+  { city: 'boulder',         state: 'co', tz: 'America/Denver',      lat: 40.01,  lon: -105.27 },
+  { city: 'salt lake city',  state: 'ut', tz: 'America/Denver',      lat: 40.76,  lon: -111.89 },
+  { city: 'albuquerque',     state: 'nm', tz: 'America/Denver',      lat: 35.08,  lon: -106.65 },
+  { city: 'santa fe',        state: 'nm', tz: 'America/Denver',      lat: 35.69,  lon: -105.94 },
+  { city: 'phoenix',         state: 'az', tz: 'America/Phoenix',     lat: 33.45,  lon: -112.07 },
+  { city: 'tucson',          state: 'az', tz: 'America/Phoenix',     lat: 32.22,  lon: -110.97 },
+  // Pacific
+  { city: 'seattle',         state: 'wa', tz: 'America/Los_Angeles', lat: 47.61,  lon: -122.33 },
+  { city: 'portland',        state: 'or', tz: 'America/Los_Angeles', lat: 45.51,  lon: -122.68 },
+  { city: 'eugene',          state: 'or', tz: 'America/Los_Angeles', lat: 44.05,  lon: -123.09 },
+  { city: 'honolulu',        state: 'hi', tz: 'Pacific/Honolulu',    lat: 21.31,  lon: -157.86 },
+  { city: 'las vegas',       state: 'nv', tz: 'America/Los_Angeles', lat: 36.17,  lon: -115.14 },
+  // International (a handful for the common cases)
+  { city: 'london',          state: 'uk', tz: 'Europe/London',       lat: 51.51,  lon: -0.13 },
+  { city: 'paris',           state: 'fr', tz: 'Europe/Paris',        lat: 48.86,  lon:  2.35 },
+  { city: 'berlin',          state: 'de', tz: 'Europe/Berlin',       lat: 52.52,  lon: 13.40 },
+  { city: 'madrid',          state: 'es', tz: 'Europe/Madrid',       lat: 40.42,  lon: -3.70 },
+  { city: 'rome',            state: 'it', tz: 'Europe/Rome',         lat: 41.90,  lon: 12.50 },
+  { city: 'tokyo',           state: 'jp', tz: 'Asia/Tokyo',          lat: 35.68,  lon: 139.69 },
+  { city: 'sydney',          state: 'au', tz: 'Australia/Sydney',    lat: -33.87, lon: 151.21 },
+  { city: 'melbourne',       state: 'au', tz: 'Australia/Melbourne', lat: -37.81, lon: 144.96 },
+  { city: 'toronto',         state: 'ca', tz: 'America/Toronto',     lat: 43.65,  lon: -79.38, country: 'canada' },
+  { city: 'vancouver',       state: 'bc', tz: 'America/Vancouver',   lat: 49.28,  lon: -123.12, country: 'canada' },
+  { city: 'montreal',        state: 'qc', tz: 'America/Toronto',     lat: 45.50,  lon: -73.57, country: 'canada' },
+  { city: 'mexico city',     state: 'mx', tz: 'America/Mexico_City', lat: 19.43,  lon: -99.13 }
+];
+
+function lookupCity(input) {
+  if (!input) return null;
+  const norm = input.toLowerCase().trim().replace(/[.,]/g, ' ').replace(/\s+/g, ' ');
+  // Try matching against "city state" (e.g. "gainesville fl") or just city alone
+  for (const c of CITIES) {
+    const cityToken = c.city; // e.g. "san francisco"
+    if (norm === cityToken) return c;
+    if (norm === cityToken + ' ' + c.state) return c;
+    if (norm.startsWith(cityToken + ' ')) {
+      const rest = norm.slice(cityToken.length + 1);
+      if (rest === c.state || rest === (c.country || '')) return c;
+    }
+  }
+  return null;
+}
+
+// Returns UTC offset in hours for a given IANA timezone at a given UTC Date.
+// Uses Intl trick — formats the date in target tz, parses back, compares.
+function tzOffsetHours(tz, utcDate) {
+  const fmt = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, hour12: false,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
+  const parts = {};
+  fmt.formatToParts(utcDate).forEach(p => { if (p.type !== 'literal') parts[p.type] = parseInt(p.value, 10); });
+  const localAsUtc = Date.UTC(parts.year, parts.month - 1, parts.day,
+    parts.hour === 24 ? 0 : parts.hour, parts.minute, parts.second);
+  return (localAsUtc - utcDate.getTime()) / 3600000;
+}
+
+// Convert "YYYY-MM-DD" + "HH:MM" interpreted as local-time-in-tz to a UTC Date.
+function localToUtc(dateStr, timeStr, tz) {
+  // Build a Date assuming the components are UTC, then subtract the tz offset.
+  const t = timeStr || '12:00';
+  const asUtcGuess = new Date(dateStr + 'T' + t + ':00Z');
+  const offset = tzOffsetHours(tz, asUtcGuess);
+  return new Date(asUtcGuess.getTime() - offset * 3600000);
+}
+
+// Ascendant (rising sign) — Meeus-style formula in ecliptic longitude (0-360°).
+// Inputs: UTC Date, east longitude (deg, west negative), north latitude (deg, south negative).
+function ascendantLongitude(utcDate, lonE, latN) {
+  const JD = utcDate.getTime() / 86400000 + 2440587.5;
+  const T  = (JD - 2451545.0) / 36525;
+  let gmst = 280.46061837 + 360.98564736629 * (JD - 2451545.0)
+           + 0.000387933 * T * T - (T*T*T) / 38710000;
+  gmst = ((gmst % 360) + 360) % 360;
+  let lst = (gmst + lonE) % 360;
+  if (lst < 0) lst += 360;
+  const d2r = Math.PI / 180;
+  const eps = 23.4392911 * d2r;
+  const phi = latN * d2r;
+  const H   = lst * d2r;
+  // Classic Hellenistic ascendant: A = atan2(-cos(H), sin(H)*cos(ε) + tan(φ)*sin(ε))
+  let asc = Math.atan2(-Math.cos(H), Math.sin(H) * Math.cos(eps) + Math.tan(phi) * Math.sin(eps));
+  let degA = asc * 180 / Math.PI;
+  if (degA < 0) degA += 360;
+  // Quadrant fix — ascendant must trail the MC by 60-120° on the eastern side
+  if (Math.cos(H) > 0 && degA < 180) degA += 180;
+  else if (Math.cos(H) < 0 && degA >= 180) degA -= 180;
+  return ((degA % 360) + 360) % 360;
 }
 
 // Birth-data storage (local only — privacy first).
