@@ -924,6 +924,7 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
       </div>
       <div class="form-group" id="sr-line-items-wrap" style="display:none;">
         <label>Line items — check personal ones</label>
+        <div id="sr-math-warning" style="display:none;font-size:0.8rem;margin-bottom:6px;padding:8px 10px;background:rgba(212,194,122,0.25);border-left:3px solid var(--pollen-gold);border-radius:4px;color:var(--plum);"></div>
         <div id="sr-line-items" style="font-size:0.8rem;background:var(--gray-100);padding:8px;border-radius:6px;max-height:180px;overflow-y:auto;"></div>
         <div id="sr-split-summary" style="font-size:0.8rem;margin-top:6px;padding:6px 8px;background:var(--cream);border-radius:6px;display:none;"></div>
       </div>
@@ -2897,6 +2898,41 @@ function computeScanSplit() {
   return { biz, personal, hasSplit };
 }
 
+// Verify sum(line_items) + tax + tip ≈ total. Warns if Claude misread a discount,
+// double-counted, included the subtotal as an item, etc.
+function showScanMathWarning(p) {
+  const lis = Array.isArray(p.line_items) ? p.line_items : [];
+  const el = document.getElementById('sr-math-warning');
+  if (!lis.length || !el) { if (el) el.style.display = 'none'; return; }
+
+  const lineSum = lis.reduce((s, li) => s + (Number(li.amount) || 0), 0);
+  const tax = Number(p.tax || 0);
+  const tip = Number(p.tip || 0);
+  const total = Number(p.amount || 0);
+  const expected = total - tax - tip;
+  const diff = lineSum - expected;
+  const absDiff = Math.abs(diff);
+
+  if (absDiff <= 0.5) {
+    el.style.display = 'none';
+    return;
+  }
+
+  // Off by more than 50¢ — warn.
+  const direction = diff > 0
+    ? 'Line items sum is HIGHER than expected — Claude may have treated a discount as a charge, double-counted an item, or included the subtotal/total line.'
+    : 'Line items sum is LOWER than expected — Claude may have missed an item.';
+
+  el.innerHTML =
+    '<strong>⚠️ Math check:</strong> line items add up to <strong>$' + lineSum.toFixed(2) + '</strong>' +
+    (tax ? ' + tax $' + tax.toFixed(2) : '') +
+    (tip ? ' + tip $' + tip.toFixed(2) : '') +
+    ' = <strong>$' + (lineSum + tax + tip).toFixed(2) + '</strong>, ' +
+    'but total is <strong>$' + total.toFixed(2) + '</strong> (off by $' + absDiff.toFixed(2) + ').<br>' +
+    '<span style="font-size:0.75rem;color:var(--gray-600);">' + direction + '</span>';
+  el.style.display = '';
+}
+
 function updateScanSplitSummary() {
   const split = computeScanSplit();
   const el = document.getElementById('sr-split-summary');
@@ -3023,6 +3059,7 @@ function populateScanConfirm(p) {
       '</label>';
     }).join('');
     updateScanSplitSummary();
+    showScanMathWarning(p);
   } else {
     wrap.style.display = 'none';
     _srPersonalFlags = [];
