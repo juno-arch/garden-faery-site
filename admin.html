@@ -3739,10 +3739,11 @@ function renderIncome() {
 // that backs 1099-K reconciliation. Square charges land here automatically
 // via the PocketBase webhook; cash/check entered manually via Log Payment.
 let _paymentsCache = [];
+let _paymentsLoaded = false; // set true after first load attempt (success OR fail)
 let _paymentsFilter = 'all'; // all | this_month | unmatched | refunded
 
 async function loadPayments() {
-  if (!PB_URL) { _paymentsCache = []; return; }
+  if (!PB_URL) { _paymentsCache = []; _paymentsLoaded = true; return; }
   try {
     const data = await DB._pb('GET', 'payments/records?perPage=500&sort=-captured_at');
     _paymentsCache = (data.items || []).map(r => ({
@@ -3770,6 +3771,8 @@ async function loadPayments() {
   } catch (err) {
     console.error('loadPayments failed:', err);
     _paymentsCache = [];
+  } finally {
+    _paymentsLoaded = true;
   }
 }
 
@@ -3818,8 +3821,9 @@ function renderPayments() {
   const container = document.getElementById('payments-content');
   if (!container) return;
 
-  // Lazy-load on first open.
-  if (_paymentsCache.length === 0 && PB_URL) {
+  // Lazy-load on first open (only if we've never loaded — empty cache after
+  // a successful load means "no payments yet," not "still loading").
+  if (!_paymentsLoaded && PB_URL) {
     container.innerHTML = '<div class="empty-day"><p>Loading payments…</p></div>';
     loadPayments().then(() => renderPayments());
     return;
