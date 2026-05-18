@@ -245,7 +245,14 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
 .today-teach .tt-coords .tt-dot { opacity: 0.5; }
 .today-teach .tt-coords .tt-day { color: var(--moon-text); font-weight: 600; }
 .today-teach .tt-coords .tt-season { color: var(--moon-accent); font-weight: 600; }
-.today-teach .tt-coords .tt-sky { color: var(--moon-gold); font-weight: 600; }
+.today-teach .tt-coords .tt-sky {
+  color: var(--moon-gold); font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: rgba(255,217,139,0.35);
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.today-teach .tt-coords .tt-sky:hover { text-decoration-color: var(--moon-gold); }
 .today-teach .tt-line {
   margin: 0; font-size: 0.92rem; line-height: 1.5; font-style: italic;
 }
@@ -2336,7 +2343,7 @@ function dailyTeach(cycleDay) {
   const now = new Date();
   const moonSign = signFromLongitude(moonLongitude(now));
   const moonDosha = ELEMENT_DOSHA[moonSign.element];
-  const skyHTML = '<span class="tt-sky">Moon in ' + moonSign.name + ' ' + moonSign.glyph + '</span>';
+  const skyHTML = '<a class="tt-sky" href="#" onclick="setTab(\'sky\');return false;">Moon in ' + moonSign.name + ' ' + moonSign.glyph + '</a>';
   if (!cycleDay) {
     return '<div class="tt-coords">' + skyHTML + '</div>' +
            '<p class="tt-line">Log a period to weave in your cycle. The sky guide is on the Sky tab.</p>';
