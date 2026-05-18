@@ -185,7 +185,7 @@ function render(inv) {
 
       '<div class="totals">' +
         '<div class="row"><span>Subtotal</span><span>' + fmt(inv.subtotal_cents) + '</span></div>' +
-        ((inv.discount_cents > 0) ? '<div class="row"><span>Discount</span><span>&minus;' + fmt(inv.discount_cents) + '</span></div>' : '') +
+        ((inv.discount_cents > 0) ? '<div class="row"><span>' + (inv.coupon_code ? 'Code ' + esc(inv.coupon_code) : 'Discount') + '</span><span>&minus;' + fmt(inv.discount_cents) + '</span></div>' : '') +
         ((inv.tax_cents > 0) ? '<div class="row"><span>Tax (' + (inv.tax_pct || 0) + '%)</span><span>' + fmt(inv.tax_cents) + '</span></div>' : '') +
         '<div class="row grand"><span>Total</span><span>' + fmt(inv.total_cents) + '</span></div>' +
         (inv.paid_cents > 0 && !isPaid ? '<div class="row"><span>Paid</span><span>&minus;' + fmt(inv.paid_cents) + '</span></div><div class="row grand"><span>Balance</span><span>' + fmt(balance) + '</span></div>' : '') +

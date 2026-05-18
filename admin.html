@@ -3073,7 +3073,13 @@ function showInvoiceModal() {
 
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px;">' +
         '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Tax %</label><input type="number" step="0.01" id="inv-tax" value="' + (s.tax_pct||0) + '" oninput="_invDraftState.tax_pct=parseFloat(this.value||0);showInvoiceModal();" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Discount $</label><input type="number" step="0.01" id="inv-disc" value="' + (((s.discount_cents)||0)/100).toFixed(2) + '" oninput="_invDraftState.discount_cents=Math.round(parseFloat(this.value||0)*100);showInvoiceModal();" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Discount $' + (s.coupon_code ? ' <span style="font-weight:600;color:var(--green,#0a7a3a);">(from ' + escHtml(s.coupon_code) + ')</span>' : '') + '</label>' +
+          '<input type="number" step="0.01" id="inv-disc" value="' + (((s.discount_cents)||0)/100).toFixed(2) + '" ' +
+            (s.coupon_code
+              ? 'disabled title="Locked while a coupon is applied — clear the coupon to edit." style="width:100%;padding:6px 8px;border:1px solid #ccc;background:#f5f5f5;border-radius:4px;cursor:not-allowed;"'
+              : 'oninput="_invDraftState.discount_cents=Math.round(parseFloat(this.value||0)*100);showInvoiceModal();" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"'
+            ) + '>' +
+        '</div>' +
         '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Terms</label><input type="text" id="inv-terms" value="' + escAttr(s.terms) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
       '</div>' +
 
@@ -3229,6 +3235,8 @@ async function saveInvoice(asSent) {
     internal_notes: _invDraftState.internal_notes,
     status: asSent ? 'sent' : 'draft',
     line_items: JSON.stringify(_invDraftItems),
+    coupon_code: _invDraftState.coupon_code || '',
+    coupon_discount_cents: Number(_invDraftState.coupon_discount_cents) || 0,
   };
 
   try {
@@ -3243,17 +3251,12 @@ async function saveInvoice(asSent) {
     if (!data.ok) { alert('Save failed: ' + (data.error || res.status)); return; }
     const invoiceId = _invDraftState.id || data.id;
 
-    // Stamp coupon code on the invoice + record redemption (idempotent).
+    // Record redemption (idempotent on coupon_id+invoice_id). Coupon fields
+    // are already persisted by the create/update call.
     if (_invDraftState.coupon_code && invoiceId) {
-      try {
-        await DB._pb('PATCH', 'invoices/records/' + invoiceId, {
-          coupon_code: _invDraftState.coupon_code,
-          coupon_discount_cents: Number(_invDraftState.coupon_discount_cents) || 0,
-        });
-      } catch (_) {}
       const subtotal = _invDraftItems.reduce((s, it) => s + ((+it.qty||0) * (+it.unit_cents||0)), 0);
       try {
-        await fetch(PB_URL + '/api/admin/coupons/redeem', {
+        const r = await fetch(PB_URL + '/api/admin/coupons/redeem', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
           body: JSON.stringify({
@@ -3263,7 +3266,9 @@ async function saveInvoice(asSent) {
             client_email: _invDraftState.client_email || '',
           }),
         });
-      } catch (_) {}
+        const rd = await r.json();
+        if (!rd.ok) console.warn('[coupon redeem]', rd.error || 'unknown');
+      } catch (err) { console.warn('[coupon redeem]', err.message); }
     }
 
     if (asSent && _invDraftState.id) {
