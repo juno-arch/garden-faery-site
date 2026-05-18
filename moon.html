@@ -226,10 +226,27 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
   color: var(--moon-dim); font-size: 1.6rem; cursor: pointer; line-height: 1;
 }
 
-/* Today card teaching line */
+/* Today card teaching line — integrative: cycle · season · sky + dosha line */
 .today-teach {
-  margin-top: 8px; padding: 10px 14px; font-size: 0.9rem; line-height: 1.45;
-  color: var(--moon-text); font-style: italic;
+  margin-top: 10px; padding: 12px 14px; line-height: 1.45;
+  color: var(--moon-text);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--moon-line);
+  border-radius: 12px;
+  text-align: left;
+}
+.today-teach .tt-coords {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 8px;
+  font-size: 0.74rem; letter-spacing: 0.3px;
+  color: var(--moon-dim);
+  margin-bottom: 6px;
+}
+.today-teach .tt-coords .tt-dot { opacity: 0.5; }
+.today-teach .tt-coords .tt-day { color: var(--moon-text); font-weight: 600; }
+.today-teach .tt-coords .tt-season { color: var(--moon-accent); font-weight: 600; }
+.today-teach .tt-coords .tt-sky { color: var(--moon-gold); font-weight: 600; }
+.today-teach .tt-line {
+  margin: 0; font-size: 0.92rem; line-height: 1.5; font-style: italic;
 }
 
 /* Today inner-season guide card (mirrors Learn deep-dive, accordion-styled) */
@@ -407,6 +424,59 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
 .birth-form .birth-clear {
   background: transparent; border: none; color: var(--moon-dim);
   font-size: 0.78rem; padding: 6px; cursor: pointer; text-decoration: underline;
+}
+
+/* Calendar subscription card */
+.cal-sub-card .cal-sub-desc {
+  font-size: 0.85rem; color: var(--moon-dim); line-height: 1.5; margin-bottom: 14px;
+}
+.cal-sub-card .cal-sub-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; padding: 12px;
+  background: linear-gradient(135deg, var(--moon-glow) 0%, var(--moon-pink) 100%);
+  color: var(--moon-bg); text-decoration: none;
+  border: none; border-radius: 14px;
+  font-family: inherit; font-weight: 700; font-size: 0.95rem;
+  box-shadow: 0 4px 18px rgba(181,139,255,0.35);
+}
+.cal-sub-card .cal-sub-btn:hover { filter: brightness(1.05); }
+.cal-sub-card .cal-sub-or {
+  text-align: center; font-size: 0.7rem; letter-spacing: 0.8px;
+  text-transform: uppercase; color: var(--moon-dim); margin: 14px 0 8px;
+}
+.cal-sub-card .cal-sub-url-row {
+  display: flex; gap: 8px; align-items: stretch;
+}
+.cal-sub-card .cal-sub-url {
+  flex: 1; min-width: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--moon-line);
+  border-radius: 10px;
+  color: var(--moon-text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  user-select: all;
+  line-height: 1.4;
+  display: flex; align-items: center;
+}
+.cal-sub-card .cal-sub-copy {
+  flex: 0 0 auto;
+  background: rgba(181,139,255,0.15);
+  border: 1px solid rgba(181,139,255,0.35);
+  color: var(--moon-accent);
+  border-radius: 10px;
+  padding: 0 14px;
+  font-family: inherit; font-size: 0.78rem; font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  transition: background 0.15s, color 0.15s;
+}
+.cal-sub-card .cal-sub-copy:hover { background: rgba(181,139,255,0.25); }
+.cal-sub-card .cal-sub-copy.copied { background: rgba(163,184,140,0.2); border-color: rgba(163,184,140,0.5); color: #c4d8b1; }
+.cal-sub-card .cal-sub-help {
+  font-size: 0.72rem; color: var(--moon-dim); margin-top: 10px; line-height: 1.5;
 }
 
 /* Fertile badge on Today card */
@@ -932,11 +1002,18 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
   </div>
 
   <!-- Subscribe calendar -->
-  <div class="card" data-section="settings">
+  <div class="card cal-sub-card" data-section="settings">
     <h3>📅 Subscribe to your moon days</h3>
-    <div style="font-size:0.82rem;color:var(--moon-dim);margin-bottom:10px;">Paste this URL into Google / Apple Calendar so your moon days auto-block on any booking tool.</div>
-    <div style="font-family:monospace;font-size:0.8rem;padding:10px 12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;word-break:break-all;user-select:all;">https://bookings.gardenfaery.love/moon-days.ics</div>
-    <div style="font-size:0.72rem;color:var(--moon-dim);margin-top:8px;">Logged period days + next 6 projected periods. Refreshes every 2 hours.</div>
+    <div class="cal-sub-desc">Auto-block period + projected days on any booking tool. Pick the path that matches your calendar.</div>
+    <a href="webcal://bookings.gardenfaery.love/moon-days.ics" class="btn cal-sub-btn">
+      <span aria-hidden="true">📅</span>&nbsp;Add to Apple / iOS Calendar
+    </a>
+    <div class="cal-sub-or">— or, paste this URL into Google / Outlook —</div>
+    <div class="cal-sub-url-row">
+      <code class="cal-sub-url" id="cal-sub-url">https://bookings.gardenfaery.love/moon-days.ics</code>
+      <button type="button" class="cal-sub-copy" onclick="copyCalSubUrl(this)" aria-label="Copy URL">Copy</button>
+    </div>
+    <div class="cal-sub-help">Logged period days + next 6 projected periods. Refreshes every 2 hours.</div>
   </div>
 
   <!-- Export -->
@@ -1610,6 +1687,27 @@ function renderSky() {
   }
 }
 
+function copyCalSubUrl(btn) {
+  const url = document.getElementById('cal-sub-url').textContent.trim();
+  const reset = () => setTimeout(() => {
+    btn.textContent = 'Copy'; btn.classList.remove('copied');
+  }, 1600);
+  const win = (label) => { btn.textContent = label; btn.classList.add('copied'); reset(); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => win('Copied'), () => fallback());
+  } else { fallback(); }
+  function fallback() {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      win('Copied');
+    } catch { btn.textContent = 'Copy failed'; reset(); }
+  }
+}
+
 function openLearnForCurrentPhase() {
   const last = periods.length ? periods[periods.length - 1] : null;
   const cd = last ? (daysBetween(last.start, todayStr()) + 1) : null;
@@ -1983,16 +2081,34 @@ function renderPatterns() {
 }
 
 // --- Daily teaching line for Today card ---
+// Weaves cycle phase + Ayurvedic dosha + sky moon-sign into one daily line.
+// Returns HTML — render() uses innerHTML so the strands can be styled.
+const PHASE_DOSHA = {
+  winter: { dosha: 'vata',  line: "Vata-soothing day. Warm, cooked, slow. The body is shedding — rest is the practice." },
+  spring: { dosha: 'kapha', line: "Kapha-light day. Move first, eat light, warm spices. The lining is rebuilding." },
+  summer: { dosha: 'pitta', line: "Pitta-cooling day. Bright food, hydration, no overdoing. Peak you — pace it." },
+  autumn: { dosha: 'vata',  line: "Vata-grounding day. Sweet root food, finish things, cut caffeine before bed." }
+};
 function dailyTeach(cycleDay) {
-  if (!cycleDay) return '';
+  const now = new Date();
+  const moonSign = signFromLongitude(moonLongitude(now));
+  const skyHTML = '<span class="tt-sky">Moon in ' + moonSign.name + ' ' + moonSign.glyph + '</span>';
+  if (!cycleDay) {
+    return '<div class="tt-coords">' + skyHTML + '</div>' +
+           '<p class="tt-line">Log a period to weave in your cycle. The sky guide is on the Sky tab.</p>';
+  }
   const key = phaseKey(cycleDay, avgCycle());
-  const map = {
-    winter: 'Low estrogen + progesterone. Your uterus is shedding. Rest is productive right now.',
-    spring: 'Estrogen is climbing — energy, libido, creativity on the rise. A follicle is growing in one ovary.',
-    summer: 'LH surge → follicle rupture → egg drop. Cervical mucus slippery. Fertile window peak.',
-    autumn: 'Progesterone rising (early) then crashing (late). Cozy mode. Be gentle with yourself.'
-  };
-  return map[key] || '';
+  if (!key) return '';
+  const pd = PHASE_DOSHA[key];
+  const seasonShort = (PHASE_LABELS[key] || '').split(' · ')[0]; // "Inner autumn"
+  const coords = '<div class="tt-coords">' +
+    '<span class="tt-day">Day ' + cycleDay + '</span>' +
+    '<span class="tt-dot">·</span>' +
+    '<span class="tt-season">' + seasonShort + '</span>' +
+    '<span class="tt-dot">·</span>' +
+    skyHTML +
+    '</div>';
+  return coords + '<p class="tt-line">' + pd.line + '</p>';
 }
 
 /* ---------- Icon library (inline SVGs, inherit currentColor) ---------- */
@@ -2050,18 +2166,18 @@ const FLOW_OPTIONS = [
   { v: 'heavy',    l: 'Heavy',    e: ICON.droplet_full, d: 'Soaking through often, clots' }
 ];
 const SYMPTOM_OPTIONS = [
-  { v: 'cramps',         l: 'Cramps',         e: ICON.tornado,   d: 'Lower-belly squeezing pain' },
-  { v: 'breast_tender',  l: 'Breast tender',  e: ICON.heart,     d: 'Sore or swollen breasts' },
-  { v: 'headache',       l: 'Headache',       e: ICON.brain,     d: 'Head or temple pain' },
-  { v: 'bloating',       l: 'Bloated',        e: ICON.balloon,   d: 'Puffy, distended belly' },
-  { v: 'back_pain',      l: 'Back pain',      e: ICON.bone,      d: 'Low-back ache' },
-  { v: 'fatigue',        l: 'Fatigue',        e: ICON.bed,       d: 'Wiped out, low energy' },
-  { v: 'nausea',         l: 'Nausea',         e: ICON.frown,     d: 'Queasy, off food' },
-  { v: 'acne',           l: 'Acne',           e: ICON.sparkles,  d: 'Hormonal breakouts' },
-  { v: 'cravings',       l: 'Cravings',       e: ICON.cookie,    d: 'Salt, sugar, or carbs calling' },
-  { v: 'hot_flashes',    l: 'Hot flashes',    e: ICON.flame,     d: 'Sudden body heat' },
-  { v: 'dizzy',          l: 'Dizzy',          e: ICON.spiral,    d: 'Lightheaded or faint' },
-  { v: 'insomnia',       l: 'Insomnia',       e: ICON.moon,      d: 'Trouble falling or staying asleep' }
+  { v: 'cramps',         l: 'Cramps',         e: ICON.tornado,   d: 'Lower-belly squeeze · vata' },
+  { v: 'breast_tender',  l: 'Breast tender',  e: ICON.heart,     d: 'Sore, swollen · kapha' },
+  { v: 'headache',       l: 'Headache',       e: ICON.brain,     d: 'Head/temple pain · pitta' },
+  { v: 'bloating',       l: 'Bloated',        e: ICON.balloon,   d: 'Heavy, puffy belly · kapha' },
+  { v: 'back_pain',      l: 'Back pain',      e: ICON.bone,      d: 'Low-back ache · vata' },
+  { v: 'fatigue',        l: 'Fatigue',        e: ICON.bed,       d: 'Wiped out · vata' },
+  { v: 'nausea',         l: 'Nausea',         e: ICON.frown,     d: 'Queasy, off food · pitta' },
+  { v: 'acne',           l: 'Acne',           e: ICON.sparkles,  d: 'Hormonal breakout · pitta' },
+  { v: 'cravings',       l: 'Cravings',       e: ICON.cookie,    d: 'Salt or sugar pull · kapha' },
+  { v: 'hot_flashes',    l: 'Hot flashes',    e: ICON.flame,     d: 'Body running hot · pitta' },
+  { v: 'dizzy',          l: 'Dizzy',          e: ICON.spiral,    d: 'Lightheaded · vata' },
+  { v: 'insomnia',       l: 'Insomnia',       e: ICON.moon,      d: "Sleep won't come · vata" }
 ];
 const MOOD_OPTIONS = [
   { v: 'happy',        l: 'Happy',        e: ICON.smile,        d: 'Light, smiling, content' },
@@ -2069,13 +2185,13 @@ const MOOD_OPTIONS = [
   { v: 'loved',        l: 'Loved',        e: ICON.heart_solid,  d: 'Warm, connected, held' },
   { v: 'energetic',    l: 'Energetic',    e: ICON.zap,          d: 'Buzzing, motivated' },
   { v: 'focused',      l: 'Focused',      e: ICON.target,       d: 'Clear-headed, sharp' },
-  { v: 'anxious',      l: 'Anxious',      e: ICON.cloud_rain,   d: 'Restless, worried' },
-  { v: 'irritable',    l: 'Irritable',    e: ICON.frown,        d: 'Short fuse, snappy' },
-  { v: 'sad',          l: 'Sad',          e: ICON.cloud_rain,   d: 'Down, tearful' },
-  { v: 'low',          l: 'Low',          e: ICON.battery_low,  d: 'Flat, blah, unmotivated' },
-  { v: 'angry',        l: 'Angry',        e: ICON.alert,        d: 'Hot, reactive' },
-  { v: 'emotional',    l: 'Emotional',    e: ICON.meh,          d: 'Feeling everything strongly' },
-  { v: 'overwhelmed',  l: 'Overwhelmed',  e: ICON.waves,        d: 'Too much, drowning' }
+  { v: 'anxious',      l: 'Anxious',      e: ICON.cloud_rain,   d: 'Restless, worried · vata' },
+  { v: 'irritable',    l: 'Irritable',    e: ICON.frown,        d: 'Snappy, short fuse · pitta' },
+  { v: 'sad',          l: 'Sad',          e: ICON.cloud_rain,   d: 'Down, tearful · kapha' },
+  { v: 'low',          l: 'Low',          e: ICON.battery_low,  d: 'Flat, blah · kapha' },
+  { v: 'angry',        l: 'Angry',        e: ICON.alert,        d: 'Hot, reactive · pitta' },
+  { v: 'emotional',    l: 'Emotional',    e: ICON.meh,          d: 'Feeling it all · vata' },
+  { v: 'overwhelmed',  l: 'Overwhelmed',  e: ICON.waves,        d: 'Too much · vata' }
 ];
 const SEX_OPTIONS = [
   { v: 'solo',          l: 'Solo',          e: ICON.heart,       d: 'Masturbation' },
@@ -2452,8 +2568,8 @@ function render() {
     herbWrap.style.display = 'none';
   }
 
-  // Daily teaching line
-  document.getElementById('t-teach').textContent = dailyTeach(cycleDay);
+  // Daily teaching line — weaves cycle + Ayurveda + sky into one
+  document.getElementById('t-teach').innerHTML = dailyTeach(cycleDay);
 
   // Inner-season guide — auto-switches with current phase
   const seasonCard = document.getElementById('t-season-card');
