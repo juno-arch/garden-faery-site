@@ -611,6 +611,13 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
     <button class="log-today-btn" onclick="openLogToday()">+ Log today</button>
   </div>
 
+  <!-- Inner season guide (auto-switches with current phase) -->
+  <div class="card" data-section="today" id="t-season-card" style="display:none;">
+    <h3 id="t-season-title" style="font-family:Prata,serif;font-size:1.15rem;margin:0 0 4px;color:var(--moon-accent);letter-spacing:0.3px;display:flex;align-items:center;gap:8px;"><span id="t-season-emoji"></span><span id="t-season-titletxt"></span></h3>
+    <div style="font-size:0.78rem;color:var(--moon-dim);font-style:italic;margin:0 0 12px;">Your guide for this phase. Full deep-dive on the <a href="#" onclick="openLearnForCurrentPhase();return false;" style="color:var(--moon-accent);text-decoration:none;border-bottom:1px dashed var(--moon-line);">Learn tab</a>.</div>
+    <div class="learn-body" id="t-season-body"></div>
+  </div>
+
   <!-- Calendar -->
   <div class="card" data-section="calendar">
     <div class="cal-header">
@@ -1236,6 +1243,13 @@ function renderLearn() {
   body.innerHTML = '<h3 style="font-family:Prata,serif;font-size:1.15rem;margin:0 0 12px;color:var(--moon-accent);letter-spacing:0.3px;">' + c.title + '</h3>' + c.html;
 }
 function setLearnTab(k) { learnTab = k; renderLearn(); }
+function openLearnForCurrentPhase() {
+  const last = periods.length ? periods[periods.length - 1] : null;
+  const cd = last ? (daysBetween(last.start, todayStr()) + 1) : null;
+  const k = phaseKey(cd, avgCycle());
+  if (k) setLearnTab(k);
+  setTab('learn');
+}
 
 // --- Hormone curves (normalized 0-100 across a 28-day cycle) ---
 function hE(d)   { if (d <= 13) return 12 + (d-1)*7; if (d === 14) return 70; if (d === 15) return 50; if (d <= 22) return 50 + (d-15)*3.5; return Math.max(18, 75 - (d-22)*11); }
@@ -1952,6 +1966,18 @@ function render() {
 
   // Daily teaching line
   document.getElementById('t-teach').textContent = dailyTeach(cycleDay);
+
+  // Inner-season guide — auto-switches with current phase
+  const seasonCard = document.getElementById('t-season-card');
+  if (todayPhase && LEARN_CONTENT[todayPhase]) {
+    const c = LEARN_CONTENT[todayPhase];
+    document.getElementById('t-season-emoji').textContent = c.emoji;
+    document.getElementById('t-season-titletxt').textContent = c.title;
+    document.getElementById('t-season-body').innerHTML = c.html;
+    seasonCard.style.display = '';
+  } else {
+    seasonCard.style.display = 'none';
+  }
 
   // Fertile badge
   const fs = fertileStatusToday();
