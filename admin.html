@@ -4310,9 +4310,11 @@ async function syncBank() {
       return;
     }
     const parts = [];
-    if (typeof data.inserted === 'number')   parts.push(data.inserted + ' new');
-    if (typeof data.matched === 'number')    parts.push(data.matched + ' auto-matched');
-    if (data.multi_match)                    parts.push(data.multi_match + ' need review');
+    if (typeof data.inserted === 'number')         parts.push(data.inserted + ' new');
+    if (typeof data.matched === 'number')          parts.push(data.matched + ' deposit-matched');
+    if (typeof data.auto_categorized === 'number' && data.auto_categorized > 0)
+                                                   parts.push(data.auto_categorized + ' ✨ auto-categorized');
+    if (data.multi_match)                          parts.push(data.multi_match + ' need review');
     alert('Bank sync complete: ' + (parts.join(' · ') || 'no new transactions'));
 
     // Capture balance for the Bank tab card if returned.
