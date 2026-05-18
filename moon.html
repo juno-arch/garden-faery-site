@@ -515,17 +515,27 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
   font-size: 0.75rem; font-weight: 700; color: var(--moon-dim);
   letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;
 }
-.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip {
   background: rgba(255,255,255,0.05);
   border: 1px solid var(--moon-line);
-  border-radius: 20px;
+  border-radius: 16px;
   padding: 8px 14px;
   font-family: inherit; font-size: 0.82rem; font-weight: 600;
   color: var(--moon-text); cursor: pointer;
   transition: all 0.12s;
-  display: inline-flex; align-items: center; gap: 5px;
+  display: inline-flex; align-items: center; gap: 8px;
+  text-align: left;
 }
+.chip-ico { flex: 0 0 auto; display: inline-flex; align-items: center; }
+.chip-txt { display: inline-flex; flex-direction: column; align-items: flex-start; line-height: 1.2; gap: 2px; }
+.chip-label { font-size: 0.82rem; font-weight: 600; }
+.chip-desc {
+  font-size: 0.66rem; font-weight: 500;
+  color: var(--moon-dim);
+  letter-spacing: 0.2px;
+}
+.chip.on .chip-desc { color: inherit; opacity: 0.78; }
 .chip:hover { background: rgba(255,255,255,0.12); }
 .chip.on {
   background: rgba(181,139,255,0.28);
@@ -1652,55 +1662,55 @@ const MOON_PHASE = {
 
 /* ---------- Catalog of options (all chip labels) ---------- */
 const FLOW_OPTIONS = [
-  { v: 'none',     l: 'None',     e: '·'  },
-  { v: 'spotting', l: 'Spotting', e: '·'  },
-  { v: 'light',    l: 'Light',    e: ICON.droplet },
-  { v: 'medium',   l: 'Medium',   e: ICON.droplets },
-  { v: 'heavy',    l: 'Heavy',    e: ICON.droplet_full }
+  { v: 'none',     l: 'None',     e: '·',              d: 'No bleeding' },
+  { v: 'spotting', l: 'Spotting', e: '·',              d: 'A few drops, liner is enough' },
+  { v: 'light',    l: 'Light',    e: ICON.droplet,     d: '1–2 pads/tampons a day' },
+  { v: 'medium',   l: 'Medium',   e: ICON.droplets,    d: 'Typical period flow' },
+  { v: 'heavy',    l: 'Heavy',    e: ICON.droplet_full, d: 'Soaking through often, clots' }
 ];
 const SYMPTOM_OPTIONS = [
-  { v: 'cramps',         l: 'Cramps',          e: ICON.tornado },
-  { v: 'breast_tender',  l: 'Breast tender',   e: ICON.heart },
-  { v: 'headache',       l: 'Headache',        e: ICON.brain },
-  { v: 'bloating',       l: 'Bloated',         e: ICON.balloon },
-  { v: 'back_pain',      l: 'Back pain',       e: ICON.bone },
-  { v: 'fatigue',        l: 'Fatigue',         e: ICON.bed },
-  { v: 'nausea',         l: 'Nausea',          e: ICON.frown },
-  { v: 'acne',           l: 'Acne',            e: ICON.sparkles },
-  { v: 'cravings',       l: 'Cravings',        e: ICON.cookie },
-  { v: 'hot_flashes',    l: 'Hot flashes',     e: ICON.flame },
-  { v: 'dizzy',          l: 'Dizzy',           e: ICON.spiral },
-  { v: 'insomnia',       l: 'Insomnia',        e: ICON.moon }
+  { v: 'cramps',         l: 'Cramps',         e: ICON.tornado,   d: 'Lower-belly squeezing pain' },
+  { v: 'breast_tender',  l: 'Breast tender',  e: ICON.heart,     d: 'Sore or swollen breasts' },
+  { v: 'headache',       l: 'Headache',       e: ICON.brain,     d: 'Head or temple pain' },
+  { v: 'bloating',       l: 'Bloated',        e: ICON.balloon,   d: 'Puffy, distended belly' },
+  { v: 'back_pain',      l: 'Back pain',      e: ICON.bone,      d: 'Low-back ache' },
+  { v: 'fatigue',        l: 'Fatigue',        e: ICON.bed,       d: 'Wiped out, low energy' },
+  { v: 'nausea',         l: 'Nausea',         e: ICON.frown,     d: 'Queasy, off food' },
+  { v: 'acne',           l: 'Acne',           e: ICON.sparkles,  d: 'Hormonal breakouts' },
+  { v: 'cravings',       l: 'Cravings',       e: ICON.cookie,    d: 'Salt, sugar, or carbs calling' },
+  { v: 'hot_flashes',    l: 'Hot flashes',    e: ICON.flame,     d: 'Sudden body heat' },
+  { v: 'dizzy',          l: 'Dizzy',          e: ICON.spiral,    d: 'Lightheaded or faint' },
+  { v: 'insomnia',       l: 'Insomnia',       e: ICON.moon,      d: 'Trouble falling or staying asleep' }
 ];
 const MOOD_OPTIONS = [
-  { v: 'happy',        l: 'Happy',        e: ICON.smile },
-  { v: 'calm',         l: 'Calm',         e: ICON.leaf },
-  { v: 'loved',        l: 'Loved',        e: ICON.heart_solid },
-  { v: 'energetic',    l: 'Energetic',    e: ICON.zap },
-  { v: 'focused',      l: 'Focused',      e: ICON.target },
-  { v: 'anxious',      l: 'Anxious',      e: ICON.cloud_rain },
-  { v: 'irritable',    l: 'Irritable',    e: ICON.frown },
-  { v: 'sad',          l: 'Sad',          e: ICON.cloud_rain },
-  { v: 'low',          l: 'Low',          e: ICON.battery_low },
-  { v: 'angry',        l: 'Angry',        e: ICON.alert },
-  { v: 'emotional',    l: 'Emotional',    e: ICON.meh },
-  { v: 'overwhelmed',  l: 'Overwhelmed',  e: ICON.waves }
+  { v: 'happy',        l: 'Happy',        e: ICON.smile,        d: 'Light, smiling, content' },
+  { v: 'calm',         l: 'Calm',         e: ICON.leaf,         d: 'Settled, even-keeled' },
+  { v: 'loved',        l: 'Loved',        e: ICON.heart_solid,  d: 'Warm, connected, held' },
+  { v: 'energetic',    l: 'Energetic',    e: ICON.zap,          d: 'Buzzing, motivated' },
+  { v: 'focused',      l: 'Focused',      e: ICON.target,       d: 'Clear-headed, sharp' },
+  { v: 'anxious',      l: 'Anxious',      e: ICON.cloud_rain,   d: 'Restless, worried' },
+  { v: 'irritable',    l: 'Irritable',    e: ICON.frown,        d: 'Short fuse, snappy' },
+  { v: 'sad',          l: 'Sad',          e: ICON.cloud_rain,   d: 'Down, tearful' },
+  { v: 'low',          l: 'Low',          e: ICON.battery_low,  d: 'Flat, blah, unmotivated' },
+  { v: 'angry',        l: 'Angry',        e: ICON.alert,        d: 'Hot, reactive' },
+  { v: 'emotional',    l: 'Emotional',    e: ICON.meh,          d: 'Feeling everything strongly' },
+  { v: 'overwhelmed',  l: 'Overwhelmed',  e: ICON.waves,        d: 'Too much, drowning' }
 ];
 const SEX_OPTIONS = [
-  { v: 'solo',          l: 'Solo',          e: ICON.heart },
-  { v: 'partner',       l: 'Partner',       e: ICON.users },
-  { v: 'protected',     l: 'Protected',     e: ICON.shield },
-  { v: 'unprotected',   l: 'Unprotected',   e: ICON.sprout },
-  { v: 'orgasm',        l: 'Orgasm',        e: ICON.sparkles },
-  { v: 'high_libido',   l: 'High libido',   e: ICON.flame },
-  { v: 'low_libido',    l: 'Low libido',    e: ICON.cloud_rain }
+  { v: 'solo',          l: 'Solo',          e: ICON.heart,       d: 'Masturbation' },
+  { v: 'partner',       l: 'Partner',       e: ICON.users,       d: 'Sex with partner' },
+  { v: 'protected',     l: 'Protected',     e: ICON.shield,      d: 'Condom or barrier used' },
+  { v: 'unprotected',   l: 'Unprotected',   e: ICON.sprout,      d: 'No barrier' },
+  { v: 'orgasm',        l: 'Orgasm',        e: ICON.sparkles,    d: 'Climaxed' },
+  { v: 'high_libido',   l: 'High libido',   e: ICON.flame,       d: 'Strong desire' },
+  { v: 'low_libido',    l: 'Low libido',    e: ICON.cloud_rain,  d: 'No interest' }
 ];
 const DISCHARGE_OPTIONS = [
-  { v: 'dry',       l: 'Dry',        e: '·' },
-  { v: 'sticky',    l: 'Sticky',     e: '·' },
-  { v: 'creamy',    l: 'Creamy',     e: '·' },
-  { v: 'watery',    l: 'Watery',     e: '·' },
-  { v: 'egg_white', l: 'Egg white',  e: '·' }
+  { v: 'dry',       l: 'Dry',       e: '·', d: 'Nothing on underwear' },
+  { v: 'sticky',    l: 'Sticky',    e: '·', d: 'Thick, gluey, not stretchy' },
+  { v: 'creamy',    l: 'Creamy',    e: '·', d: 'Lotion-like, white or yellow' },
+  { v: 'watery',    l: 'Watery',    e: '·', d: 'Thin, wet, slippery' },
+  { v: 'egg_white', l: 'Egg white', e: '·', d: 'Clear, stretchy — fertile window' }
 ];
 
 /* ---------- Moon phase math ---------- */
@@ -2134,8 +2144,11 @@ function buildChips() {
     const c = document.getElementById(containerId);
     c.innerHTML = options.map(o => {
       return '<button type="button" class="chip ' + kind + '" data-v="' + o.v + '" data-kind="' + kind + '" data-multi="' + (multi ? '1' : '0') + '">' +
-        (o.e && o.e !== '·' ? '<span>' + o.e + '</span>' : '') +
-        '<span>' + o.l + '</span>' +
+        (o.e && o.e !== '·' ? '<span class="chip-ico">' + o.e + '</span>' : '') +
+        '<span class="chip-txt">' +
+          '<span class="chip-label">' + o.l + '</span>' +
+          (o.d ? '<span class="chip-desc">' + o.d + '</span>' : '') +
+        '</span>' +
       '</button>';
     }).join('');
     c.querySelectorAll('.chip').forEach(btn => btn.addEventListener('click', onChipTap));
