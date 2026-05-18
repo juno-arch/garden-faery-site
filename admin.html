@@ -920,8 +920,9 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
         <textarea id="sr-notes" rows="2"></textarea>
       </div>
       <div class="form-group" id="sr-line-items-wrap" style="display:none;">
-        <label>Line items (auto-parsed)</label>
-        <div id="sr-line-items" style="font-size:0.8rem;color:var(--gray-600);background:var(--gray-100);padding:8px;border-radius:6px;max-height:120px;overflow-y:auto;"></div>
+        <label>Line items — check personal ones</label>
+        <div id="sr-line-items" style="font-size:0.8rem;background:var(--gray-100);padding:8px;border-radius:6px;max-height:180px;overflow-y:auto;"></div>
+        <div id="sr-split-summary" style="font-size:0.8rem;margin-top:6px;padding:6px 8px;background:var(--cream);border-radius:6px;display:none;"></div>
       </div>
       <div class="modal-actions">
         <button class="modal-btn secondary" onclick="closeModal('modal-scan-receipt')">Cancel</button>
@@ -2856,6 +2857,61 @@ function onExpCardChange() {
 // ============================================
 let _srImageDataUrl = '';
 let _srParsed = null;
+let _srPersonalFlags = []; // parallel to _srParsed.line_items — true = personal
+
+function onScanPersonalToggle(idx, isPersonal) {
+  _srPersonalFlags[idx] = isPersonal;
+  updateScanSplitSummary();
+}
+
+// Compute biz/personal subtotals from line items + tax pro-ration.
+function computeScanSplit() {
+  const p = _srParsed || {};
+  const lis = Array.isArray(p.line_items) ? p.line_items : [];
+  const total = Number(p.amount) || 0;
+  if (!lis.length) return { biz: total, personal: 0, hasSplit: false };
+
+  let bizLineSum = 0;
+  let personalLineSum = 0;
+  for (let i = 0; i < lis.length; i++) {
+    const amt = Number(lis[i].amount) || 0;
+    if (_srPersonalFlags[i]) personalLineSum += amt;
+    else                     bizLineSum += amt;
+  }
+  const lineSum = bizLineSum + personalLineSum;
+  // Pro-rate tax + tip + any difference proportionally onto the biz/personal split.
+  const overhead = total - lineSum; // tax + tip + rounding
+  let bizOverhead = 0, personalOverhead = 0;
+  if (lineSum > 0) {
+    bizOverhead      = overhead * (bizLineSum / lineSum);
+    personalOverhead = overhead - bizOverhead;
+  } else if (overhead > 0) {
+    // No lines at all — default the entire amount to biz.
+    bizOverhead = overhead;
+  }
+  const biz      = Math.round((bizLineSum + bizOverhead) * 100) / 100;
+  const personal = Math.round(((personalLineSum + personalOverhead)) * 100) / 100;
+  const hasSplit = personal > 0.005;
+  return { biz, personal, hasSplit };
+}
+
+function updateScanSplitSummary() {
+  const split = computeScanSplit();
+  const el = document.getElementById('sr-split-summary');
+  if (!split.hasSplit) {
+    el.style.display = 'none';
+    return;
+  }
+  el.style.display = '';
+  el.innerHTML =
+    '<div style="display:flex;justify-content:space-between;font-weight:600;color:var(--plum);">' +
+      '<span>Biz (deductible):</span><span>$' + split.biz.toFixed(2) + '</span>' +
+    '</div>' +
+    '<div style="display:flex;justify-content:space-between;color:var(--gray-600);">' +
+      '<span>Personal:</span><span>$' + split.personal.toFixed(2) + '</span>' +
+    '</div>' +
+    '<div style="font-size:0.7rem;color:var(--gray-400);margin-top:2px;">Tax/tip pro-rated proportionally · single expense row will be saved with the split tracked</div>';
+}
 
 function openScanReceipt() {
   resetScanReceipt();
@@ -2932,19 +2988,26 @@ function populateScanConfirm(p) {
   });
   sel.innerHTML = opts;
 
-  // Show line items if present
+  // Show line items with per-row "personal" checkboxes for mixed receipts.
+  // Default: every item is biz (unchecked). User checks the personal ones.
   const lis = Array.isArray(p.line_items) ? p.line_items : [];
   const wrap = document.getElementById('sr-line-items-wrap');
   if (lis.length) {
     wrap.style.display = '';
-    document.getElementById('sr-line-items').innerHTML = lis.map(li =>
-      '<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--gray-200);">' +
-        '<span>' + escapeHtml(String(li.description || '')) + '</span>' +
-        '<span>$' + (Number(li.amount) || 0).toFixed(2) + '</span>' +
-      '</div>'
+    _srPersonalFlags = new Array(lis.length).fill(false);
+    document.getElementById('sr-line-items').innerHTML = lis.map((li, i) =>
+      '<label style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--gray-200);gap:8px;cursor:pointer;">' +
+        '<span style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;">' +
+          '<input type="checkbox" data-li-idx="' + i + '" onchange="onScanPersonalToggle(' + i + ', this.checked)">' +
+          '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(String(li.description || '')) + '</span>' +
+        '</span>' +
+        '<span style="flex-shrink:0;">$' + (Number(li.amount) || 0).toFixed(2) + '</span>' +
+      '</label>'
     ).join('');
+    updateScanSplitSummary();
   } else {
     wrap.style.display = 'none';
+    _srPersonalFlags = [];
   }
 
   // Header info — show what Claude extracted vs your overrides
@@ -2968,14 +3031,34 @@ async function submitScanReceipt() {
     return;
   }
 
+  // Compute biz/personal split (uses checkboxes from line items)
+  const split = computeScanSplit();
+
+  // Attach per-line personal flags to the saved line_items so we can re-display later.
+  let liToSave = '';
+  if (_srParsed && Array.isArray(_srParsed.line_items) && _srParsed.line_items.length) {
+    liToSave = JSON.stringify(_srParsed.line_items.map((li, i) => ({
+      description: li.description,
+      amount: li.amount,
+      personal: !!_srPersonalFlags[i],
+    })));
+  }
+
+  let notesFinal = notes;
+  if (split.hasSplit) {
+    notesFinal = (notes ? notes + '\n' : '') +
+      'Receipt split: biz $' + split.biz.toFixed(2) + ' · personal $' + split.personal.toFixed(2);
+  }
+
   const payload = {
     date: date,
     vendor: vendor,
     amount: amount,
+    biz_amount: split.biz,
+    personal_amount: split.personal,
     category: category,
-    notes: notes,
-    line_items: _srParsed && Array.isArray(_srParsed.line_items) && _srParsed.line_items.length
-      ? JSON.stringify(_srParsed.line_items) : '',
+    notes: notesFinal,
+    line_items: liToSave,
     card_last4: _srParsed && _srParsed.card_last4 || '',
     on_biz_account: true,
     source: 'scan_admin',
@@ -2992,11 +3075,14 @@ async function submitScanReceipt() {
       showScanError('Save failed: ' + (data.error || resp.status));
       return;
     }
-    const matchMsg = data.bank_transaction_id
+    let matchMsg = data.bank_transaction_id
       ? '✓ Saved and auto-matched to bank transaction.'
       : (data.review_status === 'possible_duplicate'
           ? '⚠ Saved as possible duplicate — review in Expenses.'
           : '✓ Saved as pending review. Will auto-match when the bank transaction arrives.');
+    if (split.hasSplit) {
+      matchMsg += '\n\nBiz: $' + split.biz.toFixed(2) + ' (deductible)\nPersonal: $' + split.personal.toFixed(2);
+    }
     alert(matchMsg);
     closeModal('modal-scan-receipt');
     // Refresh expenses if visible
