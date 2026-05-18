@@ -877,6 +877,68 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
   </div>
 </div>
 
+<!-- Scan Receipt modal — photo → Claude OCR → confirm → ingest -->
+<div class="modal-overlay" id="modal-scan-receipt">
+  <div class="modal">
+    <h2>📸 Scan receipt</h2>
+    <div id="sr-step-pick" class="sr-step">
+      <p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:14px;">Snap a photo of the receipt or pick one from your photos. Claude reads it and pre-fills the fields. You confirm before saving.</p>
+      <input type="file" id="sr-file" accept="image/*" capture="environment" style="display:none;" onchange="onScanReceiptFile(event)">
+      <button class="modal-btn primary" style="width:100%;padding:14px;font-size:1rem;" onclick="document.getElementById('sr-file').click()">📷 Take photo / pick image</button>
+      <div class="modal-actions" style="margin-top:14px;">
+        <button class="modal-btn secondary" onclick="closeModal('modal-scan-receipt')">Cancel</button>
+      </div>
+    </div>
+
+    <div id="sr-step-reading" class="sr-step" style="display:none;text-align:center;padding:24px 0;">
+      <div style="font-size:0.9rem;color:var(--gray-600);margin-bottom:8px;">Reading receipt…</div>
+      <img id="sr-preview" src="" alt="" style="max-width:200px;max-height:240px;border-radius:8px;box-shadow:var(--shadow);">
+      <div style="margin-top:14px;font-size:0.8rem;color:var(--gray-400);">~3-6 sec via Claude API</div>
+    </div>
+
+    <div id="sr-step-confirm" class="sr-step" style="display:none;">
+      <div id="sr-confirm-info" style="margin-bottom:10px;font-size:0.8rem;color:var(--gray-600);"></div>
+      <img id="sr-preview-small" src="" alt="" style="max-width:90px;max-height:120px;border-radius:6px;float:right;margin:0 0 8px 8px;">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="sr-date">
+      </div>
+      <div class="form-group">
+        <label>Vendor</label>
+        <input type="text" id="sr-vendor">
+      </div>
+      <div class="form-group">
+        <label>Amount ($)</label>
+        <input type="number" id="sr-amount" step="0.01" min="0">
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="sr-category"></select>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="sr-notes" rows="2"></textarea>
+      </div>
+      <div class="form-group" id="sr-line-items-wrap" style="display:none;">
+        <label>Line items (auto-parsed)</label>
+        <div id="sr-line-items" style="font-size:0.8rem;color:var(--gray-600);background:var(--gray-100);padding:8px;border-radius:6px;max-height:120px;overflow-y:auto;"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn secondary" onclick="closeModal('modal-scan-receipt')">Cancel</button>
+        <button class="modal-btn primary" onclick="submitScanReceipt()">Save expense</button>
+      </div>
+    </div>
+
+    <div id="sr-step-error" class="sr-step" style="display:none;">
+      <div id="sr-error-msg" style="color:var(--red);background:var(--red-light);padding:12px;border-radius:8px;font-size:0.9rem;margin-bottom:12px;"></div>
+      <div class="modal-actions">
+        <button class="modal-btn secondary" onclick="closeModal('modal-scan-receipt')">Close</button>
+        <button class="modal-btn primary" onclick="resetScanReceipt()">Try again</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Categorize bank transaction modal -->
 <div class="modal-overlay" id="modal-categorize-bank">
   <div class="modal">
@@ -2556,6 +2618,7 @@ async function renderExpenses() {
         <select onchange="expenseViewYear=this.value;expenseViewMonth='all';renderExpenses()" style="flex:0 0 100px;padding:8px;border-radius:8px;border:1px solid var(--gray-200);">${yearOpts}</select>
         <select onchange="expenseViewMonth=this.value;renderExpenses()" style="flex:1;min-width:140px;padding:8px;border-radius:8px;border:1px solid var(--gray-200);">${monthOpts}</select>
         <button class="modal-btn primary" style="padding:8px 12px;" onclick="openExpenseModal()">+ Add</button>
+        <button class="modal-btn secondary" style="padding:8px 12px;" onclick="openScanReceipt()" title="Scan a receipt with your phone camera — Claude reads the image and pre-fills the fields">📸 Scan</button>
         <button class="modal-btn secondary" style="padding:8px 12px;" onclick="exportExpenseCsv()" title="Download a ZIP of the CSV plus all attached receipt photos for the selected scope">Export</button>
       </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;">
@@ -2785,6 +2848,164 @@ function onExpCardChange() {
   // The personal Coast Central account leaves the checkbox alone.
   if (card === 'coast_central_biz') {
     document.getElementById('exp-biz').checked = true;
+  }
+}
+
+// ============================================
+// SCAN RECEIPT (photo → Claude OCR → confirm → ingest)
+// ============================================
+let _srImageDataUrl = '';
+let _srParsed = null;
+
+function openScanReceipt() {
+  resetScanReceipt();
+  document.getElementById('modal-scan-receipt').classList.add('open');
+}
+
+function resetScanReceipt() {
+  _srImageDataUrl = '';
+  _srParsed = null;
+  document.querySelectorAll('#modal-scan-receipt .sr-step').forEach(s => s.style.display = 'none');
+  document.getElementById('sr-step-pick').style.display = '';
+  document.getElementById('sr-file').value = '';
+}
+
+function showScanStep(stepId) {
+  document.querySelectorAll('#modal-scan-receipt .sr-step').forEach(s => s.style.display = 'none');
+  document.getElementById(stepId).style.display = '';
+}
+
+async function onScanReceiptFile(evt) {
+  const file = evt.target.files && evt.target.files[0];
+  if (!file) return;
+
+  // Read as data URL for both preview and upload
+  const reader = new FileReader();
+  reader.onload = async () => {
+    _srImageDataUrl = String(reader.result || '');
+    document.getElementById('sr-preview').src = _srImageDataUrl;
+    showScanStep('sr-step-reading');
+
+    try {
+      const resp = await fetch(PB_URL + '/api/admin/ocr-receipt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+        body: JSON.stringify({ image_data_url: _srImageDataUrl }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) {
+        showScanError((data.error || ('HTTP ' + resp.status)) + (data.reason ? ' — ' + data.reason : ''));
+        return;
+      }
+      _srParsed = data.parsed || {};
+      populateScanConfirm(_srParsed);
+      showScanStep('sr-step-confirm');
+    } catch (err) {
+      showScanError('Network error: ' + err.message);
+    }
+  };
+  reader.onerror = () => showScanError('Could not read the image file.');
+  reader.readAsDataURL(file);
+}
+
+function showScanError(msg) {
+  document.getElementById('sr-error-msg').textContent = msg;
+  showScanStep('sr-step-error');
+}
+
+function populateScanConfirm(p) {
+  document.getElementById('sr-preview-small').src = _srImageDataUrl;
+  document.getElementById('sr-date').value = p.date || formatDate(new Date());
+  document.getElementById('sr-vendor').value = p.vendor || '';
+  document.getElementById('sr-amount').value = p.amount ? Number(p.amount).toFixed(2) : '';
+  document.getElementById('sr-notes').value = p.notes || '';
+
+  // Build category dropdown (reuse EXPENSE_CATEGORIES with Claude's guess pre-selected)
+  const sel = document.getElementById('sr-category');
+  let opts = '<option value="">— pick a category —</option>';
+  categoryGroups().forEach(g => {
+    opts += '<optgroup label="' + escapeHtml(g.name) + '">';
+    g.items.forEach(c => {
+      opts += '<option value="' + c.v + '"' + (c.v === p.category_guess ? ' selected' : '') + '>' + escapeHtml(c.l) + '</option>';
+    });
+    opts += '</optgroup>';
+  });
+  sel.innerHTML = opts;
+
+  // Show line items if present
+  const lis = Array.isArray(p.line_items) ? p.line_items : [];
+  const wrap = document.getElementById('sr-line-items-wrap');
+  if (lis.length) {
+    wrap.style.display = '';
+    document.getElementById('sr-line-items').innerHTML = lis.map(li =>
+      '<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--gray-200);">' +
+        '<span>' + escapeHtml(String(li.description || '')) + '</span>' +
+        '<span>$' + (Number(li.amount) || 0).toFixed(2) + '</span>' +
+      '</div>'
+    ).join('');
+  } else {
+    wrap.style.display = 'none';
+  }
+
+  // Header info — show what Claude extracted vs your overrides
+  let info = '<strong>Claude\'s read:</strong> ';
+  info += escapeHtml(p.vendor || '?') + ' · $' + (Number(p.amount) || 0).toFixed(2) + ' · ' + escapeHtml(p.date || '?');
+  if (p.tax)            info += ' · tax $' + Number(p.tax).toFixed(2);
+  if (p.payment_method) info += ' · ' + escapeHtml(p.payment_method);
+  if (p.card_last4)     info += ' •••' + escapeHtml(p.card_last4);
+  document.getElementById('sr-confirm-info').innerHTML = info;
+}
+
+async function submitScanReceipt() {
+  const date = document.getElementById('sr-date').value;
+  const vendor = document.getElementById('sr-vendor').value.trim();
+  const amount = parseFloat(document.getElementById('sr-amount').value);
+  const category = document.getElementById('sr-category').value;
+  const notes = document.getElementById('sr-notes').value.trim();
+
+  if (!date || !vendor || !(amount > 0)) {
+    alert('Date, vendor, and a positive amount are required.');
+    return;
+  }
+
+  const payload = {
+    date: date,
+    vendor: vendor,
+    amount: amount,
+    category: category,
+    notes: notes,
+    line_items: _srParsed && Array.isArray(_srParsed.line_items) && _srParsed.line_items.length
+      ? JSON.stringify(_srParsed.line_items) : '',
+    card_last4: _srParsed && _srParsed.card_last4 || '',
+    on_biz_account: true,
+    source: 'scan_admin',
+  };
+
+  try {
+    const resp = await fetch(PB_URL + '/api/admin/ingest-receipt', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+      body: JSON.stringify(payload),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      showScanError('Save failed: ' + (data.error || resp.status));
+      return;
+    }
+    const matchMsg = data.bank_transaction_id
+      ? '✓ Saved and auto-matched to bank transaction.'
+      : (data.review_status === 'possible_duplicate'
+          ? '⚠ Saved as possible duplicate — review in Expenses.'
+          : '✓ Saved as pending review. Will auto-match when the bank transaction arrives.');
+    alert(matchMsg);
+    closeModal('modal-scan-receipt');
+    // Refresh expenses if visible
+    if (typeof loadExpenses === 'function') await loadExpenses();
+    if (typeof renderExpenses === 'function') renderExpenses();
+    // Also refresh bank tab in case linkage happened
+    if (typeof loadBank === 'function') await loadBank();
+  } catch (err) {
+    showScanError('Network error: ' + err.message);
   }
 }
 
