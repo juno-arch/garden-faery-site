@@ -1210,6 +1210,7 @@ const DB = {
       paymentMethod: r.payment_method,
       paidDate: r.paid_date,
       paymentNotes: r.payment_notes,
+      clientId: r.client_id,
       createdAt: r.created,
     }));
   },
@@ -1366,6 +1367,7 @@ async function refreshData() {
   try {
     _cachedBookings = await DB.getBookings();
     _cachedBlocks = await DB.getBlocks();
+    await loadClientsRecords();
   } catch (err) {
     console.log('Data refresh error:', err);
   }
@@ -1373,6 +1375,36 @@ async function refreshData() {
 
 function getBookings() { return _cachedBookings; }
 function getBlocks() { return _cachedBlocks; }
+
+// Clients collection cache
+let _clientsById = {};
+let _clientsByEmail = {};
+let _clientsByPhone = {};
+async function loadClientsRecords() {
+  if (!PB_URL) return;
+  try {
+    const data = await DB._pb('GET', 'clients/records?perPage=500&sort=-last_booking_date');
+    _clientsById = {}; _clientsByEmail = {}; _clientsByPhone = {};
+    (data.items || []).forEach(c => {
+      _clientsById[c.id] = c;
+      if (c.email) _clientsByEmail[String(c.email).toLowerCase().trim()] = c;
+      if (c.phone) _clientsByPhone[String(c.phone).replace(/\D/g,'')] = c;
+    });
+  } catch (err) { console.log('loadClientsRecords:', err); }
+}
+
+// Find a clients-collection record for a grouped client (by visits[0].clientId, then email/phone)
+function findClientRecord(c) {
+  if (!c.visits) return null;
+  for (const v of c.visits) {
+    if (v.clientId && _clientsById[v.clientId]) return _clientsById[v.clientId];
+  }
+  const e = (c.email || '').toLowerCase().trim();
+  if (e && _clientsByEmail[e]) return _clientsByEmail[e];
+  const p = (c.phone || '').replace(/\D/g,'');
+  if (p.length >= 7 && _clientsByPhone[p]) return _clientsByPhone[p];
+  return null;
+}
 
 const EVENT_LABELS = {
   morning: 'Morning Garden Care',
@@ -6587,10 +6619,41 @@ function renderClients() {
 
   filtered.forEach(c => {
     const borderColor = c.outstanding > 0 ? 'var(--red)' : 'var(--plum)';
+    const crec = findClientRecord(c);
+
+    // Status pill + tag chips + marketing opt-in icons (from clients collection)
+    const status = crec ? (crec.status || 'active') : 'active';
+    const statusColors = {
+      lead:     ['#fef0c4', '#7a5a00'],
+      active:   ['#dcefe2', '#0a7a3a'],
+      inactive: ['#e8e8e8', '#666'],
+      churned:  ['#fde2e2', '#a03020'],
+    };
+    const sc = statusColors[status] || statusColors.active;
+    const statusPill = '<span style="background:' + sc[0] + ';color:' + sc[1] + ';padding:2px 9px;border-radius:99px;font-size:0.7rem;font-weight:600;text-transform:capitalize;">' + status + '</span>';
+    const tagsHtml = (crec && crec.tags)
+      ? String(crec.tags).split(',').map(t => t.trim()).filter(Boolean).map(t =>
+          '<span style="background:var(--cream);border:1px solid var(--gray-200);color:var(--gray-600);padding:2px 8px;border-radius:99px;font-size:0.7rem;">' + esc(t) + '</span>'
+        ).join('')
+      : '';
+    const optIns = [];
+    if (crec && crec.marketing_email_opt_in) optIns.push('<span title="Email opt-in" style="font-size:0.85rem;" aria-label="Email opt-in">@</span>');
+    if (crec && crec.marketing_sms_opt_in) optIns.push('<span title="SMS opt-in" style="font-size:0.85rem;" aria-label="SMS opt-in">SMS</span>');
+    const optInHtml = optIns.length
+      ? '<span style="display:inline-flex;gap:4px;align-items:center;color:var(--gray-600);">' + optIns.join('') + '</span>'
+      : '';
 
     // Header: name, visit count, last visit
     let card = '<div class="booking-card" style="border-left-color:' + borderColor + ';">' +
-      '<h3>' + esc(c.name || 'Client') + '</h3>' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;">' +
+        '<div style="flex:1;min-width:0;">' +
+          '<h3 style="margin-bottom:4px;">' + esc(c.name || 'Client') + '</h3>' +
+          '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:4px;">' + statusPill + tagsHtml + optInHtml + '</div>' +
+        '</div>' +
+        (crec
+          ? '<button class="action-btn" data-cid="' + esc(crec.id) + '" onclick="openClientDetailModal(this.dataset.cid)" style="flex-shrink:0;">Details</button>'
+          : '')
+      + '</div>' +
       '<div class="booking-meta">' + c.count + ' visit' + (c.count === 1 ? '' : 's') +
         (c.lastVisit ? ' &middot; Last: ' + esc(formatDisplayDate(c.lastVisit)) : '') +
       '</div>';
@@ -6875,6 +6938,142 @@ async function renameClientByName(currentName) {
         (fail > 0 ? '. ' + fail + ' failed (see console).' : '.'));
   await refreshData();
   renderAll();
+}
+
+// ----- Clients collection: detail / edit modal -----
+function openClientDetailModal(cid) {
+  const c = _clientsById[cid];
+  if (!c) { alert('Client record not loaded — try refreshing.'); return; }
+
+  // Mount once.
+  let modal = document.getElementById('client-detail-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'client-detail-modal';
+    modal.className = 'modal-overlay';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    document.body.appendChild(modal);
+  }
+
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const escA = s => String(s == null ? '' : s).replace(/"/g, '&quot;');
+
+  const statusOpts = ['lead','active','inactive','churned'].map(v =>
+    '<option value="' + v + '"' + (c.status === v ? ' selected' : '') + '>' + v + '</option>'
+  ).join('');
+  const sourceOpts = ['word_of_mouth','website','instagram','referral','returning','other'].map(v =>
+    '<option value="' + v + '"' + (c.source === v ? ' selected' : '') + '>' + v.replace(/_/g,' ') + '</option>'
+  ).join('');
+
+  const ltv = ((c.lifetime_revenue_cents || 0) / 100).toFixed(2);
+  const outstanding = ((c.outstanding_cents || 0) / 100).toFixed(2);
+
+  modal.innerHTML =
+    '<div style="background:#fff;border-radius:10px;width:100%;max-width:620px;max-height:90vh;overflow:auto;padding:22px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">' +
+        '<h2 style="margin:0;font-size:1.2rem;">' + esc(c.name) + '</h2>' +
+        '<button onclick="closeClientDetailModal()" style="background:transparent;border:none;cursor:pointer;font-size:1.4rem;">&times;</button>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;font-size:0.82rem;">' +
+        '<div style="background:var(--cream);padding:8px 10px;border-radius:6px;"><div style="opacity:0.6;font-size:0.7rem;text-transform:uppercase;">Visits</div><div style="font-size:1.2rem;font-weight:600;">' + (c.visit_count || 0) + '</div></div>' +
+        '<div style="background:var(--cream);padding:8px 10px;border-radius:6px;"><div style="opacity:0.6;font-size:0.7rem;text-transform:uppercase;">Lifetime $</div><div style="font-size:1.2rem;font-weight:600;">$' + ltv + '</div></div>' +
+        '<div style="background:var(--cream);padding:8px 10px;border-radius:6px;"><div style="opacity:0.6;font-size:0.7rem;text-transform:uppercase;">Outstanding</div><div style="font-size:1.2rem;font-weight:600;color:' + ((c.outstanding_cents||0) > 0 ? 'var(--red)' : 'inherit') + ';">$' + outstanding + '</div></div>' +
+      '</div>' +
+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Name</label><input id="cd-name" value="' + escA(c.name) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Email</label><input id="cd-email" type="email" value="' + escA(c.email) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Phone</label><input id="cd-phone" value="' + escA(c.phone) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Birthday</label><input id="cd-bday" type="date" value="' + escA(c.birthday) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+        '<div style="grid-column:span 2;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Address</label><input id="cd-addr" value="' + escA(c.address) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+      '</div>' +
+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Status</label><select id="cd-status" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">' + statusOpts + '</select></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Source</label><select id="cd-source" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">' + sourceOpts + '</select></div>' +
+        '<div style="grid-column:span 2;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Tags (comma-separated)</label><input id="cd-tags" value="' + escA(c.tags) + '" placeholder="VIP, new, monthly, hard-to-reach" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+      '</div>' +
+
+      '<div style="background:var(--cream);border-radius:6px;padding:10px 12px;margin-bottom:10px;">' +
+        '<div style="font-size:0.8rem;opacity:0.7;margin-bottom:6px;">Marketing opt-in (client-confirmed only)</div>' +
+        '<label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;margin-bottom:4px;font-weight:normal;"><input type="checkbox" id="cd-email-opt" ' + (c.marketing_email_opt_in ? 'checked' : '') + '> Email newsletter</label>' +
+        '<label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;font-weight:normal;"><input type="checkbox" id="cd-sms-opt" ' + (c.marketing_sms_opt_in ? 'checked' : '') + '> SMS messages</label>' +
+      '</div>' +
+
+      '<div style="margin-bottom:14px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Notes (private)</label><textarea id="cd-notes" rows="4" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">' + esc(c.notes) + '</textarea></div>' +
+
+      '<div style="display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;">' +
+        '<button class="modal-btn secondary" style="color:var(--red);" onclick="openMergeClientDialog(\'' + cid + '\')">Merge into another&hellip;</button>' +
+        '<div style="display:flex;gap:8px;">' +
+          '<button class="modal-btn secondary" onclick="closeClientDetailModal()">Cancel</button>' +
+          '<button class="modal-btn primary" onclick="saveClientDetail(\'' + cid + '\')">Save</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+}
+
+function closeClientDetailModal() {
+  const m = document.getElementById('client-detail-modal');
+  if (m) m.remove();
+}
+
+async function saveClientDetail(cid) {
+  const body = {
+    name: document.getElementById('cd-name').value.trim(),
+    email: document.getElementById('cd-email').value.trim().toLowerCase(),
+    phone: document.getElementById('cd-phone').value.trim(),
+    birthday: document.getElementById('cd-bday').value || null,
+    address: document.getElementById('cd-addr').value.trim(),
+    status: document.getElementById('cd-status').value,
+    source: document.getElementById('cd-source').value,
+    tags: document.getElementById('cd-tags').value.trim(),
+    marketing_email_opt_in: document.getElementById('cd-email-opt').checked,
+    marketing_sms_opt_in: document.getElementById('cd-sms-opt').checked,
+    notes: document.getElementById('cd-notes').value,
+  };
+  try {
+    await DB._pb('PATCH', 'clients/records/' + cid, body);
+    await loadClientsRecords();
+    closeClientDetailModal();
+    renderClients();
+  } catch (err) {
+    alert('Save failed: ' + err.message);
+  }
+}
+
+async function openMergeClientDialog(dropId) {
+  const dropRec = _clientsById[dropId];
+  if (!dropRec) return;
+
+  // Build a picker of other clients (excluding this one), sorted by name.
+  const others = Object.values(_clientsById).filter(c => c.id !== dropId).sort((a,b) => (a.name||'').localeCompare(b.name||''));
+  if (!others.length) { alert('No other clients to merge into.'); return; }
+  const lines = others.map((c, i) => (i+1) + '. ' + c.name + (c.email ? ' · ' + c.email : ''));
+  const pick = prompt('Merge "' + dropRec.name + '" INTO which client?\n\nEnter the number from the list:\n\n' + lines.join('\n'));
+  const n = parseInt(pick, 10);
+  if (!n || n < 1 || n > others.length) return;
+  const keep = others[n - 1];
+
+  if (!confirm('Merge "' + dropRec.name + '" into "' + keep.name + '"?\n\n' +
+               'All bookings will be re-linked to ' + keep.name + ' and "' + dropRec.name + '" will be deleted. This cannot be undone.')) {
+    return;
+  }
+
+  try {
+    const res = await fetch(PB_URL + '/api/admin/clients/merge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+      body: JSON.stringify({ keep_id: keep.id, drop_id: dropId }),
+    });
+    const data = await res.json();
+    if (!data.ok) { alert('Merge failed: ' + (data.error || res.status)); return; }
+    closeClientDetailModal();
+    await refreshData();
+    renderClients();
+    alert('Merged. ' + (data.bookings_moved || 0) + ' bookings re-linked.');
+  } catch (err) {
+    alert('Merge error: ' + err.message);
+  }
 }
 
 function populateExistingClientSelect() {
