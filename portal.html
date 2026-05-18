@@ -328,6 +328,75 @@ body {
   color: #fff;
   border-color: var(--plum);
 }
+
+/* Date chips for the Book tab. Real <button> elements (not labels) so the
+ * .portal-card label CSS doesn't fight us. */
+.bk-date-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+.bk-date-loading { color: var(--gray-600); font-size: 0.85rem; padding: 8px 0; }
+.bk-date-chip {
+  background: #fff;
+  color: var(--plum);
+  border: 2px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  min-width: 64px;
+  line-height: 1.2;
+}
+.bk-date-chip .dow { font-size: 0.7rem; color: var(--gray-600); font-weight: 500; }
+.bk-date-chip .dom { font-size: 1.05rem; font-weight: 700; }
+.bk-date-chip:hover { border-color: var(--plum); }
+.bk-date-chip.selected {
+  background: var(--plum);
+  color: #fff;
+  border-color: var(--plum);
+}
+.bk-date-chip.selected .dow { color: rgba(255,255,255,0.85); }
+
+/* Frequency option cards — flex-wrap so labels never get crushed on phone.
+ * Real .bk-freq-card containers (not raw labels with inline styles) so the
+ * .portal-card label { display:block } global rule can't override. */
+.bk-freq-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+.bk-freq-card {
+  flex: 1 1 90px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 10px;
+  border: 2px solid var(--gray-200);
+  border-radius: 8px;
+  cursor: pointer;
+  background: #fff;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--plum);
+  margin: 0 !important;
+  white-space: nowrap;
+}
+.bk-freq-card input[type="radio"] { margin: 0; flex-shrink: 0; }
+.bk-freq-card:has(input:checked) {
+  background: var(--plum);
+  color: #fff;
+  border-color: var(--plum);
+}
 </style>
 </head>
 <body>
@@ -436,26 +505,32 @@ body {
     <div id="pane-book" class="portal-pane">
       <div class="portal-card">
         <h2>Book a visit</h2>
-        <p style="color:var(--gray-600);font-size:0.88rem;margin-bottom:14px;">Morning Garden Care: <strong>Wed, Thu, Fri</strong> · 9:00am to 2:00pm · $30/hr.</p>
+        <p style="color:var(--gray-600);font-size:0.88rem;margin-bottom:14px;">Morning Garden Care &middot; 9:00am to 2:00pm &middot; $30/hr.</p>
 
-        <label for="bk-date">Date</label>
-        <input type="date" id="bk-date">
-        <p style="font-size:0.78rem;color:var(--gray-600);margin-top:4px;">Wednesday, Thursday, or Friday only. Taya will confirm.</p>
+        <label>Pick a date</label>
+        <div id="bk-date-chips" class="bk-date-chips">
+          <div class="bk-date-loading">Loading available dates...</div>
+        </div>
+        <input type="hidden" id="bk-date">
+        <p id="bk-no-dates" style="display:none;font-size:0.85rem;color:var(--gray-600);margin-top:8px;">No available Wed/Thu/Fri in the next 8 weeks. Message Taya if you need to book further out.</p>
 
         <label for="bk-address" style="margin-top:14px;">Address</label>
         <input type="text" id="bk-address" autocomplete="street-address" placeholder="123 Main St, Arcata, CA 95521">
         <p style="font-size:0.78rem;color:var(--gray-600);margin-top:4px;">Service area: Arcata, Bayside, McKinleyville, Eureka.</p>
 
         <label style="margin-top:14px;">Frequency</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-          <label style="display:flex;align-items:center;gap:6px;font-weight:400;margin:0;padding:10px;border:2px solid var(--gray-200);border-radius:8px;cursor:pointer;">
-            <input type="radio" name="bk-freq" value="once" checked onchange="updateBkFreq()"> One-time
+        <div class="bk-freq-row">
+          <label class="bk-freq-card">
+            <input type="radio" name="bk-freq" value="once" checked onchange="updateBkFreq()">
+            <span>One-time</span>
           </label>
-          <label style="display:flex;align-items:center;gap:6px;font-weight:400;margin:0;padding:10px;border:2px solid var(--gray-200);border-radius:8px;cursor:pointer;">
-            <input type="radio" name="bk-freq" value="weekly" onchange="updateBkFreq()"> Weekly
+          <label class="bk-freq-card">
+            <input type="radio" name="bk-freq" value="weekly" onchange="updateBkFreq()">
+            <span>Weekly</span>
           </label>
-          <label style="display:flex;align-items:center;gap:6px;font-weight:400;margin:0;padding:10px;border:2px solid var(--gray-200);border-radius:8px;cursor:pointer;">
-            <input type="radio" name="bk-freq" value="biweekly" onchange="updateBkFreq()"> Biweekly
+          <label class="bk-freq-card">
+            <input type="radio" name="bk-freq" value="biweekly" onchange="updateBkFreq()">
+            <span>Biweekly</span>
           </label>
         </div>
         <p style="font-size:0.78rem;color:var(--gray-600);margin-top:4px;">Recurring visits repeat on the same weekday as your first date.</p>
@@ -979,13 +1054,39 @@ async function submitAddCard() {
     });
     const data = await resp.json().catch(() => ({}));
     if (!resp.ok) { setError('ac-error', data.error || ('HTTP ' + resp.status)); return; }
+
+    // Immediately add the new card to our local cache so the user sees it
+    // without waiting for Square's GET /v2/cards to catch up. Then close
+    // the modal and re-render the list. A background refresh syncs canonical
+    // state from Square but the user gets instant feedback.
+    if (data.card) {
+      _savedCards = (_savedCards || []).concat([data.card]);
+    }
     await closeAddCard();
-    await loadCards();
+    renderCardsList();
+    renderOutstanding();
+    // Brief success toast
+    showCardSavedToast();
+    // Background refresh from Square for canonical state — non-blocking.
+    loadCards().catch(() => {});
   } catch (err) {
     setError('ac-error', 'Could not save: ' + (err && err.message));
   } finally {
     btn.disabled = false; btn.textContent = 'Save card';
   }
+}
+
+function showCardSavedToast() {
+  let toast = document.getElementById('card-saved-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'card-saved-toast';
+    toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--spring-sage);color:var(--plum);padding:12px 22px;border-radius:8px;font-family:Inter,sans-serif;font-weight:600;font-size:0.95rem;box-shadow:0 4px 16px rgba(74,25,66,0.2);z-index:2000;transition:opacity 0.3s;';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = 'Card saved.';
+  toast.style.opacity = '1';
+  setTimeout(() => { toast.style.opacity = '0'; }, 2200);
 }
 
 async function deleteCard(cardId) {
@@ -1040,18 +1141,77 @@ async function doPayWithCard(bookingId, cardId, tipCents, btnEl) {
 }
 
 // ----- BOOK NEW VISIT (Book tab) -----
+let _bkBlockedDates = new Set(); // dates with existing bookings or blocked time
+
 function initBookForm() {
   if (!_data || !_data.profile) return;
   const addrEl = document.getElementById('bk-address');
   if (addrEl && !addrEl.value) addrEl.value = _data.profile.address || '';
-  const dateEl = document.getElementById('bk-date');
-  if (dateEl) {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    dateEl.min = tomorrow.toISOString().slice(0, 10);
-    dateEl.onchange = updateBkFreq;
-  }
+  loadAvailableDates(); // async — renders date chips when ready
   updateBkFreq();
+}
+
+async function loadAvailableDates() {
+  const chipHost = document.getElementById('bk-date-chips');
+  try {
+    const resp = await fetch(PB_URL + '/api/availability');
+    const data = await resp.json().catch(() => ({}));
+    _bkBlockedDates = new Set();
+    // /api/availability returns bookings — any date with a non-canceled morning
+    // is considered taken. (We could also pull blocked_times via a separate
+    // endpoint but availability already includes booking conflicts.)
+    (data.items || []).forEach(b => {
+      if (b.status !== 'canceled' && b.event_type === 'morning') {
+        _bkBlockedDates.add(b.date);
+      }
+    });
+    renderAvailableDates();
+  } catch (err) {
+    chipHost.innerHTML = '<div style="color:var(--red);font-size:0.85rem;">Could not load available dates. Try refreshing.</div>';
+  }
+}
+
+function renderAvailableDates() {
+  const chipHost = document.getElementById('bk-date-chips');
+  const noDatesMsg = document.getElementById('bk-no-dates');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const chips = [];
+  // Look ahead 8 weeks for Wed (3), Thu (4), Fri (5) — skip today, start
+  // tomorrow.
+  for (let i = 1; i <= 56; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() + i);
+    const dow = d.getDay();
+    if (dow !== 3 && dow !== 4 && dow !== 5) continue;
+    const iso = d.toISOString().slice(0, 10);
+    if (_bkBlockedDates.has(iso)) continue;
+    const dowLabel = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dow];
+    const dom = d.getDate();
+    const monthShort = d.toLocaleString('en-US', { month: 'short' });
+    chips.push({ iso, dowLabel, dom, monthShort });
+  }
+
+  if (chips.length === 0) {
+    chipHost.innerHTML = '';
+    noDatesMsg.style.display = '';
+    return;
+  }
+  noDatesMsg.style.display = 'none';
+  chipHost.innerHTML = chips.map(c =>
+    '<button type="button" class="bk-date-chip" data-date="' + c.iso + '" onclick="selectBkDate(\'' + c.iso + '\', this)">' +
+      '<span class="dow">' + c.dowLabel + '</span>' +
+      '<span class="dom">' + c.dom + '</span>' +
+      '<span class="dow">' + c.monthShort + '</span>' +
+    '</button>'
+  ).join('');
+}
+
+function selectBkDate(iso, btnEl) {
+  document.querySelectorAll('.bk-date-chip').forEach(b => b.classList.toggle('selected', b.dataset.date === iso));
+  document.getElementById('bk-date').value = iso;
+  updateBkFreq(); // recompute recurring preview if applicable
 }
 
 function getBkFreq() {
