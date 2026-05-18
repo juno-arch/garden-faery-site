@@ -81,7 +81,8 @@ body {
   margin: 14px 0 6px;
   color: var(--plum);
 }
-.portal-card input {
+.portal-card input,
+.portal-card textarea {
   width: 100%;
   padding: 12px 14px;
   border: 2px solid var(--gray-200);
@@ -91,8 +92,10 @@ body {
   background: #fff;
   color: var(--plum);
   box-sizing: border-box;
+  resize: vertical;
 }
-.portal-card input:focus { outline: none; border-color: var(--plum); }
+.portal-card input:focus,
+.portal-card textarea:focus { outline: none; border-color: var(--plum); }
 .btn-portal-primary, .btn-portal-secondary, .btn-portal-link {
   font-family: inherit;
   font-weight: 600;
@@ -411,11 +414,28 @@ body {
 
     <div id="pane-book" class="portal-pane">
       <div class="portal-card">
-        <div class="book-callout">
-          <h2 style="font-family:'Fraunces',serif;font-weight:500;font-size:1.25rem;color:var(--plum);">Book a new visit</h2>
-          <p style="color:var(--gray-600);margin:8px 0 4px;">The booking flow is being moved into this portal — for now, use the standalone page.</p>
-          <a href="book.html">Open booking page →</a>
-        </div>
+        <h2>Book a visit</h2>
+        <p style="color:var(--gray-600);font-size:0.88rem;margin-bottom:14px;">Morning Garden Care: <strong>Wed, Thu, Fri</strong> · 9:00am to 2:00pm · $30/hr.</p>
+
+        <label for="bk-date">Date</label>
+        <input type="date" id="bk-date">
+        <p style="font-size:0.78rem;color:var(--gray-600);margin-top:4px;">Wednesday, Thursday, or Friday only. Taya will confirm.</p>
+
+        <label for="bk-address" style="margin-top:14px;">Address</label>
+        <input type="text" id="bk-address" autocomplete="street-address" placeholder="123 Main St, Arcata, CA 95521">
+        <p style="font-size:0.78rem;color:var(--gray-600);margin-top:4px;">Service area: Arcata, Bayside, McKinleyville, Eureka.</p>
+
+        <label for="bk-notes" style="margin-top:14px;">Garden notes (optional)</label>
+        <textarea id="bk-notes" rows="3" placeholder="Any specifics for the visit?"></textarea>
+
+        <button class="btn-portal-primary" id="bk-submit" onclick="submitBook()">Book this visit</button>
+        <div id="bk-error" class="error-banner" style="display:none;"></div>
+        <div id="bk-success" class="success-banner" style="display:none;margin-top:12px;">Booked. See your upcoming visits in the My Visits tab.</div>
+      </div>
+
+      <div class="portal-card">
+        <h2 style="font-size:1rem;">Need a recurring schedule?</h2>
+        <p style="color:var(--gray-600);font-size:0.85rem;margin-bottom:0;">Weekly or biweekly visits coming soon to this portal. For now, message Taya and she'll set you up.</p>
       </div>
     </div>
 
@@ -951,6 +971,104 @@ async function payWithCard(bookingId, cardId, btnEl) {
   }
 }
 
+// ----- BOOK NEW VISIT (Book tab) -----
+function initBookForm() {
+  if (!_data || !_data.profile) return;
+  // Pre-fill address from profile.
+  const addrEl = document.getElementById('bk-address');
+  if (addrEl && !addrEl.value) addrEl.value = _data.profile.address || '';
+  // Set min date to tomorrow.
+  const dateEl = document.getElementById('bk-date');
+  if (dateEl) {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    dateEl.min = tomorrow.toISOString().slice(0, 10);
+  }
+}
+
+async function submitBook() {
+  setError('bk-error', '');
+  document.getElementById('bk-success').style.display = 'none';
+  const date = document.getElementById('bk-date').value;
+  const address = document.getElementById('bk-address').value.trim();
+  const notes = document.getElementById('bk-notes').value.trim();
+
+  if (!date) { setError('bk-error', 'Pick a date.'); return; }
+  if (!address) { setError('bk-error', 'Address is required.'); return; }
+
+  // Client-side day-of-week check (server validates too but better UX to catch early).
+  const d = new Date(date + 'T12:00:00');
+  const dow = d.getDay(); // 0=Sun..6=Sat
+  if (dow !== 3 && dow !== 4 && dow !== 5) {
+    setError('bk-error', 'Morning visits are only Wednesday, Thursday, or Friday.');
+    return;
+  }
+
+  // Profile fields for the booking payload.
+  const profile = _data.profile || {};
+  if (!profile.name || !profile.email || !profile.phone) {
+    setError('bk-error', 'Your name/email/phone need to be on file. Go to Account → Edit.');
+    return;
+  }
+
+  const payload = {
+    event_type: 'morning',
+    event_name: 'Morning Garden Care',
+    date: date,
+    time: '9:00am',
+    end_time: '2:00pm',
+    duration: 300,
+    client_name: profile.name,
+    client_email: profile.email,
+    client_phone: profile.phone,
+    client_address: address,
+    garden_notes: notes,
+    status: 'confirmed',
+    booked_by: 'client',
+  };
+
+  const btn = document.getElementById('bk-submit');
+  btn.disabled = true; btn.textContent = 'Booking...';
+  try {
+    // Direct POST to PocketBase's bookings collection. The createRule on the
+    // collection is open ('' = public), and onRecordCreateRequest validates
+    // service area + time conflicts server-side.
+    const resp = await fetch(PB_URL + '/api/collections/bookings/records', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      const msg = (data && (data.message || (data.data && Object.values(data.data).map(v => v && v.message).filter(Boolean).join(' / ')))) || ('Booking failed: HTTP ' + resp.status);
+      setError('bk-error', msg);
+      return;
+    }
+    // Clear the form and surface success — also update the address on profile
+    // if the user changed it for this booking.
+    document.getElementById('bk-date').value = '';
+    document.getElementById('bk-notes').value = '';
+    document.getElementById('bk-success').style.display = '';
+    await loadPortal();
+    // If the user edited the address, sync profile so future bookings/emails see it.
+    if (address && profile.address !== address) {
+      const portalToken = localStorage.getItem(STORAGE_TOKEN);
+      try {
+        await fetch(PB_URL + '/api/portal/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: portalToken, address: address }),
+        });
+        await loadPortal();
+      } catch (_) { /* non-fatal */ }
+    }
+  } catch (err) {
+    setError('bk-error', 'Network error: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Book this visit';
+  }
+}
+
 // ----- EDIT PROFILE -----
 function openEditProfile() {
   const p = _data.profile;
@@ -990,6 +1108,9 @@ async function submitEditProfile() {
 function switchPortalTab(tab) {
   document.querySelectorAll('.portal-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('.portal-pane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + tab));
+  // Re-prime the book form when the user lands on Book — address may have been
+  // edited in the meantime, date constraint should reflect current day.
+  if (tab === 'book') initBookForm();
 }
 
 // ----- PAY -----
