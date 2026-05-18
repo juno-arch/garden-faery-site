@@ -666,6 +666,49 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
 .yoni-section ul { margin: 2px 0 0 18px; padding: 0; font-size: 0.88rem; line-height: 1.55; }
 .yoni-section ul li { margin-bottom: 3px; }
 .yoni-section p { margin: 0 0 8px; font-size: 0.9rem; line-height: 1.55; }
+
+/* Small dim italic intro line under a card header (e.g. Usha framing note) */
+.note-italic {
+  font-size: 0.88rem; color: var(--moon-dim); font-style: italic;
+  margin: 0 0 14px; line-height: 1.55;
+}
+
+/* Learn-tab body title — Prata accent header */
+.lb-title {
+  font-family: 'Prata', serif; font-size: 1.15rem;
+  margin: 0 0 12px; color: var(--moon-accent); letter-spacing: 0.3px;
+}
+
+/* Patterns card — used by renderPatterns() output */
+.patterns-meta {
+  font-size: 0.75rem; color: var(--moon-dim); margin-bottom: 14px;
+}
+.patterns-empty {
+  color: var(--moon-dim); font-size: 0.88rem; padding: 14px; text-align: center;
+  background: rgba(255,255,255,0.03);
+  border: 1px dashed rgba(255,255,255,0.1);
+  border-radius: 10px;
+}
+.patterns-empty .pe-sub { font-size: 0.78rem; }
+.patterns-block {
+  margin-bottom: 16px; padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.patterns-block-title { font-weight: 600; color: var(--moon-accent); margin-bottom: 4px; }
+.patterns-stats { font-size: 0.76rem; color: var(--moon-dim); margin-bottom: 6px; }
+.patterns-eyebrow {
+  font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.6px;
+  color: var(--moon-dim); margin-top: 6px;
+}
+.pattern-pill {
+  display: inline-block; padding: 3px 9px;
+  background: rgba(181,139,255,0.12);
+  border: 1px solid rgba(181,139,255,0.25);
+  border-radius: 999px;
+  font-size: 0.78rem; margin: 2px 4px 2px 0;
+}
+.pattern-pill .pp-count { color: var(--moon-dim); }
+.patterns-none { color: var(--moon-dim); font-size: 0.82rem; }
 .yoni-section.warn {
   background: rgba(105, 14, 14, 0.18); border: 1px solid rgba(197, 85, 107, 0.3);
   border-radius: 10px; padding: 12px 14px;
@@ -1069,12 +1112,12 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
     </div>
     <div style="margin-bottom:14px;">
       <div style="font-size:0.82rem;color:var(--moon-dim);margin-bottom:4px;">Cycle length</div>
-      <svg id="chart-cycle" viewBox="0 0 320 100" preserveAspectRatio="none"></svg>
+      <svg id="chart-cycle" viewBox="0 0 320 100" preserveAspectRatio="none" role="img" aria-label="Cycle-length history bar chart"></svg>
       <div id="chart-cycle-legend" style="font-size:0.72rem;color:var(--moon-dim);text-align:center;"></div>
     </div>
     <div>
       <div style="font-size:0.82rem;color:var(--moon-dim);margin-bottom:4px;">Period length</div>
-      <svg id="chart-plen" viewBox="0 0 320 100" preserveAspectRatio="none"></svg>
+      <svg id="chart-plen" viewBox="0 0 320 100" preserveAspectRatio="none" role="img" aria-label="Period-length history bar chart"></svg>
       <div id="chart-plen-legend" style="font-size:0.72rem;color:var(--moon-dim);text-align:center;"></div>
     </div>
   </div>
@@ -1114,7 +1157,7 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
   <!-- Cyclical Living Principles: Usha's cross-cutting teachings -->
   <div class="card" data-section="learn">
     <h3><span data-icon="candle"></span>Cyclical living</h3>
-    <p style="font-size:0.88rem;color:var(--moon-dim);font-style:italic;margin:0 0 14px;line-height:1.55;">Usha Anandi's framing: these principles hold across the whole cycle, not just one phase.</p>
+    <p class="note-italic">Usha Anandi's framing: these principles hold across the whole cycle, not just one phase.</p>
 
     <div class="yoni-section">
       <h4>Every meal is medicine</h4>
@@ -1693,7 +1736,7 @@ function renderLearn() {
            '<span class="emoji">' + (ICON[c.emoji] || '') + '</span>' + c.label + '</div>';
   }).join('');
   const c = LEARN_CONTENT[learnTab];
-  body.innerHTML = '<h3 style="font-family:Prata,serif;font-size:1.15rem;margin:0 0 12px;color:var(--moon-accent);letter-spacing:0.3px;">' + c.title + '</h3>' + c.html;
+  body.innerHTML = '<h3 class="lb-title">' + c.title + '</h3>' + c.html;
   injectIcons(nav);
   injectIcons(body);
 }
@@ -2015,7 +2058,7 @@ function renderHormoneChart() {
            ' onclick="setCheckpoint(' + cp.day + ')"/>';
   }).join('');
   chart.innerHTML =
-    '<svg viewBox="0 0 ' + W + ' ' + H + '" class="hormone-chart">' +
+    '<svg viewBox="0 0 ' + W + ' ' + H + '" class="hormone-chart" role="img" aria-label="Hormone curves across a 28-day cycle: estrogen, progesterone, LH, FSH">' +
     bands +
     line(hE, '#ffb49c', false) +
     line(hP, '#b58bff', false) +
@@ -2131,7 +2174,7 @@ function renderTempChart() {
              '<text x="' + ox + '" y="' + (PAD - 4) + '" fill="#ffd98b" font-size="10" text-anchor="middle">ov day ' + ov.ovulationDay + '</text>';
   }
   const dots = points.map(p => '<circle cx="' + x(p.day) + '" cy="' + y(p.t) + '" r="2.5" fill="#ffb49c"/>').join('');
-  wrap.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="temp-chart">' +
+  wrap.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="temp-chart" role="img" aria-label="Basal body temperature chart for the current cycle">' +
     baselineLine + ovMark +
     '<path d="' + path + '" fill="none" stroke="#ffb49c" stroke-width="1.5"/>' +
     dots + '</svg>';
@@ -2302,29 +2345,30 @@ function renderPatterns() {
     autumn: 'Inner autumn · luteal'
   };
   if (p.cycles < 2) {
-    wrap.innerHTML = '<div style="color:var(--moon-dim);font-size:0.88rem;padding:14px;text-align:center;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.1);border-radius:10px;">' +
+    wrap.innerHTML = '<div class="patterns-empty">' +
       'Log ' + (2 - p.cycles) + ' more cycle' + (p.cycles === 1 ? '' : 's') + ' with daily symptoms + moods to unlock your patterns. ' +
-      '<br><span style="font-size:0.78rem;">(' + p.cycles + ' cycle tracked · ' + p.total + ' day logs so far)</span></div>';
+      '<br><span class="pe-sub">(' + p.cycles + ' cycle tracked · ' + p.total + ' day logs so far)</span></div>';
     return;
   }
   const avgArr = (arr) => arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : null;
-  let html = '<div style="font-size:0.75rem;color:var(--moon-dim);margin-bottom:14px;">Based on ' + p.cycles + ' cycles · ' + p.total + ' day logs.</div>';
+  let html = '<div class="patterns-meta">Based on ' + p.cycles + ' cycles · ' + p.total + ' day logs.</div>';
   Object.entries(phases).forEach(([k, label]) => {
     const symTop = Object.entries(p.phaseSymp[k]).sort((a, b) => b[1] - a[1]).slice(0, 4);
     const moodTop = Object.entries(p.phaseMoods[k]).sort((a, b) => b[1] - a[1]).slice(0, 3);
     const e = avgArr(p.phaseEnergy[k]);
     const s = avgArr(p.phaseSleep[k]);
-    const pill = (label, n) => '<span style="display:inline-block;padding:3px 9px;background:rgba(181,139,255,0.12);border:1px solid rgba(181,139,255,0.25);border-radius:999px;font-size:0.78rem;margin:2px 4px 2px 0;">' + label.replace(/_/g, ' ') + ' <span style="color:var(--moon-dim);">×' + n + '</span></span>';
-    const sym = symTop.length ? symTop.map(([n, c]) => pill(n, c)).join('') : '<span style="color:var(--moon-dim);font-size:0.82rem;">—</span>';
-    const mood = moodTop.length ? moodTop.map(([n, c]) => pill(n, c)).join('') : '<span style="color:var(--moon-dim);font-size:0.82rem;">—</span>';
+    const pill = (label, n) => '<span class="pattern-pill">' + label.replace(/_/g, ' ') + ' <span class="pp-count">×' + n + '</span></span>';
+    const none = '<span class="patterns-none">—</span>';
+    const sym  = symTop.length  ? symTop.map(([n, c]) => pill(n, c)).join('')  : none;
+    const mood = moodTop.length ? moodTop.map(([n, c]) => pill(n, c)).join('') : none;
     const stats = [];
     if (e) stats.push('energy ' + e + '/5');
     if (s) stats.push('sleep ' + s + 'h');
-    html += '<div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.06);">' +
-      '<div style="font-weight:600;color:var(--moon-accent);margin-bottom:4px;">' + label + '</div>' +
-      (stats.length ? '<div style="font-size:0.76rem;color:var(--moon-dim);margin-bottom:6px;">avg ' + stats.join(' · ') + '</div>' : '') +
-      '<div style="font-size:0.74rem;text-transform:uppercase;letter-spacing:0.6px;color:var(--moon-dim);margin-top:6px;">Top symptoms</div><div>' + sym + '</div>' +
-      '<div style="font-size:0.74rem;text-transform:uppercase;letter-spacing:0.6px;color:var(--moon-dim);margin-top:6px;">Top moods</div><div>' + mood + '</div>' +
+    html += '<div class="patterns-block">' +
+      '<div class="patterns-block-title">' + label + '</div>' +
+      (stats.length ? '<div class="patterns-stats">avg ' + stats.join(' · ') + '</div>' : '') +
+      '<div class="patterns-eyebrow">Top symptoms</div><div>' + sym + '</div>' +
+      '<div class="patterns-eyebrow">Top moods</div><div>' + mood + '</div>' +
     '</div>';
   });
   wrap.innerHTML = html;
@@ -2750,9 +2794,41 @@ const CITIES = [
   { city: 'buenos aires',    state: 'ar', tz: 'America/Argentina/Buenos_Aires', lat: -34.61, lon: -58.40 }
 ];
 
+// Full state / country names → the abbreviation we use in CITIES. Lets users
+// type "Gainesville, Florida" or "Toronto, Canada" instead of forcing "FL" / "ca".
+const STATE_NAMES = {
+  alabama: 'al', alaska: 'ak', arizona: 'az', arkansas: 'ar', california: 'ca',
+  colorado: 'co', connecticut: 'ct', delaware: 'de', florida: 'fl', georgia: 'ga',
+  hawaii: 'hi', idaho: 'id', illinois: 'il', indiana: 'in', iowa: 'ia',
+  kansas: 'ks', kentucky: 'ky', louisiana: 'la', maine: 'me', maryland: 'md',
+  massachusetts: 'ma', michigan: 'mi', minnesota: 'mn', mississippi: 'ms', missouri: 'mo',
+  montana: 'mt', nebraska: 'ne', nevada: 'nv', 'new hampshire': 'nh', 'new jersey': 'nj',
+  'new mexico': 'nm', 'new york': 'ny', 'north carolina': 'nc', 'north dakota': 'nd', ohio: 'oh',
+  oklahoma: 'ok', oregon: 'or', pennsylvania: 'pa', 'rhode island': 'ri', 'south carolina': 'sc',
+  'south dakota': 'sd', tennessee: 'tn', texas: 'tx', utah: 'ut', vermont: 'vt',
+  virginia: 'va', washington: 'wa', 'west virginia': 'wv', wisconsin: 'wi', wyoming: 'wy',
+  'district of columbia': 'dc', 'washington dc': 'dc',
+  // International — match what CITIES carries
+  canada: 'ca', uk: 'uk', england: 'uk', scotland: 'uk', ireland: 'ie',
+  france: 'fr', germany: 'de', spain: 'es', italy: 'it', japan: 'jp',
+  australia: 'au', mexico: 'mx', netherlands: 'nl', sweden: 'se', russia: 'ru',
+  turkey: 'tr', india: 'in', thailand: 'th', singapore: 'sg', 'hong kong': 'hk',
+  china: 'cn', 'south korea': 'kr', korea: 'kr', 'new zealand': 'nz', brazil: 'br',
+  argentina: 'ar'
+};
+
 function lookupCity(input) {
   if (!input) return null;
-  const norm = input.toLowerCase().trim().replace(/[.,]/g, ' ').replace(/\s+/g, ' ');
+  let norm = input.toLowerCase().trim().replace(/[.,]/g, ' ').replace(/\s+/g, ' ');
+  // Expand full state/country names to the short form we store in CITIES.
+  // Walk longest-first so "north carolina" matches before "north".
+  const stateKeys = Object.keys(STATE_NAMES).sort((a, b) => b.length - a.length);
+  for (const full of stateKeys) {
+    if (norm.endsWith(' ' + full)) {
+      norm = norm.slice(0, -full.length - 1) + ' ' + STATE_NAMES[full];
+      break;
+    }
+  }
   // Try matching against "city state" (e.g. "gainesville fl") or just city alone
   for (const c of CITIES) {
     const cityToken = c.city; // e.g. "san francisco"
