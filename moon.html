@@ -232,6 +232,36 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
   color: var(--moon-text); font-style: italic;
 }
 
+/* Today inner-season guide card (mirrors Learn deep-dive) */
+.today-season-card .ts-head {
+  font-family: 'Prata', serif;
+  font-size: 1.15rem;
+  color: var(--moon-accent);
+  letter-spacing: 0.3px;
+  margin: 0 0 6px;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  line-height: 1.25;
+}
+.today-season-card .ts-head .ts-emoji { font-size: 1.25rem; line-height: 1; }
+.today-season-card .ts-sub {
+  font-size: 0.78rem;
+  color: var(--moon-dim);
+  font-style: italic;
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+.today-season-card .ts-sub a {
+  color: var(--moon-accent);
+  text-decoration: underline;
+  text-decoration-color: rgba(181,139,255,0.35);
+  text-underline-offset: 2px;
+  font-style: normal;
+}
+.today-season-card .ts-sub a:hover { text-decoration-color: var(--moon-accent); }
+
 /* Fertile badge on Today card */
 .fertile-badge {
   display: inline-block; margin-top: 10px; padding: 6px 12px;
@@ -527,13 +557,15 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
   display: inline-flex; align-items: center; gap: 8px;
   text-align: left;
 }
-.chip-ico { flex: 0 0 auto; display: inline-flex; align-items: center; }
+.chip { min-height: 42px; }
+.chip-ico { flex: 0 0 auto; display: inline-flex; align-items: center; font-size: 0.95rem; }
 .chip-txt { display: inline-flex; flex-direction: column; align-items: flex-start; line-height: 1.2; gap: 2px; }
 .chip-label { font-size: 0.82rem; font-weight: 600; }
 .chip-desc {
   font-size: 0.66rem; font-weight: 500;
   color: var(--moon-dim);
   letter-spacing: 0.2px;
+  white-space: nowrap;
 }
 .chip.on .chip-desc { color: inherit; opacity: 0.78; }
 .chip:hover { background: rgba(255,255,255,0.12); }
@@ -612,9 +644,9 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
   </div>
 
   <!-- Inner season guide (auto-switches with current phase) -->
-  <div class="card" data-section="today" id="t-season-card" style="display:none;">
-    <h3 id="t-season-title" style="font-family:Prata,serif;font-size:1.15rem;margin:0 0 4px;color:var(--moon-accent);letter-spacing:0.3px;display:flex;align-items:center;gap:8px;"><span id="t-season-emoji"></span><span id="t-season-titletxt"></span></h3>
-    <div style="font-size:0.78rem;color:var(--moon-dim);font-style:italic;margin:0 0 12px;">Your guide for this phase. Full deep-dive on the <a href="#" onclick="openLearnForCurrentPhase();return false;" style="color:var(--moon-accent);text-decoration:none;border-bottom:1px dashed var(--moon-line);">Learn tab</a>.</div>
+  <div class="card today-season-card" data-section="today" id="t-season-card" hidden>
+    <h3 class="ts-head"><span class="ts-emoji" id="t-season-emoji"></span><span id="t-season-titletxt"></span></h3>
+    <p class="ts-sub">Your guide for this phase. Full deep-dive on the <a href="#" onclick="openLearnForCurrentPhase();return false;">Learn tab</a>.</p>
     <div class="learn-body" id="t-season-body"></div>
   </div>
 
@@ -1974,9 +2006,9 @@ function render() {
     document.getElementById('t-season-emoji').textContent = c.emoji;
     document.getElementById('t-season-titletxt').textContent = c.title;
     document.getElementById('t-season-body').innerHTML = c.html;
-    seasonCard.style.display = '';
+    seasonCard.hidden = false;
   } else {
-    seasonCard.style.display = 'none';
+    seasonCard.hidden = true;
   }
 
   // Fertile badge
