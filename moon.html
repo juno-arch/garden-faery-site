@@ -255,6 +255,49 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
   color: var(--moon-dim); letter-spacing: 0.2px;
 }
 
+/* Today hormone snapshot card */
+.today-hormone-card .hs-rows {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.today-hormone-card .hs-row {
+  display: grid;
+  grid-template-columns: 96px 1fr 80px;
+  align-items: center;
+  gap: 10px;
+}
+.today-hormone-card .hs-name {
+  font-size: 0.82rem; color: var(--moon-text); font-weight: 500;
+  letter-spacing: 0.2px;
+}
+.today-hormone-card .hs-bar {
+  height: 10px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--moon-line);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+.today-hormone-card .hs-fill {
+  height: 100%; border-radius: 999px;
+  box-shadow: 0 0 8px currentColor;
+  transition: width 0.3s ease;
+}
+.today-hormone-card .hs-level {
+  font-size: 0.72rem;
+  color: var(--moon-dim);
+  letter-spacing: 0.5px;
+  text-align: right;
+  text-transform: lowercase;
+  font-style: italic;
+}
+.today-hormone-card .hs-note {
+  margin: 12px 0 0;
+  font-size: 0.72rem;
+  color: var(--moon-dim);
+  font-style: italic;
+  line-height: 1.5;
+}
+
 /* Today inner-season guide card (mirrors Learn deep-dive, accordion-styled) */
 .today-season-card .ts-head {
   font-family: 'Prata', serif;
@@ -886,6 +929,13 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
       <div class="herb-row" id="t-herbs"></div>
     </div>
     <button class="log-today-btn" onclick="openLogToday()">+ Log today</button>
+  </div>
+
+  <!-- Today's hormones — quick snapshot of where each hormone is right now -->
+  <div class="card today-hormone-card" data-section="today" id="t-hormone-card" hidden>
+    <h3><span data-icon="waves"></span>Today's hormones</h3>
+    <div class="hs-rows" id="hs-rows"></div>
+    <p class="hs-note">Reading off your cycle day. Tap Trends for the full 28-day curve.</p>
   </div>
 
   <!-- Inner season guide (auto-switches with current phase) -->
@@ -1853,6 +1903,46 @@ function openLearnForCurrentPhase() {
   setTab('learn');
 }
 
+// Today's hormone snapshot — reads the cycle-day position on the 4 curves and
+// describes each hormone's current state (peak / rising / high / medium /
+// falling / low / baseline) by comparing today's value to yesterday + tomorrow.
+function hormoneSnapshot(cycleDay) {
+  if (!cycleDay) return null;
+  const cd = Math.min(28, Math.max(1, cycleDay));
+  const prev = Math.max(1, cd - 1);
+  const next = Math.min(28, cd + 1);
+  const describe = (today, yest, tom) => {
+    if (today >= 80) return 'peak';
+    if (today <= 18) return 'baseline';
+    const slope = tom - yest;
+    if (slope > 8) return 'rising';
+    if (slope < -8) return 'falling';
+    if (today >= 60) return 'high';
+    if (today >= 35) return 'medium';
+    return 'low';
+  };
+  return [
+    { name: 'Estrogen',     color: '#ffb49c', pct: hE(cd),   level: describe(hE(cd), hE(prev), hE(next)) },
+    { name: 'Progesterone', color: '#b58bff', pct: hP(cd),   level: describe(hP(cd), hP(prev), hP(next)) },
+    { name: 'LH',           color: '#ffd98b', pct: hLH(cd),  level: describe(hLH(cd), hLH(prev), hLH(next)) },
+    { name: 'FSH',          color: '#c4d8b1', pct: hFSH(cd), level: describe(hFSH(cd), hFSH(prev), hFSH(next)) }
+  ];
+}
+function renderHormoneSnapshot(cycleDay) {
+  const card = document.getElementById('t-hormone-card');
+  if (!card) return;
+  const snap = hormoneSnapshot(cycleDay);
+  if (!snap) { card.hidden = true; return; }
+  document.getElementById('hs-rows').innerHTML = snap.map(h =>
+    '<div class="hs-row">' +
+      '<div class="hs-name">' + h.name + '</div>' +
+      '<div class="hs-bar"><div class="hs-fill" style="width:' + h.pct.toFixed(0) + '%;background:' + h.color + '"></div></div>' +
+      '<div class="hs-level">' + h.level + '</div>' +
+    '</div>'
+  ).join('');
+  card.hidden = false;
+}
+
 // --- Hormone curves (normalized 0-100 across a 28-day cycle) ---
 function hE(d)   { if (d <= 13) return 12 + (d-1)*7; if (d === 14) return 70; if (d === 15) return 50; if (d <= 22) return 50 + (d-15)*3.5; return Math.max(18, 75 - (d-22)*11); }
 function hP(d)   { if (d <= 14) return 12; if (d <= 22) return 12 + (d-14)*9; if (d <= 26) return 84; return Math.max(12, 84 - (d-26)*36); }
@@ -1882,6 +1972,21 @@ function renderHormoneChart() {
     }
     return '<path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="2"' + (dash ? ' stroke-dasharray="4 3"' : '') + ' stroke-linecap="round" stroke-linejoin="round"/>';
   };
+
+  // Phase bands behind everything — color-code by inner season so the chart
+  // reads as a body-rhythm map, not just curves on a grid.
+  const bandTop = PAD;
+  const bandHeight = H - PAD * 2;
+  const phaseBand = (d1, d2, fill) => {
+    const x1 = x(d1), x2 = x(d2);
+    return '<rect x="' + x1.toFixed(1) + '" y="' + bandTop + '" width="' + (x2 - x1).toFixed(1) + '" height="' + bandHeight + '" fill="' + fill + '"/>';
+  };
+  const bands =
+    phaseBand(1, 5,   'rgba(181,139,255,0.06)') +  // winter
+    phaseBand(5, 13,  'rgba(143,227,212,0.05)') +  // spring
+    phaseBand(13, 16, 'rgba(255,217,139,0.07)') +  // summer
+    phaseBand(16, 28, 'rgba(255,143,177,0.05)');   // autumn
+
   // Today line
   const last = periods.length ? periods[periods.length - 1] : null;
   const today = todayStr();
@@ -1904,6 +2009,7 @@ function renderHormoneChart() {
   }).join('');
   chart.innerHTML =
     '<svg viewBox="0 0 ' + W + ' ' + H + '" class="hormone-chart">' +
+    bands +
     line(hE, '#ffb49c', false) +
     line(hP, '#b58bff', false) +
     line(hLH, '#ffd98b', true) +
@@ -3008,6 +3114,7 @@ function render() {
   badge.innerHTML = '<span class="fb-ico">' + (ICON[lab.icon] || '') + '</span><span>' + lab.text + ' · ' + fs.detail + '</span>';
 
   renderHormoneChart();
+  renderHormoneSnapshot(cycleDay);
   renderTempChart();
   renderPatterns();
   renderSky();
