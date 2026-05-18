@@ -3055,7 +3055,7 @@ function populateScanConfirm(p) {
         : 'color:var(--plum);font-style:italic;opacity:0.7;';
       // Use CSS grid so columns get predictable widths even with long no-space
       // SKUs in descriptions. min-width:0 on the desc cell lets word-break work.
-      return '<label style="display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start;padding:6px 0;border-bottom:1px solid var(--gray-200);cursor:pointer;">' +
+      return '<label style="display:grid;grid-template-columns:24px 1fr auto;gap:10px;align-items:start;padding:6px 0;border-bottom:1px solid var(--gray-200);cursor:pointer;width:100%;box-sizing:border-box;">' +
         '<input type="checkbox" data-li-idx="' + i + '" onchange="onScanPersonalToggle(' + i + ', this.checked)" style="margin-top:3px;">' +
         '<span style="word-break:break-word;line-height:1.35;min-width:0;' + style + '">' + escapeHtml(desc) + '</span>' +
         '<span style="font-variant-numeric:tabular-nums;color:var(--plum);text-align:right;white-space:nowrap;">$' + (Number(li.amount) || 0).toFixed(2) + '</span>' +
