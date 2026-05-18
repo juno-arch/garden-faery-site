@@ -3767,6 +3767,9 @@ async function loadPayments() {
       source: r.source,
       notes: r.notes,
       reviewStatus: r.review_status,
+      depositedAt: r.deposited_at,
+      depositReference: r.deposit_reference,
+      bankTransactionId: r.bank_transaction_id,
     }));
   } catch (err) {
     console.error('loadPayments failed:', err);
@@ -3853,7 +3856,10 @@ function renderPayments() {
   // Top action bar
   html += '<div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;">' +
     '<button class="modal-btn primary" onclick="openLogPayment()" style="padding:8px 14px;font-size:0.85rem;">+ Log cash/check</button>' +
-    '<button class="modal-btn secondary" onclick="refreshPayments()" style="padding:8px 14px;font-size:0.85rem;">↻ Refresh</button>' +
+    '<div style="display:flex;gap:6px;">' +
+      '<button class="modal-btn secondary" onclick="syncBank()" style="padding:8px 14px;font-size:0.85rem;" title="Pull new transactions from CCCU via SimpleFIN and auto-match to payments">🏦 Sync bank</button>' +
+      '<button class="modal-btn secondary" onclick="refreshPayments()" style="padding:8px 14px;font-size:0.85rem;">↻ Refresh</button>' +
+    '</div>' +
     '</div>';
 
   // KPIs
@@ -3889,6 +3895,8 @@ function renderPayments() {
       const sub = [];
       if (p.feeCents > 0) sub.push('fee ' + fmtMoney(p.feeCents) + ' · net ' + fmtMoney(p.netCents));
       if (p.invoiceNumber) sub.push('inv ' + p.invoiceNumber);
+      if (p.depositedAt) sub.push('🏦 deposited ' + p.depositedAt.slice(0,10));
+      else if (p.processor !== 'square' && p.processor !== 'stripe' && p.status === 'completed') sub.push('⏳ awaiting bank deposit');
       if (p.notes) sub.push(p.notes);
       const borderColor = p.status === 'completed' ? 'var(--spring-sage)' :
                           p.status === 'pending' ? 'var(--pollen-gold)' : 'var(--red)';
@@ -3923,6 +3931,35 @@ function setPaymentsFilter(key) {
 async function refreshPayments() {
   await loadPayments();
   renderPayments();
+}
+
+// --- Pull new bank transactions from CCCU via SimpleFIN ---
+async function syncBank() {
+  const btn = event && event.target ? event.target : null;
+  if (btn) { btn.disabled = true; btn.textContent = '🏦 Syncing…'; }
+  try {
+    const resp = await fetch(PB_URL + '/api/admin/simplefin-sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      alert('Bank sync failed: ' + (data.error || resp.status));
+      return;
+    }
+    const parts = [];
+    if (typeof data.inserted === 'number')   parts.push(data.inserted + ' new');
+    if (typeof data.matched === 'number')    parts.push(data.matched + ' auto-matched');
+    if (data.multi_match)                    parts.push(data.multi_match + ' need review');
+    alert('Bank sync complete: ' + (parts.join(' · ') || 'no new transactions'));
+    // Reload payments so deposited_at indicators show up.
+    await loadPayments();
+    renderPayments();
+  } catch (err) {
+    alert('Network error: ' + err.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🏦 Sync bank'; }
+  }
 }
 
 // --- Manual payment entry modal ---
