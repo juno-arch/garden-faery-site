@@ -2826,7 +2826,7 @@ async function saveInvoice(asSent) {
     if (_invDraftState.id) body.id = _invDraftState.id;
     const res = await fetch(PB_URL + path, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + DB._token },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
       body: JSON.stringify(body),
     });
     const data = await res.json();
@@ -2835,7 +2835,7 @@ async function saveInvoice(asSent) {
       // Mark sent on existing too.
       await fetch(PB_URL + '/api/admin/invoices/mark-sent', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + DB._token },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
         body: JSON.stringify({ id: _invDraftState.id }),
       });
     }
@@ -2876,7 +2876,7 @@ async function invoiceMarkPaid(id) {
   try {
     const res = await fetch(PB_URL + '/api/admin/invoices/mark-paid', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + DB._token },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
       body: JSON.stringify({ id: id, payment_method: method, reference: ref }),
     });
     const data = await res.json();
@@ -2890,7 +2890,7 @@ async function invoiceMarkSent(id) {
   try {
     const res = await fetch(PB_URL + '/api/admin/invoices/mark-sent', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + DB._token },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
       body: JSON.stringify({ id: id }),
     });
     const data = await res.json();
@@ -2905,7 +2905,7 @@ async function invoiceVoid(id) {
   try {
     const res = await fetch(PB_URL + '/api/admin/invoices/void', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + DB._token },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
       body: JSON.stringify({ id: id }),
     });
     const data = await res.json();
@@ -3108,10 +3108,12 @@ function renderComplianceList() {
         '</div>' +
         '<div class="booking-actions" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">' +
           '<button class="modal-btn primary" style="padding:6px 12px;font-size:0.78rem;" onclick="markComplianceFiled(\'' + item.id + '\')">Mark filed</button>' +
+          (canCompute(item) ? '<button class="modal-btn secondary" style="padding:6px 12px;font-size:0.78rem;background:var(--cream);" onclick="computeCompliance(\'' + item.id + '\')">Compute amount</button>' : '') +
           (item.filingUrl ? '<a href="' + escapeAttrSafe(item.filingUrl) + '" target="_blank" rel="noopener" class="modal-btn secondary" style="padding:6px 12px;font-size:0.78rem;text-decoration:none;">File on portal &rarr;</a>' : '') +
           '<button class="modal-btn secondary" style="padding:6px 12px;font-size:0.78rem;" onclick="openComplianceItemModal(\'' + item.id + '\')">Edit</button>' +
           '<button class="modal-btn secondary" style="padding:6px 12px;font-size:0.78rem;color:var(--red);" onclick="deleteComplianceItem(\'' + item.id + '\')">Delete</button>' +
         '</div>' +
+        (_complianceCalcCache[item.id] ? renderComputeBreakdown(item, _complianceCalcCache[item.id]) : '') +
       '</div>';
     });
   }
@@ -3209,13 +3211,31 @@ function renderComplianceTodos() {
   const open = _todos.filter(t => t.status !== 'done');
   const done = _todos.filter(t => t.status === 'done');
 
+  // Surface due-soon/overdue compliance items as auto-rows at the top.
+  // (Replaces the "smart reminder email" — same intent, in-app.)
+  const dueCompliance = _complianceItems
+    .filter(i => !i.paused)
+    .filter(i => {
+      const k = complianceStatus(i).key;
+      return k === 'overdue' || k === 'due_soon';
+    })
+    .sort((a, b) => (a.nextDue || '').localeCompare(b.nextDue || ''));
+
   let html =
     '<div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;">' +
-      '<div style="font-size:0.85rem;"><strong>' + open.length + '</strong> open &middot; <span style="color:var(--gray-600);">' + done.length + ' done</span></div>' +
+      '<div style="font-size:0.85rem;"><strong>' + open.length + '</strong> open &middot; <span style="color:var(--gray-600);">' + done.length + ' done</span>' +
+        (dueCompliance.length ? ' &middot; <strong style="color:var(--red);">' + dueCompliance.length + '</strong> compliance due' : '') +
+      '</div>' +
       '<button class="modal-btn primary" onclick="openTodoModal()">+ Add todo</button>' +
     '</div>';
 
-  if (!open.length && !done.length) {
+  if (dueCompliance.length) {
+    html += '<h3 style="font-family:Lora,serif;font-weight:500;font-size:1rem;margin-bottom:8px;">Compliance due</h3>';
+    dueCompliance.forEach(item => { html += complianceDueRowHtml(item); });
+    html += '<div style="height:14px;"></div>';
+  }
+
+  if (!open.length && !done.length && !dueCompliance.length) {
     html += '<div class="empty-day">No todos. Add one above.</div>';
   } else {
     if (open.length) {
@@ -3237,6 +3257,29 @@ function renderComplianceTodos() {
   }
 
   host.innerHTML = html;
+}
+
+function complianceDueRowHtml(item) {
+  const st = complianceStatus(item);
+  const dueStr = item.nextDue ? new Date(item.nextDue + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+  const borderColor = st.key === 'overdue' ? 'var(--red)' : 'var(--pollen-gold)';
+  return '<div class="booking-card" style="border-left-color:' + borderColor + ';">' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="font-weight:600;font-size:0.95rem;">' + escapeHtml(item.name) + '</div>' +
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center;">' +
+          entityPill(item.entity) +
+          '<span style="background:' + st.bg + ';color:' + st.fg + ';padding:2px 8px;border-radius:10px;font-size:0.68rem;font-weight:600;">' + escapeHtml(st.label) + '</span>' +
+          (dueStr ? '<span style="font-size:0.7rem;color:var(--gray-600);">due ' + escapeHtml(dueStr) + '</span>' : '') +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:4px;flex-shrink:0;flex-wrap:wrap;">' +
+        '<button class="modal-btn primary" style="padding:4px 9px;font-size:0.72rem;" onclick="markComplianceFiled(\'' + item.id + '\')">Mark filed</button>' +
+        (canCompute(item) ? '<button class="modal-btn secondary" style="padding:4px 9px;font-size:0.72rem;" onclick="computeCompliance(\'' + item.id + '\');_complianceSubTab=\'list\';renderComplianceShell();">Compute &rarr;</button>' : '') +
+        (item.filingUrl ? '<a href="' + escapeAttrSafe(item.filingUrl) + '" target="_blank" rel="noopener" class="modal-btn secondary" style="padding:4px 9px;font-size:0.72rem;text-decoration:none;">File &rarr;</a>' : '') +
+      '</div>' +
+    '</div>' +
+  '</div>';
 }
 
 function todoRowHtml(t) {
@@ -3266,6 +3309,113 @@ function todoRowHtml(t) {
       '</div>' +
     '</div>' +
   '</div>';
+}
+
+// ----- Auto-compute (suggested amounts) -----
+let _complianceCalcCache = {}; // item.id -> { kind, amount_cents, breakdown }
+
+function canCompute(item) {
+  const name = String(item.name || '');
+  return /1040-?ES|1099-?NEC|Form\s*568|LLC-?12|Schedule\s*C/i.test(name);
+}
+
+async function computeCompliance(id) {
+  try {
+    const resp = await fetch(PB_URL + '/api/admin/compliance/calc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+      body: JSON.stringify({ id: id }),
+    });
+    const data = await resp.json();
+    if (!data.ok) { alert('Compute failed: ' + (data.error || resp.status)); return; }
+    _complianceCalcCache[id] = data;
+    renderComplianceList();
+  } catch (err) { alert('Network error: ' + err.message); }
+}
+
+function fmtMoney(cents) {
+  const n = Number(cents) || 0;
+  return '$' + (n / 100).toFixed(2);
+}
+
+function renderComputeBreakdown(item, calc) {
+  const b = calc.breakdown || {};
+  let inner = '';
+  const amt = calc.amount_cents != null ? '<div style="font-size:1.4rem;font-weight:600;color:var(--plum);">' + fmtMoney(calc.amount_cents) + '</div><div style="font-size:0.7rem;opacity:0.6;text-transform:uppercase;letter-spacing:0.05em;margin-top:-2px;">suggested</div>' : '';
+
+  if (calc.kind === '1040es') {
+    inner =
+      '<div style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;">' +
+        '<div style="min-width:120px;">' + amt + '</div>' +
+        '<div style="flex:1;min-width:200px;font-size:0.8rem;line-height:1.6;">' +
+          '<div><strong>' + b.quarter + ' &middot; ' + b.income_year + '</strong> &middot; window ' + b.window_start + ' &rarr; ' + b.window_end + '</div>' +
+          '<div>Gross income: ' + fmtMoney(b.gross_income_cents) + '</div>' +
+          '<div>Processor fees: ' + fmtMoney(b.processor_fees_cents) + '</div>' +
+          '<div>Deductible biz expenses: $' + (b.deductible_expenses_dollars || 0).toFixed(2) + '</div>' +
+          '<div>Net SE income: <strong>$' + (b.net_se_income_dollars || 0).toFixed(2) + '</strong></div>' +
+          '<div style="opacity:0.7;">SE tax (15.3%): $' + (b.se_tax_dollars || 0).toFixed(2) + ' &middot; Fed income (12%): $' + (b.fed_income_tax_dollars || 0).toFixed(2) + '</div>' +
+          '<div style="opacity:0.7;">Safe-rate alt (flat 25%): ' + fmtMoney(b.safe_rate_cents) + '</div>' +
+          '<div style="margin-top:6px;font-style:italic;color:var(--gray-600);">' + escapeHtml(b.note || '') + '</div>' +
+        '</div>' +
+      '</div>';
+  } else if (calc.kind === '1099_roster_summary') {
+    inner =
+      '<div style="font-size:0.85rem;">' +
+        '<div style="margin-bottom:8px;">' + escapeHtml(b.note || '') + '</div>' +
+        (b.recipients && b.recipients.length
+          ? '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">' +
+              '<thead><tr style="border-bottom:1px solid var(--gray-200);text-align:left;"><th style="padding:4px 4px;">Recipient</th><th style="padding:4px 4px;text-align:right;">YTD</th><th style="padding:4px 4px;text-align:right;">#</th></tr></thead>' +
+              '<tbody>' + b.recipients.map(r =>
+                '<tr style="border-bottom:1px solid var(--gray-100);"><td style="padding:4px 4px;">' + escapeHtml(r.name) + '</td><td style="padding:4px 4px;text-align:right;">$' + (r.total||0).toFixed(2) + '</td><td style="padding:4px 4px;text-align:right;">' + r.count + '</td></tr>'
+              ).join('') + '</tbody>' +
+            '</table>' +
+            '<button class="modal-btn secondary" style="margin-top:8px;padding:5px 10px;font-size:0.78rem;" onclick="download1099Csv(' + (b.recipients[0] && b.recipients[0].year || (new Date().getFullYear()-1)) + ')">Download CSV</button>'
+          : '<div style="opacity:0.6;">No contractors paid $600+ this period.</div>'
+        ) +
+      '</div>';
+  } else if (calc.kind === 'schedule_c') {
+    const cats = b.expenses_by_category || {};
+    const catRows = Object.keys(cats).sort((a,b2) => cats[b2]-cats[a]).map(c =>
+      '<tr style="border-bottom:1px solid var(--gray-100);"><td style="padding:3px 4px;">' + escapeHtml(c.replace(/_/g,' ')) + '</td><td style="padding:3px 4px;text-align:right;">$' + cats[c].toFixed(2) + '</td></tr>'
+    ).join('');
+    inner =
+      '<div style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;">' +
+        '<div style="min-width:140px;">' + amt + '<div style="font-size:0.72rem;opacity:0.6;">net profit (tax yr ' + b.tax_year + ')</div></div>' +
+        '<div style="flex:1;min-width:240px;font-size:0.82rem;">' +
+          '<div>Gross receipts: $' + (b.gross_receipts_dollars||0).toFixed(2) + '</div>' +
+          '<div>Total expenses: $' + (b.total_expenses_dollars||0).toFixed(2) + '</div>' +
+          (catRows ? '<table style="width:100%;border-collapse:collapse;margin-top:6px;font-size:0.78rem;"><thead><tr style="border-bottom:1px solid var(--gray-200);text-align:left;"><th style="padding:3px 4px;">Category</th><th style="padding:3px 4px;text-align:right;">Total</th></tr></thead><tbody>' + catRows + '</tbody></table>' : '') +
+          '<div style="margin-top:6px;font-style:italic;color:var(--gray-600);">' + escapeHtml(b.note || '') + '</div>' +
+        '</div>' +
+      '</div>';
+  } else if (calc.kind === 'static') {
+    inner = '<div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;">' + amt + '<div style="font-size:0.85rem;flex:1;min-width:200px;">' + escapeHtml(b.note || '') + '</div></div>';
+  } else {
+    inner = '<div style="font-size:0.85rem;">' + escapeHtml(b.note || 'No auto-compute rule.') + '</div>';
+  }
+
+  return '<div style="margin-top:10px;background:var(--cream);border:1px solid var(--gray-200);border-radius:6px;padding:10px 12px;">' + inner + '</div>';
+}
+
+async function download1099Csv(year) {
+  try {
+    const resp = await fetch(PB_URL + '/api/admin/compliance/1099-roster?year=' + encodeURIComponent(year), {
+      headers: { 'Authorization': 'Bearer ' + PB_TOKEN },
+    });
+    const data = await resp.json();
+    if (!data.ok) { alert('Roster fetch failed.'); return; }
+    const rows = [['Recipient', 'Total $', 'Tx count', 'Source', 'Over $600']];
+    (data.recipients || []).forEach(r => {
+      rows.push([r.name, (r.total_cents/100).toFixed(2), r.count, r.source, r.over_threshold ? 'yes' : 'no']);
+    });
+    const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = '1099-NEC-roster-' + year + '.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  } catch (err) { alert('Download error: ' + err.message); }
 }
 
 // ----- Mutations -----
