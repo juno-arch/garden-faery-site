@@ -669,6 +669,7 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
     <button class="tab" data-tab="clients" onclick="switchTab('clients')">Clients</button>
     <button class="tab" data-tab="income" onclick="switchTab('income')">Income</button>
     <button class="tab" data-tab="expenses" onclick="switchTab('expenses')">Expenses</button>
+    <button class="tab" data-tab="payments" onclick="switchTab('payments')">Payments</button>
     <button class="tab" data-tab="taxes" onclick="switchTab('taxes')">Taxes</button>
     <button class="tab" data-tab="emails" onclick="switchTab('emails')">Emails</button>
     <button class="tab" data-tab="settings" aria-label="Settings" onclick="switchTab('settings')"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -715,6 +716,11 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
   <!-- Expenses view -->
   <div class="tab-panel" id="tab-expenses" style="display:none;">
     <div id="expenses-content"></div>
+  </div>
+
+  <!-- Payments view (Square webhook ingest + manual cash/check log) -->
+  <div class="tab-panel" id="tab-payments" style="display:none;">
+    <div id="payments-content"></div>
   </div>
 
   <!-- Taxes view -->
@@ -865,6 +871,51 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
         <button class="modal-btn secondary" onclick="closeModal('modal-payment')">Cancel</button>
         <button class="modal-btn primary" onclick="savePayment()">Save</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Log Payment modal — manual cash/check/etc. entry for payments outside Square webhook flow -->
+<div class="modal-overlay" id="modal-log-payment">
+  <div class="modal">
+    <h2>Log payment</h2>
+    <p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:12px;">For cash / check / Venmo / etc. not tied to a booking. Booking payments use the existing "Booking payment" flow from the booking card.</p>
+    <div class="form-group">
+      <label>Method</label>
+      <select id="lp-processor">
+        <option value="cash">Cash</option>
+        <option value="check">Check</option>
+        <option value="venmo">Venmo</option>
+        <option value="zelle">Zelle</option>
+        <option value="crypto">Crypto</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Amount ($)</label>
+      <input type="number" id="lp-amount" step="0.01" min="0" placeholder="0.00">
+    </div>
+    <div class="form-group">
+      <label>Date received</label>
+      <input type="date" id="lp-date">
+    </div>
+    <div class="form-group">
+      <label>Client name</label>
+      <input type="text" id="lp-name" placeholder="optional">
+    </div>
+    <div class="form-group">
+      <label>Match to booking (optional)</label>
+      <select id="lp-booking">
+        <option value="">— don't match —</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="lp-notes" rows="2" placeholder="check #, location under faery rock, etc."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-log-payment')">Cancel</button>
+      <button class="modal-btn primary" onclick="submitLogPayment()">Save</button>
     </div>
   </div>
 </div>
@@ -1340,6 +1391,7 @@ function switchTab(tab) {
   if (tab === 'clients') renderClients();
   if (tab === 'income') renderIncome();
   if (tab === 'expenses') renderExpenses();
+  if (tab === 'payments') renderPayments();
   if (tab === 'taxes') renderTaxes();
   if (tab === 'emails') renderEmails();
   if (tab === 'settings') renderSettings();
@@ -3676,6 +3728,302 @@ function renderIncome() {
   html += '</div>';
 
   el.innerHTML = html;
+}
+
+// ============================================
+// PAYMENTS (new — Square webhook ingest + manual log)
+// ============================================
+// Separate from the bookings.paid story: this is the raw transaction ledger
+// that backs 1099-K reconciliation. Square charges land here automatically
+// via the PocketBase webhook; cash/check entered manually via Log Payment.
+let _paymentsCache = [];
+let _paymentsFilter = 'all'; // all | this_month | unmatched | refunded
+
+async function loadPayments() {
+  if (!PB_URL) { _paymentsCache = []; return; }
+  try {
+    const data = await DB._pb('GET', 'payments/records?perPage=500&sort=-captured_at');
+    _paymentsCache = (data.items || []).map(r => ({
+      id: r.id,
+      processor: r.processor,
+      processorPaymentId: r.processor_payment_id,
+      amountCents: r.amount_cents || 0,
+      feeCents: r.fee_cents || 0,
+      netCents: r.net_cents || 0,
+      currency: r.currency || 'USD',
+      status: r.status,
+      capturedAt: r.captured_at,
+      customerName: r.customer_name,
+      customerEmail: r.customer_email,
+      customerPhone: r.customer_phone,
+      bookingId: r.booking_id,
+      invoiceNumber: r.invoice_number,
+      paymentMethod: r.payment_method,
+      cardBrand: r.card_brand,
+      cardLast4: r.card_last4,
+      source: r.source,
+      notes: r.notes,
+      reviewStatus: r.review_status,
+    }));
+  } catch (err) {
+    console.error('loadPayments failed:', err);
+    _paymentsCache = [];
+  }
+}
+
+function fmtMoney(cents) {
+  return '$' + (Math.abs(cents) / 100).toFixed(2);
+}
+
+function processorBadge(p) {
+  const map = {
+    square:  { bg: '#3e4348', fg: '#fff', label: 'Square' },
+    stripe:  { bg: '#635bff', fg: '#fff', label: 'Stripe' },
+    cash:    { bg: 'var(--spring-sage)', fg: 'var(--plum)', label: 'Cash' },
+    check:   { bg: 'var(--pollen-gold)', fg: 'var(--plum)', label: 'Check' },
+    venmo:   { bg: '#3d95ce', fg: '#fff', label: 'Venmo' },
+    zelle:   { bg: '#6d1ed4', fg: '#fff', label: 'Zelle' },
+    ach:     { bg: 'var(--gray-400)', fg: '#fff', label: 'ACH' },
+    crypto:  { bg: '#f7931a', fg: '#fff', label: 'Crypto' },
+    other:   { bg: 'var(--gray-400)', fg: '#fff', label: 'Other' },
+  };
+  const m = map[p] || map.other;
+  return '<span style="background:' + m.bg + ';color:' + m.fg + ';padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:600;">' + m.label + '</span>';
+}
+
+function payStatusBadge(s) {
+  const map = {
+    completed:           { bg: 'rgba(163,184,140,0.25)', fg: '#3a5a1f', label: '✓ paid' },
+    pending:             { bg: 'rgba(212,194,122,0.25)', fg: '#7a5f00', label: '⏳ pending' },
+    failed:              { bg: 'var(--red-light)',       fg: 'var(--red)', label: '✗ failed' },
+    refunded:            { bg: 'var(--red-light)',       fg: 'var(--red)', label: '↩ refunded' },
+    partially_refunded:  { bg: 'var(--red-light)',       fg: 'var(--red)', label: '↩ partial refund' },
+    disputed:            { bg: 'var(--red-light)',       fg: 'var(--red)', label: '⚠ disputed' },
+  };
+  const m = map[s] || { bg: 'var(--gray-200)', fg: 'var(--gray-600)', label: s || '?' };
+  return '<span style="background:' + m.bg + ';color:' + m.fg + ';padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:600;">' + m.label + '</span>';
+}
+
+function payKpiCard(label, value, sub) {
+  return '<div style="background:var(--white);border-radius:var(--radius);padding:10px 12px;box-shadow:var(--shadow);">' +
+    '<div style="font-size:0.65rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.5px;">' + label + '</div>' +
+    '<div style="font-size:1.15rem;font-weight:700;color:var(--plum);margin-top:2px;">' + value + '</div>' +
+    '<div style="font-size:0.65rem;color:var(--gray-400);">' + sub + '</div>' +
+    '</div>';
+}
+
+function renderPayments() {
+  const container = document.getElementById('payments-content');
+  if (!container) return;
+
+  // Lazy-load on first open.
+  if (_paymentsCache.length === 0 && PB_URL) {
+    container.innerHTML = '<div class="empty-day"><p>Loading payments…</p></div>';
+    loadPayments().then(() => renderPayments());
+    return;
+  }
+
+  const now = new Date();
+  const thisMonth = now.toISOString().slice(0, 7);
+
+  const filtered = _paymentsCache.filter(p => {
+    if (_paymentsFilter === 'all') return true;
+    if (_paymentsFilter === 'unmatched') return p.reviewStatus === 'unmatched';
+    if (_paymentsFilter === 'this_month') return (p.capturedAt || '').slice(0, 7) === thisMonth;
+    if (_paymentsFilter === 'refunded') return p.status === 'refunded' || p.status === 'partially_refunded';
+    return true;
+  });
+
+  const completed = _paymentsCache.filter(p => p.status === 'completed');
+  const mtd = completed.filter(p => (p.capturedAt || '').slice(0, 7) === thisMonth);
+  const mtdGross = mtd.reduce((s, p) => s + p.amountCents, 0);
+  const mtdNet = mtd.reduce((s, p) => s + p.netCents, 0);
+  const ytdGross = completed.filter(p => (p.capturedAt || '').slice(0, 4) === String(now.getFullYear()))
+    .reduce((s, p) => s + p.amountCents, 0);
+  const unmatchedCount = _paymentsCache.filter(p => p.reviewStatus === 'unmatched' && p.status === 'completed').length;
+
+  let html = '';
+
+  // Top action bar
+  html += '<div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;">' +
+    '<button class="modal-btn primary" onclick="openLogPayment()" style="padding:8px 14px;font-size:0.85rem;">+ Log cash/check</button>' +
+    '<button class="modal-btn secondary" onclick="refreshPayments()" style="padding:8px 14px;font-size:0.85rem;">↻ Refresh</button>' +
+    '</div>';
+
+  // KPIs
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px;">' +
+    payKpiCard('MTD gross',  fmtMoney(mtdGross),  mtd.length + ' payments') +
+    payKpiCard('MTD net',    fmtMoney(mtdNet),    'after fees') +
+    payKpiCard('YTD gross',  fmtMoney(ytdGross),  String(now.getFullYear())) +
+    payKpiCard('Unmatched',  String(unmatchedCount), 'to reconcile') +
+    '</div>';
+
+  // Filter chips
+  const chips = [
+    { key: 'all',         label: 'All (' + _paymentsCache.length + ')' },
+    { key: 'this_month',  label: 'This month' },
+    { key: 'unmatched',   label: 'Unmatched' },
+    { key: 'refunded',    label: 'Refunded' },
+  ];
+  html += '<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">';
+  chips.forEach(c => {
+    const active = _paymentsFilter === c.key;
+    html += '<button class="modal-btn secondary" onclick="setPaymentsFilter(\'' + c.key + '\')" style="padding:6px 12px;font-size:0.8rem;' +
+      (active ? 'background:var(--plum);color:#fff;border-color:var(--plum);' : '') + '">' + c.label + '</button>';
+  });
+  html += '</div>';
+
+  // List
+  if (filtered.length === 0) {
+    html += '<div class="empty-day"><p>No payments yet. Log a cash/check payment above, or wait for the first Square webhook.</p></div>';
+  } else {
+    filtered.forEach(p => {
+      const dateStr = p.capturedAt ? (new Date(p.capturedAt)).toLocaleDateString() : '?';
+      const who = p.customerName || p.customerEmail || (p.cardLast4 ? p.cardBrand + ' •••' + p.cardLast4 : 'unknown');
+      const sub = [];
+      if (p.feeCents > 0) sub.push('fee ' + fmtMoney(p.feeCents) + ' · net ' + fmtMoney(p.netCents));
+      if (p.invoiceNumber) sub.push('inv ' + p.invoiceNumber);
+      if (p.notes) sub.push(p.notes);
+      const borderColor = p.status === 'completed' ? 'var(--spring-sage)' :
+                          p.status === 'pending' ? 'var(--pollen-gold)' : 'var(--red)';
+
+      html += '<div class="booking-card" style="border-left-color:' + borderColor + ';">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">' +
+          '<div style="min-width:0;">' +
+            '<h3 style="margin-bottom:2px;font-size:1rem;">' + fmtMoney(p.amountCents) + ' · ' + escapeHtml(who) + '</h3>' +
+            '<div class="booking-meta" style="font-size:0.75rem;">' + dateStr + '</div>' +
+          '</div>' +
+          '<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;">' +
+            processorBadge(p.processor) +
+            payStatusBadge(p.status) +
+          '</div>' +
+        '</div>' +
+        (sub.length ? '<div class="booking-meta" style="font-size:0.75rem;margin-top:6px;">' + escapeHtml(sub.join(' · ')) + '</div>' : '') +
+        (!p.bookingId && p.status === 'completed' ?
+          '<div class="booking-actions" style="margin-top:8px;"><button class="modal-btn secondary" style="padding:4px 10px;font-size:0.75rem;" onclick="openMatchPayment(\'' + p.id + '\')">Match to booking</button></div>'
+          : '') +
+      '</div>';
+    });
+  }
+
+  container.innerHTML = html;
+}
+
+function setPaymentsFilter(key) {
+  _paymentsFilter = key;
+  renderPayments();
+}
+
+async function refreshPayments() {
+  await loadPayments();
+  renderPayments();
+}
+
+// --- Manual payment entry modal ---
+function openLogPayment() {
+  document.getElementById('lp-amount').value = '';
+  document.getElementById('lp-date').value = formatDate(new Date());
+  document.getElementById('lp-name').value = '';
+  document.getElementById('lp-notes').value = '';
+  document.getElementById('lp-processor').value = 'cash';
+
+  // Populate booking dropdown with recent + upcoming bookings.
+  const sel = document.getElementById('lp-booking');
+  sel.innerHTML = '<option value="">— don\'t match —</option>';
+  const recent = getBookings()
+    .filter(b => b.status !== 'canceled')
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+    .slice(0, 30);
+  recent.forEach(b => {
+    const label = b.date + ' · ' + (b.clientName || 'unknown') + ' · ' + (b.eventType || '');
+    const opt = document.createElement('option');
+    opt.value = b.id;
+    opt.textContent = label;
+    sel.appendChild(opt);
+  });
+
+  document.getElementById('modal-log-payment').classList.add('open');
+}
+
+async function submitLogPayment() {
+  const processor = document.getElementById('lp-processor').value;
+  const dollars = parseFloat(document.getElementById('lp-amount').value);
+  const date = document.getElementById('lp-date').value;
+  const name = document.getElementById('lp-name').value.trim();
+  const bookingId = document.getElementById('lp-booking').value;
+  const notes = document.getElementById('lp-notes').value.trim();
+
+  if (!dollars || dollars <= 0) { alert('Amount required.'); return; }
+  const amountCents = Math.round(dollars * 100);
+  const capturedAt = date ? (date + 'T12:00:00Z') : new Date().toISOString();
+
+  try {
+    const resp = await fetch(PB_URL + '/api/admin/log-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+      body: JSON.stringify({
+        processor: processor,
+        amount_cents: amountCents,
+        captured_at: capturedAt,
+        customer_name: name,
+        booking_id: bookingId,
+        source: 'manual',
+        notes: notes,
+      }),
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      alert('Could not save: ' + (err.error || resp.status));
+      return;
+    }
+    closeModal('modal-log-payment');
+    await loadPayments();
+    renderPayments();
+    // Refresh bookings too in case the match flipped a booking's paid flag.
+    if (bookingId) {
+      _cachedBookings = await DB.getBookings();
+      renderIncome();
+    }
+  } catch (err) {
+    alert('Network error: ' + err.message);
+  }
+}
+
+// --- Match payment to booking (simple numbered prompt — replace with picker UI later) ---
+async function openMatchPayment(paymentId) {
+  const p = _paymentsCache.find(x => x.id === paymentId);
+  if (!p) return;
+  const recent = getBookings()
+    .filter(b => b.status !== 'canceled')
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+    .slice(0, 30);
+  const choices = recent.map((b, i) =>
+    (i + 1) + '. ' + b.date + ' · ' + (b.clientName || 'unknown') + ' · ' + (b.eventType || '')
+  ).join('\n');
+  const pick = prompt('Match payment of ' + fmtMoney(p.amountCents) + ' from ' + (p.customerName || p.customerEmail || '?') +
+    '\n\nType the number of the booking to match:\n\n' + choices, '');
+  if (!pick) return;
+  const idx = parseInt(pick, 10) - 1;
+  if (isNaN(idx) || idx < 0 || idx >= recent.length) { alert('Invalid pick.'); return; }
+  const bookingId = recent[idx].id;
+  try {
+    const resp = await fetch(PB_URL + '/api/admin/match-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+      body: JSON.stringify({ payment_id: paymentId, booking_id: bookingId }),
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      alert('Match failed: ' + (err.error || resp.status));
+      return;
+    }
+    await loadPayments();
+    renderPayments();
+    // Re-pull bookings so Income tab sees the new paid flag.
+    _cachedBookings = await DB.getBookings();
+  } catch (err) {
+    alert('Network error: ' + err.message);
+  }
 }
 
 function openPayment(bookingId) {
