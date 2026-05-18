@@ -425,17 +425,32 @@ body {
         <input type="text" id="bk-address" autocomplete="street-address" placeholder="123 Main St, Arcata, CA 95521">
         <p style="font-size:0.78rem;color:var(--gray-600);margin-top:4px;">Service area: Arcata, Bayside, McKinleyville, Eureka.</p>
 
+        <label style="margin-top:14px;">Frequency</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;margin:0;padding:10px;border:2px solid var(--gray-200);border-radius:8px;cursor:pointer;">
+            <input type="radio" name="bk-freq" value="once" checked onchange="updateBkFreq()"> One-time
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;margin:0;padding:10px;border:2px solid var(--gray-200);border-radius:8px;cursor:pointer;">
+            <input type="radio" name="bk-freq" value="weekly" onchange="updateBkFreq()"> Weekly
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;margin:0;padding:10px;border:2px solid var(--gray-200);border-radius:8px;cursor:pointer;">
+            <input type="radio" name="bk-freq" value="biweekly" onchange="updateBkFreq()"> Biweekly
+          </label>
+        </div>
+        <p style="font-size:0.78rem;color:var(--gray-600);margin-top:4px;">Recurring visits repeat on the same weekday as your first date.</p>
+
+        <div id="bk-recurring-detail" style="display:none;margin-top:10px;padding:12px;background:var(--gray-100);border-radius:8px;">
+          <label for="bk-count">Number of visits</label>
+          <input type="number" id="bk-count" min="2" max="52" value="8" oninput="updateBkFreq()">
+          <p id="bk-recurring-preview" style="font-size:0.8rem;color:var(--plum);margin-top:6px;font-style:italic;"></p>
+        </div>
+
         <label for="bk-notes" style="margin-top:14px;">Garden notes (optional)</label>
         <textarea id="bk-notes" rows="3" placeholder="Any specifics for the visit?"></textarea>
 
         <button class="btn-portal-primary" id="bk-submit" onclick="submitBook()">Book this visit</button>
         <div id="bk-error" class="error-banner" style="display:none;"></div>
         <div id="bk-success" class="success-banner" style="display:none;margin-top:12px;">Booked. See your upcoming visits in the My Visits tab.</div>
-      </div>
-
-      <div class="portal-card">
-        <h2 style="font-size:1rem;">Need a recurring schedule?</h2>
-        <p style="color:var(--gray-600);font-size:0.85rem;margin-bottom:0;">Weekly or biweekly visits coming soon to this portal. For now, message Taya and she'll set you up.</p>
       </div>
     </div>
 
@@ -974,16 +989,60 @@ async function payWithCard(bookingId, cardId, btnEl) {
 // ----- BOOK NEW VISIT (Book tab) -----
 function initBookForm() {
   if (!_data || !_data.profile) return;
-  // Pre-fill address from profile.
   const addrEl = document.getElementById('bk-address');
   if (addrEl && !addrEl.value) addrEl.value = _data.profile.address || '';
-  // Set min date to tomorrow.
   const dateEl = document.getElementById('bk-date');
   if (dateEl) {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     dateEl.min = tomorrow.toISOString().slice(0, 10);
+    dateEl.onchange = updateBkFreq;
   }
+  updateBkFreq();
+}
+
+function getBkFreq() {
+  const r = document.querySelector('input[name="bk-freq"]:checked');
+  return r ? r.value : 'once';
+}
+
+// Compute the list of dates for a recurring series starting from `startDate`,
+// repeating every N weeks on the same weekday, for `count` visits.
+function computeSeriesDates(startDateStr, freq, count) {
+  if (!startDateStr) return [];
+  const step = freq === 'biweekly' ? 14 : 7;
+  const out = [];
+  const start = new Date(startDateStr + 'T12:00:00');
+  for (let i = 0; i < count; i++) {
+    const d = new Date(start);
+    d.setDate(d.getDate() + step * i);
+    out.push(d.toISOString().slice(0, 10));
+  }
+  return out;
+}
+
+function updateBkFreq() {
+  const freq = getBkFreq();
+  const detail = document.getElementById('bk-recurring-detail');
+  const preview = document.getElementById('bk-recurring-preview');
+  if (freq === 'once') {
+    detail.style.display = 'none';
+    document.getElementById('bk-submit').textContent = 'Book this visit';
+    return;
+  }
+  detail.style.display = '';
+  const date = document.getElementById('bk-date').value;
+  const count = Math.max(2, Math.min(52, Number(document.getElementById('bk-count').value) || 8));
+  document.getElementById('bk-submit').textContent = 'Book ' + count + ' visits';
+  if (!date) {
+    preview.textContent = 'Pick a start date to see the schedule.';
+    return;
+  }
+  const dates = computeSeriesDates(date, freq, count);
+  const fmt = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const shown = dates.slice(0, 3).map(fmt).join(' · ');
+  const more = dates.length > 3 ? ' ... last: ' + fmt(dates[dates.length - 1]) : '';
+  preview.textContent = dates.length + ' visits — ' + shown + more;
 }
 
 async function submitBook() {
@@ -992,81 +1051,109 @@ async function submitBook() {
   const date = document.getElementById('bk-date').value;
   const address = document.getElementById('bk-address').value.trim();
   const notes = document.getElementById('bk-notes').value.trim();
+  const freq = getBkFreq();
+  const count = Math.max(2, Math.min(52, Number(document.getElementById('bk-count').value) || 8));
 
   if (!date) { setError('bk-error', 'Pick a date.'); return; }
   if (!address) { setError('bk-error', 'Address is required.'); return; }
-
-  // Client-side day-of-week check (server validates too but better UX to catch early).
   const d = new Date(date + 'T12:00:00');
-  const dow = d.getDay(); // 0=Sun..6=Sat
+  const dow = d.getDay();
   if (dow !== 3 && dow !== 4 && dow !== 5) {
     setError('bk-error', 'Morning visits are only Wednesday, Thursday, or Friday.');
     return;
   }
-
-  // Profile fields for the booking payload.
   const profile = _data.profile || {};
   if (!profile.name || !profile.email || !profile.phone) {
     setError('bk-error', 'Your name/email/phone need to be on file. Go to Account → Edit.');
     return;
   }
 
-  const payload = {
-    event_type: 'morning',
-    event_name: 'Morning Garden Care',
-    date: date,
-    time: '9:00am',
-    end_time: '2:00pm',
-    duration: 300,
-    client_name: profile.name,
-    client_email: profile.email,
-    client_phone: profile.phone,
-    client_address: address,
-    garden_notes: notes,
-    status: 'confirmed',
-    booked_by: 'client',
-  };
+  const dates = freq === 'once' ? [date] : computeSeriesDates(date, freq, count);
+  // For recurring, generate a series ID we'll stamp on every booking so they
+  // can be managed together later (admin can cancel-all-future, etc).
+  const seriesId = freq === 'once' ? '' : ('cs-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8));
 
   const btn = document.getElementById('bk-submit');
-  btn.disabled = true; btn.textContent = 'Booking...';
-  try {
-    // Direct POST to PocketBase's bookings collection. The createRule on the
-    // collection is open ('' = public), and onRecordCreateRequest validates
-    // service area + time conflicts server-side.
-    const resp = await fetch(PB_URL + '/api/collections/bookings/records', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const data = await resp.json().catch(() => ({}));
-    if (!resp.ok) {
-      const msg = (data && (data.message || (data.data && Object.values(data.data).map(v => v && v.message).filter(Boolean).join(' / ')))) || ('Booking failed: HTTP ' + resp.status);
-      setError('bk-error', msg);
-      return;
+  btn.disabled = true; btn.textContent = freq === 'once' ? 'Booking...' : 'Booking ' + dates.length + '...';
+  const created = [];
+  const failed = [];
+  for (let i = 0; i < dates.length; i++) {
+    const payload = {
+      event_type: 'morning',
+      event_name: 'Morning Garden Care',
+      date: dates[i],
+      time: '9:00am',
+      end_time: '2:00pm',
+      duration: 300,
+      client_name: profile.name,
+      client_email: profile.email,
+      client_phone: profile.phone,
+      client_address: address,
+      garden_notes: notes,
+      status: 'confirmed',
+      booked_by: 'client',
+    };
+    if (seriesId) {
+      payload.recurring_series_id = seriesId;
+      payload.recurring_frequency = freq;
     }
-    // Clear the form and surface success — also update the address on profile
-    // if the user changed it for this booking.
-    document.getElementById('bk-date').value = '';
-    document.getElementById('bk-notes').value = '';
-    document.getElementById('bk-success').style.display = '';
-    await loadPortal();
-    // If the user edited the address, sync profile so future bookings/emails see it.
-    if (address && profile.address !== address) {
-      const portalToken = localStorage.getItem(STORAGE_TOKEN);
-      try {
-        await fetch(PB_URL + '/api/portal/profile', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token: portalToken, address: address }),
-        });
-        await loadPortal();
-      } catch (_) { /* non-fatal */ }
+    try {
+      const resp = await fetch(PB_URL + '/api/collections/bookings/records', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) {
+        const msg = (data && (data.message || (data.data && Object.values(data.data).map(v => v && v.message).filter(Boolean).join(' / ')))) || ('HTTP ' + resp.status);
+        failed.push({ date: dates[i], err: msg });
+      } else {
+        created.push(dates[i]);
+      }
+    } catch (err) {
+      failed.push({ date: dates[i], err: err.message });
     }
-  } catch (err) {
-    setError('bk-error', 'Network error: ' + err.message);
-  } finally {
-    btn.disabled = false; btn.textContent = 'Book this visit';
   }
+
+  btn.disabled = false; btn.textContent = freq === 'once' ? 'Book this visit' : 'Book ' + count + ' visits';
+
+  if (created.length === 0) {
+    setError('bk-error', 'Could not create any bookings. ' + (failed[0] ? '(' + failed[0].err + ')' : ''));
+    return;
+  }
+  // Refresh portal so the new bookings show up.
+  await loadPortal();
+
+  // Sync edited address back to profile.
+  if (address && profile.address !== address) {
+    const portalToken = localStorage.getItem(STORAGE_TOKEN);
+    try {
+      await fetch(PB_URL + '/api/portal/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: portalToken, address: address }),
+      });
+    } catch (_) {}
+  }
+
+  const successEl = document.getElementById('bk-success');
+  if (failed.length === 0) {
+    successEl.textContent = freq === 'once'
+      ? 'Booked. See your upcoming visits in the My Visits tab.'
+      : 'All ' + created.length + ' visits booked. See them in My Visits.';
+    successEl.style.display = '';
+  } else {
+    setError('bk-error',
+      created.length + ' of ' + dates.length + ' visits booked. Conflicts on: ' +
+      failed.map(f => f.date).join(', ') + '. Pick different dates and try again.'
+    );
+  }
+
+  // Reset the form.
+  document.getElementById('bk-date').value = '';
+  document.getElementById('bk-notes').value = '';
+  document.querySelector('input[name="bk-freq"][value="once"]').checked = true;
+  updateBkFreq();
 }
 
 // ----- EDIT PROFILE -----
