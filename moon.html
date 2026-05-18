@@ -249,6 +249,11 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
 .today-teach .tt-line {
   margin: 0; font-size: 0.92rem; line-height: 1.5; font-style: italic;
 }
+.today-teach .tt-aside {
+  display: block; margin-top: 6px;
+  font-size: 0.78rem; font-style: normal;
+  color: var(--moon-dim); letter-spacing: 0.2px;
+}
 
 /* Today inner-season guide card (mirrors Learn deep-dive, accordion-styled) */
 .today-season-card .ts-head {
@@ -537,7 +542,7 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
 
 /* Learn section — phase accordion */
 .learn-nav {
-  display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px;
   margin-bottom: 14px;
 }
 .learn-nav .tab {
@@ -1564,13 +1569,67 @@ const LEARN_CONTENT = {
       <p>Don't rely on BBT alone. The <strong>sympto-thermal method</strong> (mucus + temp + calendar + cervix) used perfectly has a Pearl Index ~0.4 (comparable to the pill). Used typically: ~1.8. It requires strict daily observation + abstinence (or backup) during the fertile window.</p>
       <p><em class="witch">We show you your fertile window. Your choices are yours. <span class="witch-heart" data-icon="heart_solid"></span></em></p>
     `
+  },
+  sky: {
+    emoji: 'sparkles', label: 'Sky', title: 'Sky · astrology as reflection',
+    tagline: "Astrology is reflection, not prediction. The sky is weather — what you do in it is choice.",
+    html: `
+      <h4>The Big 3</h4>
+      <p>Three points carry most of what astrology is doing in a chart. You'll see them everywhere as <strong>Sun · Moon · Rising</strong>.</p>
+      <ul>
+        <li><strong>Sun</strong> — your spark. Why you're here. The thing you do when no one is watching and the thing you can't help becoming.</li>
+        <li><strong>Moon</strong> — your inner weather. How you feel, what you need to be okay, the rhythm under your moods.</li>
+        <li><strong>Rising (Ascendant)</strong> — the door you open. The mask the world meets first, and the angle from which the rest of your chart is read.</li>
+      </ul>
+      <p>The Sun needs only your <strong>birth date</strong>. The Moon needs your <strong>birth time</strong> (it moves through a sign every ~2.5 days, so a few hours matters). The Rising needs your <strong>birth place</strong> too — it's literally what was on the eastern horizon at the moment you came out.</p>
+
+      <h4>The 8 moon phases, as a rhythm</h4>
+      <p>Most apps show 4 phases (new, first quarter, full, last quarter). The fuller picture is 8. Each phase has a verb — what the energy is asking for.</p>
+      <ul>
+        <li><strong>New</strong> — Plant. Quiet intentions. The seed doesn't need an audience.</li>
+        <li><strong>Waxing crescent</strong> — Tend. Small care for the new thing. Don't overwater.</li>
+        <li><strong>First quarter</strong> — Push. Effort matters here. Make the harder choice.</li>
+        <li><strong>Waxing gibbous</strong> — Refine. Polish what's working. Cut what's not.</li>
+        <li><strong>Full</strong> — Bloom. Peak light. Show the thing. Notice what's gotten too loud.</li>
+        <li><strong>Waning gibbous</strong> — Share. Energy turns outward. Teach, gift, say it out loud.</li>
+        <li><strong>Last quarter</strong> — Shed. What's done is done. Compost it on purpose.</li>
+        <li><strong>Waning crescent</strong> — Distill. Rest. Pull out what this month actually meant.</li>
+      </ul>
+
+      <h4>Moon in [sign] — daily emotional weather</h4>
+      <p>While the moon cycles through phases (~29 days), it also moves through a new zodiac sign every <strong>2 to 3 days</strong>. That's the fastest astrological hand on the clock — the easiest thing to feel, the easiest to use.</p>
+      <p>You can read the Sky tab any morning and see something like "<em>Moon in Cancer — nest, feel, soft work</em>." It's not a prescription, it's weather. Plan around it the way you'd plan around rain.</p>
+
+      <h4>Where astrology meets Ayurveda</h4>
+      <p>Each zodiac sign sits in one of four <strong>elements</strong> — fire, earth, air, water. Each element maps to a <strong>dosha</strong>:</p>
+      <ul>
+        <li><strong>Fire</strong> (Aries, Leo, Sagittarius) — <em>pitta</em>. Heat, sharpness, drive.</li>
+        <li><strong>Earth</strong> (Taurus, Virgo, Capricorn) — <em>kapha</em>. Heaviness, grounding, slowness.</li>
+        <li><strong>Air</strong> (Gemini, Libra, Aquarius) — <em>vata</em>. Mobility, dryness, scattered brilliance.</li>
+        <li><strong>Water</strong> (Cancer, Scorpio, Pisces) — <em>kapha</em> (cool, moist) with a side of <em>pitta</em> when intense.</li>
+      </ul>
+      <p>This is why the Today tab can say something like <em>"Vata-grounding day. Earth moon adds kapha on top of the day's vata."</em> The two strands are talking to each other.</p>
+
+      <h4>Cycle × sky — careful here</h4>
+      <p>Old folk traditions say the new moon is bleed-time and the full moon is ovulation. Some people's cycles do sync with the sky. <strong>Most don't</strong>, and they're not broken for that. We treat the cycle/moon link as <em>archetypal resonance</em> — when they happen to line up, the day is doubled in that direction. When they don't, the strands give two different angles on the same day.</p>
+      <p>This is the Chani Nicholas framing, condensed: <em>astrology is reflection, not prediction; we are not separate from our environment; but we are also not determined by it</em>.</p>
+
+      <h4>How to actually use this</h4>
+      <ul>
+        <li>Check Sky tab in the morning. Read the moon phase verb and the moon-in-sign vibe. Decide if it fits the day you have to live.</li>
+        <li>Cross-reference with where you are in your cycle. The integrated guidance is the Today tab's daily-teach line.</li>
+        <li>If your Big 3 is set, check the alignment card — your sun + the current cycle/sky often points at a specific kind of medicine for the day.</li>
+        <li>Don't take any of this as instruction. Take it as weather you can dress for.</li>
+      </ul>
+      <p><em class="witch">We map the rhythm. You decide the dance. <span class="witch-heart" data-icon="heart_solid"></span></em></p>
+    `
   }
 };
 let learnTab = 'winter';
 function renderLearn() {
   const nav = document.getElementById('learn-nav');
   const body = document.getElementById('learn-body');
-  const order = ['winter', 'spring', 'summer', 'autumn', 'ovulation'];
+  const order = ['winter', 'spring', 'summer', 'autumn', 'ovulation', 'sky'];
   nav.innerHTML = order.map(k => {
     const c = LEARN_CONTENT[k];
     return '<div class="tab' + (k === learnTab ? ' active' : '') + '" onclick="setLearnTab(\'' + k + '\')">' +
@@ -1653,10 +1712,11 @@ function renderSky() {
   const lon = moonLongitude(now);
   const moonSign = signFromLongitude(lon);
   const degIntoSign = Math.floor(lon % 30);
+  const moonDosha = ELEMENT_DOSHA[moonSign.element];
   document.getElementById('sky-moonsign-glyph').textContent = moonSign.glyph;
   document.getElementById('sky-moonsign-name').textContent = 'Moon in ' + moonSign.name;
   document.getElementById('sky-moonsign-meta').textContent =
-    degIntoSign + '° · ' + moonSign.element + ' · ruler ' + moonSign.ruler;
+    degIntoSign + '° · ' + moonSign.element + ' / ' + moonDosha + ' · ruler ' + moonSign.ruler;
   document.getElementById('sky-moonsign-vibe').textContent = moonSign.vibe;
 
   // Cycle × sky pairing
@@ -2169,6 +2229,7 @@ const PHASE_DOSHA = {
 function dailyTeach(cycleDay) {
   const now = new Date();
   const moonSign = signFromLongitude(moonLongitude(now));
+  const moonDosha = ELEMENT_DOSHA[moonSign.element];
   const skyHTML = '<span class="tt-sky">Moon in ' + moonSign.name + ' ' + moonSign.glyph + '</span>';
   if (!cycleDay) {
     return '<div class="tt-coords">' + skyHTML + '</div>' +
@@ -2185,7 +2246,13 @@ function dailyTeach(cycleDay) {
     '<span class="tt-dot">·</span>' +
     skyHTML +
     '</div>';
-  return coords + '<p class="tt-line">' + pd.line + '</p>';
+  // Dosha weave: cycle's primary dosha + the moon-sign's dosha. When they match,
+  // the day is doubled-down on that dosha; when they differ, the sky tempers.
+  const sameDosha = pd.dosha === moonDosha;
+  const tempering = sameDosha
+    ? '<span class="tt-aside">Sky echoes the body — ' + pd.dosha + ' is doubled today.</span>'
+    : '<span class="tt-aside">' + moonSign.element + ' moon adds ' + moonDosha + ' on top of the day\'s ' + pd.dosha + '.</span>';
+  return coords + '<p class="tt-line">' + pd.line + ' ' + tempering + '</p>';
 }
 
 /* ---------- Icon library (inline SVGs, inherit currentColor) ---------- */
@@ -2366,6 +2433,11 @@ const MOON_PHASE_LABEL = {
 };
 
 /* ---------- Zodiac + ecliptic math ---------- */
+// Element → dosha map. Standard Ayurvedic correspondence:
+// fire→pitta (heat), earth→kapha (heavy/grounded), air→vata (mobile/dry),
+// water→kapha (cool/moist). Used to surface a dosha tag on each sign so the
+// astro strand carries the Ayurvedic strand too.
+const ELEMENT_DOSHA = { fire: 'pitta', earth: 'kapha', air: 'vata', water: 'kapha' };
 const ZODIAC = [
   { key: 'aries',       name: 'Aries',       glyph: '♈', element: 'fire',  ruler: 'Mars',    dates: 'Mar 21 – Apr 19', vibe: 'Initiate. Move first, refine later. The body wants forward.' },
   { key: 'taurus',      name: 'Taurus',      glyph: '♉', element: 'earth', ruler: 'Venus',   dates: 'Apr 20 – May 20', vibe: 'Slow down. Touch real things. Eat well. Don\'t be rushed.' },
@@ -2502,7 +2574,67 @@ const CITIES = [
   { city: 'toronto',         state: 'ca', tz: 'America/Toronto',     lat: 43.65,  lon: -79.38, country: 'canada' },
   { city: 'vancouver',       state: 'bc', tz: 'America/Vancouver',   lat: 49.28,  lon: -123.12, country: 'canada' },
   { city: 'montreal',        state: 'qc', tz: 'America/Toronto',     lat: 45.50,  lon: -73.57, country: 'canada' },
-  { city: 'mexico city',     state: 'mx', tz: 'America/Mexico_City', lat: 19.43,  lon: -99.13 }
+  { city: 'mexico city',     state: 'mx', tz: 'America/Mexico_City', lat: 19.43,  lon: -99.13 },
+  // More California
+  { city: 'berkeley',        state: 'ca', tz: 'America/Los_Angeles', lat: 37.87,  lon: -122.27 },
+  { city: 'fresno',          state: 'ca', tz: 'America/Los_Angeles', lat: 36.74,  lon: -119.79 },
+  { city: 'long beach',      state: 'ca', tz: 'America/Los_Angeles', lat: 33.77,  lon: -118.19 },
+  { city: 'riverside',       state: 'ca', tz: 'America/Los_Angeles', lat: 33.95,  lon: -117.39 },
+  { city: 'bakersfield',     state: 'ca', tz: 'America/Los_Angeles', lat: 35.37,  lon: -119.02 },
+  { city: 'santa cruz',      state: 'ca', tz: 'America/Los_Angeles', lat: 36.97,  lon: -122.03 },
+  { city: 'santa rosa',      state: 'ca', tz: 'America/Los_Angeles', lat: 38.44,  lon: -122.71 },
+  // More Northeast
+  { city: 'newark',          state: 'nj', tz: 'America/New_York',    lat: 40.74,  lon: -74.17 },
+  { city: 'albany',          state: 'ny', tz: 'America/New_York',    lat: 42.65,  lon: -73.76 },
+  { city: 'rochester',       state: 'ny', tz: 'America/New_York',    lat: 43.16,  lon: -77.61 },
+  { city: 'syracuse',        state: 'ny', tz: 'America/New_York',    lat: 43.05,  lon: -76.15 },
+  { city: 'hartford',        state: 'ct', tz: 'America/New_York',    lat: 41.76,  lon: -72.67 },
+  { city: 'providence',      state: 'ri', tz: 'America/New_York',    lat: 41.82,  lon: -71.41 },
+  { city: 'portland',        state: 'me', tz: 'America/New_York',    lat: 43.66,  lon: -70.26 },
+  { city: 'burlington',      state: 'vt', tz: 'America/New_York',    lat: 44.48,  lon: -73.21 },
+  // More South
+  { city: 'charleston',      state: 'sc', tz: 'America/New_York',    lat: 32.78,  lon: -79.93 },
+  { city: 'raleigh',         state: 'nc', tz: 'America/New_York',    lat: 35.78,  lon: -78.64 },
+  { city: 'durham',          state: 'nc', tz: 'America/New_York',    lat: 35.99,  lon: -78.90 },
+  { city: 'birmingham',      state: 'al', tz: 'America/Chicago',     lat: 33.52,  lon: -86.81 },
+  { city: 'little rock',     state: 'ar', tz: 'America/Chicago',     lat: 34.75,  lon: -92.29 },
+  { city: 'oklahoma city',   state: 'ok', tz: 'America/Chicago',     lat: 35.47,  lon: -97.52 },
+  { city: 'tulsa',           state: 'ok', tz: 'America/Chicago',     lat: 36.15,  lon: -95.99 },
+  // More Midwest
+  { city: 'cincinnati',      state: 'oh', tz: 'America/New_York',    lat: 39.10,  lon: -84.51 },
+  { city: 'toledo',          state: 'oh', tz: 'America/New_York',    lat: 41.66,  lon: -83.55 },
+  { city: 'madison',         state: 'wi', tz: 'America/Chicago',     lat: 43.07,  lon: -89.40 },
+  { city: 'des moines',      state: 'ia', tz: 'America/Chicago',     lat: 41.59,  lon: -93.62 },
+  { city: 'omaha',           state: 'ne', tz: 'America/Chicago',     lat: 41.26,  lon: -95.94 },
+  { city: 'wichita',         state: 'ks', tz: 'America/Chicago',     lat: 37.69,  lon: -97.34 },
+  { city: 'st paul',         state: 'mn', tz: 'America/Chicago',     lat: 44.95,  lon: -93.09 },
+  // More Mountain/West
+  { city: 'spokane',         state: 'wa', tz: 'America/Los_Angeles', lat: 47.66,  lon: -117.43 },
+  { city: 'boise',           state: 'id', tz: 'America/Boise',       lat: 43.62,  lon: -116.20 },
+  { city: 'reno',            state: 'nv', tz: 'America/Los_Angeles', lat: 39.53,  lon: -119.81 },
+  { city: 'bozeman',         state: 'mt', tz: 'America/Denver',      lat: 45.68,  lon: -111.04 },
+  { city: 'billings',        state: 'mt', tz: 'America/Denver',      lat: 45.78,  lon: -108.50 },
+  { city: 'missoula',        state: 'mt', tz: 'America/Denver',      lat: 46.87,  lon: -113.99 },
+  { city: 'cheyenne',        state: 'wy', tz: 'America/Denver',      lat: 41.14,  lon: -104.82 },
+  // More international
+  { city: 'dublin',          state: 'ie', tz: 'Europe/Dublin',       lat: 53.35,  lon: -6.26 },
+  { city: 'edinburgh',       state: 'uk', tz: 'Europe/London',       lat: 55.95,  lon: -3.19 },
+  { city: 'amsterdam',       state: 'nl', tz: 'Europe/Amsterdam',    lat: 52.37,  lon:  4.90 },
+  { city: 'stockholm',       state: 'se', tz: 'Europe/Stockholm',    lat: 59.33,  lon: 18.07 },
+  { city: 'moscow',          state: 'ru', tz: 'Europe/Moscow',       lat: 55.76,  lon: 37.62 },
+  { city: 'istanbul',        state: 'tr', tz: 'Europe/Istanbul',     lat: 41.01,  lon: 28.98 },
+  { city: 'mumbai',          state: 'in', tz: 'Asia/Kolkata',        lat: 19.08,  lon: 72.88 },
+  { city: 'delhi',           state: 'in', tz: 'Asia/Kolkata',        lat: 28.61,  lon: 77.21 },
+  { city: 'bangkok',         state: 'th', tz: 'Asia/Bangkok',        lat: 13.76,  lon: 100.50 },
+  { city: 'singapore',       state: 'sg', tz: 'Asia/Singapore',      lat:  1.35,  lon: 103.82 },
+  { city: 'hong kong',       state: 'hk', tz: 'Asia/Hong_Kong',      lat: 22.32,  lon: 114.17 },
+  { city: 'shanghai',        state: 'cn', tz: 'Asia/Shanghai',       lat: 31.23,  lon: 121.47 },
+  { city: 'beijing',         state: 'cn', tz: 'Asia/Shanghai',       lat: 39.90,  lon: 116.41 },
+  { city: 'seoul',           state: 'kr', tz: 'Asia/Seoul',          lat: 37.57,  lon: 126.98 },
+  { city: 'auckland',        state: 'nz', tz: 'Pacific/Auckland',    lat: -36.85, lon: 174.76 },
+  { city: 'rio de janeiro',  state: 'br', tz: 'America/Sao_Paulo',   lat: -22.91, lon: -43.17 },
+  { city: 'sao paulo',       state: 'br', tz: 'America/Sao_Paulo',   lat: -23.55, lon: -46.63 },
+  { city: 'buenos aires',    state: 'ar', tz: 'America/Argentina/Buenos_Aires', lat: -34.61, lon: -58.40 }
 ];
 
 function lookupCity(input) {
@@ -2590,16 +2722,46 @@ function clearBirthInfo() {
   renderSky();
 }
 
-// Cycle × sky thematic pairings. Falsy → don't show the pairing card.
+// Cycle × sky thematic pairings — all 32 combinations covered. Each line names
+// where the body and the sky agree or disagree today and what to do with it.
+// Falsy → card hides (no current entry is falsy now).
 const CYCLE_SKY_PAIRS = {
+  // Inner winter (menstrual)
   'winter_new':              "Both bleeding and a brand-new sky. The deepest reset of the month for you. Plant nothing yet — rest is the practice.",
-  'winter_waning_crescent':  "Period + last sliver. Both arriving at zero on schedule. Let it.",
+  'winter_waxing_crescent':  "Inner winter + sky stirring. The world wants you to start; your body says not yet. Let the world wait.",
+  'winter_first_quarter':    "Inner winter + first-quarter push. The sky is forcing a decision while your body is shedding. Decide nothing important today.",
+  'winter_waxing_gibbous':   "Inner winter + nearly-full sky. The brightness will keep coming; the bleeding won't. Use the brightness to rest in good light.",
   'winter_full':             "Inner winter under a full moon. Body says hide, sky says shine. Honor the body first; the sky will wait.",
+  'winter_waning_gibbous':   "Inner winter + waning sky. Both in retreat now. The shared direction is rest.",
+  'winter_last_quarter':     "Inner winter + last quarter. Body releases its lining; sky releases its light. Twin compost.",
+  'winter_waning_crescent':  "Period + last sliver. Both arriving at zero on schedule. Let it.",
+
+  // Inner spring (follicular)
+  'spring_new':              "Inner spring + new moon. You're growing while the sky resets. Honor the small green thing privately — don't broadcast yet.",
   'spring_waxing_crescent':  "Inner spring + waxing sky. Building energy in stereo — the seed's up, estrogen's climbing. Use it.",
   'spring_first_quarter':    "Inner spring + first quarter. Pure go-energy from both directions. Pick one hard thing and do it today.",
   'spring_waxing_gibbous':   "Inner spring + nearly-full. Refine the thing you started after your period. Almost peak.",
-  'summer_full':             "Ovulation + full moon. Peak peak peak. Body and sky pointed the same direction — say the thing out loud.",
+  'spring_full':             "Inner spring + full moon. The lining's almost ready; the sky is at its loudest. Show one thing that's growing.",
+  'spring_waning_gibbous':   "Inner spring + waning sky. You're climbing while the sky descends. Don't catch the sky's letting-go mood — keep building.",
+  'spring_last_quarter':     "Inner spring + last quarter. Body says plant; sky says compost. Plant in the cleared ground.",
+  'spring_waning_crescent':  "Inner spring + last sliver. Quiet launch energy. Set something in motion without announcement.",
+
+  // Inner summer (ovulation)
+  'summer_new':              "Ovulation + new moon. You're at peak while the sky is dark. Introvert your peak — say it to yourself before saying it out loud.",
+  'summer_waxing_crescent':  "Ovulation + waxing sky. Channel the charm into the small new thing. Don't wait for permission.",
+  'summer_first_quarter':    "Ovulation + first quarter. Heroic-go day — both forces say push. Don't push so hard you burn the adrenals.",
   'summer_waxing_gibbous':   "Ovulation + waxing gibbous. Brightness on the way. Charisma stack.",
+  'summer_full':             "Ovulation + full moon. Peak peak peak. Body and sky pointed the same direction — say the thing out loud.",
+  'summer_waning_gibbous':   "Ovulation + waning gibbous. Your peak meets the sky's first descent. Let the gift be received — don't chase.",
+  'summer_last_quarter':     "Ovulation + last quarter. Peak energy + release energy. Say the unsayable, then let the response go.",
+  'summer_waning_crescent':  "Ovulation + last sliver. Peak whispers. The world's quiet — your magnetism still works in a softer key.",
+
+  // Inner autumn (luteal)
+  'autumn_new':              "Inner autumn + new moon. Both turning inward, both starting over from quiet. A double seed-time.",
+  'autumn_waxing_crescent':  "Inner autumn + waxing sky. Body says slow, sky says start. Start only the small things — finish the big ones.",
+  'autumn_first_quarter':    "Inner autumn + first quarter. The sky pushes while you're winding down. Pace yourself — half-effort beats no follow-through.",
+  'autumn_waxing_gibbous':   "Inner autumn + nearly-full. The last loud day before the quiet — finish the visible thing now.",
+  'autumn_full':             "Inner autumn + full moon. Body slowing, sky shining. Finish loudly, then let the dim arrive on schedule.",
   'autumn_waning_gibbous':   "Luteal + waning gibbous. Both winding down on schedule. Share what you finished, then nap.",
   'autumn_last_quarter':     "Luteal + last quarter. Release in stereo. Old projects, old feelings — out they go.",
   'autumn_waning_crescent':  "Late luteal + last sliver. Both arriving at the threshold. Distill, don't decide."
