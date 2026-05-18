@@ -131,8 +131,9 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
 .cal-nav { display: flex; gap: 4px; }
 .cal-nav button {
   background: rgba(255,255,255,0.07); border: 1px solid var(--moon-line);
-  border-radius: 10px; width: 32px; height: 32px;
+  border-radius: 10px; width: 40px; height: 40px;
   color: var(--moon-text); cursor: pointer; font-size: 1.1rem; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
 }
 .cal-nav button:hover { background: rgba(255,255,255,0.14); }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
@@ -225,7 +226,11 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
 .herb-modal .close-x {
   float: right; background: transparent; border: none;
   color: var(--moon-dim); font-size: 1.6rem; cursor: pointer; line-height: 1;
+  width: 44px; height: 44px;
+  display: inline-flex; align-items: center; justify-content: center;
+  margin: -8px -8px 0 0;
 }
+.herb-modal .close-x:hover { color: var(--moon-text); }
 
 /* Today card teaching line — integrative: cycle · season · sky + dosha line */
 .today-teach {
@@ -479,7 +484,9 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
 }
 .birth-form .birth-clear {
   background: transparent; border: none; color: var(--moon-dim);
-  font-size: 0.78rem; padding: 6px; cursor: pointer; text-decoration: underline;
+  font-size: 0.78rem; padding: 12px; cursor: pointer; text-decoration: underline;
+  min-height: 44px;
+  align-self: center;
 }
 .birth-edit {
   display: block; width: 100%; margin-top: 10px;
@@ -744,14 +751,15 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
 }
 .tab-btn {
   flex: 1;
+  min-width: 0;             /* let the label shrink, don't push the bar wider */
   background: transparent;
   border: none;
   color: var(--moon-dim);
-  padding: 6px 4px;
+  padding: 6px 2px;
   font-family: 'Josefin Sans', sans-serif;
-  font-size: 0.66rem;
+  font-size: 0.6rem;        /* tightened from 0.66rem to fit 6 tabs at 320px width */
   font-weight: 600;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.2px;
   text-transform: uppercase;
   cursor: pointer;
   display: flex;
@@ -838,6 +846,8 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
 .period-item .del {
   background: none; border: none; color: var(--moon-red);
   cursor: pointer; font-size: 0.8rem; font-family: inherit;
+  min-height: 44px; padding: 0 12px;
+  display: inline-flex; align-items: center;
 }
 
 /* Login */
@@ -895,7 +905,7 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
   display: inline-flex; align-items: center; gap: 8px;
   text-align: left;
 }
-.chip { min-height: 42px; }
+.chip { min-height: 44px; }
 .chip-ico { flex: 0 0 auto; display: inline-flex; align-items: center; font-size: 0.95rem; }
 .chip-txt { display: inline-flex; flex-direction: column; align-items: flex-start; line-height: 1.2; gap: 2px; }
 .chip-label { font-size: 0.82rem; font-weight: 600; }
@@ -948,7 +958,7 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
     <h2 style="margin-bottom:18px;font-size:1.2rem;letter-spacing:0.5px;">Moon Cycle</h2>
     <div class="form-field" style="text-align:left;">
       <label>Password</label>
-      <input type="password" id="login-pass" onkeypress="if(event.key==='Enter') doLogin()">
+      <input type="password" id="login-pass" autocomplete="current-password" onkeypress="if(event.key==='Enter') doLogin()">
     </div>
     <button class="btn" id="login-btn" onclick="doLogin()" style="width:100%;">Sign in</button>
     <div id="login-error">Login failed</div>
@@ -1081,7 +1091,7 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
       </div>
       <div class="form-field">
         <label for="birth-place">Birth place <span style="opacity:0.65">(optional · enables Rising)</span></label>
-        <input type="text" id="birth-place" placeholder="City, State / Country">
+        <input type="text" id="birth-place" placeholder="City, State / Country" autocapitalize="words" autocorrect="off" spellcheck="false">
       </div>
       <button type="button" class="birth-save" onclick="saveBirthInfo()">Save</button>
       <button type="button" class="birth-clear" onclick="clearBirthInfo()" id="birth-clear-btn" hidden>Clear birth info</button>
@@ -1375,11 +1385,11 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
       <div class="row" style="gap:12px;align-items:flex-end;">
         <div class="form-field">
           <label>Energy (1–5)</label>
-          <input type="number" id="f-energy" min="0" max="5" step="1" placeholder="0">
+          <input type="number" id="f-energy" min="0" max="5" step="1" inputmode="numeric" placeholder="0">
         </div>
         <div class="form-field">
           <label>Sleep (hours)</label>
-          <input type="number" id="f-sleep" min="0" max="24" step="0.5" placeholder="0">
+          <input type="number" id="f-sleep" min="0" max="24" step="0.5" inputmode="decimal" placeholder="0">
         </div>
       </div>
     </div>
@@ -1389,7 +1399,7 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
       <div class="bbt-row">
         <div class="form-field">
           <label>Morning temp</label>
-          <input type="number" id="f-temp" min="95" max="101" step="0.01" placeholder="97.50">
+          <input type="number" id="f-temp" min="95" max="101" step="0.01" inputmode="decimal" placeholder="97.50">
         </div>
       </div>
       <div class="bbt-hint">Take before getting out of bed. 0.4°F+ sustained shift = ovulation confirmed.</div>
@@ -2483,10 +2493,10 @@ const MOON_PHASE = {
 /* ---------- Catalog of options (all chip labels) ---------- */
 const FLOW_OPTIONS = [
   { v: 'none',     l: 'None',     e: '·',              d: 'No bleeding' },
-  { v: 'spotting', l: 'Spotting', e: '·',              d: 'A few drops, liner is enough' },
+  { v: 'spotting', l: 'Spotting', e: '·',              d: 'A few drops · liner ok' },
   { v: 'light',    l: 'Light',    e: ICON.droplet,     d: '1–2 pads/tampons a day' },
   { v: 'medium',   l: 'Medium',   e: ICON.droplets,    d: 'Typical period flow' },
-  { v: 'heavy',    l: 'Heavy',    e: ICON.droplet_full, d: 'Soaking through often, clots' }
+  { v: 'heavy',    l: 'Heavy',    e: ICON.droplet_full, d: 'Soaking through, clots' }
 ];
 const SYMPTOM_OPTIONS = [
   { v: 'cramps',         l: 'Cramps',         e: ICON.tornado,   d: 'Lower-belly squeeze · vata' },
@@ -2528,9 +2538,9 @@ const SEX_OPTIONS = [
 const DISCHARGE_OPTIONS = [
   { v: 'dry',       l: 'Dry',       e: '·', d: 'Nothing on underwear' },
   { v: 'sticky',    l: 'Sticky',    e: '·', d: 'Thick, gluey, not stretchy' },
-  { v: 'creamy',    l: 'Creamy',    e: '·', d: 'Lotion-like, white or yellow' },
+  { v: 'creamy',    l: 'Creamy',    e: '·', d: 'Lotion-like, whitish' },
   { v: 'watery',    l: 'Watery',    e: '·', d: 'Thin, wet, slippery' },
-  { v: 'egg_white', l: 'Egg white', e: '·', d: 'Clear, stretchy — fertile window' }
+  { v: 'egg_white', l: 'Egg white', e: '·', d: 'Clear, stretchy · fertile' }
 ];
 
 /* ---------- Moon phase math ---------- */
