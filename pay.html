@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#5a1230">
+<title>Pay Garden Faery</title>
+<meta name="description" content="Pay your outstanding Garden Faery visits.">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="shared.css?v=2026-05-02b">
+<style>
+:root {
+  --plum: #4a1942;
+  --cream: #f8f4ed;
+  --petal-pink: #c48bb0;
+  --petal-pink-light: #e8d0df;
+  --spring-sage: #a3b88c;
+  --pollen-gold: #d4c27a;
+  --white: #ffffff;
+  --gray-100: #f2efe8;
+  --gray-200: #e0dbd3;
+  --gray-400: #a89e96;
+  --gray-600: #6b5f56;
+  --red-light: #f0d4d4;
+  --red: #a03020;
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(74,25,66,0.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--cream);
+  color: var(--plum);
+  min-height: 100vh;
+  padding: 20px 16px 60px;
+  line-height: 1.5;
+}
+.wrap { max-width: 520px; margin: 0 auto; }
+h1 {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: 1.75rem;
+  margin-bottom: 8px;
+}
+.sub {
+  color: var(--gray-600);
+  font-size: 0.95rem;
+  margin-bottom: 28px;
+}
+.card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 18px 18px 16px;
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+}
+label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+  color: var(--plum);
+}
+input[type="email"], input[type="text"] {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--gray-200);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  background: var(--white);
+  color: var(--plum);
+}
+input:focus {
+  outline: none;
+  border-color: var(--plum);
+}
+button.primary, button.secondary {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  border: none;
+  margin-top: 12px;
+}
+button.primary {
+  background: var(--plum);
+  color: var(--white);
+}
+button.primary:hover { opacity: 0.9; }
+button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+button.secondary {
+  background: var(--gray-100);
+  color: var(--plum);
+  border: 1px solid var(--gray-200);
+}
+.error {
+  color: var(--red);
+  background: var(--red-light);
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-top: 12px;
+}
+.hint {
+  font-size: 0.8rem;
+  color: var(--gray-600);
+  margin-top: 8px;
+  text-align: center;
+}
+.hint a {
+  color: var(--plum);
+  text-decoration: underline;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  padding: 0;
+}
+.booking-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--gray-200);
+  gap: 12px;
+}
+.booking-row:last-child { border-bottom: none; }
+.booking-info h3 {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: 1.05rem;
+  margin-bottom: 2px;
+}
+.booking-meta {
+  font-size: 0.8rem;
+  color: var(--gray-600);
+}
+.booking-pay {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.booking-amount {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.booking-pay button {
+  background: var(--petal-pink);
+  color: var(--white);
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.booking-pay button:hover { opacity: 0.9; }
+.booking-pay button:disabled { opacity: 0.5; cursor: not-allowed; }
+.empty {
+  text-align: center;
+  padding: 28px 16px;
+  color: var(--gray-600);
+}
+.empty .emoji { font-size: 2rem; margin-bottom: 8px; }
+.totals {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 14px;
+  border-top: 1px solid var(--gray-200);
+  margin-top: 6px;
+  font-weight: 700;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- === STEP 1: enter email === -->
+  <div id="step-email" class="step">
+    <h1>Pay Garden Faery</h1>
+    <p class="sub">Enter your email — we'll send a one-time code so you can see and pay your outstanding visits.</p>
+    <div class="card">
+      <label for="email">Email</label>
+      <input type="email" id="email" autocomplete="email" inputmode="email" placeholder="your@email.com">
+      <button class="primary" id="btn-send-code" onclick="sendCode()">Send my code</button>
+      <div id="email-error" class="error" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- === STEP 2: enter code === -->
+  <div id="step-code" class="step" style="display:none;">
+    <h1>Check your email</h1>
+    <p class="sub">We sent a 6-digit code to <strong id="code-email-echo"></strong>. Enter it here.</p>
+    <div class="card">
+      <label for="code">6-digit code</label>
+      <input type="text" id="code" autocomplete="one-time-code" inputmode="numeric" maxlength="6" placeholder="123456">
+      <button class="primary" id="btn-verify" onclick="verifyAndLoad()">View what I owe</button>
+      <div id="code-error" class="error" style="display:none;"></div>
+      <div class="hint">
+        <button class="hint" onclick="resetToEmail()">Wrong email? Start over</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- === STEP 3: outstanding list === -->
+  <div id="step-list" class="step" style="display:none;">
+    <h1 id="hello-heading">Hello,</h1>
+    <p class="sub" id="list-sub">Here's what's outstanding. Tap Pay on any visit to checkout via Square.</p>
+    <div class="card" id="list-card">
+      <div id="list-items"></div>
+    </div>
+    <div class="hint">
+      <button class="hint" onclick="resetToEmail()">Sign out</button>
+    </div>
+  </div>
+
+  <!-- === STEP 4: redirecting to Square === -->
+  <div id="step-redirect" class="step" style="display:none;text-align:center;padding:40px 0;">
+    <h1>Opening Square checkout…</h1>
+    <p class="sub">If nothing happens in a few seconds, <a href="#" id="manual-link">tap here</a>.</p>
+  </div>
+
+</div>
+
+<script>
+const PB_URL = 'https://bookings.gardenfaery.love';
+
+let _email = '';
+let _code = '';
+
+function show(stepId) {
+  document.querySelectorAll('.step').forEach(s => s.style.display = 'none');
+  document.getElementById(stepId).style.display = '';
+}
+function setError(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = msg ? '' : 'none';
+}
+function resetToEmail() {
+  _email = '';
+  _code = '';
+  document.getElementById('email').value = '';
+  document.getElementById('code').value = '';
+  setError('email-error', '');
+  setError('code-error', '');
+  show('step-email');
+}
+
+async function sendCode() {
+  const email = String(document.getElementById('email').value || '').trim().toLowerCase();
+  setError('email-error', '');
+  if (!email || email.indexOf('@') < 0) {
+    setError('email-error', 'Please enter a valid email.');
+    return;
+  }
+  const btn = document.getElementById('btn-send-code');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const resp = await fetch(PB_URL + '/api/booking/request-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      setError('email-error', data.error || ('Request failed: ' + resp.status));
+      return;
+    }
+    _email = email;
+    document.getElementById('code-email-echo').textContent = email;
+    show('step-code');
+    setTimeout(() => document.getElementById('code').focus(), 100);
+  } catch (err) {
+    setError('email-error', 'Network error: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send my code';
+  }
+}
+
+async function verifyAndLoad() {
+  const code = String(document.getElementById('code').value || '').trim();
+  setError('code-error', '');
+  if (!/^\d{6}$/.test(code)) {
+    setError('code-error', 'Code should be 6 digits.');
+    return;
+  }
+  const btn = document.getElementById('btn-verify');
+  btn.disabled = true; btn.textContent = 'Loading…';
+  try {
+    // Use the new /api/pay/my-outstanding endpoint which both verifies the
+    // code AND returns the outstanding bookings — single round trip.
+    const resp = await fetch(PB_URL + '/api/pay/my-outstanding', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: _email, code: code }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      setError('code-error', data.error || ('Verification failed: ' + resp.status));
+      return;
+    }
+    _code = code;
+    renderList(data.items || []);
+    show('step-list');
+  } catch (err) {
+    setError('code-error', 'Network error: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'View what I owe';
+  }
+}
+
+function renderList(items) {
+  const host = document.getElementById('list-items');
+  const heading = document.getElementById('hello-heading');
+  const sub = document.getElementById('list-sub');
+
+  if (items.length === 0) {
+    heading.textContent = "You're all paid up";
+    sub.textContent = "No outstanding visits. Thank you!";
+    host.innerHTML = '<div class="empty"><div class="emoji">🌿</div><div>Nothing to pay — enjoy your day.</div></div>';
+    return;
+  }
+
+  // Greeting using client_name from first booking
+  const firstName = (items[0].client_name || '').split(' ')[0] || 'there';
+  heading.textContent = 'Hello, ' + firstName;
+  sub.textContent = "Here's what's outstanding. Tap Pay on any visit to checkout via Square.";
+
+  let html = '';
+  let total = 0;
+  items.forEach(b => {
+    total += Number(b.price) || 0;
+    const dateStr = b.date ? new Date(b.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '?';
+    const eventLabel = (b.event_name || b.event_type || 'Visit')
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, c => c.toUpperCase());
+    html += '<div class="booking-row">' +
+      '<div class="booking-info">' +
+        '<h3>' + escapeHtml(eventLabel) + '</h3>' +
+        '<div class="booking-meta">' + escapeHtml(dateStr) + (b.time ? ' · ' + escapeHtml(b.time) : '') + '</div>' +
+      '</div>' +
+      '<div class="booking-pay">' +
+        '<div class="booking-amount">$' + (Number(b.price) || 0).toFixed(2) + '</div>' +
+        '<button onclick="payBooking(\'' + b.booking_id + '\')">Pay</button>' +
+      '</div>' +
+    '</div>';
+  });
+  if (items.length > 1) {
+    html += '<div class="totals"><span>Total outstanding</span><span>$' + total.toFixed(2) + '</span></div>';
+  }
+  host.innerHTML = html;
+}
+
+async function payBooking(bookingId) {
+  if (!bookingId) return;
+  // Disable all pay buttons during the redirect prep
+  document.querySelectorAll('.booking-pay button').forEach(b => b.disabled = true);
+  try {
+    const resp = await fetch(PB_URL + '/api/pay/create-payment-link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: _email, code: _code, booking_id: bookingId }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok || !data.url) {
+      alert('Could not start checkout: ' + (data.error || ('HTTP ' + resp.status)) + '\n\nIf this keeps happening, message Taya directly.');
+      document.querySelectorAll('.booking-pay button').forEach(b => b.disabled = false);
+      return;
+    }
+    // Show "Opening Square…" step, then redirect.
+    document.getElementById('manual-link').href = data.url;
+    show('step-redirect');
+    setTimeout(() => { window.location.href = data.url; }, 600);
+  } catch (err) {
+    alert('Network error: ' + err.message);
+    document.querySelectorAll('.booking-pay button').forEach(b => b.disabled = false);
+  }
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' }[c]));
+}
+
+// Enter key submits
+document.getElementById('email').addEventListener('keydown', e => { if (e.key === 'Enter') sendCode(); });
+document.getElementById('code').addEventListener('keydown', e => { if (e.key === 'Enter') verifyAndLoad(); });
+</script>
+</body>
+</html>
