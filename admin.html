@@ -3614,9 +3614,59 @@ function clearClientsFilters() { clientsFilterStatus = 'all'; clientsSearch = ''
 let _bankBalance = null;        // { amount_cents, currency, as_of, account_name }
 let _bankTransactions = [];
 let _bankLoaded = false;
+let _catMemory = []; // learned categorization rules — cached for client-side suggestion
+
+async function loadCategorizationMemory() {
+  if (!PB_URL) return;
+  try {
+    const data = await DB._pb('GET', 'categorization_memory/records?perPage=500&sort=-confidence,-last_used');
+    _catMemory = (data.items || []).map(r => ({
+      id: r.id,
+      pattern: r.pattern,
+      matchType: r.match_type,
+      category: r.category,
+      vendor: r.vendor,
+      confidence: r.confidence || 0,
+      createExpenseDefault: !!r.create_expense_default,
+      lastUsed: r.last_used,
+    }));
+  } catch (err) {
+    console.error('loadCategorizationMemory failed:', err);
+    _catMemory = [];
+  }
+}
+
+// Score memory rules against a transaction's payee/description and return
+// the best match (or null if none confidently match).
+function suggestCategoryFor(payee, description) {
+  const haystack = (String(payee || '') + ' ' + String(description || ''))
+    .toLowerCase()
+    .replace(/[^\w\s'.&-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!haystack) return null;
+
+  // Score: pattern length * confidence — favors longer matches + repeat use.
+  let best = null;
+  for (const r of _catMemory) {
+    const p = (r.pattern || '').toLowerCase();
+    if (!p || p.length < 3) continue;
+    let matches = false;
+    if (r.matchType === 'exact')         matches = (haystack === p);
+    else if (r.matchType === 'starts_with') matches = haystack.startsWith(p);
+    else                                  matches = haystack.indexOf(p) !== -1; // contains (default)
+    if (!matches) continue;
+
+    const score = p.length * Math.max(1, r.confidence);
+    if (!best || score > best.score) best = { rule: r, score: score };
+  }
+  return best;
+}
 
 async function loadBank() {
   if (!PB_URL) { _bankLoaded = true; return; }
+  // Pull categorization memory in parallel so the modal can suggest immediately.
+  await Promise.all([loadCategorizationMemory(), (async () => {})()]);
   try {
     const data = await DB._pb('GET', 'bank_transactions/records?perPage=100&sort=-posted_at');
     _bankTransactions = (data.items || []).map(r => ({
@@ -3732,36 +3782,53 @@ function openCategorizeBank(bankId) {
   if (!t) return;
   _categorizingBankId = bankId;
 
+  // --- Memory lookup: do we have a suggested category based on past behavior? ---
+  // Only suggest if user hasn't already manually categorized this row.
+  const suggestion = !t.category ? suggestCategoryFor(t.payee, t.description) : null;
+  const suggestedCat = suggestion ? suggestion.rule.category : null;
+  const suggestedVendor = suggestion ? suggestion.rule.vendor : null;
+  const initialCat = t.category || suggestedCat || '';
+
   // Build grouped category dropdown
   const sel = document.getElementById('cb-category');
   let opts = '<option value="">— pick a category —</option>';
   categoryGroups().forEach(g => {
     opts += '<optgroup label="' + escapeHtml(g.name) + '">';
     g.items.forEach(c => {
-      opts += '<option value="' + c.v + '"' + (c.v === t.category ? ' selected' : '') + '>' + escapeHtml(c.l) + '</option>';
+      opts += '<option value="' + c.v + '"' + (c.v === initialCat ? ' selected' : '') + '>' + escapeHtml(c.l) + '</option>';
     });
     opts += '</optgroup>';
   });
   sel.innerHTML = opts;
 
-  // Pre-fill vendor + notes
-  document.getElementById('cb-vendor').value = t.vendor || t.payee || '';
+  // Pre-fill vendor + notes (use suggestion's clean vendor name if we have one)
+  document.getElementById('cb-vendor').value = t.vendor || suggestedVendor || t.payee || '';
   document.getElementById('cb-notes').value = t.notes || '';
 
-  // Header info
+  // Header info — show ✨ suggested badge if we're auto-picking from memory
   const isCredit = t.amountCents > 0;
   const amt = (isCredit ? '+' : '-') + '$' + (Math.abs(t.amountCents)/100).toFixed(2);
   const date = t.postedAt ? (new Date(t.postedAt)).toLocaleDateString() : '?';
+  let suggestionBadge = '';
+  if (suggestion) {
+    suggestionBadge = '<div style="margin-top:8px;padding:6px 10px;background:rgba(212,194,122,0.2);border-radius:6px;font-size:0.8rem;color:var(--plum);">' +
+      '✨ <strong>Suggested:</strong> ' + escapeHtml(categoryLabel(suggestedCat)) +
+      ' <span style="color:var(--gray-600);">(matched ' + escapeHtml(suggestion.rule.pattern.slice(0, 30)) +
+      ', seen ' + suggestion.rule.confidence + 'x)</span>' +
+      '</div>';
+  }
   document.getElementById('cb-info').innerHTML =
     '<strong>' + amt + '</strong> · ' + date + '<br>' +
-    '<span style="font-size:0.85rem;">' + escapeHtml((t.description || t.payee || '').slice(0, 100)) + '</span>';
+    '<span style="font-size:0.85rem;">' + escapeHtml((t.description || t.payee || '').slice(0, 100)) + '</span>' +
+    suggestionBadge;
 
   // Only show "Create expense row" toggle for debits without an existing expense link
   const wrap = document.getElementById('cb-create-exp-wrap');
   const cb = document.getElementById('cb-create-exp');
   if (!isCredit && !t.expenseId) {
     wrap.style.display = '';
-    cb.checked = true;
+    // Default check based on memory if available, else true (helpful default for debits)
+    cb.checked = suggestion ? suggestion.rule.createExpenseDefault : true;
   } else {
     wrap.style.display = 'none';
     cb.checked = false;
@@ -3797,7 +3864,8 @@ async function submitCategorizeBank() {
     }
     closeModal('modal-categorize-bank');
     _categorizingBankId = null;
-    await loadBank();
+    // Refresh memory + bank list so the next categorization benefits from this one.
+    await Promise.all([loadCategorizationMemory(), loadBank()]);
     renderBank();
   } catch (err) {
     alert('Network error: ' + err.message);
