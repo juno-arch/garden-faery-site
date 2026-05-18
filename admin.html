@@ -664,7 +664,8 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
     <button class="tab" data-tab="month" onclick="switchTab('month')">Month</button>
     <button class="tab" data-tab="upcoming" onclick="switchTab('upcoming')">Upcoming</button>
     <button class="tab" data-tab="clients" onclick="switchTab('clients')">Clients</button>
-    <button class="tab" data-tab="money-in" onclick="switchTab('money-in')">Money In</button>
+    <button class="tab" data-tab="income" onclick="switchTab('income')">Income</button>
+    <button class="tab" data-tab="bank" onclick="switchTab('bank')">Bank</button>
     <button class="tab" data-tab="expenses" onclick="switchTab('expenses')">Expenses</button>
     <button class="tab" data-tab="taxes" onclick="switchTab('taxes')">Taxes</button>
     <button class="tab" data-tab="emails" onclick="switchTab('emails')">Emails</button>
@@ -704,9 +705,14 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
     <div id="clients-content"></div>
   </div>
 
-  <!-- Money In — merged Income (bookings.paid) + Payments (atomic transactions) -->
-  <div class="tab-panel" id="tab-money-in" style="display:none;">
+  <!-- Income view (bookings-driven: gross / paid / outstanding by month, per-client) -->
+  <div class="tab-panel" id="tab-income" style="display:none;">
     <div id="income-content"></div>
+  </div>
+
+  <!-- Bank view — SimpleFIN-fed CCCU balance + recent transactions + payments ledger -->
+  <div class="tab-panel" id="tab-bank" style="display:none;">
+    <div id="bank-content"></div>
     <div style="margin: 28px 0 0; padding-top: 20px; border-top: 1px solid var(--gray-200);">
       <h2 style="font-family: Lora, serif; font-weight: 400; color: var(--plum); font-size: 1.3rem; margin-bottom: 4px;">Payments collected</h2>
       <p style="font-size: 0.8rem; color: var(--gray-600); margin-bottom: 14px;">Atomic transactions — Square webhooks + manually logged cash/check. Backs the 1099-K ledger.</p>
@@ -1385,7 +1391,8 @@ function switchTab(tab) {
   if (tab === 'month') renderMonth();
   if (tab === 'upcoming') renderUpcoming();
   if (tab === 'clients') renderClients();
-  if (tab === 'money-in') renderMoneyIn();
+  if (tab === 'income') renderIncome();
+  if (tab === 'bank') renderBank();
   if (tab === 'expenses') renderExpenses();
   if (tab === 'taxes') renderTaxes();
   if (tab === 'emails') renderEmails();
@@ -3515,11 +3522,113 @@ function rerenderClients() {
 function setClientsStatus(s)   { clientsFilterStatus = s; rerenderClients(); }
 function clearClientsFilters() { clientsFilterStatus = 'all'; clientsSearch = ''; rerenderClients(); }
 
-// Money In = bookings-driven income (top) + atomic payments ledger (bottom).
-// Both render into their own divs inside the #tab-money-in panel.
-function renderMoneyIn() {
-  renderIncome();
+// Bank tab = SimpleFIN-fed CCCU view (balance + recent bank transactions) +
+// the atomic payments collected ledger below it.
+let _bankBalance = null;        // { amount_cents, currency, as_of, account_name }
+let _bankTransactions = [];
+let _bankLoaded = false;
+
+async function loadBank() {
+  if (!PB_URL) { _bankLoaded = true; return; }
+  try {
+    const data = await DB._pb('GET', 'bank_transactions/records?perPage=100&sort=-posted_at');
+    _bankTransactions = (data.items || []).map(r => ({
+      id: r.id,
+      providerId: r.provider_id,
+      accountId: r.account_id,
+      accountName: r.account_name,
+      amountCents: r.amount_cents || 0,
+      currency: r.currency || 'USD',
+      postedAt: r.posted_at,
+      description: r.description,
+      payee: r.payee,
+      memo: r.memo,
+      matchStatus: r.match_status,
+      paymentIds: r.payment_ids,
+    }));
+  } catch (err) {
+    console.error('loadBank failed:', err);
+    _bankTransactions = [];
+  } finally {
+    _bankLoaded = true;
+  }
+}
+
+async function renderBank() {
+  if (!_bankLoaded && PB_URL) {
+    document.getElementById('bank-content').innerHTML = '<div class="empty-day"><p>Loading bank data…</p></div>';
+    await loadBank();
+  }
+  // Payments ledger renders into its own div below.
   renderPayments();
+
+  const container = document.getElementById('bank-content');
+  if (!container) return;
+
+  let html = '';
+
+  // --- Top: balance card + Sync button ---
+  const balanceStr = _bankBalance
+    ? '$' + (_bankBalance.amount_cents / 100).toFixed(2)
+    : '—';
+  const balanceSub = _bankBalance
+    ? 'FYHF Biz Checking · as of ' + (new Date(_bankBalance.as_of)).toLocaleString()
+    : 'Click "Sync bank" to fetch from SimpleFIN';
+
+  html += '<div class="card" style="background:var(--cream);border:1px solid var(--gray-200);border-radius:12px;padding:18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">' +
+    '<div>' +
+      '<div style="font-size:0.7rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.5px;">CCCU Balance</div>' +
+      '<div style="font-size:2rem;font-weight:700;color:var(--plum);line-height:1.1;margin-top:4px;">' + balanceStr + '</div>' +
+      '<div style="font-size:0.7rem;color:var(--gray-600);margin-top:4px;">' + escapeHtml(balanceSub) + '</div>' +
+    '</div>' +
+    '<button class="modal-btn primary" onclick="syncBank()" style="padding:10px 18px;">🏦 Sync bank</button>' +
+    '</div>';
+
+  // --- Bank transactions list ---
+  html += '<h3 style="font-family:Lora,serif;font-weight:400;color:var(--plum);font-size:1.1rem;margin:18px 0 8px;">Recent bank activity</h3>';
+
+  if (_bankTransactions.length === 0) {
+    html += '<div class="empty-day"><p>No bank transactions yet. Hit "Sync bank" above to pull from CCCU.</p></div>';
+  } else {
+    _bankTransactions.slice(0, 30).forEach(t => {
+      const dateStr = t.postedAt ? (new Date(t.postedAt)).toLocaleDateString() : '?';
+      const isCredit = t.amountCents > 0;
+      const amtColor = isCredit ? 'var(--spring-sage)' : (t.amountCents < 0 ? 'var(--red)' : 'var(--gray-600)');
+      const amtSign = isCredit ? '+' : '';
+      const matchPill = bankMatchPill(t.matchStatus);
+      const desc = t.description || t.payee || 'transaction';
+
+      html += '<div class="booking-card" style="border-left-color:' + (isCredit ? 'var(--spring-sage)' : 'var(--gray-400)') + ';">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">' +
+          '<div style="min-width:0;flex:1;">' +
+            '<h3 style="margin-bottom:2px;font-size:0.95rem;">' + escapeHtml(desc.slice(0, 60)) + '</h3>' +
+            '<div class="booking-meta" style="font-size:0.75rem;">' + dateStr + '</div>' +
+          '</div>' +
+          '<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;">' +
+            '<div style="font-size:1rem;font-weight:700;color:' + amtColor + ';">' + amtSign + '$' + (Math.abs(t.amountCents)/100).toFixed(2) + '</div>' +
+            matchPill +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    });
+    if (_bankTransactions.length > 30) {
+      html += '<div style="text-align:center;color:var(--gray-600);font-size:0.8rem;margin-top:8px;">' + (_bankTransactions.length - 30) + ' more older transactions in the database</div>';
+    }
+  }
+
+  container.innerHTML = html;
+}
+
+function bankMatchPill(status) {
+  const map = {
+    auto_matched:      { bg: 'rgba(163,184,140,0.25)', fg: '#3a5a1f', label: '✓ matched' },
+    manually_matched:  { bg: 'rgba(163,184,140,0.25)', fg: '#3a5a1f', label: '✓ matched (manual)' },
+    unmatched:         { bg: 'rgba(212,194,122,0.25)', fg: '#7a5f00', label: '○ unmatched' },
+    multi_match:       { bg: 'var(--red-light)',       fg: 'var(--red)', label: '⚠ multi-match' },
+    ignored:           { bg: 'var(--gray-200)',        fg: 'var(--gray-600)', label: '— ignored' },
+  };
+  const m = map[status] || { bg: 'var(--gray-200)', fg: 'var(--gray-600)', label: status || '?' };
+  return '<span style="background:' + m.bg + ';color:' + m.fg + ';padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:600;">' + m.label + '</span>';
 }
 
 function renderIncome() {
@@ -3952,9 +4061,24 @@ async function syncBank() {
     if (typeof data.matched === 'number')    parts.push(data.matched + ' auto-matched');
     if (data.multi_match)                    parts.push(data.multi_match + ' need review');
     alert('Bank sync complete: ' + (parts.join(' · ') || 'no new transactions'));
-    // Reload payments so deposited_at indicators show up.
-    await loadPayments();
-    renderPayments();
+
+    // Capture balance for the Bank tab card if returned.
+    if (data.balance) {
+      _bankBalance = {
+        amount_cents: Math.round(parseFloat(data.balance.amount) * 100),
+        currency: data.balance.currency || 'USD',
+        as_of: data.balance.as_of || new Date().toISOString(),
+        account_name: data.balance.account_name || '',
+      };
+    }
+
+    // Reload both views so indicators show up.
+    await Promise.all([loadPayments(), loadBank()]);
+    if (document.getElementById('tab-bank') && document.getElementById('tab-bank').style.display === 'block') {
+      renderBank();
+    } else {
+      renderPayments();
+    }
   } catch (err) {
     alert('Network error: ' + err.message);
   } finally {
