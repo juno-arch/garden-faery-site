@@ -6194,7 +6194,7 @@ async function renderBank() {
       '<div style="font-size:0.7rem;color:var(--gray-600);margin-top:4px;">' + escapeHtml(balanceSub) + '</div>' +
     '</div>' +
     '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
-      '<button class="modal-btn secondary" onclick="openMemoryViewer()" style="padding:8px 14px;font-size:0.85rem;">Memory</button>' +
+      '<button class="modal-btn secondary" onclick="openCategoriesView()" style="padding:8px 14px;font-size:0.85rem;">Categories</button>' +
       '<button class="modal-btn primary" onclick="syncBank()" style="padding:10px 18px;">Sync bank</button>' +
     '</div>' +
     '</div>';
@@ -6363,42 +6363,290 @@ async function applySuggestion(bankId) {
   } catch (err) { alert('Network error: ' + err.message); }
 }
 
-// --- Memory viewer modal: shows learned rules with edit/delete ---
-function openMemoryViewer() {
-  let modal = document.getElementById('mem-viewer');
+// =============================================================
+// Categories view — mirrors the personal finance dashboard layout:
+//   - Period selector (this month / ytd / last year / all)
+//   - Categories grouped by Schedule C bucket (Income / Garden /
+//     Vehicle / Operating / Non-P&L / Other)
+//   - Each row: name, spent in period, tx count, learned-pattern count
+//   - "Spending by category" rollup at the bottom (sorted by $, with bars)
+//   - Click a category → drill-in: transactions + learned patterns
+// Categorization_memory is woven into each category (no separate
+// "Memory" view); each pattern can be forgotten from inside a drill-in.
+// =============================================================
+
+let _catsPeriod = 'ytd'; // 'this-month' | 'last-month' | 'ytd' | 'last-year' | 'all'
+let _catsDrillKey = null;
+
+function periodWindow(p) {
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth();
+  if (p === 'this-month') {
+    return {
+      start: new Date(y, m, 1).toISOString().slice(0,10),
+      end:   new Date(y, m+1, 1).toISOString().slice(0,10),
+      label: now.toLocaleString('en-US', { month: 'long', year: 'numeric' }),
+    };
+  }
+  if (p === 'last-month') {
+    return {
+      start: new Date(y, m-1, 1).toISOString().slice(0,10),
+      end:   new Date(y, m, 1).toISOString().slice(0,10),
+      label: new Date(y, m-1, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' }),
+    };
+  }
+  if (p === 'last-year') {
+    return {
+      start: (y-1) + '-01-01',
+      end:   y + '-01-01',
+      label: String(y-1),
+    };
+  }
+  if (p === 'all') {
+    return { start: '1970-01-01', end: '2999-01-01', label: 'all time' };
+  }
+  // default: ytd
+  return {
+    start: y + '-01-01',
+    end:   (y+1) + '-01-01',
+    label: y + ' YTD',
+  };
+}
+
+// Aggregate bank_transactions by category within a period.
+function aggregateByCategory(period) {
+  const win = periodWindow(period);
+  const out = {}; // category -> { total: cents, count }
+  let uncategorized = { total: 0, count: 0 };
+  for (const t of _bankTransactions) {
+    const d = (t.postedAt || '').slice(0, 10);
+    if (!d || d < win.start || d >= win.end) continue;
+    const amt = Math.abs(t.amountCents || 0);
+    if (!t.category) {
+      uncategorized.total += amt;
+      uncategorized.count += 1;
+      continue;
+    }
+    if (!out[t.category]) out[t.category] = { total: 0, count: 0 };
+    out[t.category].total += amt;
+    out[t.category].count += 1;
+  }
+  return { byCat: out, uncategorized: uncategorized, window: win };
+}
+
+// Patterns count for each category (used to show "n patterns" badge).
+function patternCountByCategory() {
+  const out = {};
+  for (const r of _catMemory) {
+    out[r.category] = (out[r.category] || 0) + 1;
+  }
+  return out;
+}
+
+function openCategoriesView() {
+  _catsDrillKey = null;
+  let modal = document.getElementById('cats-viewer');
   if (!modal) {
     modal = document.createElement('div');
-    modal.id = 'mem-viewer';
+    modal.id = 'cats-viewer';
     modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;';
+    modal.addEventListener('click', (ev) => { if (ev.target === modal) modal.remove(); });
     document.body.appendChild(modal);
   }
+  renderCategoriesView();
+}
 
-  const sorted = [..._catMemory].sort((a, b) => (b.confidence || 0) - (a.confidence || 0));
-  const rows = sorted.length === 0
-    ? '<p style="opacity:0.6;padding:20px;text-align:center;">Nothing learned yet. Each time you categorize a transaction, the pattern is remembered here.</p>'
-    : '<div style="display:flex;flex-direction:column;gap:8px;">' +
-        sorted.map(r =>
-          '<div style="background:var(--cream);border:1px solid var(--gray-200);border-radius:6px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">' +
-            '<div style="flex:1;min-width:180px;">' +
-              '<div style="font-family:monospace;font-size:0.85rem;">' + escapeHtml(r.pattern) + '</div>' +
-              '<div style="font-size:0.72rem;color:var(--gray-600);">' + escapeHtml(categoryLabel(r.category)) + (r.vendor ? ' &middot; ' + escapeHtml(r.vendor) : '') + '</div>' +
+function closeCategoriesView() {
+  const m = document.getElementById('cats-viewer');
+  if (m) m.remove();
+}
+
+function setCatsPeriod(p) { _catsPeriod = p; renderCategoriesView(); }
+
+function renderCategoriesView() {
+  const modal = document.getElementById('cats-viewer');
+  if (!modal) return;
+
+  // If drilled into a specific category, render that view.
+  if (_catsDrillKey) {
+    renderCategoryDrillIn(modal, _catsDrillKey);
+    return;
+  }
+
+  const agg = aggregateByCategory(_catsPeriod);
+  const patCounts = patternCountByCategory();
+  const groups = categoryGroups();
+
+  // Per-group totals (for header).
+  const grandTotal = Object.values(agg.byCat).reduce((s, x) => s + x.total, 0);
+  const groupTotals = {};
+  for (const g of groups) {
+    let sum = 0, count = 0;
+    for (const c of g.items) {
+      const v = agg.byCat[c.v];
+      if (v) { sum += v.total; count += v.count; }
+    }
+    groupTotals[g.name] = { sum: sum, count: count };
+  }
+
+  const periodOpts = [
+    ['this-month','This month'],
+    ['last-month','Last month'],
+    ['ytd','Year to date'],
+    ['last-year','Last year'],
+    ['all','All time'],
+  ].map(o => '<option value="' + o[0] + '"' + (o[0] === _catsPeriod ? ' selected' : '') + '>' + o[1] + '</option>').join('');
+
+  // Render groups + rows.
+  let groupsHtml = groups.map(g => {
+    const total = groupTotals[g.name] || { sum: 0, count: 0 };
+    const rows = g.items.map(c => {
+      const cell = agg.byCat[c.v];
+      const sum = cell ? cell.total : 0;
+      const cnt = cell ? cell.count : 0;
+      const patN = patCounts[c.v] || 0;
+      const pctOfGrand = grandTotal > 0 ? (sum / grandTotal) * 100 : 0;
+      const inactive = sum === 0 && patN === 0;
+      const opacity = inactive ? 'opacity:0.5;' : '';
+      const cellId = c.v;
+      return '<button type="button" class="cats-row" onclick="drillIntoCategory(\'' + cellId + '\')" ' +
+        'style="' + opacity + 'display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;padding:10px 12px;border:1px solid var(--gray-200);border-radius:6px;background:var(--white);font-family:inherit;cursor:pointer;color:inherit;">' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="font-weight:600;font-size:0.92rem;">' + escapeHtml(c.l) + '</div>' +
+          '<div style="font-size:0.74rem;color:var(--gray-600);margin-top:2px;">' +
+            cnt + ' tx' +
+            (patN > 0 ? ' &middot; ✨ ' + patN + ' learned' : '') +
+            (sum > 0 ? ' &middot; ' + pctOfGrand.toFixed(1) + '% of spend' : '') +
+          '</div>' +
+          (sum > 0
+            ? '<div style="margin-top:6px;height:4px;background:var(--gray-100);border-radius:2px;overflow:hidden;">' +
+                '<div style="height:100%;background:var(--plum);width:' + Math.min(100, pctOfGrand).toFixed(1) + '%;"></div>' +
+              '</div>'
+            : ''
+          ) +
+        '</div>' +
+        '<div style="text-align:right;flex-shrink:0;">' +
+          '<div style="font-weight:700;font-variant-numeric:tabular-nums;">' + (sum > 0 ? '$' + (sum/100).toFixed(2) : '—') + '</div>' +
+          '<div style="font-size:0.7rem;color:var(--gray-400);">›</div>' +
+        '</div>' +
+      '</button>';
+    }).join('');
+    return '<div style="margin-bottom:14px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;padding:0 4px;">' +
+        '<div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--gray-600);font-weight:600;">' + escapeHtml(g.name) + '</div>' +
+        '<div style="font-size:0.78rem;color:var(--gray-600);font-variant-numeric:tabular-nums;">' + (total.sum > 0 ? '$' + (total.sum/100).toFixed(2) + ' · ' + total.count + ' tx' : '—') + '</div>' +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:6px;">' + rows + '</div>' +
+    '</div>';
+  }).join('');
+
+  // Uncategorized callout if applicable.
+  const uncatBox = agg.uncategorized.count > 0
+    ? '<div style="background:rgba(212,194,122,0.18);border:1px solid var(--pollen-gold);border-radius:8px;padding:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;">' +
+        '<div>' +
+          '<div style="font-weight:600;">' + agg.uncategorized.count + ' uncategorized transaction' + (agg.uncategorized.count === 1 ? '' : 's') + '</div>' +
+          '<div style="font-size:0.78rem;color:var(--gray-600);">$' + (agg.uncategorized.total/100).toFixed(2) + ' unclassified in ' + agg.window.label + '</div>' +
+        '</div>' +
+        '<button class="modal-btn primary" style="padding:6px 12px;font-size:0.8rem;" onclick="closeCategoriesView();setBankFilter(\'uncategorized\');">Categorize →</button>' +
+      '</div>'
+    : '';
+
+  modal.innerHTML =
+    '<div style="background:#fff;border-radius:10px;width:100%;max-width:620px;max-height:88vh;overflow-y:auto;padding:22px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
+        '<h2 style="margin:0;font-size:1.2rem;">Categories</h2>' +
+        '<button onclick="closeCategoriesView()" style="background:transparent;border:none;cursor:pointer;font-size:1.4rem;color:var(--plum);">&times;</button>' +
+      '</div>' +
+      '<p style="font-size:0.84rem;color:var(--gray-600);margin-bottom:14px;">Schedule C buckets. Tap a category to see its transactions and learned vendor patterns.</p>' +
+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">' +
+        '<label style="font-size:0.78rem;color:var(--gray-600);font-weight:600;">Period</label>' +
+        '<select onchange="setCatsPeriod(this.value)" style="padding:6px 10px;border:1px solid var(--gray-200);border-radius:6px;font-size:0.85rem;background:var(--white);color:var(--plum);">' + periodOpts + '</select>' +
+        '<span style="font-size:0.78rem;color:var(--gray-600);">· ' + escapeHtml(agg.window.label) + ' · ' + (grandTotal > 0 ? '$' + (grandTotal/100).toFixed(2) + ' total' : 'no activity') + '</span>' +
+      '</div>' +
+
+      uncatBox +
+      groupsHtml +
+    '</div>';
+}
+
+function drillIntoCategory(catKey) {
+  _catsDrillKey = catKey;
+  renderCategoriesView();
+}
+
+function backFromDrill() {
+  _catsDrillKey = null;
+  renderCategoriesView();
+}
+
+function renderCategoryDrillIn(modal, catKey) {
+  const label = categoryLabel(catKey);
+  const win = periodWindow(_catsPeriod);
+
+  // Pull txs for this category in the period.
+  const txs = _bankTransactions.filter(t => {
+    if (t.category !== catKey) return false;
+    const d = (t.postedAt || '').slice(0, 10);
+    return d && d >= win.start && d < win.end;
+  }).sort((a, b) => (b.postedAt || '').localeCompare(a.postedAt || ''));
+
+  const total = txs.reduce((s, t) => s + Math.abs(t.amountCents || 0), 0);
+
+  // Pull learned patterns for this category.
+  const patterns = _catMemory.filter(r => r.category === catKey).sort((a, b) => (b.confidence || 0) - (a.confidence || 0));
+
+  const txList = txs.length === 0
+    ? '<p style="opacity:0.6;padding:14px;text-align:center;font-size:0.85rem;">No transactions in this category for ' + escapeHtml(win.label) + '.</p>'
+    : '<div style="display:flex;flex-direction:column;gap:6px;">' +
+        txs.slice(0, 30).map(t => {
+          const dateStr = t.postedAt ? (new Date(t.postedAt)).toLocaleDateString() : '?';
+          const name = t.vendor || t.payee || t.description || 'transaction';
+          return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;background:var(--gray-100);border-radius:6px;font-size:0.85rem;">' +
+            '<div style="flex:1;min-width:0;">' +
+              '<div style="font-weight:500;">' + escapeHtml(String(name).slice(0, 50)) + '</div>' +
+              '<div style="font-size:0.72rem;color:var(--gray-600);">' + dateStr + '</div>' +
             '</div>' +
-            '<div style="text-align:right;">' +
-              '<div style="font-weight:600;font-size:0.85rem;">seen ' + (r.confidence || 0) + 'x</div>' +
-              '<button class="modal-btn secondary" style="margin-top:4px;padding:3px 8px;font-size:0.7rem;color:var(--red);" onclick="forgetMemoryRule(\'' + r.id + '\')">Forget</button>' +
+            '<div style="font-weight:600;font-variant-numeric:tabular-nums;">$' + (Math.abs(t.amountCents)/100).toFixed(2) + '</div>' +
+          '</div>';
+        }).join('') +
+      '</div>' + (txs.length > 30 ? '<div style="text-align:center;color:var(--gray-600);font-size:0.75rem;margin-top:6px;">+' + (txs.length - 30) + ' more</div>' : '');
+
+  const patList = patterns.length === 0
+    ? '<p style="opacity:0.6;padding:14px;text-align:center;font-size:0.85rem;">No learned patterns for this category yet. Categorize a transaction here and the vendor will be remembered.</p>'
+    : '<div style="display:flex;flex-direction:column;gap:6px;">' +
+        patterns.map(r =>
+          '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;background:var(--cream);border:1px solid var(--gray-200);border-radius:6px;">' +
+            '<div style="flex:1;min-width:0;">' +
+              '<div style="font-family:monospace;font-size:0.82rem;">' + escapeHtml(r.pattern) + '</div>' +
+              '<div style="font-size:0.7rem;color:var(--gray-600);">seen ' + (r.confidence || 0) + 'x' + (r.vendor ? ' · ' + escapeHtml(r.vendor) : '') + '</div>' +
             '</div>' +
+            '<button class="modal-btn secondary" style="padding:3px 8px;font-size:0.7rem;color:var(--red);" onclick="forgetMemoryRule(\'' + r.id + '\')">Forget</button>' +
           '</div>'
         ).join('') +
       '</div>';
 
   modal.innerHTML =
-    '<div style="background:#fff;border-radius:10px;width:100%;max-width:540px;max-height:80vh;overflow-y:auto;padding:22px;">' +
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">' +
-        '<h2 style="margin:0;font-size:1.2rem;">Categorization memory</h2>' +
-        '<button onclick="document.getElementById(\'mem-viewer\').remove()" style="background:transparent;border:none;cursor:pointer;font-size:1.4rem;">&times;</button>' +
+    '<div style="background:#fff;border-radius:10px;width:100%;max-width:620px;max-height:88vh;overflow-y:auto;padding:22px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;">' +
+        '<button onclick="backFromDrill()" style="background:transparent;border:none;cursor:pointer;color:var(--plum);font-size:0.85rem;font-weight:600;">‹ Categories</button>' +
+        '<button onclick="closeCategoriesView()" style="background:transparent;border:none;cursor:pointer;font-size:1.4rem;color:var(--plum);">&times;</button>' +
       '</div>' +
-      '<p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:14px;">Patterns we\'ve learned from your past categorizations. Higher "seen" count = stronger suggestion.</p>' +
-      rows +
+
+      '<h2 style="margin:0 0 6px;font-size:1.3rem;">' + escapeHtml(label) + '</h2>' +
+      '<div style="font-size:0.85rem;color:var(--gray-600);margin-bottom:14px;">' +
+        escapeHtml(win.label) + ' · ' + (txs.length > 0 ? '$' + (total/100).toFixed(2) + ' across ' + txs.length + ' transaction' + (txs.length === 1 ? '' : 's') : 'no activity in this period') +
+      '</div>' +
+
+      '<div style="margin-bottom:18px;">' +
+        '<div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--gray-600);font-weight:600;margin-bottom:8px;">Transactions</div>' +
+        txList +
+      '</div>' +
+
+      '<div>' +
+        '<div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--gray-600);font-weight:600;margin-bottom:8px;">✨ Learned patterns</div>' +
+        patList +
+      '</div>' +
     '</div>';
 }
 
@@ -6407,8 +6655,8 @@ async function forgetMemoryRule(id) {
   try {
     await DB._pb('DELETE', 'categorization_memory/records/' + id);
     await loadCategorizationMemory();
-    openMemoryViewer(); // re-render
-    renderBank();       // refresh inline suggestions
+    renderCategoriesView(); // refresh modal (drill-in if open)
+    renderBank();           // refresh inline suggestions
   } catch (err) { alert('Forget failed: ' + err.message); }
 }
 
