@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>Bookings | Garden Faery Admin</title>
+<title>Garden Faery Studio</title>
 <link rel="apple-touch-icon" href="/icon-admin.png">
 <link rel="icon" type="image/png" href="/icon-admin.png">
 <meta name="apple-mobile-web-app-title" content="Admin">
@@ -27,15 +27,50 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
 
 .container { max-width: 520px; margin: 0 auto; padding: 16px; }
 
-/* Top bar */
-.top-bar {
+/* Today card (replaces the old plain top-bar h1) */
+.today-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin: 12px 0 10px;
+  box-shadow: var(--shadow);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 0;
-  margin-bottom: 8px;
+  gap: 12px;
 }
-.top-bar h1 { font-size: 1.5rem; }
+.today-left { flex: 1; min-width: 0; }
+.today-greeting {
+  font-family: 'Fraunces', 'Georgia', serif;
+  font-weight: 500;
+  font-size: 1.25rem;
+  color: var(--plum);
+  line-height: 1.1;
+}
+.today-date {
+  font-size: 0.82rem;
+  color: var(--gray-600);
+  margin-top: 2px;
+}
+.today-summary {
+  font-size: 0.85rem;
+  color: var(--plum);
+  margin-top: 6px;
+  font-weight: 500;
+}
+.today-summary.empty { color: var(--gray-600); font-weight: 400; }
+.today-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.icon-btn {
+  background: transparent;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  width: 36px; height: 36px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--plum);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.icon-btn:hover { background: var(--gray-100); border-color: var(--gray-400); }
 
 /* Tabs */
 .tabs {
@@ -46,6 +81,7 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
   padding: 4px;
   margin-bottom: 16px;
   overflow-x: auto;
+  position: relative;
 }
 .tab {
   flex: 1;
@@ -63,6 +99,85 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
   text-align: center;
 }
 .tab.active { background: var(--white); color: var(--plum); box-shadow: var(--shadow); }
+
+/* Tab dropdown group ("Money ▾") */
+.tab-group { position: relative; flex: 1; min-width: 0; }
+.tab-group .tab-group-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.tab-group .caret { font-size: 0.65rem; transform: translateY(-1px); }
+.tab-group.open .tab-group-btn { background: var(--white); color: var(--plum); box-shadow: var(--shadow); }
+.tab-group-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(74,25,66,0.16);
+  padding: 6px;
+  display: none;
+  z-index: 100;
+  min-width: 160px;
+}
+.tab-group.open .tab-group-menu { display: block; }
+.tab-group-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 0.88rem;
+  color: var(--plum);
+  cursor: pointer;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.tab-group-item:hover { background: var(--gray-100); }
+.tab-group-item.active { background: var(--petal-pink-light); color: var(--plum); font-weight: 700; }
+
+/* ============ Dark mode ============ */
+/* Scoped to <html data-theme="dark">; toggled in JS, persisted to localStorage. */
+html[data-theme="dark"] {
+  --plum:           #ead9e1;
+  --plum-soft:      rgba(234, 217, 225, 0.8);
+  --cream:          #1a1018;
+  --white:          #2a1d27;
+  --gray-100:       #322330;
+  --gray-200:       #3f2e3c;
+  --gray-400:       #8a7585;
+  --gray-600:       #b8a6b4;
+  --red-light:      #4a2025;
+  --petal-pink-light: #5a2a48;
+  --sage-light:     #2b3a25;
+  --shadow:         0 2px 14px rgba(0,0,0,0.3);
+}
+html[data-theme="dark"] body { color: var(--plum); }
+html[data-theme="dark"] .tabs { background: var(--gray-200); }
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea {
+  background: var(--white);
+  color: var(--plum);
+  border-color: var(--gray-200);
+}
+html[data-theme="dark"] .booking-card,
+html[data-theme="dark"] .today-card,
+html[data-theme="dark"] .week-grid,
+html[data-theme="dark"] .modal-content { background: var(--white); }
+html[data-theme="dark"] .tab.active,
+html[data-theme="dark"] .tab-group.open .tab-group-btn { background: var(--gray-100); color: var(--plum); }
+html[data-theme="dark"] .tab-group-menu { background: var(--white); border-color: var(--gray-200); }
+html[data-theme="dark"] .tab-group-item { color: var(--plum); }
+html[data-theme="dark"] .tab-group-item:hover { background: var(--gray-100); }
 
 /* Day view */
 .day-nav {
@@ -649,9 +764,19 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
 <!-- Main app (hidden until login) -->
 <div class="app-wrap" id="app-wrap">
 <div class="container">
-  <div class="top-bar">
-    <h1>My Bookings</h1>
-    <button class="today-btn" onclick="goToday()">Today</button>
+  <!-- Today card -->
+  <div class="today-card" id="today-card">
+    <div class="today-left">
+      <div class="today-greeting" id="today-greeting">Good morning</div>
+      <div class="today-date" id="today-date"></div>
+      <div class="today-summary" id="today-summary"></div>
+    </div>
+    <div class="today-right">
+      <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button class="today-btn" onclick="goToday()">Today</button>
+    </div>
   </div>
 
   <!-- Week strip -->
@@ -660,18 +785,25 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
   <!-- Tabs -->
   <div class="tabs">
     <button class="tab active" data-tab="dashboard" aria-label="Dashboard" onclick="switchTab('dashboard')"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg></button>
-    <button class="tab" data-tab="day" onclick="switchTab('day')">Day</button>
-    <button class="tab" data-tab="month" onclick="switchTab('month')">Month</button>
+    <button class="tab" data-tab="day" onclick="switchTab('day')">Today</button>
+    <button class="tab" data-tab="month" onclick="switchTab('month')">Calendar</button>
     <button class="tab" data-tab="upcoming" onclick="switchTab('upcoming')">Upcoming</button>
     <button class="tab" data-tab="clients" onclick="switchTab('clients')">Clients</button>
-    <button class="tab" data-tab="income" onclick="switchTab('income')">Income</button>
-    <button class="tab" data-tab="bank" onclick="switchTab('bank')">Bank</button>
-    <button class="tab" data-tab="invoices" onclick="switchTab('invoices')">Invoices</button>
-    <button class="tab" data-tab="coupons" onclick="switchTab('coupons')">Coupons</button>
+    <div class="tab-group">
+      <button class="tab tab-group-btn" id="money-group-btn" onclick="toggleTabGroup('money')" aria-expanded="false">
+        Money <span class="caret" aria-hidden="true">&#9662;</span>
+      </button>
+      <div class="tab-group-menu" id="money-group-menu" role="menu">
+        <button class="tab-group-item" data-tab="income"     onclick="switchTab('income')">Income</button>
+        <button class="tab-group-item" data-tab="bank"       onclick="switchTab('bank')">Bank</button>
+        <button class="tab-group-item" data-tab="invoices"   onclick="switchTab('invoices')">Invoices</button>
+        <button class="tab-group-item" data-tab="coupons"    onclick="switchTab('coupons')">Coupons</button>
+        <button class="tab-group-item" data-tab="expenses"   onclick="switchTab('expenses')">Expenses</button>
+        <button class="tab-group-item" data-tab="taxes"      onclick="switchTab('taxes')">Taxes</button>
+        <button class="tab-group-item" data-tab="compliance" onclick="switchTab('compliance')">Compliance</button>
+      </div>
+    </div>
     <button class="tab" data-tab="reviews" onclick="switchTab('reviews')">Reviews</button>
-    <button class="tab" data-tab="expenses" onclick="switchTab('expenses')">Expenses</button>
-    <button class="tab" data-tab="taxes" onclick="switchTab('taxes')">Taxes</button>
-    <button class="tab" data-tab="compliance" onclick="switchTab('compliance')">Compliance</button>
     <button class="tab" data-tab="emails" onclick="switchTab('emails')">Emails</button>
     <button class="tab" data-tab="settings" aria-label="Settings" onclick="switchTab('settings')"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="3"/></svg></button>
   </div>
@@ -1535,10 +1667,26 @@ function renderObOAvailability() {
 viewDate.setHours(0,0,0,0);
 
 // --- Tab switching ---
+// Tabs that live under the "Money ▾" dropdown.
+const MONEY_TABS = ['income','bank','invoices','coupons','expenses','taxes','compliance'];
+
 function switchTab(tab) {
+  // Reset all tab buttons + group items.
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.tab-group-item').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
   document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
-  document.getElementById('tab-' + tab).style.display = 'block';
+
+  // If the chosen tab is inside the Money group, mark the group button active
+  // and close the menu so the panel can show.
+  const moneyGroup = document.querySelector('.tab-group');
+  if (moneyGroup) {
+    moneyGroup.classList.remove('open');
+    document.getElementById('money-group-btn').classList.toggle('active', MONEY_TABS.includes(tab));
+  }
+
+  const panel = document.getElementById('tab-' + tab);
+  if (panel) panel.style.display = 'block';
+
   if (tab === 'dashboard') renderDashboard();
   if (tab === 'day') renderDay();
   if (tab === 'month') renderMonth();
@@ -1554,6 +1702,79 @@ function switchTab(tab) {
   if (tab === 'compliance') renderCompliance();
   if (tab === 'emails') renderEmails();
   if (tab === 'settings') renderSettings();
+}
+
+// ----- Money dropdown open/close -----
+function toggleTabGroup(name) {
+  const g = document.querySelector('.tab-group');
+  if (!g) return;
+  g.classList.toggle('open');
+  document.getElementById('money-group-btn').setAttribute('aria-expanded', g.classList.contains('open') ? 'true' : 'false');
+}
+// Click outside the group closes it.
+document.addEventListener('click', (ev) => {
+  const g = document.querySelector('.tab-group');
+  if (!g || !g.classList.contains('open')) return;
+  if (!g.contains(ev.target)) g.classList.remove('open');
+});
+
+// ----- Dark mode -----
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('gf_theme', t); } catch (_) {}
+  const ico = document.getElementById('theme-icon');
+  if (ico) {
+    // Moon vs sun.
+    ico.innerHTML = t === 'dark'
+      ? '<circle cx="12" cy="12" r="5"/><line x1="12" x2="12" y1="1" y2="3"/><line x1="12" x2="12" y1="21" y2="23"/><line x1="4.22" x2="5.64" y1="4.22" y2="5.64"/><line x1="18.36" x2="19.78" y1="18.36" y2="19.78"/><line x1="1" x2="3" y1="12" y2="12"/><line x1="21" x2="23" y1="12" y2="12"/><line x1="4.22" x2="5.64" y1="19.78" y2="18.36"/><line x1="18.36" x2="19.78" y1="5.64" y2="4.22"/>'
+      : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+  }
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  setTheme(cur === 'dark' ? 'light' : 'dark');
+}
+// Apply persisted theme on load (run early — before paint if possible).
+(function initTheme() {
+  try {
+    const t = localStorage.getItem('gf_theme');
+    if (t === 'dark' || t === 'light') setTheme(t);
+  } catch (_) {}
+})();
+
+// ----- Today card population -----
+function renderTodayCard() {
+  const greet = document.getElementById('today-greeting');
+  const dateEl = document.getElementById('today-date');
+  const sum = document.getElementById('today-summary');
+  if (!greet || !dateEl || !sum) return;
+
+  const now = new Date();
+  const hr = now.getHours();
+  greet.textContent =
+    hr < 5  ? 'Late night, Pollen' :
+    hr < 12 ? 'Good morning, Pollen' :
+    hr < 17 ? 'Good afternoon, Pollen' :
+    hr < 21 ? 'Good evening, Pollen' :
+              'Wind-down hours, Pollen';
+  dateEl.textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+  const todayIso = formatDate(now);
+  const bks = (typeof getBookings === 'function' ? getBookings() : [])
+    .filter(b => b.date === todayIso && b.status !== 'canceled')
+    .sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+
+  if (!bks.length) {
+    sum.className = 'today-summary empty';
+    sum.textContent = 'No visits today.';
+    return;
+  }
+  sum.className = 'today-summary';
+  const n = bks.length;
+  const first = bks[0];
+  const label = EVENT_LABELS[first.eventType] || first.eventType || 'visit';
+  const timeStr = first.time ? ' at ' + first.time : '';
+  sum.textContent = n + ' visit' + (n === 1 ? '' : 's') + ' today · next' + timeStr + ' · ' + (first.clientName || label);
 }
 
 // --- Dashboard (Tier 1 widgets) ---
@@ -8129,6 +8350,7 @@ function formatDisplayMonth(iso7) {
 }
 
 function renderAll() {
+  renderTodayCard();
   renderWeekStrip();
   renderDashboard();
   // Re-render whichever tab is currently visible so date navigation
