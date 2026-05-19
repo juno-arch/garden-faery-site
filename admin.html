@@ -2951,7 +2951,7 @@ async function saveReview() {
   d.consent_to_publish = document.getElementById('rv-consent').checked;
   d.internal_notes = document.getElementById('rv-notes').value;
 
-  if (!d.body || d.body.length < 5) { alert('Add some review text first.'); return; }
+  if (!d.body || d.body.length < 10) { alert('Add a sentence at least.'); return; }
   if (!d.client_id && !d.client_name) {
     const proceed = confirm('No client selected. Save anyway with name "Anonymous"?');
     if (!proceed) return;
