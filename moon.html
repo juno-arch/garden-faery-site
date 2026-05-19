@@ -9,7 +9,7 @@
 <link rel="icon" type="image/png" href="/icon-moon.png">
 <meta name="apple-mobile-web-app-title" content="Moon">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#3d1823">
+<meta name="theme-color" content="#1d1639">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Prata&family=Josefin+Sans:wght@300;400;500;600;700&display=swap">
@@ -18,9 +18,10 @@
 <link rel="stylesheet" href="shared.css?v=2026-05-02b">
 <style>
 :root {
-  /* Palette informed by Womben Wellness (Usha Anandi) — wine + terra + cream */
-  --moon-bg:     #2a0a14;
-  --moon-bg2:    #3d1823;
+  /* Palette informed by Womben Wellness (Usha Anandi) — wine + terra + cream
+     for the body strand, cosmic indigo at the top of the page for the sky strand. */
+  --moon-bg:     #2a0a14;   /* deep wine — body strand, page bottom */
+  --moon-bg2:    #1d1639;   /* cosmic indigo — sky strand, page top + iOS chrome */
   --moon-card:   #34121e;
   --moon-card2:  #4a1c29;
   --moon-line:   #5e2833;
@@ -31,8 +32,15 @@
   --moon-pink:   #c5556b;
   --moon-pink2:  #e09aa3;
   --moon-gold:   #c0830b;
-  --moon-teal:   #aa7d56;
+  --moon-teal:   #8fe3d4;   /* mint teal — mood / water strand. Was #aa7d56 (tan)
+                               which mismatched the rgba(143,227,212,...)
+                               backgrounds it was paired with on .chip.mood.on
+                               and friends. */
   --moon-red:    #690e0e;
+  /* Phase-accent — set by JS based on current inner season so the page picks
+     up the cycle phase's color (winter/spring/summer/autumn). Defaults to
+     glow for first-launch / no-cycle. */
+  --phase-accent: var(--moon-glow);
 }
 * { box-sizing: border-box; }
 html, body { margin:0; padding:0; }
@@ -106,7 +114,9 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
   font-size: 5rem;
   line-height: 1;
   margin-bottom: 10px;
-  filter: drop-shadow(0 0 22px rgba(181,139,255,0.55));
+  color: var(--phase-accent);
+  filter: drop-shadow(0 0 22px var(--phase-accent));
+  transition: filter 0.3s, color 0.3s;
 }
 .today-date { font-size: 0.8rem; color: var(--moon-dim); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
 .today-name { font-family: 'Prata', serif; font-size: 1.4rem; font-weight: 600; margin-bottom: 6px; }
@@ -339,8 +349,9 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
   margin: 0 0 4px;
   padding: 10px 14px;
   background: linear-gradient(135deg, rgba(181,139,255,0.10) 0%, rgba(255,143,177,0.07) 100%);
-  border-left: 3px solid var(--moon-glow);
+  border-left: 3px solid var(--phase-accent);
   border-radius: 0 12px 12px 0;
+  transition: border-left-color 0.3s;
 }
 .today-season-card .ts-sub {
   font-size: 0.72rem;
@@ -3322,6 +3333,19 @@ function render() {
   document.getElementById('t-season').textContent = cycleDay ? innerSeason(cycleDay, avg) : 'Log a period to begin';
 
   const todayPhase = phaseKey(cycleDay, avg);
+  // Tint the page with the current inner-season's accent so the UI picks up
+  // a different color depending on where you are in the cycle. Keeps the
+  // wine-card body identity but adds a phase-specific glow on the moon glyph
+  // and on the season-card border.
+  const PHASE_ACCENT = {
+    winter: '#a0a0d8',  // cool silver-violet — rest, descent
+    spring: '#8fb886',  // sage green        — rebuilding, rising
+    summer: '#ffd98b',  // warm gold         — peak, ovulation
+    autumn: '#d39867'   // amber rust        — winding down, completion
+  };
+  document.body.style.setProperty('--phase-accent',
+    PHASE_ACCENT[todayPhase] || 'var(--moon-glow)');
+
   const herbWrap = document.getElementById('t-herbs-wrap');
   const herbList = document.getElementById('t-herbs');
   if (todayPhase && PHASE_HERBS[todayPhase]) {
