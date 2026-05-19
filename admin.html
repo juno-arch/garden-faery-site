@@ -6160,6 +6160,12 @@ async function loadBank() {
   }
 }
 
+// Filter + paging state for the Bank tab.
+let _bankFilter = 'uncategorized'; // 'uncategorized' | 'all' | 'income' | 'expense' | 'categorized'
+let _bankSearch = '';
+let _bankPageSize = 30;
+let _bankVisibleCount = 30;
+
 async function renderBank() {
   if (!_bankLoaded && PB_URL) {
     document.getElementById('bank-content').innerHTML = '<div class="empty-day"><p>Loading bank data…</p></div>';
@@ -6187,55 +6193,223 @@ async function renderBank() {
       '<div style="font-size:2rem;font-weight:700;color:var(--plum);line-height:1.1;margin-top:4px;">' + balanceStr + '</div>' +
       '<div style="font-size:0.7rem;color:var(--gray-600);margin-top:4px;">' + escapeHtml(balanceSub) + '</div>' +
     '</div>' +
-    '<button class="modal-btn primary" onclick="syncBank()" style="padding:10px 18px;">🏦 Sync bank</button>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+      '<button class="modal-btn secondary" onclick="openMemoryViewer()" style="padding:8px 14px;font-size:0.85rem;">Memory</button>' +
+      '<button class="modal-btn primary" onclick="syncBank()" style="padding:10px 18px;">Sync bank</button>' +
+    '</div>' +
     '</div>';
 
-  // --- Bank transactions list ---
-  html += '<h3 style="font-family:Lora,serif;font-weight:400;color:var(--plum);font-size:1.1rem;margin:18px 0 8px;">Recent bank activity</h3>';
+  // --- Counts for headline ---
+  const uncatCount = _bankTransactions.filter(t => !t.category).length;
+  const debits = _bankTransactions.filter(t => t.amountCents < 0).length;
+  const credits = _bankTransactions.filter(t => t.amountCents > 0).length;
+
+  // --- Filter chips ---
+  const chip = (key, label, count) => {
+    const a = _bankFilter === key;
+    const style = a ? 'background:var(--plum);color:#fff;border:1px solid var(--plum);' : 'background:transparent;color:var(--plum);border:1px solid var(--gray-200);';
+    return '<button class="modal-btn secondary" style="padding:6px 12px;font-size:0.8rem;' + style + '" onclick="setBankFilter(\'' + key + '\')">' + label + (count != null ? ' (' + count + ')' : '') + '</button>';
+  };
+
+  html += '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;">' +
+    chip('uncategorized', 'Need attention', uncatCount) +
+    chip('all', 'All', _bankTransactions.length) +
+    chip('income', 'Income', credits) +
+    chip('expense', 'Expense', debits) +
+    chip('categorized', 'Done', _bankTransactions.length - uncatCount) +
+    '<input type="text" placeholder="Search vendor or memo…" value="' + escapeHtml(_bankSearch) + '" oninput="setBankSearch(this.value)" style="padding:6px 10px;border:1px solid var(--gray-200);border-radius:6px;flex:1;min-width:160px;max-width:240px;font-size:0.85rem;background:var(--white);color:var(--plum);">' +
+    '</div>';
+
+  // --- Apply filter + search ---
+  const q = _bankSearch.trim().toLowerCase();
+  let rows = _bankTransactions.filter(t => {
+    if (_bankFilter === 'uncategorized' && t.category) return false;
+    if (_bankFilter === 'categorized'   && !t.category) return false;
+    if (_bankFilter === 'income'        && t.amountCents <= 0) return false;
+    if (_bankFilter === 'expense'       && t.amountCents >= 0) return false;
+    if (q) {
+      const hay = ((t.vendor || '') + ' ' + (t.payee || '') + ' ' + (t.description || '') + ' ' + (t.memo || '')).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  // Sort: uncategorized first (when in the 'all' or 'uncategorized' bucket),
+  // then by date desc.
+  if (_bankFilter === 'all' || _bankFilter === 'uncategorized') {
+    rows.sort((a, b) => {
+      const ua = a.category ? 1 : 0, ub = b.category ? 1 : 0;
+      if (ua !== ub) return ua - ub;
+      return (b.postedAt || '').localeCompare(a.postedAt || '');
+    });
+  } else {
+    rows.sort((a, b) => (b.postedAt || '').localeCompare(a.postedAt || ''));
+  }
 
   if (_bankTransactions.length === 0) {
     html += '<div class="empty-day"><p>No bank transactions yet. Hit "Sync bank" above to pull from CCCU.</p></div>';
-  } else {
-    _bankTransactions.slice(0, 30).forEach(t => {
-      const dateStr = t.postedAt ? (new Date(t.postedAt)).toLocaleDateString() : '?';
-      const isCredit = t.amountCents > 0;
-      const amtColor = isCredit ? 'var(--spring-sage)' : (t.amountCents < 0 ? 'var(--red)' : 'var(--gray-600)');
-      const amtSign = isCredit ? '+' : '';
-      const matchPill = bankMatchPill(t.matchStatus);
-      const desc = t.description || t.payee || 'transaction';
-      const displayName = t.vendor || desc;
+    container.innerHTML = html;
+    return;
+  }
+  if (rows.length === 0) {
+    html += '<div class="empty-day"><p>Nothing in this view.</p></div>';
+    container.innerHTML = html;
+    return;
+  }
 
-      // Category badge — shows current categorization or "uncategorized"
-      let catBadge;
-      if (t.category) {
-        catBadge = '<span style="background:rgba(74,25,66,0.1);color:var(--plum);padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:600;">' + escapeHtml(categoryLabel(t.category)) + '</span>';
-      } else {
-        catBadge = '<span style="background:var(--gray-200);color:var(--gray-600);padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:600;">uncategorized</span>';
-      }
+  const visible = rows.slice(0, _bankVisibleCount);
+  visible.forEach(t => {
+    html += bankTxRowHtml(t);
+  });
 
-      html += '<div class="booking-card" style="border-left-color:' + (isCredit ? 'var(--spring-sage)' : 'var(--gray-400)') + ';">' +
-        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">' +
-          '<div style="min-width:0;flex:1;">' +
-            '<h3 style="margin-bottom:2px;font-size:0.95rem;">' + escapeHtml(String(displayName).slice(0, 60)) + '</h3>' +
-            '<div class="booking-meta" style="font-size:0.75rem;">' + dateStr + (t.expenseId ? ' · linked to expense' : '') + '</div>' +
-          '</div>' +
-          '<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;">' +
-            '<div style="font-size:1rem;font-weight:700;color:' + amtColor + ';">' + amtSign + '$' + (Math.abs(t.amountCents)/100).toFixed(2) + '</div>' +
-            matchPill +
-          '</div>' +
-        '</div>' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px;flex-wrap:wrap;">' +
-          catBadge +
-          '<button class="modal-btn secondary" style="padding:4px 10px;font-size:0.75rem;" onclick="openCategorizeBank(\'' + t.id + '\')">' + (t.category ? 'Re-categorize' : 'Categorize') + '</button>' +
-        '</div>' +
-      '</div>';
-    });
-    if (_bankTransactions.length > 30) {
-      html += '<div style="text-align:center;color:var(--gray-600);font-size:0.8rem;margin-top:8px;">' + (_bankTransactions.length - 30) + ' more older transactions in the database</div>';
-    }
+  if (rows.length > _bankVisibleCount) {
+    html += '<div style="text-align:center;margin-top:10px;">' +
+      '<button class="modal-btn secondary" style="padding:8px 16px;font-size:0.85rem;" onclick="loadMoreBank()">Show ' + Math.min(_bankPageSize, rows.length - _bankVisibleCount) + ' more</button>' +
+      '<div style="margin-top:4px;font-size:0.72rem;color:var(--gray-600);">' + (rows.length - _bankVisibleCount) + ' more in this filter</div>' +
+    '</div>';
   }
 
   container.innerHTML = html;
+}
+
+function setBankFilter(f) {
+  _bankFilter = f;
+  _bankVisibleCount = _bankPageSize;
+  renderBank();
+}
+function setBankSearch(v) {
+  _bankSearch = v;
+  _bankVisibleCount = _bankPageSize;
+  renderBank();
+}
+function loadMoreBank() {
+  _bankVisibleCount += _bankPageSize;
+  renderBank();
+}
+
+function bankTxRowHtml(t) {
+  const dateStr = t.postedAt ? (new Date(t.postedAt)).toLocaleDateString() : '?';
+  const isCredit = t.amountCents > 0;
+  const amtColor = isCredit ? 'var(--spring-sage)' : (t.amountCents < 0 ? 'var(--red)' : 'var(--gray-600)');
+  const amtSign = isCredit ? '+' : '';
+  const matchPill = bankMatchPill(t.matchStatus);
+  const desc = t.description || t.payee || 'transaction';
+  const displayName = t.vendor || desc;
+
+  // Suggestion lookup (only if uncategorized).
+  const suggestion = !t.category ? suggestCategoryFor(t.payee, t.description) : null;
+  const suggestionInline = suggestion
+    ? '<button class="modal-btn secondary" style="padding:4px 10px;font-size:0.72rem;background:rgba(212,194,122,0.25);border:1px solid var(--pollen-gold);" onclick="applySuggestion(\'' + t.id + '\')" title="Apply learned categorization (' + suggestion.rule.confidence + 'x seen)">' +
+      '✨ ' + escapeHtml(categoryLabel(suggestion.rule.category)) +
+    '</button>'
+    : '';
+
+  // Category badge — current categorization or uncategorized.
+  let catBadge;
+  if (t.category) {
+    catBadge = '<span style="background:rgba(74,25,66,0.1);color:var(--plum);padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:600;">' + escapeHtml(categoryLabel(t.category)) + '</span>';
+  } else {
+    catBadge = '<span style="background:var(--gray-200);color:var(--gray-600);padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:600;">uncategorized</span>';
+  }
+
+  return '<div class="booking-card" style="border-left-color:' + (isCredit ? 'var(--spring-sage)' : 'var(--gray-400)') + ';">' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">' +
+      '<div style="min-width:0;flex:1;">' +
+        '<h3 style="margin-bottom:2px;font-size:0.95rem;">' + escapeHtml(String(displayName).slice(0, 60)) + '</h3>' +
+        '<div class="booking-meta" style="font-size:0.75rem;">' + dateStr + (t.expenseId ? ' · linked to expense' : '') + '</div>' +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;">' +
+        '<div style="font-size:1rem;font-weight:700;color:' + amtColor + ';">' + amtSign + '$' + (Math.abs(t.amountCents)/100).toFixed(2) + '</div>' +
+        matchPill +
+      '</div>' +
+    '</div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px;flex-wrap:wrap;">' +
+      catBadge +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
+        suggestionInline +
+        '<button class="modal-btn secondary" style="padding:4px 10px;font-size:0.75rem;" onclick="openCategorizeBank(\'' + t.id + '\')">' + (t.category ? 'Re-categorize' : 'Categorize') + '</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+// One-click apply a learned suggestion to a transaction.
+async function applySuggestion(bankId) {
+  const t = _bankTransactions.find(x => x.id === bankId);
+  if (!t) return;
+  const suggestion = suggestCategoryFor(t.payee, t.description);
+  if (!suggestion) { alert('No suggestion available.'); return; }
+
+  const isCredit = t.amountCents > 0;
+  const createExp = !isCredit && !t.expenseId && suggestion.rule.createExpenseDefault;
+
+  try {
+    const resp = await fetch(PB_URL + '/api/admin/categorize-bank-tx', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+      body: JSON.stringify({
+        bank_transaction_id: bankId,
+        category: suggestion.rule.category,
+        vendor: suggestion.rule.vendor || t.vendor || t.payee || '',
+        notes: '',
+        create_expense: createExp,
+      }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) { alert('Apply failed: ' + (data.error || resp.status)); return; }
+    _bankLoaded = false;
+    await loadBank();
+    renderBank();
+  } catch (err) { alert('Network error: ' + err.message); }
+}
+
+// --- Memory viewer modal: shows learned rules with edit/delete ---
+function openMemoryViewer() {
+  let modal = document.getElementById('mem-viewer');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'mem-viewer';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;';
+    document.body.appendChild(modal);
+  }
+
+  const sorted = [..._catMemory].sort((a, b) => (b.confidence || 0) - (a.confidence || 0));
+  const rows = sorted.length === 0
+    ? '<p style="opacity:0.6;padding:20px;text-align:center;">Nothing learned yet. Each time you categorize a transaction, the pattern is remembered here.</p>'
+    : '<div style="display:flex;flex-direction:column;gap:8px;">' +
+        sorted.map(r =>
+          '<div style="background:var(--cream);border:1px solid var(--gray-200);border-radius:6px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">' +
+            '<div style="flex:1;min-width:180px;">' +
+              '<div style="font-family:monospace;font-size:0.85rem;">' + escapeHtml(r.pattern) + '</div>' +
+              '<div style="font-size:0.72rem;color:var(--gray-600);">' + escapeHtml(categoryLabel(r.category)) + (r.vendor ? ' &middot; ' + escapeHtml(r.vendor) : '') + '</div>' +
+            '</div>' +
+            '<div style="text-align:right;">' +
+              '<div style="font-weight:600;font-size:0.85rem;">seen ' + (r.confidence || 0) + 'x</div>' +
+              '<button class="modal-btn secondary" style="margin-top:4px;padding:3px 8px;font-size:0.7rem;color:var(--red);" onclick="forgetMemoryRule(\'' + r.id + '\')">Forget</button>' +
+            '</div>' +
+          '</div>'
+        ).join('') +
+      '</div>';
+
+  modal.innerHTML =
+    '<div style="background:#fff;border-radius:10px;width:100%;max-width:540px;max-height:80vh;overflow-y:auto;padding:22px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">' +
+        '<h2 style="margin:0;font-size:1.2rem;">Categorization memory</h2>' +
+        '<button onclick="document.getElementById(\'mem-viewer\').remove()" style="background:transparent;border:none;cursor:pointer;font-size:1.4rem;">&times;</button>' +
+      '</div>' +
+      '<p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:14px;">Patterns we\'ve learned from your past categorizations. Higher "seen" count = stronger suggestion.</p>' +
+      rows +
+    '</div>';
+}
+
+async function forgetMemoryRule(id) {
+  if (!confirm('Forget this pattern? The system will stop auto-suggesting it.')) return;
+  try {
+    await DB._pb('DELETE', 'categorization_memory/records/' + id);
+    await loadCategorizationMemory();
+    openMemoryViewer(); // re-render
+    renderBank();       // refresh inline suggestions
+  } catch (err) { alert('Forget failed: ' + err.message); }
 }
 
 // --- Categorize a bank transaction ---
