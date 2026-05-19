@@ -84,8 +84,8 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
   position: relative;
 }
 .tab {
-  flex: 1;
-  padding: 10px 8px;
+  flex: 0 0 auto;
+  padding: 10px 12px;
   border: none;
   border-radius: 8px;
   background: none;
@@ -99,6 +99,9 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
   text-align: center;
 }
 .tab.active { background: var(--white); color: var(--plum); box-shadow: var(--shadow); }
+/* Hide horizontal scrollbar visually while keeping scroll behavior. */
+.tabs::-webkit-scrollbar { height: 4px; }
+.tabs::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 2px; }
 
 /* Tab dropdown group ("Money ▾") */
 .tab-group { position: relative; flex: 1; min-width: 0; }
@@ -785,24 +788,15 @@ html[data-theme="dark"] .tab-group-item:hover { background: var(--gray-100); }
   <!-- Tabs -->
   <div class="tabs">
     <button class="tab active" data-tab="dashboard" aria-label="Dashboard" onclick="switchTab('dashboard')"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg></button>
-    <button class="tab" data-tab="day" onclick="switchTab('day')">Today</button>
     <button class="tab" data-tab="month" onclick="switchTab('month')">Calendar</button>
-    <button class="tab" data-tab="upcoming" onclick="switchTab('upcoming')">Upcoming</button>
     <button class="tab" data-tab="clients" onclick="switchTab('clients')">Clients</button>
-    <div class="tab-group">
-      <button class="tab tab-group-btn" id="money-group-btn" onclick="toggleTabGroup('money')" aria-expanded="false">
-        Money <span class="caret" aria-hidden="true">&#9662;</span>
-      </button>
-      <div class="tab-group-menu" id="money-group-menu" role="menu">
-        <button class="tab-group-item" data-tab="income"     onclick="switchTab('income')">Income</button>
-        <button class="tab-group-item" data-tab="bank"       onclick="switchTab('bank')">Bank</button>
-        <button class="tab-group-item" data-tab="invoices"   onclick="switchTab('invoices')">Invoices</button>
-        <button class="tab-group-item" data-tab="coupons"    onclick="switchTab('coupons')">Coupons</button>
-        <button class="tab-group-item" data-tab="expenses"   onclick="switchTab('expenses')">Expenses</button>
-        <button class="tab-group-item" data-tab="taxes"      onclick="switchTab('taxes')">Taxes</button>
-        <button class="tab-group-item" data-tab="compliance" onclick="switchTab('compliance')">Compliance</button>
-      </div>
-    </div>
+    <button class="tab" data-tab="income" onclick="switchTab('income')">Income</button>
+    <button class="tab" data-tab="bank" onclick="switchTab('bank')">Bank</button>
+    <button class="tab" data-tab="invoices" onclick="switchTab('invoices')">Invoices</button>
+    <button class="tab" data-tab="coupons" onclick="switchTab('coupons')">Coupons</button>
+    <button class="tab" data-tab="expenses" onclick="switchTab('expenses')">Expenses</button>
+    <button class="tab" data-tab="taxes" onclick="switchTab('taxes')">Taxes</button>
+    <button class="tab" data-tab="compliance" onclick="switchTab('compliance')">Compliance</button>
     <button class="tab" data-tab="reviews" onclick="switchTab('reviews')">Reviews</button>
     <button class="tab" data-tab="emails" onclick="switchTab('emails')">Emails</button>
     <button class="tab" data-tab="settings" aria-label="Settings" onclick="switchTab('settings')"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -1667,23 +1661,9 @@ function renderObOAvailability() {
 viewDate.setHours(0,0,0,0);
 
 // --- Tab switching ---
-// Tabs that live under the "Money ▾" dropdown.
-const MONEY_TABS = ['income','bank','invoices','coupons','expenses','taxes','compliance'];
-
 function switchTab(tab) {
-  // Reset all tab buttons + group items.
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-  document.querySelectorAll('.tab-group-item').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
   document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
-
-  // If the chosen tab is inside the Money group, mark the group button active
-  // and close the menu so the panel can show.
-  const moneyGroup = document.querySelector('.tab-group');
-  if (moneyGroup) {
-    moneyGroup.classList.remove('open');
-    document.getElementById('money-group-btn').classList.toggle('active', MONEY_TABS.includes(tab));
-  }
-
   const panel = document.getElementById('tab-' + tab);
   if (panel) panel.style.display = 'block';
 
@@ -1702,21 +1682,11 @@ function switchTab(tab) {
   if (tab === 'compliance') renderCompliance();
   if (tab === 'emails') renderEmails();
   if (tab === 'settings') renderSettings();
-}
 
-// ----- Money dropdown open/close -----
-function toggleTabGroup(name) {
-  const g = document.querySelector('.tab-group');
-  if (!g) return;
-  g.classList.toggle('open');
-  document.getElementById('money-group-btn').setAttribute('aria-expanded', g.classList.contains('open') ? 'true' : 'false');
+  // After switching, scroll the active tab into view (helpful when the bar overflows).
+  const active = document.querySelector('.tab.active');
+  if (active && active.scrollIntoView) active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
 }
-// Click outside the group closes it.
-document.addEventListener('click', (ev) => {
-  const g = document.querySelector('.tab-group');
-  if (!g || !g.classList.contains('open')) return;
-  if (!g.contains(ev.target)) g.classList.remove('open');
-});
 
 // ----- Dark mode -----
 function setTheme(t) {
