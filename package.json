@@ -1,0 +1,13 @@
+{
+  "name": "garden-faery-site-dev",
+  "private": true,
+  "description": "Dev-time tooling for garden-faery-site. The production site is the raw HTML/CSS/JS in this folder — these deps are only used by scripts under tests/.",
+  "scripts": {
+    "test:astro": "node tests/cross-check-astro.mjs"
+  },
+  "devDependencies": {
+    "circular-natal-horoscope-js": "^1.1.0",
+    "moment": "^2.29.4",
+    "moment-timezone": "^0.5.43"
+  }
+}

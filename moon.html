@@ -1890,11 +1890,15 @@ function renderSky() {
   let cityMatch = null;
   let unrecognized = false;
   if (birth && birth.date) {
+    // Without a birth time, fall back to date-only Sun (uses noon UTC sampling)
     sun = sunSignFromDate(birth.date);
     if (birth.time) {
       cityMatch = lookupCity(birth.place || '');
       const tz = cityMatch ? cityMatch.tz : Intl.DateTimeFormat().resolvedOptions().timeZone;
       const utcDob = localToUtc(birth.date, birth.time, tz);
+      // Time-precise Sun overrides the date-only estimate so cusp births (born
+      // a few hours before/after equinox) resolve to the right sign.
+      sun = sunSignFromUtc(utcDob);
       moonS = signFromLongitude(moonLongitude(utcDob));
       if (cityMatch) {
         const ascDeg = ascendantLongitude(utcDob, cityMatch.lon, cityMatch.lat);
@@ -2717,43 +2721,84 @@ const ZODIAC = [
   { key: 'pisces',      name: 'Pisces',      glyph: '♓', element: 'water', ruler: 'Neptune', dates: 'Feb 19 – Mar 20', vibe: 'Dream, drift, listen between the lines. Art is medicine.' }
 ];
 
-// Moon's ecliptic longitude — simplified Meeus (accurate within ~1°, fine for sign).
+// Moon's ecliptic longitude — Meeus Chapter 47 (truncated, top ~15 terms with
+// eccentricity correction). Accurate to within ~0.3° vs full ephemeris, which
+// is plenty for sign assignment even near cusps (signs are 30° wide).
 function moonLongitude(date) {
   const JD = date.getTime()/86400000 + 2440587.5;
   const T = (JD - 2451545.0) / 36525;
   const d2r = Math.PI / 180;
-  let L  = 218.3164477 + 481267.88123421 * T;
+  // Mean longitude L', mean elongation D, sun's mean anomaly M,
+  // moon's mean anomaly M', argument of latitude F (all radians)
+  let Lp = 218.3164477 + 481267.88123421 * T;
   const D  = (297.8501921 + 445267.1114034 * T) * d2r;
   const M  = (357.5291092 + 35999.0502909 * T)  * d2r;
   const Mm = (134.9633964 + 477198.8675055 * T) * d2r;
-  L += 6.289  * Math.sin(Mm);
-  L -= 1.274  * Math.sin(2*D - Mm);
-  L += 0.658  * Math.sin(2*D);
-  L -= 0.186  * Math.sin(M);
-  L -= 0.214  * Math.sin(2*Mm);
-  L += 0.114  * Math.sin(2*D + Mm);
-  return ((L % 360) + 360) % 360;
+  const F  = ( 93.2720950 + 483202.0175233 * T) * d2r;
+  // Eccentricity correction factor for terms involving M (Earth's orbit)
+  const E  = 1 - 0.002516 * T - 0.0000074 * T * T;
+  const E2 = E * E;
+  // Major periodic terms from Meeus Table 47.A — degrees of perturbation in λ
+  let dL =
+      6.288774 * Math.sin(Mm)
+    + 1.274027 * Math.sin(2*D - Mm)
+    + 0.658314 * Math.sin(2*D)
+    + 0.213618 * Math.sin(2*Mm)
+    - 0.185116 * E  * Math.sin(M)
+    - 0.114332 * Math.sin(2*F)
+    + 0.058793 * Math.sin(2*D - 2*Mm)
+    + 0.057066 * E  * Math.sin(2*D - M - Mm)
+    + 0.053322 * Math.sin(2*D + Mm)
+    + 0.045758 * E  * Math.sin(2*D - M)
+    - 0.040923 * E  * Math.sin(M - Mm)
+    - 0.034720 * Math.sin(D)
+    - 0.030383 * E  * Math.sin(M + Mm)
+    + 0.015327 * Math.sin(2*D - 2*F)
+    - 0.012528 * Math.sin(Mm + 2*F)
+    + 0.010980 * Math.sin(Mm - 2*F)
+    + 0.010675 * Math.sin(4*D - Mm)
+    + 0.010034 * Math.sin(3*Mm)
+    + 0.008548 * Math.sin(4*D - 2*Mm)
+    - 0.007888 * E  * Math.sin(2*D + M - Mm)
+    - 0.006766 * E  * Math.sin(2*D + M);
+  return (((Lp + dL) % 360) + 360) % 360;
 }
+
+// Sun's ecliptic longitude — Meeus Chapter 25 (truncated to equation of
+// center; accurate to ~0.01°). Replaces the old fixed-date sign table that
+// got cusp births wrong because tropical sign ingresses drift ±1 day yearly.
+function sunLongitude(date) {
+  const JD = date.getTime()/86400000 + 2440587.5;
+  const T = (JD - 2451545.0) / 36525;
+  const d2r = Math.PI / 180;
+  const L0 = 280.46646 + 36000.76983 * T + 0.0003032 * T * T;
+  const M  = (357.52911 + 35999.05029 * T - 0.0001537 * T * T) * d2r;
+  const C  =
+      (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(M)
+    + (0.019993 - 0.000101 * T) * Math.sin(2 * M)
+    + 0.000289 * Math.sin(3 * M);
+  return (((L0 + C) % 360) + 360) % 360;
+}
+
 function signFromLongitude(lon) { return ZODIAC[Math.floor(lon / 30) % 12]; }
 function moonSignToday() { return signFromLongitude(moonLongitude(new Date())); }
 
-// Sun sign from a YYYY-MM-DD birth date.
+// Sun sign from a YYYY-MM-DD birth date. Uses real Sun ecliptic longitude at
+// noon UTC on the given date — handles equinox/solstice cusp years that the
+// fixed-date table couldn't (e.g. someone born Mar 20 2024 22:00 in NYC is
+// actually Aries, not Pisces, because the equinox already passed in UTC).
 function sunSignFromDate(dateStr) {
   if (!dateStr) return null;
-  const [, mStr, dStr] = dateStr.split('-');
-  const md = (+mStr) * 100 + (+dStr);
-  if (md >= 321 && md <= 419) return ZODIAC[0];
-  if (md >= 420 && md <= 520) return ZODIAC[1];
-  if (md >= 521 && md <= 620) return ZODIAC[2];
-  if (md >= 621 && md <= 722) return ZODIAC[3];
-  if (md >= 723 && md <= 822) return ZODIAC[4];
-  if (md >= 823 && md <= 922) return ZODIAC[5];
-  if (md >= 923 && md <= 1022) return ZODIAC[6];
-  if (md >= 1023 && md <= 1121) return ZODIAC[7];
-  if (md >= 1122 && md <= 1221) return ZODIAC[8];
-  if (md >= 1222 || md <= 119) return ZODIAC[9];
-  if (md >= 120 && md <= 218) return ZODIAC[10];
-  return ZODIAC[11];
+  // Use noon UTC as the sampling instant — within tropical-sign granularity
+  // (30°), this is well-defined regardless of the user's actual birth time
+  // when birth time isn't supplied.
+  const noon = new Date(dateStr + 'T12:00:00Z');
+  if (isNaN(noon.getTime())) return null;
+  return signFromLongitude(sunLongitude(noon));
+}
+// When birth time IS known, prefer this — uses the actual UTC instant.
+function sunSignFromUtc(utcDate) {
+  return signFromLongitude(sunLongitude(utcDate));
 }
 
 // City lookup table — birth place → timezone + lat/lon for Moon & Rising calc.
