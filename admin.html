@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
+<!-- Disable HTML caching so admin.html updates land on the next page load
+     instead of hiding behind GitHub Pages' default 10-minute Cache-Control.
+     Inline scripts/styles still get cached during the session via the
+     in-memory parse cache; this only forces a network revalidation on
+     full reload. -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Garden Faery Studio</title>
 <script>
 // Apply persisted dark/light theme BEFORE first paint to avoid a
