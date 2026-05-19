@@ -591,9 +591,17 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
 .hormone-legend .sw { width: 14px; height: 3px; border-radius: 2px; }
 .hormone-today { font-size: 0.85rem; color: var(--moon-text); text-align: center; margin-top: 10px; font-style: italic; }
 .hormone-checkpoint-tip {
-  margin-top: 10px; padding: 10px 12px; font-size: 0.82rem; line-height: 1.5;
+  margin-top: 10px; padding: 12px 14px; font-size: 0.86rem; line-height: 1.55;
   background: rgba(181,139,255,0.1); border: 1px solid rgba(181,139,255,0.22);
-  border-radius: 10px; color: var(--moon-text);
+  border-radius: 12px; color: var(--moon-text);
+}
+.hormone-checkpoint-tip strong {
+  color: var(--moon-accent); font-weight: 600;
+  display: inline-block; margin-right: 4px;
+}
+.hormone-chart-hint {
+  font-size: 0.72rem; color: var(--moon-dim);
+  text-align: center; margin-top: 10px; font-style: italic;
 }
 
 /* Temp chart */
@@ -1116,8 +1124,8 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
       <span class="item"><span class="sw" style="background:#c4d8b1;border-top:1.5px dashed #c4d8b1;"></span>FSH</span>
     </div>
     <div class="hormone-today" id="hormone-today">—</div>
-    <div class="hormone-checkpoint-tip" id="hormone-tip" style="display:none;">Tap any dot to see what's happening at that cycle day.</div>
-    <div style="font-size:0.72rem;color:var(--moon-dim);text-align:center;margin-top:8px;">Tap the dots to explore the cycle.</div>
+    <div class="hormone-checkpoint-tip" id="hormone-tip" style="display:none;">Tap any dot to sit with that day.</div>
+    <div class="hormone-chart-hint">Today's read is open. Tap the other dots to visit another day.</div>
   </div>
 
   <!-- Charts -->
@@ -2016,13 +2024,44 @@ function hP(d)   { if (d <= 14) return 12; if (d <= 22) return 12 + (d-14)*9; if
 function hLH(d)  { if (d >= 13 && d <= 14) return 95; if (d === 12 || d === 15) return 45; return 15; }
 function hFSH(d) { if (d <= 3) return 55; if (d <= 7) return 55 - (d-3)*8; if (d >= 13 && d <= 14) return 45; return 18; }
 
+// Hormone-chart checkpoints. Two voices on each entry:
+//   - short: one tight line for the running header above the chart
+//   - blurb: the full Chani-flavored read for the tap-to-open tip
+// Blurb structure: (1) what the body is actually doing today, (2) a
+// sensation or invitation the user can recognize, (3) a journaling
+// question to sit with. Voice is second-person, present tense,
+// body-aware-but-non-essentialist, never punitive. Copy is original.
 const HORMONE_CHECKPOINTS = [
-  { day: 1,  label: 'Day 1',  blurb: 'Period begins. Hormones at baseline. Lining sheds.' },
-  { day: 7,  label: 'Day 7',  blurb: 'Mid-follicular. Estrogen climbing. Energy returning. Lining rebuilding.' },
-  { day: 13, label: 'Day 13', blurb: 'Estrogen peak. LH surge triggers within hours. Fertile window peak.' },
-  { day: 14, label: 'Day 14', blurb: 'OVULATION. Follicle bursts, releases egg. Egg lives 12-24 hours.' },
-  { day: 20, label: 'Day 20', blurb: 'Progesterone peak. Corpus luteum pumping. Cozy, nesting, focused.' },
-  { day: 26, label: 'Day 26', blurb: 'Late luteal. Hormones dropping. PMS window begins. Be gentle.' }
+  { day: 1,  label: 'Day 1',
+    short: "The lining lets go. The unadorned baseline of you.",
+    blurb: "Today the lining lets go. Estrogen and progesterone rest at baseline — this is the unadorned you. Notice what gets clearer when there's no hormonal weather. What wants to leave with the blood?" },
+  { day: 3,  label: 'Day 3',
+    short: "Deepest descent. Sleep is the medicine.",
+    blurb: "Many find the deepest descent here — the body in the middle of its letting-go. Sleep is medicine; everything else can wait. What does rest actually look like for you?" },
+  { day: 7,  label: 'Day 7',
+    short: "Estrogen climbing. The mind sharpens.",
+    blurb: "Estrogen climbs in steady increments; the lining begins to rebuild. The mind sharpens — learning is easy here. What would you like to feed it?" },
+  { day: 10, label: 'Day 10',
+    short: "The body opens. Energy rising.",
+    blurb: "Estrogen continues its climb. Cervical mucus begins to shift; the body is opening. You may feel the floor rise under your feet. What new thing would you like to try?" },
+  { day: 13, label: 'Day 13',
+    short: "Estrogen peak. Magnetism running high.",
+    blurb: "Estrogen reaches its peak; your pituitary readies the LH surge. Magnetism runs high — eye contact, easy conversation, the body's invitation to be seen. What is yours to say while the world is listening?" },
+  { day: 14, label: 'Day 14',
+    short: "Ovulation. The egg, the corpus luteum, the moment.",
+    blurb: "Ovulation. One follicle releases one egg, and the corpus luteum begins its short, generous life. Whatever you've been growing inside — name it, ask for it, place it where the sun can find it." },
+  { day: 17, label: 'Day 17',
+    short: "Progesterone takes the helm. The pace slows on purpose.",
+    blurb: "Ovulation has passed. Progesterone takes the helm and the pace of you slows on purpose. The hormones of holding are in charge now. What gets to be quiet today?" },
+  { day: 20, label: 'Day 20',
+    short: "Progesterone peak. The instinct to nest and finish.",
+    blurb: "Progesterone is at its height. The body shifts toward holding, finishing, completing — not starting. The instinct to nest, to gather, to bring things home. What's almost done? Which loose thread wants its knot?" },
+  { day: 23, label: 'Day 23',
+    short: "A window of warmth before the late-luteal shift.",
+    blurb: "Progesterone peaks and both hormones make a small second climb before the descent. There's often an unexpected window of warmth here before late luteal. Where can you be tender with yourself today?" },
+  { day: 26, label: 'Day 26',
+    short: "Hormones plummet. Gentleness, not malfunction.",
+    blurb: "Progesterone and estrogen begin to plummet. The body is asking for gentleness — and it is right to ask. PMS isn't malfunction; it's information. What has been carrying too much weight?" }
 ];
 let selectedCheckpoint = null;
 function renderHormoneChart() {
@@ -2083,24 +2122,22 @@ function renderHormoneChart() {
     line(hFSH, '#c4d8b1', true) +
     todayLine + dots +
     '</svg>';
-  // Today blurb
+  // Today header + always-on full read
   const todayWrap = document.getElementById('hormone-today');
+  const tip = document.getElementById('hormone-tip');
   if (cd) {
     const nearest = HORMONE_CHECKPOINTS.reduce((a, b) =>
       Math.abs(b.day - cd) < Math.abs(a.day - cd) ? b : a);
-    todayWrap.textContent = 'Cycle day ' + cd + ' · ' + nearest.blurb;
-  } else {
-    todayWrap.textContent = 'Log a period to anchor your hormone chart.';
-  }
-  // Checkpoint tip
-  const tip = document.getElementById('hormone-tip');
-  if (selectedCheckpoint) {
-    const cp = HORMONE_CHECKPOINTS.find(c => c.day === selectedCheckpoint);
+    todayWrap.textContent = 'Cycle day ' + cd + ' · ' + nearest.short;
+    // Default the open checkpoint to today's nearest so the full read is
+    // visible the moment the user lands on the chart, not gated behind a tap.
+    const cp = HORMONE_CHECKPOINTS.find(c => c.day === (selectedCheckpoint || nearest.day));
     if (cp) {
       tip.innerHTML = '<strong>' + cp.label + '</strong> — ' + cp.blurb;
       tip.style.display = 'block';
     }
   } else {
+    todayWrap.textContent = 'Log a period to anchor your hormone chart.';
     tip.style.display = 'none';
   }
 }
