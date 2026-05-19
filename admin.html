@@ -1174,16 +1174,12 @@ html[data-theme="dark"] .tab.active { background: var(--gray-100); color: var(--
   <div class="modal">
     <h2>Book for a Client</h2>
     <div class="form-group">
-      <label>Service</label>
-      <select id="obo-event" onchange="renderObOAvailability()">
-        <option value="morning">Morning Garden Care (9am to 2pm)</option>
-        <option value="afternoon">Afternoon Garden Care (2:30pm to 4:30pm)</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Your availability <span style="color:var(--gray-600,#666);font-weight:400;font-size:0.85em;">(click a slot to add it; pick as many as you need)</span></label>
-      <div id="obo-availability" style="max-height:300px;overflow-y:auto;border:1px solid var(--gray-300,#ddd);border-radius:8px;padding:6px;background:var(--gray-50,#fafafa);"></div>
+      <label>Pick the slots <span style="color:var(--gray-600,#666);font-weight:400;font-size:0.85em;">(click any open slot to add it; pick as many as you need across both times)</span></label>
+      <div id="obo-availability" style="max-height:340px;overflow-y:auto;border:1px solid var(--gray-300,#ddd);border-radius:8px;padding:6px;background:var(--gray-50,#fafafa);"></div>
       <div id="obo-dates-chips" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;"></div>
+      <!-- Hidden compat stubs — kept so legacy code paths referencing them
+           don't throw before being torn out. -->
+      <select id="obo-event" style="display:none;"><option value="morning">morning</option></select>
       <input type="hidden" id="obo-date">
     </div>
     <!-- Recurring removed: pick the specific dates above. Stubs kept hidden
@@ -1531,32 +1527,39 @@ const EVENT_TIME_SLOTS = {
 let viewDate = new Date();
 
 // Multi-date OBO state — accumulates dates the admin picks before saving
+// oboDates is now an array of {date, eventType} pairs so a single admin
+// session can mix morning + afternoon picks across days.
 let oboDates = [];
+
+function _oboKey(ds, et) { return ds + '|' + et; }
+
 function renderOboChips() {
   const wrap = document.getElementById('obo-dates-chips');
   if (!wrap) return;
   if (!oboDates.length) { wrap.innerHTML = ''; return; }
-  oboDates.sort();
+  oboDates.sort((a, b) => (a.date + a.eventType).localeCompare(b.date + b.eventType));
   const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  wrap.innerHTML = oboDates.map(ds => {
-    const p = ds.split('-');
+  wrap.innerHTML = oboDates.map(o => {
+    const p = o.date.split('-');
     const d = new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
     const label = dayNames[d.getDay()] + ' ' + monthNames[d.getMonth()] + ' ' + d.getDate();
-    return '<button type="button" class="obo-chip" onclick="removeOboDate(\'' + ds + '\')">' +
-      label + ' <span style="opacity:0.6;margin-left:4px;">×</span></button>';
+    const timeShort = o.eventType === 'morning' ? '9–2' : '2:30–4:30';
+    return '<button type="button" class="obo-chip" onclick="removeOboDate(\'' + o.date + '\',\'' + o.eventType + '\')">' +
+      label + ' · ' + timeShort + ' <span style="opacity:0.6;margin-left:4px;">×</span></button>';
   }).join('');
 }
-function addOboDate(dateStr) {
-  const v = dateStr || (document.getElementById('obo-date') || {}).value;
-  if (!v) { alert('Pick a date first.'); return; }
-  if (oboDates.indexOf(v) !== -1) return;
-  oboDates.push(v);
+function addOboDate(dateStr, eventType) {
+  if (!dateStr || !eventType) return;
+  const key = _oboKey(dateStr, eventType);
+  if (oboDates.some(o => _oboKey(o.date, o.eventType) === key)) return;
+  oboDates.push({ date: dateStr, eventType: eventType });
   renderOboChips();
   renderObOAvailability();
 }
-function removeOboDate(ds) {
-  oboDates = oboDates.filter(d => d !== ds);
+function removeOboDate(ds, et) {
+  // If et is omitted (legacy callers), strip every slot for that date.
+  oboDates = oboDates.filter(o => et ? !(o.date === ds && o.eventType === et) : o.date !== ds);
   renderOboChips();
   renderObOAvailability();
 }
@@ -1574,13 +1577,12 @@ const OBO_LOOKAHEAD_DAYS = 21;
 const OBO_DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const OBO_MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
+// Render each day with BOTH slot buttons (morning + afternoon). Each button
+// shows one of three states: added (already in oboDates), booked (conflict
+// with an existing booking), or open (clickable to add).
 function renderObOAvailability() {
   const wrap = document.getElementById('obo-availability');
   if (!wrap) return;
-  const sel = document.getElementById('obo-event');
-  const eventType = sel ? sel.value : 'morning';
-  const allowedDays = OBO_EVENT_DAYS[eventType] || [];
-  const eventTime = (typeof EVENT_TIMES === 'object' && EVENT_TIMES[eventType]) || '';
 
   let allBookings = [];
   try { allBookings = (typeof getBookings === 'function' ? getBookings() : []) || []; } catch(_) {}
@@ -1588,43 +1590,49 @@ function renderObOAvailability() {
 
   const today = new Date(); today.setHours(0,0,0,0);
 
+  // Helper: build one slot pill for a given (date, event_type).
+  function slotPillHtml(ds, eventType, dayBookings) {
+    const allowedDays = OBO_EVENT_DAYS[eventType] || [];
+    const d = new Date(ds.split('-')[0], parseInt(ds.split('-')[1])-1, parseInt(ds.split('-')[2]));
+    const isAvailableDay = allowedDays.indexOf(d.getDay()) !== -1;
+    const conflict = dayBookings.some(b => b.eventType === eventType);
+    const isAdded = oboDates.some(o => o.date === ds && o.eventType === eventType);
+    const timeShort = eventType === 'morning' ? '9–2' : '2:30–4:30';
+
+    if (isAdded) {
+      return '<button type="button" onclick="removeOboDate(\'' + ds + '\',\'' + eventType + '\')" ' +
+        'style="background:var(--spring-sage,#9bbd85);color:var(--plum);border:none;border-radius:6px;padding:5px 11px;font-size:0.8rem;font-weight:700;cursor:pointer;white-space:nowrap;" ' +
+        'title="Tap to remove">✓ ' + timeShort + '</button>';
+    }
+    if (conflict) {
+      const booked = dayBookings.find(b => b.eventType === eventType);
+      const who = (booked && booked.clientName) ? booked.clientName.split(/\s+/)[0] : 'booked';
+      return '<span style="background:transparent;color:var(--gray-500,#888);border:1px dashed var(--gray-300,#ddd);border-radius:6px;padding:5px 11px;font-size:0.78rem;white-space:nowrap;">' + escapeHtml(who) + '</span>';
+    }
+    if (!isAvailableDay) {
+      return '<span style="opacity:0.35;color:var(--gray-500,#888);font-size:0.78rem;white-space:nowrap;padding:5px 0;">—</span>';
+    }
+    return '<button type="button" onclick="addOboDate(\'' + ds + '\',\'' + eventType + '\')" ' +
+      'style="background:var(--accent-1,#5a1230);color:var(--white);border:none;border-radius:6px;padding:5px 11px;font-size:0.8rem;font-weight:600;cursor:pointer;white-space:nowrap;">+ ' + timeShort + '</button>';
+  }
+
   let html = '';
   for (let i = 0; i < OBO_LOOKAHEAD_DAYS; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
     const ds = formatDate(d);
-    const dow = d.getDay();
-    const label = OBO_DAY_NAMES[dow] + ' ' + OBO_MONTH_NAMES[d.getMonth()] + ' ' + d.getDate();
+    const label = OBO_DAY_NAMES[d.getDay()] + ' ' + OBO_MONTH_NAMES[d.getMonth()] + ' ' + d.getDate();
 
     const dayBookings = bookings.filter(b => b.date === ds);
-    const isAvailableDay = allowedDays.indexOf(dow) !== -1;
-    const isAlreadySelected = oboDates.indexOf(ds) !== -1;
-    const conflict = dayBookings.some(b => b.eventType === eventType);
+    const anyAddedToday = oboDates.some(o => o.date === ds);
+    const rowBg = anyAddedToday ? 'rgba(155,189,133,0.12)' : 'var(--white)';
 
-    let statusHtml = '';
-    if (isAlreadySelected) {
-      statusHtml = '<span style="color:var(--green,#2a8a3a);font-weight:600;font-size:0.82rem;">added</span>';
-    } else if (!isAvailableDay) {
-      statusHtml = '<span style="color:var(--gray-500,#888);font-size:0.82rem;">not available</span>';
-    } else if (conflict) {
-      statusHtml = '<span style="color:var(--gray-500,#888);font-size:0.82rem;">already booked</span>';
-    } else {
-      statusHtml = '<button type="button" onclick="addOboDate(\'' + ds + '\')" style="background:var(--accent-1,#5a1230);color:var(--white);border:none;border-radius:6px;padding:5px 11px;font-size:0.8rem;font-weight:600;cursor:pointer;">+ ' + eventTime + '</button>';
-    }
-
-    const rowBg = isAlreadySelected ? 'rgba(74,138,74,0.06)' : (isAvailableDay && !conflict ? 'var(--white)' : 'transparent');
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:6px;background:' + rowBg + ';margin-bottom:3px;">';
-    html += '<div style="font-size:0.88rem;color:var(--gray-800,#222);"><strong>' + label + '</strong>';
-    if (dayBookings.length) {
-      const list = dayBookings.map(b => {
-        const time = (EVENT_TIMES[b.eventType] || '').replace(/:00/g, '');
-        const name = b.clientName || ((b.clientFirstName || '') + ' ' + (b.clientLastName || '')).trim() || 'Booked';
-        return time + ' ' + name;
-      }).join(' · ');
-      html += '<div style="font-size:0.75rem;color:var(--gray-600,#666);font-weight:400;margin-top:2px;">' + list + '</div>';
-    }
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:6px;background:' + rowBg + ';margin-bottom:3px;">';
+    html += '<div style="font-size:0.88rem;color:var(--gray-800,#222);min-width:0;flex:1;"><strong>' + label + '</strong></div>';
+    html += '<div style="display:flex;gap:6px;flex-shrink:0;">';
+    html += slotPillHtml(ds, 'morning', dayBookings);
+    html += slotPillHtml(ds, 'afternoon', dayBookings);
     html += '</div>';
-    html += statusHtml;
     html += '</div>';
   }
 
@@ -8524,8 +8532,6 @@ async function saveBlock() {
 }
 
 async function saveOBO() {
-  const eventType = document.getElementById('obo-event').value;
-  const date = document.getElementById('obo-date').value;
   const firstName = document.getElementById('obo-first-name').value.trim().replace(/\s+/g, ' ');
   const lastName  = document.getElementById('obo-last-name').value.trim().replace(/\s+/g, ' ');
   const name = (firstName + ' ' + lastName).trim();
@@ -8533,23 +8539,17 @@ async function saveOBO() {
   const phone = formatPhoneNumber(document.getElementById('obo-phone').value);
   const address = document.getElementById('obo-address').value.trim();
   const notes = document.getElementById('obo-notes').value.trim();
-  // Multi-date is the only OBO mode now. Auto-include the date input value
-  // if it was picked but never "Add"-ed, so saving without clicking + Add
-  // still works for the common single-date case.
-  if (date && oboDates.indexOf(date) === -1) oboDates.push(date);
-  oboDates.sort();
-  const allDates = oboDates.slice();
 
-  if (allDates.length === 0) { alert('Add at least one date.'); return; }
+  oboDates.sort((a, b) => (a.date + a.eventType).localeCompare(b.date + b.eventType));
+
+  if (oboDates.length === 0) { alert('Click a slot to add it first.'); return; }
   if (!firstName) { alert("Enter the client's first name."); document.getElementById('obo-first-name').focus(); return; }
   if (!lastName)  { alert("Enter the client's last name. Both first and last are required so we can tell clients apart."); document.getElementById('obo-last-name').focus(); return; }
 
-  // Recurring/series booking removed 2026-04-25. Each booking is now an
-  // independent record. Existing 'rec_'-prefixed Kenzie bookings keep
-  // their series IDs in the database for backward compatibility, but
-  // new admin OBO bookings never get a seriesId.
+  // Each oboDates entry carries its own eventType now, so the per-slot
+  // service flows straight into the target.
   const seriesId = null;
-  const targets = allDates.map(d => ({ date: d, eventType: eventType }));
+  const targets = oboDates.map(o => ({ date: o.date, eventType: o.eventType }));
 
   // --- Duplicate prevention ---
   // Refresh first so we catch anything booked from another tab/device.
@@ -8581,14 +8581,15 @@ async function saveOBO() {
   }
 
   if (dupes.length === targets.length) {
-    const when = dupes.length === 1 ? dupes[0].date : dupes.length + ' of those dates';
-    alert(name + ' is already booked for ' + EVENT_LABELS[eventType] + ' on ' + when + '. Nothing to add.');
+    const when = dupes.length === 1
+      ? (dupes[0].date + ' ' + (EVENT_LABELS[dupes[0].eventType] || ''))
+      : dupes.length + ' of those slots';
+    alert(name + ' is already booked for ' + when + '. Nothing to add.');
     return;
   }
   if (dupes.length > 0) {
     const msg = dupes.length + ' of ' + targets.length + ' slots are already booked for ' +
-                name + ' (' + EVENT_LABELS[eventType] + '). Skip those and book the other ' +
-                toBook.length + '?';
+                name + '. Skip those and book the other ' + toBook.length + '?';
     if (!confirm(msg)) return;
   }
 
@@ -8624,7 +8625,7 @@ async function saveOBO() {
     if (booked > 1 || dupes.length > 0) {
       const parts = [];
       if (booked > 0) {
-        const firstDate = allDates[0];
+        const firstDate = (toBook[0] || targets[0] || {}).date || '';
         parts.push('Booked ' + name + ' for ' + booked +
           ' visit' + (booked === 1 ? '' : 's') +
           (booked > 1 ? ' starting ' + firstDate : ' on ' + firstDate) + '.');
