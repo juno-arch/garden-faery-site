@@ -2973,8 +2973,21 @@ function localToUtc(dateStr, timeStr, tz) {
   return new Date(asUtcGuess.getTime() - offset * 3600000);
 }
 
-// Ascendant (rising sign) — Meeus-style formula in ecliptic longitude (0-360°).
+// Ascendant (rising sign) — ecliptic longitude (0-360°).
 // Inputs: UTC Date, east longitude (deg, west negative), north latitude (deg, south negative).
+//
+// IMPORTANT: the Meeus form `atan2(-cos(H), sin(H)*cos(ε) + tan(φ)*sin(ε))`
+// resolves to the *descendant* (the setting point) rather than the ascendant
+// at most latitudes — a 180° error verified against Pollen's chart
+// (1993-01-01 14:14 EST Gainesville: real Asc = Taurus 20.6°, the unflipped
+// form returned Scorpio 20.6°). Negating both arguments rotates the answer
+// to the rising point on the eastern horizon. This is mathematically
+// equivalent to atan2(cos(H), -[sin(H)·cos(ε) + tan(φ)·sin(ε)]).
+//
+// Note on house systems: this returns the *Ascendant degree* itself, which
+// is identical across whole-sign / Placidus / Koch / etc. — those systems
+// only differ in how subsequent house cusps are placed, not where the
+// rising point is.
 function ascendantLongitude(utcDate, lonE, latN) {
   const JD = utcDate.getTime() / 86400000 + 2440587.5;
   const T  = (JD - 2451545.0) / 36525;
@@ -2987,14 +3000,12 @@ function ascendantLongitude(utcDate, lonE, latN) {
   const eps = 23.4392911 * d2r;
   const phi = latN * d2r;
   const H   = lst * d2r;
-  // Classic Hellenistic ascendant: A = atan2(-cos(H), sin(H)*cos(ε) + tan(φ)*sin(ε))
-  let asc = Math.atan2(-Math.cos(H), Math.sin(H) * Math.cos(eps) + Math.tan(phi) * Math.sin(eps));
-  let degA = asc * 180 / Math.PI;
-  if (degA < 0) degA += 360;
-  // Quadrant fix — ascendant must trail the MC by 60-120° on the eastern side
-  if (Math.cos(H) > 0 && degA < 180) degA += 180;
-  else if (Math.cos(H) < 0 && degA >= 180) degA -= 180;
-  return ((degA % 360) + 360) % 360;
+  // atan2 of the negated numerator+denominator gives the rising point
+  // (instead of the setting point). Quadrant is handled by atan2 itself.
+  const asc = Math.atan2(Math.cos(H), -(Math.sin(H) * Math.cos(eps) + Math.tan(phi) * Math.sin(eps)));
+  let deg = asc * 180 / Math.PI;
+  if (deg < 0) deg += 360;
+  return deg;
 }
 
 // Birth-data storage (local only — privacy first).
