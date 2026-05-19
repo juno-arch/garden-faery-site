@@ -778,7 +778,7 @@ html[data-theme="dark"] .tab.active { background: var(--gray-100); color: var(--
 
   <!-- Upcoming view -->
   <div class="tab-panel" id="tab-upcoming" style="display:none;">
-    <div id="moon-conflicts-card" style="display:none; background:#fff; border:1px solid var(--gray-200); border-radius:12px; padding:16px; margin-bottom:16px;">
+    <div id="moon-conflicts-card" style="display:none; background:var(--white); border:1px solid var(--gray-200); border-radius:12px; padding:16px; margin-bottom:16px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <h3 style="margin:0;display:flex;align-items:center;gap:8px;"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>Moon-day conflicts</h3>
         <button class="action-btn" onclick="syncMoonConflicts()" style="font-size:0.8rem;">Refresh</button>
@@ -1595,10 +1595,10 @@ function renderObOAvailability() {
     } else if (conflict) {
       statusHtml = '<span style="color:var(--gray-500,#888);font-size:0.82rem;">already booked</span>';
     } else {
-      statusHtml = '<button type="button" onclick="addOboDate(\'' + ds + '\')" style="background:var(--accent-1,#5a1230);color:#fff;border:none;border-radius:6px;padding:5px 11px;font-size:0.8rem;font-weight:600;cursor:pointer;">+ ' + eventTime + '</button>';
+      statusHtml = '<button type="button" onclick="addOboDate(\'' + ds + '\')" style="background:var(--accent-1,#5a1230);color:var(--white);border:none;border-radius:6px;padding:5px 11px;font-size:0.8rem;font-weight:600;cursor:pointer;">+ ' + eventTime + '</button>';
     }
 
-    const rowBg = isAlreadySelected ? 'rgba(74,138,74,0.06)' : (isAvailableDay && !conflict ? '#fff' : 'transparent');
+    const rowBg = isAlreadySelected ? 'rgba(74,138,74,0.06)' : (isAvailableDay && !conflict ? 'var(--white)' : 'transparent');
     html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:6px;background:' + rowBg + ';margin-bottom:3px;">';
     html += '<div style="font-size:0.88rem;color:var(--gray-800,#222);"><strong>' + label + '</strong>';
     if (dayBookings.length) {
@@ -2572,7 +2572,7 @@ async function saveEmailTemplate(recordId, subject, body) {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': PB_TOKEN ? 'Bearer ' + PB_TOKEN : '',
+      'Authorization': 'Bearer ' + PB_TOKEN ? 'Bearer ' + PB_TOKEN : '',
     },
     body: JSON.stringify({ subject: subject, body: body }),
   });
@@ -2678,7 +2678,7 @@ async function loadReviews() {
     const data = await DB._pb('GET', 'reviews/records?perPage=500&sort=-created');
     _reviews = data.items || [];
     _reviewsLoaded = true;
-  } catch (err) { console.error('loadReviews:', err); _reviews = []; _reviewsLoaded = true; }
+  } catch (err) { console.warn('loadReviews:', err); _reviews = []; _reviewsLoaded = true; }
 }
 
 async function renderReviews() {
@@ -2700,16 +2700,16 @@ function drawReviews() {
 
   const kpis =
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px;">' +
-      kpiCard('Pending', String(pending.length), pending.length > 0 ? '#7a5a00' : '#555') +
+      kpiCard('Pending', String(pending.length), pending.length > 0 ? '#7a5a00' : 'var(--gray-600)') +
       kpiCard('Approved', String(approved.length), '#0a7a3a') +
-      kpiCard('Published', String(consented.length), '#555') +
-      kpiCard('Featured', String(featured.length), '#555') +
-      kpiCard('Avg ★', String(avg), '#555') +
+      kpiCard('Published', String(consented.length), 'var(--gray-600)') +
+      kpiCard('Featured', String(featured.length), 'var(--gray-600)') +
+      kpiCard('Avg ★', String(avg), 'var(--gray-600)') +
     '</div>';
 
   const sub = (key, label, count) => {
     const a = _reviewsSubTab === key;
-    const style = a ? 'background:#0a7a3a;color:#fff;border:1px solid #0a7a3a;' : 'background:transparent;color:#333;border:1px solid #ccc;';
+    const style = a ? 'background:#0a7a3a;color:var(--white);border:1px solid #0a7a3a;' : 'background:transparent;color:var(--plum);border:1px solid var(--gray-200);';
     return '<button class="modal-btn secondary" style="padding:6px 12px;font-size:0.8rem;' + style + '" onclick="setReviewSubTab(\'' + key + '\')">' + label + (count != null ? ' (' + count + ')' : '') + '</button>';
   };
   const controls =
@@ -2749,13 +2749,13 @@ function reviewRowHtml(r) {
   const statusColors = {
     pending:  ['#fef0c4', '#7a5a00'],
     approved: ['#dcefe2', '#0a7a3a'],
-    hidden:   ['#e8e8e8', '#666'],
-    archived: ['#e8e8e8', '#666'],
+    hidden:   ['#e8e8e8', 'var(--gray-600)'],
+    archived: ['#e8e8e8', 'var(--gray-600)'],
   };
   const sc = statusColors[r.status] || statusColors.pending;
   const consentBadge = r.consent_to_publish
     ? '<span style="background:#dbeafe;color:#0a5a8a;padding:2px 8px;border-radius:99px;font-size:0.7rem;font-weight:600;">public OK</span>'
-    : '<span style="background:#f0f0f0;color:#555;padding:2px 8px;border-radius:99px;font-size:0.7rem;font-weight:600;">private</span>';
+    : '<span style="background:#f0f0f0;color:var(--gray-600);padding:2px 8px;border-radius:99px;font-size:0.7rem;font-weight:600;">private</span>';
   const featuredBadge = r.featured
     ? '<span style="background:#fce7c7;color:#7a3b00;padding:2px 8px;border-radius:99px;font-size:0.7rem;font-weight:600;">★ featured</span>' : '';
   const dateStr = (r.visit_date || r.received_at || (r.created || '').slice(0, 10) || '').slice(0, 10);
@@ -2772,7 +2772,7 @@ function reviewRowHtml(r) {
     actions.push('<button class="modal-btn secondary" style="padding:5px 10px;font-size:0.76rem;color:#b91c1c;" onclick="hideReview(\'' + r.id + '\')">Hide</button>');
   }
 
-  return '<div style="background:#fff;border:1px solid #e6e6e6;border-radius:8px;padding:12px 14px;">' +
+  return '<div style="background:var(--white);border:1px solid #e6e6e6;border-radius:8px;padding:12px 14px;">' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;">' +
       '<div style="flex:1;min-width:240px;">' +
         '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">' +
@@ -2782,7 +2782,7 @@ function reviewRowHtml(r) {
         '</div>' +
         (r.title ? '<div style="margin-top:6px;font-weight:600;font-size:0.95rem;">' + escHtml(r.title) + '</div>' : '') +
         '<div style="margin-top:4px;font-size:0.88rem;line-height:1.5;white-space:pre-wrap;">' + escHtml(r.body) + '</div>' +
-        '<div style="margin-top:6px;font-size:0.78rem;color:#666;">' +
+        '<div style="margin-top:6px;font-size:0.78rem;color:var(--gray-600);">' +
           '— ' + escHtml(r.display_name || r.client_name || 'Anonymous') +
           (dateStr ? ' · ' + dateStr : '') +
           (r.source ? ' · ' + String(r.source).replace(/_/g,' ') : '') +
@@ -2896,11 +2896,11 @@ function showReviewModal() {
 
   // Star picker — five buttons.
   const stars = [1,2,3,4,5].map(n =>
-    '<button type="button" onclick="_reviewDraft.rating=' + n + ';showReviewModal();" style="background:transparent;border:none;cursor:pointer;font-size:1.6rem;color:' + (d.rating >= n ? '#d4a017' : '#ccc') + ';padding:0 2px;line-height:1;">★</button>'
+    '<button type="button" onclick="_reviewDraft.rating=' + n + ';showReviewModal();" style="background:transparent;border:none;cursor:pointer;font-size:1.6rem;color:' + (d.rating >= n ? '#d4a017' : 'var(--gray-200)') + ';padding:0 2px;line-height:1;">★</button>'
   ).join('');
 
   modal.innerHTML =
-    '<div style="background:#fff;border-radius:10px;width:100%;max-width:620px;max-height:90vh;overflow:auto;padding:22px;">' +
+    '<div style="background:var(--white);border-radius:10px;width:100%;max-width:620px;max-height:90vh;overflow:auto;padding:22px;">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">' +
         '<h2 style="margin:0;font-size:1.2rem;">' + (isEdit ? 'Edit review' : 'Record testimonial') + '</h2>' +
         '<button onclick="closeReviewModal()" style="background:transparent;border:none;cursor:pointer;font-size:1.4rem;">&times;</button>' +
@@ -2909,21 +2909,21 @@ function showReviewModal() {
       '<div style="margin-bottom:10px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Rating</label><div>' + stars + '</div></div>' +
 
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Client</label><select id="rv-client" onchange="onReviewClientPick(this.value)" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">' + clientOpts + '</select></div>' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Source</label><select id="rv-source" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">' + sourceOpts + '</select></div>' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Visit date (optional)</label><input type="date" id="rv-visit" value="' + escAttr(d.visit_date) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Display format</label><select id="rv-fmt" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">' + fmtOpts + '</select></div>' +
-        '<div style="grid-column:span 2;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Title (optional)</label><input type="text" id="rv-title" value="' + escAttr(d.title) + '" placeholder="Best garden visit I&apos;ve had in years" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Client</label><select id="rv-client" onchange="onReviewClientPick(this.value)" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;">' + clientOpts + '</select></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Source</label><select id="rv-source" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;">' + sourceOpts + '</select></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Visit date (optional)</label><input type="date" id="rv-visit" value="' + escAttr(d.visit_date) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Display format</label><select id="rv-fmt" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;">' + fmtOpts + '</select></div>' +
+        '<div style="grid-column:span 2;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Title (optional)</label><input type="text" id="rv-title" value="' + escAttr(d.title) + '" placeholder="Best garden visit I&apos;ve had in years" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
       '</div>' +
 
-      '<div style="margin-bottom:10px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Body</label><textarea id="rv-body" rows="5" placeholder="What they said (you can paraphrase)…" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;font-family:inherit;">' + escHtml(d.body) + '</textarea></div>' +
+      '<div style="margin-bottom:10px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Body</label><textarea id="rv-body" rows="5" placeholder="What they said (you can paraphrase)…" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;font-family:inherit;">' + escHtml(d.body) + '</textarea></div>' +
 
       '<div style="background:var(--cream);border-radius:6px;padding:10px 12px;margin-bottom:10px;font-size:0.85rem;">' +
         '<label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;"><input type="checkbox" id="rv-consent" ' + (d.consent_to_publish ? 'checked' : '') + '> They&apos;ve OK&apos;d showing this on the website</label>' +
         '<div style="opacity:0.6;margin-top:4px;font-size:0.78rem;">Only checked = candidate for the public reviews page. You still have to approve.</div>' +
       '</div>' +
 
-      '<div style="margin-bottom:14px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Internal notes (you only)</label><textarea id="rv-notes" rows="2" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;font-family:inherit;">' + escHtml(d.internal_notes) + '</textarea></div>' +
+      '<div style="margin-bottom:14px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Internal notes (you only)</label><textarea id="rv-notes" rows="2" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;font-family:inherit;">' + escHtml(d.internal_notes) + '</textarea></div>' +
 
       '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
         '<button class="modal-btn secondary" onclick="closeReviewModal()">Cancel</button>' +
@@ -3028,7 +3028,7 @@ async function loadCoupons() {
     _coupons = data.items || [];
     _couponsLoaded = true;
   } catch (err) {
-    console.error('loadCoupons failed:', err);
+    console.warn('loadCoupons failed:', err);
     _coupons = [];
     _couponsLoaded = true;
   }
@@ -3051,20 +3051,20 @@ function drawCoupons() {
   const kpis =
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px;">' +
       kpiCard('Active codes', String(active.length), '#0a7a3a') +
-      kpiCard('Total codes', String(_coupons.length), '#555') +
-      kpiCard('Total redemptions', String(totalRedeemed), '#555') +
+      kpiCard('Total codes', String(_coupons.length), 'var(--gray-600)') +
+      kpiCard('Total redemptions', String(totalRedeemed), 'var(--gray-600)') +
     '</div>';
 
   const chip = (k, label) => {
     const a = _couponsFilter === k;
-    const style = a ? 'background:#0a7a3a;color:#fff;border:1px solid #0a7a3a;' : 'background:transparent;color:#333;border:1px solid #ccc;';
+    const style = a ? 'background:#0a7a3a;color:var(--white);border:1px solid #0a7a3a;' : 'background:transparent;color:var(--plum);border:1px solid var(--gray-200);';
     return '<button class="modal-btn secondary" style="padding:6px 12px;font-size:0.8rem;' + style + '" onclick="setCouponFilter(\'' + k + '\')">' + label + '</button>';
   };
 
   const controls =
     '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px;">' +
       chip('all', 'All') + chip('active', 'Active') + chip('inactive', 'Off') + chip('expired', 'Expired') +
-      '<input type="text" placeholder="Search code or description…" value="' + escAttr(_couponsSearch) + '" oninput="setCouponSearch(this.value)" style="padding:6px 10px;border:1px solid #ccc;border-radius:4px;flex:1;min-width:200px;max-width:280px;font-size:0.85rem;">' +
+      '<input type="text" placeholder="Search code or description…" value="' + escAttr(_couponsSearch) + '" oninput="setCouponSearch(this.value)" style="padding:6px 10px;border:1px solid var(--gray-200);border-radius:4px;flex:1;min-width:200px;max-width:280px;font-size:0.85rem;">' +
       '<button class="modal-btn primary" style="margin-left:auto;" onclick="openCouponCreateModal()">+ New code</button>' +
     '</div>';
 
@@ -3099,7 +3099,7 @@ function couponRow(c) {
   const expired = c.expires_at && c.expires_at < today;
   const notYet = c.starts_at && c.starts_at > today;
   let statusBg = '#dcefe2', statusFg = '#0a7a3a', statusLabel = 'active';
-  if (!c.active) { statusBg = '#e8e8e8'; statusFg = '#666'; statusLabel = 'off'; }
+  if (!c.active) { statusBg = '#e8e8e8'; statusFg = 'var(--gray-600)'; statusLabel = 'off'; }
   else if (expired) { statusBg = '#fde2e2'; statusFg = '#a03020'; statusLabel = 'expired'; }
   else if (notYet) { statusBg = '#fef0c4'; statusFg = '#7a5a00'; statusLabel = 'scheduled'; }
 
@@ -3115,7 +3115,7 @@ function couponRow(c) {
   if (c.max_uses_per_client > 0) limits.push(c.max_uses_per_client + '/client');
   if (c.applies_to && c.applies_to !== 'all') limits.push(String(c.applies_to).replace(/_/g, ' '));
 
-  return '<div style="background:#fff;border:1px solid #e6e6e6;border-radius:8px;padding:12px 14px;">' +
+  return '<div style="background:var(--white);border:1px solid #e6e6e6;border-radius:8px;padding:12px 14px;">' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;">' +
       '<div style="flex:1;min-width:200px;">' +
         '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">' +
@@ -3144,7 +3144,7 @@ function copyCouponCode(code) {
     // small toast — reuse a simple alert for now
     const t = document.createElement('div');
     t.textContent = 'Copied: ' + code;
-    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--plum);color:#fff;padding:8px 16px;border-radius:8px;z-index:99999;font-size:0.88rem;';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--plum);color:var(--white);padding:8px 16px;border-radius:8px;z-index:99999;font-size:0.88rem;';
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 1800);
   } catch (_) {
@@ -3214,11 +3214,11 @@ function showCouponModal() {
     opt(v, v.replace(/_/g,' '), d.applies_to === v)
   ).join('');
   const valueInput = d.type === 'percent'
-    ? '<input type="number" step="1" min="0" max="100" id="cp-value" value="' + (d.value || 0) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">'
-    : '<input type="number" step="0.01" min="0" id="cp-value-dollars" value="' + ((d.value || 0)/100).toFixed(2) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">';
+    ? '<input type="number" step="1" min="0" max="100" id="cp-value" value="' + (d.value || 0) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;">'
+    : '<input type="number" step="0.01" min="0" id="cp-value-dollars" value="' + ((d.value || 0)/100).toFixed(2) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;">';
 
   modal.innerHTML =
-    '<div style="background:#fff;border-radius:10px;width:100%;max-width:620px;max-height:90vh;overflow:auto;padding:22px;">' +
+    '<div style="background:var(--white);border-radius:10px;width:100%;max-width:620px;max-height:90vh;overflow:auto;padding:22px;">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">' +
         '<h2 style="margin:0;font-size:1.2rem;">' + (isEdit ? 'Edit ' + escHtml(d.code) : 'New coupon') + '</h2>' +
         '<button onclick="closeCouponModal()" style="background:transparent;border:none;cursor:pointer;font-size:1.4rem;">&times;</button>' +
@@ -3226,31 +3226,31 @@ function showCouponModal() {
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">' +
         '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Code</label>' +
           (isEdit
-            ? '<input type="text" value="' + escAttr(d.code) + '" disabled style="width:100%;padding:6px 8px;border:1px solid #eee;background:#f5f5f5;border-radius:4px;font-family:monospace;text-transform:uppercase;">'
-            : '<input type="text" id="cp-code" value="' + escAttr(d.code) + '" placeholder="SPRING25" maxlength="30" oninput="this.value=this.value.toUpperCase()" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;font-family:monospace;text-transform:uppercase;">'
+            ? '<input type="text" value="' + escAttr(d.code) + '" disabled style="width:100%;padding:6px 8px;border:1px solid var(--gray-100);background:var(--gray-100);border-radius:4px;font-family:monospace;text-transform:uppercase;">'
+            : '<input type="text" id="cp-code" value="' + escAttr(d.code) + '" placeholder="SPRING25" maxlength="30" oninput="this.value=this.value.toUpperCase()" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;font-family:monospace;text-transform:uppercase;">'
           ) +
         '</div>' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Type</label><select id="cp-type" onchange="_couponDraft.type=this.value;showCouponModal();" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">' + typeOpts + '</select></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Type</label><select id="cp-type" onchange="_couponDraft.type=this.value;showCouponModal();" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;">' + typeOpts + '</select></div>' +
         '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">' + (d.type === 'percent' ? 'Percent off (0-100)' : 'Dollars off') + '</label>' + valueInput + '</div>' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Applies to</label><select id="cp-applies" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">' + appliesOpts + '</select></div>' +
-        '<div style="grid-column:span 2;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Description (shown to client)</label><input type="text" id="cp-desc" value="' + escAttr(d.description) + '" placeholder="10% off first garden visit" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Applies to</label><select id="cp-applies" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;">' + appliesOpts + '</select></div>' +
+        '<div style="grid-column:span 2;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Description (shown to client)</label><input type="text" id="cp-desc" value="' + escAttr(d.description) + '" placeholder="10% off first garden visit" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
       '</div>' +
 
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Min order $ (0=any)</label><input type="number" step="0.01" min="0" id="cp-min" value="' + ((d.min_amount_cents||0)/100).toFixed(2) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Max discount $ (0=any)</label><input type="number" step="0.01" min="0" id="cp-cap" value="' + ((d.max_discount_cents||0)/100).toFixed(2) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Per-client limit (0=any)</label><input type="number" step="1" min="0" id="cp-pc" value="' + (d.max_uses_per_client||0) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Min order $ (0=any)</label><input type="number" step="0.01" min="0" id="cp-min" value="' + ((d.min_amount_cents||0)/100).toFixed(2) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Max discount $ (0=any)</label><input type="number" step="0.01" min="0" id="cp-cap" value="' + ((d.max_discount_cents||0)/100).toFixed(2) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Per-client limit (0=any)</label><input type="number" step="1" min="0" id="cp-pc" value="' + (d.max_uses_per_client||0) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
       '</div>' +
 
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Total uses cap (0=∞)</label><input type="number" step="1" min="0" id="cp-max" value="' + (d.max_uses||0) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Starts</label><input type="date" id="cp-starts" value="' + escAttr(d.starts_at) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Expires</label><input type="date" id="cp-expires" value="' + escAttr(d.expires_at) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Total uses cap (0=∞)</label><input type="number" step="1" min="0" id="cp-max" value="' + (d.max_uses||0) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Starts</label><input type="date" id="cp-starts" value="' + escAttr(d.starts_at) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Expires</label><input type="date" id="cp-expires" value="' + escAttr(d.expires_at) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
       '</div>' +
 
       '<div style="margin-bottom:10px;"><label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;font-weight:normal;"><input type="checkbox" id="cp-active" ' + (d.active ? 'checked' : '') + '> Active</label></div>' +
 
-      '<div style="margin-bottom:14px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Internal notes</label><textarea id="cp-notes" rows="2" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">' + escHtml(d.notes) + '</textarea></div>' +
+      '<div style="margin-bottom:14px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Internal notes</label><textarea id="cp-notes" rows="2" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;">' + escHtml(d.notes) + '</textarea></div>' +
 
       '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
         '<button class="modal-btn secondary" onclick="closeCouponModal()">Cancel</button>' +
@@ -3333,7 +3333,7 @@ async function loadInvoices() {
     _invoices = data.items || [];
     _invoicesLoaded = true;
   } catch (err) {
-    console.error('loadInvoices failed:', err);
+    console.warn('loadInvoices failed:', err);
     _invoices = [];
     _invoicesLoaded = true;
   }
@@ -3365,17 +3365,17 @@ function drawInvoices() {
   const kpis =
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px;">' +
       kpiCard('Outstanding', '$' + (outstanding/100).toFixed(2), '#0a7a3a') +
-      kpiCard('Overdue', '$' + (overdueAmt/100).toFixed(2), overdueAmt > 0 ? '#b91c1c' : '#666') +
-      kpiCard('Paid this month', '$' + (paidThisMonth/100).toFixed(2), '#555') +
-      kpiCard('Drafts', String(draftCount), '#666') +
+      kpiCard('Overdue', '$' + (overdueAmt/100).toFixed(2), overdueAmt > 0 ? '#b91c1c' : 'var(--gray-600)') +
+      kpiCard('Paid this month', '$' + (paidThisMonth/100).toFixed(2), 'var(--gray-600)') +
+      kpiCard('Drafts', String(draftCount), 'var(--gray-600)') +
     '</div>';
 
   // Filter chips.
   const filterChip = (key, label) => {
     const active = _invoicesFilter === key;
     const style = active
-      ? 'background:#0a7a3a;color:#fff;border:1px solid #0a7a3a;'
-      : 'background:transparent;color:#333;border:1px solid #ccc;';
+      ? 'background:#0a7a3a;color:var(--white);border:1px solid #0a7a3a;'
+      : 'background:transparent;color:var(--plum);border:1px solid var(--gray-200);';
     return '<button class="modal-btn secondary" style="padding:6px 12px;font-size:0.8rem;' + style + '" onclick="setInvoiceFilter(\'' + key + '\')">' + label + '</button>';
   };
 
@@ -3386,7 +3386,7 @@ function drawInvoices() {
       filterChip('paid', 'Paid') +
       filterChip('draft', 'Drafts') +
       filterChip('all', 'All') +
-      '<input type="text" id="inv-search" placeholder="Search number, name, email…" value="' + escAttr(_invoicesSearch) + '" oninput="setInvoiceSearch(this.value)" style="padding:6px 10px;border:1px solid #ccc;border-radius:4px;min-width:220px;flex:1;max-width:320px;font-size:0.85rem;">' +
+      '<input type="text" id="inv-search" placeholder="Search number, name, email…" value="' + escAttr(_invoicesSearch) + '" oninput="setInvoiceSearch(this.value)" style="padding:6px 10px;border:1px solid var(--gray-200);border-radius:4px;min-width:220px;flex:1;max-width:320px;font-size:0.85rem;">' +
       '<button class="modal-btn primary" style="margin-left:auto;" onclick="openInvoiceCreateModal()">+ New invoice</button>' +
     '</div>';
 
@@ -3423,7 +3423,7 @@ function drawInvoices() {
 }
 
 function kpiCard(label, value, color) {
-  return '<div style="background:#fff;border:1px solid #e6e6e6;border-radius:8px;padding:12px 14px;">' +
+  return '<div style="background:var(--white);border:1px solid #e6e6e6;border-radius:8px;padding:12px 14px;">' +
     '<div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;opacity:0.6;">' + label + '</div>' +
     '<div style="font-size:1.4rem;font-weight:600;color:' + color + ';margin-top:4px;">' + value + '</div>' +
   '</div>';
@@ -3441,10 +3441,10 @@ function setInvoiceSearch(v) { _invoicesSearch = v; drawInvoices(); }
 
 function invoiceStatusPill(inv) {
   const today = new Date().toISOString().slice(0, 10);
-  let label = inv.status, color = '#666', bg = '#eee';
+  let label = inv.status, color = 'var(--gray-600)', bg = 'var(--gray-100)';
   if (inv.status === 'paid')      { color = '#0a7a3a'; bg = '#dcefe2'; }
-  else if (inv.status === 'void') { color = '#666';    bg = '#e8e8e8'; }
-  else if (inv.status === 'draft'){ color = '#555';    bg = '#f0f0f0'; }
+  else if (inv.status === 'void') { color = 'var(--gray-600)';    bg = '#e8e8e8'; }
+  else if (inv.status === 'draft'){ color = 'var(--gray-600)';    bg = '#f0f0f0'; }
   else if (['sent','viewed','partial','overdue'].includes(inv.status)) {
     if (inv.due_date && inv.due_date < today) { label = 'overdue'; color = '#b91c1c'; bg = '#fde2e2'; }
     else if (inv.status === 'viewed') { color = '#7a5a00'; bg = '#fef0c4'; }
@@ -3474,7 +3474,7 @@ function invoiceRow(inv) {
     actions.push('<button class="modal-btn secondary" style="padding:5px 10px;font-size:0.76rem;color:#b91c1c;" onclick="invoiceVoid(\'' + inv.id + '\')">Void</button>');
   }
 
-  return '<div style="background:#fff;border:1px solid #e6e6e6;border-radius:8px;padding:12px 14px;">' +
+  return '<div style="background:var(--white);border:1px solid #e6e6e6;border-radius:8px;padding:12px 14px;">' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;">' +
       '<div style="flex:1;min-width:220px;">' +
         '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">' +
@@ -3544,9 +3544,9 @@ function showInvoiceModal() {
 
   const itemRows = _invDraftItems.map((it, i) =>
     '<tr>' +
-      '<td><input type="text" value="' + escAttr(it.description) + '" placeholder="Description" style="width:100%;padding:5px 7px;border:1px solid #ccc;border-radius:4px;" oninput="invItemSet(' + i + ',\'description\',this.value)"></td>' +
-      '<td><input type="number" step="0.01" min="0" value="' + (it.qty||0) + '" style="width:100%;padding:5px 7px;border:1px solid #ccc;border-radius:4px;text-align:right;" oninput="invItemSet(' + i + ',\'qty\',this.value)"></td>' +
-      '<td><input type="number" step="0.01" min="0" value="' + ((it.unit_cents||0)/100).toFixed(2) + '" style="width:100%;padding:5px 7px;border:1px solid #ccc;border-radius:4px;text-align:right;" oninput="invItemSet(' + i + ',\'unit_cents\',Math.round(parseFloat(this.value||0)*100))"></td>' +
+      '<td><input type="text" value="' + escAttr(it.description) + '" placeholder="Description" style="width:100%;padding:5px 7px;border:1px solid var(--gray-200);border-radius:4px;" oninput="invItemSet(' + i + ',\'description\',this.value)"></td>' +
+      '<td><input type="number" step="0.01" min="0" value="' + (it.qty||0) + '" style="width:100%;padding:5px 7px;border:1px solid var(--gray-200);border-radius:4px;text-align:right;" oninput="invItemSet(' + i + ',\'qty\',this.value)"></td>' +
+      '<td><input type="number" step="0.01" min="0" value="' + ((it.unit_cents||0)/100).toFixed(2) + '" style="width:100%;padding:5px 7px;border:1px solid var(--gray-200);border-radius:4px;text-align:right;" oninput="invItemSet(' + i + ',\'unit_cents\',Math.round(parseFloat(this.value||0)*100))"></td>' +
       '<td style="text-align:right;padding-right:8px;">$' + (((it.qty||0)*(it.unit_cents||0))/100).toFixed(2) + '</td>' +
       '<td><button type="button" onclick="invItemRemove(' + i + ')" style="background:transparent;border:none;color:#b91c1c;cursor:pointer;font-size:1.1rem;">&times;</button></td>' +
     '</tr>'
@@ -3560,17 +3560,17 @@ function showInvoiceModal() {
   const total = taxable + tax;
 
   modal.innerHTML =
-    '<div style="background:#fff;border-radius:10px;width:100%;max-width:780px;max-height:90vh;overflow:auto;padding:22px;">' +
+    '<div style="background:var(--white);border-radius:10px;width:100%;max-width:780px;max-height:90vh;overflow:auto;padding:22px;">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">' +
         '<h2 style="margin:0;font-size:1.2rem;">' + (s.id ? 'Edit invoice' : 'New invoice') + '</h2>' +
         '<button onclick="closeInvoiceModal()" style="background:transparent;border:none;cursor:pointer;font-size:1.4rem;">&times;</button>' +
       '</div>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Client name</label><input type="text" id="inv-name" value="' + escAttr(s.client_name) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Client email</label><input type="email" id="inv-email" value="' + escAttr(s.client_email) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
-        '<div style="grid-column:span 2;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Address (optional)</label><input type="text" id="inv-addr" value="' + escAttr(s.client_address) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Issue date</label><input type="date" id="inv-issue" value="' + escAttr(s.issue_date) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Due date</label><input type="date" id="inv-due" value="' + escAttr(s.due_date) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Client name</label><input type="text" id="inv-name" value="' + escAttr(s.client_name) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Client email</label><input type="email" id="inv-email" value="' + escAttr(s.client_email) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
+        '<div style="grid-column:span 2;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Address (optional)</label><input type="text" id="inv-addr" value="' + escAttr(s.client_address) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Issue date</label><input type="date" id="inv-issue" value="' + escAttr(s.issue_date) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Due date</label><input type="date" id="inv-due" value="' + escAttr(s.due_date) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
       '</div>' +
 
       '<h3 style="font-size:0.9rem;margin:14px 0 6px;">Line items</h3>' +
@@ -3582,21 +3582,21 @@ function showInvoiceModal() {
       '<button class="modal-btn secondary" style="margin-top:6px;padding:5px 10px;font-size:0.78rem;" onclick="invItemAdd()">+ Add item</button>' +
 
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px;">' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Tax %</label><input type="number" step="0.01" id="inv-tax" value="' + (s.tax_pct||0) + '" oninput="_invDraftState.tax_pct=parseFloat(this.value||0);showInvoiceModal();" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Tax %</label><input type="number" step="0.01" id="inv-tax" value="' + (s.tax_pct||0) + '" oninput="_invDraftState.tax_pct=parseFloat(this.value||0);showInvoiceModal();" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
         '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Discount $' + (s.coupon_code ? ' <span style="font-weight:600;color:var(--green,#0a7a3a);">(from ' + escHtml(s.coupon_code) + ')</span>' : '') + '</label>' +
           '<input type="number" step="0.01" id="inv-disc" value="' + (((s.discount_cents)||0)/100).toFixed(2) + '" ' +
             (s.coupon_code
-              ? 'disabled title="Locked while a coupon is applied — clear the coupon to edit." style="width:100%;padding:6px 8px;border:1px solid #ccc;background:#f5f5f5;border-radius:4px;cursor:not-allowed;"'
-              : 'oninput="_invDraftState.discount_cents=Math.round(parseFloat(this.value||0)*100);showInvoiceModal();" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"'
+              ? 'disabled title="Locked while a coupon is applied — clear the coupon to edit." style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);background:var(--gray-100);border-radius:4px;cursor:not-allowed;"'
+              : 'oninput="_invDraftState.discount_cents=Math.round(parseFloat(this.value||0)*100);showInvoiceModal();" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"'
             ) + '>' +
         '</div>' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Terms</label><input type="text" id="inv-terms" value="' + escAttr(s.terms) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Terms</label><input type="text" id="inv-terms" value="' + escAttr(s.terms) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
       '</div>' +
 
       '<div style="margin-top:10px;background:var(--cream);border-radius:6px;padding:10px 12px;">' +
         '<label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Coupon code (optional)</label>' +
         '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">' +
-          '<input type="text" id="inv-coupon-code" value="' + escAttr(s.coupon_code || '') + '" placeholder="SPRING25" maxlength="30" style="flex:1;min-width:140px;padding:6px 8px;border:1px solid #ccc;border-radius:4px;font-family:monospace;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">' +
+          '<input type="text" id="inv-coupon-code" value="' + escAttr(s.coupon_code || '') + '" placeholder="SPRING25" maxlength="30" style="flex:1;min-width:140px;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;font-family:monospace;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">' +
           '<button class="modal-btn secondary" style="padding:6px 10px;font-size:0.8rem;" onclick="applyCouponToInvoiceDraft()">Apply</button>' +
           (s.coupon_code ? '<button class="modal-btn secondary" style="padding:6px 10px;font-size:0.8rem;color:var(--red);" onclick="clearCouponFromInvoiceDraft()">Clear</button>' : '') +
         '</div>' +
@@ -3607,8 +3607,8 @@ function showInvoiceModal() {
         invoiceTotalsRowsHtml(subtotal, discount, tax, total, s.tax_pct||0) +
       '</div>' +
 
-      '<div style="margin-top:14px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Notes (visible to client)</label><textarea id="inv-notes" rows="2" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">' + escHtml(s.notes) + '</textarea></div>' +
-      '<div style="margin-top:8px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Internal notes</label><textarea id="inv-inotes" rows="2" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">' + escHtml(s.internal_notes) + '</textarea></div>' +
+      '<div style="margin-top:14px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Notes (visible to client)</label><textarea id="inv-notes" rows="2" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;">' + escHtml(s.notes) + '</textarea></div>' +
+      '<div style="margin-top:8px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Internal notes</label><textarea id="inv-inotes" rows="2" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;">' + escHtml(s.internal_notes) + '</textarea></div>' +
 
       '<div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;">' +
         '<button class="modal-btn secondary" onclick="closeInvoiceModal()">Cancel</button>' +
@@ -3915,7 +3915,7 @@ async function loadComplianceItems() {
       paused: !!r.paused,
     }));
   } catch (err) {
-    console.error('loadComplianceItems failed:', err);
+    console.warn('loadComplianceItems failed:', err);
     _complianceItems = [];
   }
 }
@@ -3937,7 +3937,7 @@ async function loadTodos() {
       created: r.created,
     }));
   } catch (err) {
-    console.error('loadTodos failed:', err);
+    console.warn('loadTodos failed:', err);
     _todos = [];
   }
 }
@@ -3972,7 +3972,7 @@ function renderComplianceShell() {
   function tabBtnHtml(key, label, current) {
     const active = key === current;
     const style = active
-      ? 'background:var(--plum);color:#fff;border-color:var(--plum);'
+      ? 'background:var(--plum);color:var(--white);border-color:var(--plum);'
       : '';
     return '<button class="modal-btn secondary" style="padding:8px 14px;' + style + '" onclick="switchComplianceSubTab(\'' + key + '\')">' + label + '</button>';
   }
@@ -4118,7 +4118,7 @@ function renderComplianceCalendar() {
     const iso = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     const items = byDate[iso] || [];
     const isToday = iso === todayIso;
-    const cellBg = isToday ? 'var(--cream)' : '#fff';
+    const cellBg = isToday ? 'var(--cream)' : 'var(--white)';
     let inner = '<div style="font-size:0.8rem;font-weight:' + (isToday ? '700' : '500') + ';color:var(--plum);">' + d + '</div>';
     items.slice(0, 3).forEach(it => {
       const st = complianceStatus(it);
@@ -4593,7 +4593,7 @@ let _receiptMeta = { tax: 0, originalSubtotal: 0, originalTotal: 0 };
 async function loadExpenses() {
   try {
     const resp = await fetch(PB_URL + '/api/collections/expenses/records?perPage=500&sort=-date', {
-      headers: { 'Authorization': PB_TOKEN }
+      headers: { 'Authorization': 'Bearer ' + PB_TOKEN }
     });
     if (!resp.ok) return;
     const data = await resp.json();
@@ -4686,7 +4686,7 @@ async function renderExpenses() {
     inMonth.sort((a,b) => (b.date||'').localeCompare(a.date||''));
     inMonth.forEach(e => {
       const bizTag = e.onBiz
-        ? `<span style="background:#dfe8d4;color:#5a1230;padding:2px 6px;border-radius:8px;font-size:0.7rem;font-weight:700;">BIZ</span>`
+        ? `<span style="background:#dfe8d4;color:var(--plum);padding:2px 6px;border-radius:8px;font-size:0.7rem;font-weight:700;">BIZ</span>`
         : `<span style="background:var(--gray-100);color:var(--gray-600);padding:2px 6px;border-radius:8px;font-size:0.7rem;font-weight:700;">personal</span>`;
       // Mixed-receipt badge: any line item flagged personal means the
       // expense amount is already business-only, but the full receipt
@@ -4777,7 +4777,7 @@ async function ensureLineMemoryLoaded() {
   if (_lineMemoryLoaded) return;
   try {
     const r = await fetch(PB_URL + '/api/collections/expense_line_memory/records?perPage=500', {
-      headers: { 'Authorization': PB_TOKEN }
+      headers: { 'Authorization': 'Bearer ' + PB_TOKEN }
     });
     if (!r.ok) { _lineMemoryCache = {}; _lineMemoryLoaded = true; return; }
     const data = await r.json();
@@ -4830,7 +4830,7 @@ function recordLineItemMemory(vendor, items) {
       existing.hits = hits;
       fetch(PB_URL + '/api/collections/expense_line_memory/records/' + existing.id, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Authorization': PB_TOKEN },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
         body: JSON.stringify({ hits })
       }).catch(() => {});
     } else if (existing) {
@@ -4839,7 +4839,7 @@ function recordLineItemMemory(vendor, items) {
       existing.hits = 1;
       fetch(PB_URL + '/api/collections/expense_line_memory/records/' + existing.id, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Authorization': PB_TOKEN },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
         body: JSON.stringify({ category: it.category, hits: 1 })
       }).catch(() => {});
     } else {
@@ -4853,7 +4853,7 @@ function recordLineItemMemory(vendor, items) {
       };
       fetch(PB_URL + '/api/collections/expense_line_memory/records', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': PB_TOKEN },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
         body: JSON.stringify(body)
       }).then(r => r.ok ? r.json() : null).then(row => {
         if (row && row.id) _lineMemoryCache[k] = { id: row.id, category: it.category, hits: 1 };
@@ -5340,7 +5340,7 @@ function renderLineItems(items) {
     const amt = Number(i.amount || 0).toFixed(2);
     const cat = i.category || '';
     const personal = !!i.personal;
-    const learned = i._learned ? '<span title="Auto-applied from a past correction" style="background:#dfe8d4;color:#5a1230;padding:1px 6px;border-radius:8px;font-size:0.65rem;font-weight:700;margin-left:4px;">learned</span>' : '';
+    const learned = i._learned ? '<span title="Auto-applied from a past correction" style="background:#dfe8d4;color:var(--plum);padding:1px 6px;border-radius:8px;font-size:0.65rem;font-weight:700;margin-left:4px;">learned</span>' : '';
     const rowPersonalClass = personal ? ' li-row-personal' : '';
     h += '<div class="line-item-row' + rowPersonalClass + '" data-idx="' + idx + '" style="display:grid;grid-template-columns:1fr 70px 130px 32px;gap:6px;align-items:center;margin-bottom:4px;font-size:0.8rem;">' +
       '<div class="li-desc" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + escAttr(desc) + '">' + escAttr(desc) + learned + '</div>' +
@@ -5496,7 +5496,7 @@ async function saveExpense() {
       const url = PB_URL + '/api/collections/expenses/records' + (id ? '/'+id : '');
       const r = await fetch(url, {
         method: id ? 'PATCH' : 'POST',
-        headers: { 'Authorization': PB_TOKEN },
+        headers: { 'Authorization': 'Bearer ' + PB_TOKEN },
         body: fd
       });
       if (!r.ok) throw new Error(await r.text());
@@ -5504,7 +5504,7 @@ async function saveExpense() {
       const url = PB_URL + '/api/collections/expenses/records' + (id ? '/'+id : '');
       const r = await fetch(url, {
         method: id ? 'PATCH' : 'POST',
-        headers: { 'Content-Type':'application/json', 'Authorization': PB_TOKEN },
+        headers: { 'Content-Type':'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
         body: JSON.stringify(body)
       });
       if (!r.ok) throw new Error(await r.text());
@@ -5586,7 +5586,7 @@ async function exportExpenseCsv() {
     try {
       const url = receiptUrl(e);
       const r = await fetch(url, {
-        headers: PB_TOKEN ? { 'Authorization': PB_TOKEN } : {}
+        headers: PB_TOKEN ? { 'Authorization': 'Bearer ' + PB_TOKEN } : {}
       });
       if (!r.ok) throw new Error(r.status);
       const blob = await r.blob();
@@ -6060,7 +6060,7 @@ async function loadCategorizationMemory() {
       lastUsed: r.last_used,
     }));
   } catch (err) {
-    console.error('loadCategorizationMemory failed:', err);
+    console.warn('loadCategorizationMemory failed:', err);
     _catMemory = [];
   }
 }
@@ -6118,7 +6118,7 @@ async function loadBank() {
       notes: r.notes || '',
     }));
   } catch (err) {
-    console.error('loadBank failed:', err);
+    console.warn('loadBank failed:', err);
     _bankTransactions = [];
   } finally {
     _bankLoaded = true;
@@ -6172,7 +6172,7 @@ async function renderBank() {
   // --- Filter chips ---
   const chip = (key, label, count) => {
     const a = _bankFilter === key;
-    const style = a ? 'background:var(--plum);color:#fff;border:1px solid var(--plum);' : 'background:transparent;color:var(--plum);border:1px solid var(--gray-200);';
+    const style = a ? 'background:var(--plum);color:var(--white);border:1px solid var(--plum);' : 'background:transparent;color:var(--plum);border:1px solid var(--gray-200);';
     return '<button class="modal-btn secondary" style="padding:6px 12px;font-size:0.8rem;' + style + '" onclick="setBankFilter(\'' + key + '\')">' + label + (count != null ? ' (' + count + ')' : '') + '</button>';
   };
 
@@ -6517,7 +6517,7 @@ function renderCategoriesView() {
     : '';
 
   modal.innerHTML =
-    '<div style="background:#fff;border-radius:10px;width:100%;max-width:620px;max-height:88vh;overflow-y:auto;padding:22px;">' +
+    '<div style="background:var(--white);border-radius:10px;width:100%;max-width:620px;max-height:88vh;overflow-y:auto;padding:22px;">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
         '<h2 style="margin:0;font-size:1.2rem;">Categories</h2>' +
         '<button onclick="closeCategoriesView()" style="background:transparent;border:none;cursor:pointer;font-size:1.4rem;color:var(--plum);">&times;</button>' +
@@ -6592,7 +6592,7 @@ function renderCategoryDrillIn(modal, catKey) {
       '</div>';
 
   modal.innerHTML =
-    '<div style="background:#fff;border-radius:10px;width:100%;max-width:620px;max-height:88vh;overflow-y:auto;padding:22px;">' +
+    '<div style="background:var(--white);border-radius:10px;width:100%;max-width:620px;max-height:88vh;overflow-y:auto;padding:22px;">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;">' +
         '<button onclick="backFromDrill()" style="background:transparent;border:none;cursor:pointer;color:var(--plum);font-size:0.85rem;font-weight:600;">‹ Categories</button>' +
         '<button onclick="closeCategoriesView()" style="background:transparent;border:none;cursor:pointer;font-size:1.4rem;color:var(--plum);">&times;</button>' +
@@ -6877,7 +6877,7 @@ function renderIncome() {
     filtered.forEach(b => {
       const price = Number(b.price)||0;
       const paidBadge = b.paid
-        ? '<span style="background:#dfe8d4;color:#5a1230;padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:700;white-space:nowrap;">PAID' + (b.paymentMethod ? ' &middot; ' + escapeHtml(b.paymentMethod) : '') + '</span>'
+        ? '<span style="background:#dfe8d4;color:var(--plum);padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:700;white-space:nowrap;">PAID' + (b.paymentMethod ? ' &middot; ' + escapeHtml(b.paymentMethod) : '') + '</span>'
         : (price > 0
             ? '<span style="background:var(--red-light);color:var(--red);padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:700;white-space:nowrap;">UNPAID</span>'
             : '<span style="color:var(--gray-400);font-size:0.8rem;white-space:nowrap;">no price</span>');
@@ -6985,7 +6985,7 @@ async function loadPayments() {
       bankTransactionId: r.bank_transaction_id,
     }));
   } catch (err) {
-    console.error('loadPayments failed:', err);
+    console.warn('loadPayments failed:', err);
     _paymentsCache = [];
   } finally {
     _paymentsLoaded = true;
@@ -6998,15 +6998,15 @@ function fmtMoney(cents) {
 
 function processorBadge(p) {
   const map = {
-    square:  { bg: '#3e4348', fg: '#fff', label: 'Square' },
-    stripe:  { bg: '#635bff', fg: '#fff', label: 'Stripe' },
+    square:  { bg: '#3e4348', fg: 'var(--white)', label: 'Square' },
+    stripe:  { bg: '#635bff', fg: 'var(--white)', label: 'Stripe' },
     cash:    { bg: 'var(--spring-sage)', fg: 'var(--plum)', label: 'Cash' },
     check:   { bg: 'var(--pollen-gold)', fg: 'var(--plum)', label: 'Check' },
-    venmo:   { bg: '#3d95ce', fg: '#fff', label: 'Venmo' },
-    zelle:   { bg: '#6d1ed4', fg: '#fff', label: 'Zelle' },
-    ach:     { bg: 'var(--gray-400)', fg: '#fff', label: 'ACH' },
-    crypto:  { bg: '#f7931a', fg: '#fff', label: 'Crypto' },
-    other:   { bg: 'var(--gray-400)', fg: '#fff', label: 'Other' },
+    venmo:   { bg: '#3d95ce', fg: 'var(--white)', label: 'Venmo' },
+    zelle:   { bg: '#6d1ed4', fg: 'var(--white)', label: 'Zelle' },
+    ach:     { bg: 'var(--gray-400)', fg: 'var(--white)', label: 'ACH' },
+    crypto:  { bg: '#f7931a', fg: 'var(--white)', label: 'Crypto' },
+    other:   { bg: 'var(--gray-400)', fg: 'var(--white)', label: 'Other' },
   };
   const m = map[p] || map.other;
   return '<span style="background:' + m.bg + ';color:' + m.fg + ';padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:600;">' + m.label + '</span>';
@@ -7094,7 +7094,7 @@ function renderPayments() {
   chips.forEach(c => {
     const active = _paymentsFilter === c.key;
     html += '<button class="modal-btn secondary" onclick="setPaymentsFilter(\'' + c.key + '\')" style="padding:6px 12px;font-size:0.8rem;' +
-      (active ? 'background:var(--plum);color:#fff;border-color:var(--plum);' : '') + '">' + c.label + '</button>';
+      (active ? 'background:var(--plum);color:var(--white);border-color:var(--plum);' : '') + '">' + c.label + '</button>';
   });
   html += '</div>';
 
@@ -7968,7 +7968,7 @@ function renderClients() {
     const statusColors = {
       lead:     ['#fef0c4', '#7a5a00'],
       active:   ['#dcefe2', '#0a7a3a'],
-      inactive: ['#e8e8e8', '#666'],
+      inactive: ['#e8e8e8', 'var(--gray-600)'],
       churned:  ['#fde2e2', '#a03020'],
     };
     const sc = statusColors[status] || statusColors.active;
@@ -8316,7 +8316,7 @@ function openClientDetailModal(cid) {
   const outstanding = ((c.outstanding_cents || 0) / 100).toFixed(2);
 
   modal.innerHTML =
-    '<div style="background:#fff;border-radius:10px;width:100%;max-width:620px;max-height:90vh;overflow:auto;padding:22px;">' +
+    '<div style="background:var(--white);border-radius:10px;width:100%;max-width:620px;max-height:90vh;overflow:auto;padding:22px;">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">' +
         '<h2 style="margin:0;font-size:1.2rem;">' + esc(c.name) + '</h2>' +
         '<button onclick="closeClientDetailModal()" style="background:transparent;border:none;cursor:pointer;font-size:1.4rem;">&times;</button>' +
@@ -8328,17 +8328,17 @@ function openClientDetailModal(cid) {
       '</div>' +
 
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Name</label><input id="cd-name" value="' + escA(c.name) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Email</label><input id="cd-email" type="email" value="' + escA(c.email) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Phone</label><input id="cd-phone" value="' + escA(c.phone) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Birthday</label><input id="cd-bday" type="date" value="' + escA(c.birthday) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
-        '<div style="grid-column:span 2;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Address</label><input id="cd-addr" value="' + escA(c.address) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Name</label><input id="cd-name" value="' + escA(c.name) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Email</label><input id="cd-email" type="email" value="' + escA(c.email) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Phone</label><input id="cd-phone" value="' + escA(c.phone) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Birthday</label><input id="cd-bday" type="date" value="' + escA(c.birthday) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
+        '<div style="grid-column:span 2;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Address</label><input id="cd-addr" value="' + escA(c.address) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
       '</div>' +
 
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Status</label><select id="cd-status" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">' + statusOpts + '</select></div>' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Source</label><select id="cd-source" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">' + sourceOpts + '</select></div>' +
-        '<div style="grid-column:span 2;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Tags (comma-separated)</label><input id="cd-tags" value="' + escA(c.tags) + '" placeholder="VIP, new, monthly, hard-to-reach" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Status</label><select id="cd-status" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;">' + statusOpts + '</select></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Source</label><select id="cd-source" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;">' + sourceOpts + '</select></div>' +
+        '<div style="grid-column:span 2;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Tags (comma-separated)</label><input id="cd-tags" value="' + escA(c.tags) + '" placeholder="VIP, new, monthly, hard-to-reach" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
       '</div>' +
 
       '<div style="background:var(--cream);border-radius:6px;padding:10px 12px;margin-bottom:10px;">' +
@@ -8347,7 +8347,7 @@ function openClientDetailModal(cid) {
         '<label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;font-weight:normal;"><input type="checkbox" id="cd-sms-opt" ' + (c.marketing_sms_opt_in ? 'checked' : '') + '> SMS messages</label>' +
       '</div>' +
 
-      '<div style="margin-bottom:14px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Notes (private)</label><textarea id="cd-notes" rows="4" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">' + esc(c.notes) + '</textarea></div>' +
+      '<div style="margin-bottom:14px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Notes (private)</label><textarea id="cd-notes" rows="4" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;">' + esc(c.notes) + '</textarea></div>' +
 
       '<div style="display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;">' +
         '<button class="modal-btn secondary" style="color:var(--red);" onclick="openMergeClientDialog(\'' + cid + '\')">Merge into another&hellip;</button>' +
