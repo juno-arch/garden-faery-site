@@ -1115,9 +1115,11 @@ const EVENT_TYPES = {
     duration: 300,
     startHour: 9, startMin: 0,
     endHour: 14, endMin: 0,
-    // Wed,Thu,Fri only. Mondays held closed until ceramics ends; the 1-4:30
-    // window on Mondays is reserved for regulars (Kenzie's recurring slot).
-    days: [3,4,5],
+    // Tue–Fri public-bookable. Mondays held closed to clients (Kenzie's
+    // recurring 9-2). Mon/Thu (Kenzie) and Wed (James) are also occupied
+    // by recurring slots — the conflict check at dateHasTimeConflict
+    // filters those out of public availability automatically.
+    days: [2,3,4,5],
     price: 30,
     slots: ['9:00am']
   },
