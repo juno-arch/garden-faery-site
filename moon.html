@@ -470,6 +470,32 @@ h1, h2, h3 { font-family: 'Prata', serif; font-weight: 600; margin: 0; color: va
   font-size: 0.72rem; color: var(--moon-dim); font-style: italic;
   margin-top: 10px; line-height: 1.5;
 }
+/* Big 3 reads — Chani-voice blurbs under the grid */
+.big3-reads {
+  display: flex; flex-direction: column; gap: 12px;
+  margin-top: 16px;
+}
+.big3-reads[hidden] { display: none; }
+.big3-read {
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--moon-line);
+  border-left: 3px solid var(--moon-glow);
+  border-radius: 0 12px 12px 0;
+}
+.big3-read .b3r-head {
+  font-family: 'Prata', serif;
+  font-size: 1rem;
+  color: var(--moon-accent);
+  margin: 0 0 6px;
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  letter-spacing: 0.2px;
+}
+.big3-read .b3r-glyph { font-size: 1.15rem; line-height: 1; }
+.big3-read .b3r-body {
+  margin: 0; font-size: 0.92rem; line-height: 1.55;
+  color: var(--moon-text); font-style: italic;
+}
 .birth-form { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
 .birth-form .form-field { display: flex; flex-direction: column; gap: 4px; }
 .birth-form label { font-size: 0.74rem; color: var(--moon-dim); letter-spacing: 0.3px; }
@@ -1085,6 +1111,7 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
     <h3 class="sky-head"><span class="sky-head-emoji" data-icon="target"></span><span>Your stars · Big 3</span></h3>
     <div class="sky-meta" style="margin-bottom:6px;">Sun = your spark. Moon = your inner weather. Rising = the door you open.</div>
     <div class="big3-grid" id="big3-grid"></div>
+    <div class="big3-reads" id="big3-reads"></div>
     <p class="big3-note" id="big3-note"></p>
     <button type="button" class="birth-edit" id="birth-edit-btn" onclick="showBirthForm()" hidden>Edit birth info</button>
     <div class="birth-form" id="birth-form">
@@ -1897,6 +1924,21 @@ function renderSky() {
            '<div class="b3-name">' + want + '</div></div>';
   }).join('');
 
+  // Reads — one Chani-voice paragraph per placement that resolved to a sign
+  const readsEl = document.getElementById('big3-reads');
+  const readEntries = [
+    sun    ? { label: 'Sun in ' + sun.name,    glyph: sun.glyph,    text: SUN_READS[sun.key] || sun.vibe } : null,
+    moonS  ? { label: 'Moon in ' + moonS.name, glyph: moonS.glyph,  text: MOON_READS[moonS.key] || moonS.vibe } : null,
+    rising ? { label: 'Rising in ' + rising.name, glyph: rising.glyph, text: RISING_READS[rising.key] || rising.vibe } : null
+  ].filter(Boolean);
+  readsEl.innerHTML = readEntries.map(r =>
+    '<div class="big3-read">' +
+      '<h4 class="b3r-head"><span class="b3r-glyph">' + r.glyph + '</span>' + r.label + '</h4>' +
+      '<p class="b3r-body">' + r.text + '</p>' +
+    '</div>'
+  ).join('');
+  readsEl.hidden = readEntries.length === 0;
+
   // Note + form visibility
   if (!birth) {
     note.textContent = "Add your birth date below to unlock your Sun. Everything stays on this device.";
@@ -2612,6 +2654,54 @@ const MOON_PHASE_LABEL = {
 // water→kapha (cool/moist). Used to surface a dosha tag on each sign so the
 // astro strand carries the Ayurvedic strand too.
 const ELEMENT_DOSHA = { fire: 'pitta', earth: 'kapha', air: 'vata', water: 'kapha' };
+
+// Big 3 reads — keyed by sign. Each placement asks a different question of
+// the same sign: Sun = your spark, Moon = your inner weather, Rising = the
+// door you open. Voice is Chani Nicholas-flavored (second-person, present
+// tense, body-aware, agency-affirming) — her STYLE, not her copy.
+const SUN_READS = {
+  aries:       "Your spark is the first move. You're here to initiate — to start what others are still considering. Wait too long and you go stiff: when you feel the impulse, that IS the instruction.",
+  taurus:      "Your spark is the slow steady. You're here to make life sensory and real — food, garden, fabric, voice. Building beauty into the everyday is the whole point.",
+  gemini:      "Your spark is the question. You're here to learn, link, narrate. A life without new information starves you. Stay curious in public.",
+  cancer:      "Your spark is the home you build — inside yourself first, then around the people you love. You're here to feel deeply and turn that feeling into shelter.",
+  leo:         "Your spark is generous. You're here to be seen so others can see themselves. Your job is not to dim; the room is brighter when you take it.",
+  virgo:       "Your spark is service. You're here to refine, repair, and tend the small good things. Excellence is your love language — and discernment, when it stays kind, is medicine.",
+  libra:       "Your spark is relational. You're here to mirror and balance — art, partnership, justice. Beauty isn't decoration for you; it's a basic need.",
+  scorpio:     "Your spark is depth. You're here to go where others won't — into truth, into shadow, into the places that demand transformation. You see what isn't said.",
+  sagittarius: "Your spark is the long view. You're here to expand — through books, distance, ideas, freedom. You belong to the horizon.",
+  capricorn:   "Your spark is patient and structural. You're here to build things that outlast you. The slow steady becomes monumental in your hands.",
+  aquarius:    "Your spark is the future. You're here to question what the rest of us accept by default — the weird, the radical, the chosen family. Don't tone yourself down for comfort.",
+  pisces:      "Your spark is permeable. You're here to dream, channel, and feel the unseen currents most people can't read. Art is your civic duty."
+};
+const MOON_READS = {
+  aries:       "Your emotional weather moves fast — feelings arrive at full volume and pass like fronts. You process by moving; stillness is harder than action for you.",
+  taurus:      "Your moon needs soothing and predictability — food, touch, familiar music, slow time. You can't be rushed through a feeling, and trying to force it makes it worse.",
+  gemini:      "You feel through words. Talking it out, writing it down, naming the thing — that's how the emotion finishes its sentence. Without language, it loops.",
+  cancer:      "Your moon is at home here. Feelings move through you in tides, and your safety is built from people, kitchens, and rituals. Protect your nesting time.",
+  leo:         "Your feelings want witness. You need someone to see them, to receive them — not fix them. Drama is your nervous system speaking; let it be expressive.",
+  virgo:       "You process by sorting. A clean drawer, a fixed thing, a list — these aren't avoidance, they're how your system settles. Routine is rest.",
+  libra:       "Your moon needs harmony around it. Conflict drains you on a cellular level. Beauty + a kind person + a fair conversation = your version of regulation.",
+  scorpio:     "You feel everything intensely and quietly. The surface is calm; the underneath is doing real work. Privacy is not a luxury for you, it's a requirement.",
+  sagittarius: "You need horizon. Stuck somewhere too small, you start to vanish from the inside. Big questions, travel, learning — these aren't escapes, they're nutrition.",
+  capricorn:   "Your moon is reserved by design. You meter intimacy carefully and don't perform feelings for show. The people who get the real you are earned, not granted.",
+  aquarius:    "Your feelings are processed at altitude. You go up and look down — make a theory, draw a pattern. That's the path back to your body, not away from it.",
+  pisces:      "Your moon is porous. You absorb the moods around you whether you want to or not. Cleaning your own emotional water is non-negotiable — solitude, art, music, sleep."
+};
+const RISING_READS = {
+  aries:       "The door you open is direct and live-wire. People meet you and know within seconds where you stand. Use that — you can clear a path others can't.",
+  taurus:      "The door you open is steady, warm, beautiful. People relax around you on contact. The room slows down. That's a gift; some lives are built around finding it.",
+  gemini:      "The door you open is curious. You meet people with questions, and questions disarm them. Your wit lands fast — sometimes faster than you mean it to.",
+  cancer:      "The door you open is soft and protective. People sense quickly you might mother them — which can be a gift or a trap depending on who's walking through.",
+  leo:         "The door you open is generous and unmistakable. You take up the right amount of room and let other people take theirs. Compliment freely; you can afford it.",
+  virgo:       "The door you open is precise. People meet you and feel they're being looked at clearly — which is exactly true. Soften the gaze when you can; it's powerful.",
+  libra:       "The door you open is graceful. You make people feel met. That's a real skill — and a place to over-give, so notice when you're shape-shifting to keep the peace.",
+  scorpio:     "The door you open is intense, watchful, not easily fooled. People meet you and sense there's more underneath. Vulnerability lands harder coming from a Scorpio rising than from anyone else.",
+  sagittarius: "The door you open is wide. You bring weather with you — your enthusiasm changes the room's temperature. Don't apologize for taking up space; you were built for it.",
+  capricorn:   "The door you open is composed. People meet you and feel they're with someone serious — which they are. Let yourself be silly in trusted rooms; it's the antidote.",
+  aquarius:    "The door you open is original. People meet you and immediately register something different — your job isn't to be normal, it's to be exactly what arrives.",
+  pisces:      "The door you open is permeable. People meet you and feel they're being understood without explaining. Boundaries aren't optional for you — they're how you stay legible."
+};
+
 const ZODIAC = [
   { key: 'aries',       name: 'Aries',       glyph: '♈', element: 'fire',  ruler: 'Mars',    dates: 'Mar 21 – Apr 19', vibe: 'Initiate. Move first, refine later. The body wants forward.' },
   { key: 'taurus',      name: 'Taurus',      glyph: '♉', element: 'earth', ruler: 'Venus',   dates: 'Apr 20 – May 20', vibe: 'Slow down. Touch real things. Eat well. Don\'t be rushed.' },
