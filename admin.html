@@ -668,6 +668,7 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
     <button class="tab" data-tab="bank" onclick="switchTab('bank')">Bank</button>
     <button class="tab" data-tab="invoices" onclick="switchTab('invoices')">Invoices</button>
     <button class="tab" data-tab="coupons" onclick="switchTab('coupons')">Coupons</button>
+    <button class="tab" data-tab="reviews" onclick="switchTab('reviews')">Reviews</button>
     <button class="tab" data-tab="expenses" onclick="switchTab('expenses')">Expenses</button>
     <button class="tab" data-tab="taxes" onclick="switchTab('taxes')">Taxes</button>
     <button class="tab" data-tab="compliance" onclick="switchTab('compliance')">Compliance</button>
@@ -731,6 +732,11 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
   <!-- Coupons view -->
   <div class="tab-panel" id="tab-coupons" style="display:none;">
     <div id="coupons-content"></div>
+  </div>
+
+  <!-- Reviews view -->
+  <div class="tab-panel" id="tab-reviews" style="display:none;">
+    <div id="reviews-content"></div>
   </div>
 
   <!-- Expenses view -->
@@ -1542,6 +1548,7 @@ function switchTab(tab) {
   if (tab === 'bank') renderBank();
   if (tab === 'invoices') renderInvoices();
   if (tab === 'coupons') renderCoupons();
+  if (tab === 'reviews') renderReviews();
   if (tab === 'expenses') renderExpenses();
   if (tab === 'taxes') renderTaxes();
   if (tab === 'compliance') renderCompliance();
@@ -2497,6 +2504,353 @@ function renderEmailCardLive(rec) {
     bodyRow +
     buttons +
     '</div>';
+}
+
+// ============================================
+// REVIEWS TAB
+// ============================================
+// Testimonials. Two intake paths (record verbal compliment / send tokenized
+// invite). Every review starts pending; nothing goes public until Pollen
+// approves AND consent_to_publish is true.
+let _reviews = [];
+let _reviewsLoaded = false;
+let _reviewsSubTab = 'pending'; // 'pending' | 'approved' | 'all'
+
+async function loadReviews() {
+  if (!PB_URL) { _reviewsLoaded = true; return; }
+  try {
+    const data = await DB._pb('GET', 'reviews/records?perPage=500&sort=-created');
+    _reviews = data.items || [];
+    _reviewsLoaded = true;
+  } catch (err) { console.error('loadReviews:', err); _reviews = []; _reviewsLoaded = true; }
+}
+
+async function renderReviews() {
+  const root = document.getElementById('reviews-content');
+  root.innerHTML = '<p style="opacity:0.6;">Loading reviews...</p>';
+  if (!_reviewsLoaded) await loadReviews();
+  drawReviews();
+}
+
+function drawReviews() {
+  const root = document.getElementById('reviews-content');
+
+  const pending = _reviews.filter(r => r.status === 'pending');
+  const approved = _reviews.filter(r => r.status === 'approved');
+  const featured = approved.filter(r => r.featured);
+  const consented = approved.filter(r => r.consent_to_publish);
+  const sumStars = approved.reduce((s, r) => s + (r.rating || 0), 0);
+  const avg = approved.length > 0 ? (sumStars / approved.length).toFixed(2) : '—';
+
+  const kpis =
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px;">' +
+      kpiCard('Pending', String(pending.length), pending.length > 0 ? '#7a5a00' : '#555') +
+      kpiCard('Approved', String(approved.length), '#0a7a3a') +
+      kpiCard('Published', String(consented.length), '#555') +
+      kpiCard('Featured', String(featured.length), '#555') +
+      kpiCard('Avg ★', String(avg), '#555') +
+    '</div>';
+
+  const sub = (key, label, count) => {
+    const a = _reviewsSubTab === key;
+    const style = a ? 'background:#0a7a3a;color:#fff;border:1px solid #0a7a3a;' : 'background:transparent;color:#333;border:1px solid #ccc;';
+    return '<button class="modal-btn secondary" style="padding:6px 12px;font-size:0.8rem;' + style + '" onclick="setReviewSubTab(\'' + key + '\')">' + label + (count != null ? ' (' + count + ')' : '') + '</button>';
+  };
+  const controls =
+    '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px;">' +
+      sub('pending', 'Pending', pending.length) + sub('approved', 'Approved', approved.length) + sub('all', 'All', _reviews.length) +
+      '<button class="modal-btn primary" style="margin-left:auto;" onclick="openReviewCreateModal()">+ Record testimonial</button>' +
+    '</div>';
+
+  let rows;
+  if (_reviewsSubTab === 'pending') rows = pending;
+  else if (_reviewsSubTab === 'approved') rows = approved;
+  else rows = _reviews;
+
+  let list;
+  if (rows.length === 0) {
+    list = '<p style="opacity:0.6;padding:20px;text-align:center;">' +
+      (_reviewsSubTab === 'pending'
+        ? 'Nothing waiting for approval.'
+        : (_reviews.length === 0
+            ? 'No reviews yet. Tap "Record testimonial" to add one you heard, or open a completed booking and use "Request review" to send an invite.'
+            : 'Nothing here.')) +
+    '</p>';
+  } else {
+    list = '<div style="display:flex;flex-direction:column;gap:10px;">' + rows.map(reviewRowHtml).join('') + '</div>';
+  }
+  root.innerHTML = kpis + controls + list;
+}
+
+function setReviewSubTab(t) { _reviewsSubTab = t; drawReviews(); }
+
+function starString(n) {
+  n = Math.max(0, Math.min(5, Math.round(Number(n) || 0)));
+  return '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n);
+}
+
+function reviewRowHtml(r) {
+  const statusColors = {
+    pending:  ['#fef0c4', '#7a5a00'],
+    approved: ['#dcefe2', '#0a7a3a'],
+    hidden:   ['#e8e8e8', '#666'],
+    archived: ['#e8e8e8', '#666'],
+  };
+  const sc = statusColors[r.status] || statusColors.pending;
+  const consentBadge = r.consent_to_publish
+    ? '<span style="background:#dbeafe;color:#0a5a8a;padding:2px 8px;border-radius:99px;font-size:0.7rem;font-weight:600;">public OK</span>'
+    : '<span style="background:#f0f0f0;color:#555;padding:2px 8px;border-radius:99px;font-size:0.7rem;font-weight:600;">private</span>';
+  const featuredBadge = r.featured
+    ? '<span style="background:#fce7c7;color:#7a3b00;padding:2px 8px;border-radius:99px;font-size:0.7rem;font-weight:600;">★ featured</span>' : '';
+  const dateStr = (r.visit_date || r.received_at || (r.created || '').slice(0, 10) || '').slice(0, 10);
+
+  const actions = [];
+  if (r.status === 'pending') {
+    actions.push('<button class="modal-btn primary" style="padding:5px 10px;font-size:0.76rem;" onclick="approveReview(\'' + r.id + '\')">Approve</button>');
+  }
+  if (r.status === 'approved') {
+    actions.push('<button class="modal-btn secondary" style="padding:5px 10px;font-size:0.76rem;" onclick="toggleFeatureReview(\'' + r.id + '\',' + (!r.featured) + ')">' + (r.featured ? 'Unfeature' : 'Feature') + '</button>');
+  }
+  actions.push('<button class="modal-btn secondary" style="padding:5px 10px;font-size:0.76rem;" onclick="openReviewEditModal(\'' + r.id + '\')">Edit</button>');
+  if (r.status !== 'hidden') {
+    actions.push('<button class="modal-btn secondary" style="padding:5px 10px;font-size:0.76rem;color:#b91c1c;" onclick="hideReview(\'' + r.id + '\')">Hide</button>');
+  }
+
+  return '<div style="background:#fff;border:1px solid #e6e6e6;border-radius:8px;padding:12px 14px;">' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;">' +
+      '<div style="flex:1;min-width:240px;">' +
+        '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">' +
+          '<span style="color:#d4a017;font-size:1.05rem;letter-spacing:1px;">' + starString(r.rating) + '</span>' +
+          '<span style="display:inline-block;padding:2px 8px;border-radius:99px;font-size:0.7rem;background:' + sc[0] + ';color:' + sc[1] + ';font-weight:600;text-transform:capitalize;">' + r.status + '</span>' +
+          consentBadge + featuredBadge +
+        '</div>' +
+        (r.title ? '<div style="margin-top:6px;font-weight:600;font-size:0.95rem;">' + escHtml(r.title) + '</div>' : '') +
+        '<div style="margin-top:4px;font-size:0.88rem;line-height:1.5;white-space:pre-wrap;">' + escHtml(r.body) + '</div>' +
+        '<div style="margin-top:6px;font-size:0.78rem;color:#666;">' +
+          '— ' + escHtml(r.display_name || r.client_name || 'Anonymous') +
+          (dateStr ? ' · ' + dateStr : '') +
+          (r.source ? ' · ' + String(r.source).replace(/_/g,' ') : '') +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0;">' + actions.join('') + '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+async function approveReview(id) {
+  try {
+    const res = await fetch(PB_URL + '/api/admin/reviews/approve', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+      body: JSON.stringify({ id: id }),
+    });
+    const data = await res.json();
+    if (!data.ok) { alert('Approve failed: ' + (data.error || res.status)); return; }
+    _reviewsLoaded = false;
+    await renderReviews();
+  } catch (err) { alert('Error: ' + err.message); }
+}
+
+async function hideReview(id) {
+  if (!confirm('Hide this review? It can be restored from the All list.')) return;
+  try {
+    const res = await fetch(PB_URL + '/api/admin/reviews/hide', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+      body: JSON.stringify({ id: id }),
+    });
+    const data = await res.json();
+    if (!data.ok) { alert('Hide failed: ' + (data.error || res.status)); return; }
+    _reviewsLoaded = false;
+    await renderReviews();
+  } catch (err) { alert('Error: ' + err.message); }
+}
+
+async function toggleFeatureReview(id, featured) {
+  try {
+    const res = await fetch(PB_URL + '/api/admin/reviews/feature', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+      body: JSON.stringify({ id: id, featured: featured }),
+    });
+    const data = await res.json();
+    if (!data.ok) { alert('Feature failed: ' + (data.error || res.status)); return; }
+    _reviewsLoaded = false;
+    await renderReviews();
+  } catch (err) { alert('Error: ' + err.message); }
+}
+
+// ----- Record testimonial modal -----
+function openReviewCreateModal() {
+  _reviewDraft = {
+    id: null,
+    client_id: '', booking_id: '', client_name: '',
+    rating: 5, title: '', body: '',
+    source: 'in_person',
+    display_format: 'first_initial', display_name: '',
+    visit_date: '',
+    consent_to_publish: false,
+    status: 'pending',
+    internal_notes: '',
+  };
+  showReviewModal();
+}
+
+function openReviewEditModal(id) {
+  const r = _reviews.find(x => x.id === id);
+  if (!r) return;
+  _reviewDraft = {
+    id: r.id,
+    client_id: r.client_id || '', booking_id: r.booking_id || '',
+    client_name: r.client_name || '',
+    rating: r.rating, title: r.title || '', body: r.body || '',
+    source: r.source, display_format: r.display_format || 'first_initial',
+    display_name: r.display_name || '',
+    visit_date: r.visit_date || '',
+    consent_to_publish: !!r.consent_to_publish,
+    status: r.status,
+    internal_notes: r.internal_notes || '',
+  };
+  showReviewModal();
+}
+
+let _reviewDraft = {};
+
+function showReviewModal() {
+  const d = _reviewDraft;
+  let modal = document.getElementById('review-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'review-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    document.body.appendChild(modal);
+  }
+  const isEdit = !!d.id;
+
+  // Client picker — show only if we have clients loaded.
+  let clientOpts = '<option value="">— pick a client —</option>';
+  if (typeof _clientsById !== 'undefined' && _clientsById) {
+    const sorted = Object.values(_clientsById).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    clientOpts += sorted.map(c => '<option value="' + c.id + '"' + (d.client_id === c.id ? ' selected' : '') + '>' + escHtml(c.name) + '</option>').join('');
+  }
+
+  const sourceOpts = ['in_person','sms','email','recorded_by_owner','client_submitted'].map(v =>
+    '<option value="' + v + '"' + (d.source === v ? ' selected' : '') + '>' + v.replace(/_/g,' ') + '</option>'
+  ).join('');
+  const fmtOpts = ['first_initial','full','initials','anonymous','custom'].map(v =>
+    '<option value="' + v + '"' + (d.display_format === v ? ' selected' : '') + '>' + v.replace(/_/g,' ') + '</option>'
+  ).join('');
+
+  // Star picker — five buttons.
+  const stars = [1,2,3,4,5].map(n =>
+    '<button type="button" onclick="_reviewDraft.rating=' + n + ';showReviewModal();" style="background:transparent;border:none;cursor:pointer;font-size:1.6rem;color:' + (d.rating >= n ? '#d4a017' : '#ccc') + ';padding:0 2px;line-height:1;">★</button>'
+  ).join('');
+
+  modal.innerHTML =
+    '<div style="background:#fff;border-radius:10px;width:100%;max-width:620px;max-height:90vh;overflow:auto;padding:22px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">' +
+        '<h2 style="margin:0;font-size:1.2rem;">' + (isEdit ? 'Edit review' : 'Record testimonial') + '</h2>' +
+        '<button onclick="closeReviewModal()" style="background:transparent;border:none;cursor:pointer;font-size:1.4rem;">&times;</button>' +
+      '</div>' +
+
+      '<div style="margin-bottom:10px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Rating</label><div>' + stars + '</div></div>' +
+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Client</label><select id="rv-client" onchange="onReviewClientPick(this.value)" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">' + clientOpts + '</select></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Source</label><select id="rv-source" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">' + sourceOpts + '</select></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Visit date (optional)</label><input type="date" id="rv-visit" value="' + escAttr(d.visit_date) + '" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Display format</label><select id="rv-fmt" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">' + fmtOpts + '</select></div>' +
+        '<div style="grid-column:span 2;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Title (optional)</label><input type="text" id="rv-title" value="' + escAttr(d.title) + '" placeholder="Best garden visit I&apos;ve had in years" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;"></div>' +
+      '</div>' +
+
+      '<div style="margin-bottom:10px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Body</label><textarea id="rv-body" rows="5" placeholder="What they said (you can paraphrase)…" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;font-family:inherit;">' + escHtml(d.body) + '</textarea></div>' +
+
+      '<div style="background:var(--cream);border-radius:6px;padding:10px 12px;margin-bottom:10px;font-size:0.85rem;">' +
+        '<label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;"><input type="checkbox" id="rv-consent" ' + (d.consent_to_publish ? 'checked' : '') + '> They&apos;ve OK&apos;d showing this on the website</label>' +
+        '<div style="opacity:0.6;margin-top:4px;font-size:0.78rem;">Only checked = candidate for the public reviews page. You still have to approve.</div>' +
+      '</div>' +
+
+      '<div style="margin-bottom:14px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Internal notes (you only)</label><textarea id="rv-notes" rows="2" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;font-family:inherit;">' + escHtml(d.internal_notes) + '</textarea></div>' +
+
+      '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
+        '<button class="modal-btn secondary" onclick="closeReviewModal()">Cancel</button>' +
+        '<button class="modal-btn primary" onclick="saveReview()">' + (isEdit ? 'Save changes' : 'Save as pending') + '</button>' +
+      '</div>' +
+    '</div>';
+}
+
+function closeReviewModal() { const m = document.getElementById('review-modal'); if (m) m.remove(); }
+
+function onReviewClientPick(cid) {
+  _reviewDraft.client_id = cid;
+  if (cid && _clientsById && _clientsById[cid]) {
+    _reviewDraft.client_name = _clientsById[cid].name || '';
+  }
+}
+
+async function saveReview() {
+  const d = _reviewDraft;
+  d.title = document.getElementById('rv-title').value.trim();
+  d.body  = document.getElementById('rv-body').value.trim();
+  d.source = document.getElementById('rv-source').value;
+  d.visit_date = document.getElementById('rv-visit').value || '';
+  d.display_format = document.getElementById('rv-fmt').value;
+  d.consent_to_publish = document.getElementById('rv-consent').checked;
+  d.internal_notes = document.getElementById('rv-notes').value;
+
+  if (!d.body || d.body.length < 5) { alert('Add some review text first.'); return; }
+  if (!d.client_id && !d.client_name) {
+    const proceed = confirm('No client selected. Save anyway with name "Anonymous"?');
+    if (!proceed) return;
+  }
+
+  const path = d.id ? '/api/admin/reviews/update' : '/api/admin/reviews/create';
+  const body = {
+    rating: d.rating,
+    title: d.title,
+    body: d.body,
+    source: d.source,
+    visit_date: d.visit_date,
+    display_format: d.display_format,
+    consent_to_publish: d.consent_to_publish,
+    internal_notes: d.internal_notes,
+  };
+  if (d.id) body.id = d.id;
+  else {
+    body.client_id = d.client_id || '';
+    body.client_name = d.client_name || '';
+    body.booking_id = d.booking_id || '';
+  }
+
+  try {
+    const res = await fetch(PB_URL + path, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!data.ok) { alert('Save failed: ' + (data.error || res.status)); return; }
+    closeReviewModal();
+    _reviewsLoaded = false;
+    await renderReviews();
+  } catch (err) { alert('Save error: ' + err.message); }
+}
+
+// ----- Invite-by-booking helper (call from booking cards) -----
+async function requestReviewForBooking(bookingId, clientName) {
+  try {
+    const res = await fetch(PB_URL + '/api/admin/reviews/invite', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+      body: JSON.stringify({ booking_id: bookingId }),
+    });
+    const data = await res.json();
+    if (!data.ok) { alert('Invite failed: ' + (data.error || res.status)); return; }
+    const url = data.url;
+    const name = (clientName || '').split(/\s+/)[0] || 'there';
+    const msg = 'Hi ' + name + ' — if you have a sec, I\'d love a few words about your garden visit. No pressure: ' + url;
+    try {
+      await navigator.clipboard.writeText(msg);
+      alert('Link copied to clipboard, ready to paste into a text or email:\n\n' + msg);
+    } catch (_) {
+      prompt('Paste this into a text or email:', msg);
+    }
+  } catch (err) { alert('Error: ' + err.message); }
 }
 
 // ============================================
@@ -7087,10 +7441,15 @@ function renderClients() {
       (c.email ? esc(c.email) : '') +
       '</div>';
 
+    // "Request review" only when there's at least one past visit (past + not canceled).
+    const hasPastVisit = (c.visits || []).some(v => v.date && v.date < today && v.status !== 'canceled');
+    const lastPastVisit = hasPastVisit ? c.visits.find(v => v.date && v.date < today && v.status !== 'canceled') : null;
+
     // Action buttons
     card += '<div class="booking-actions">' +
       (c.phone ? '<button class="action-btn" onclick="callClient(\'' + phoneAttr(c.phone) + '\')">Call</button>' +
                  '<button class="action-btn" onclick="textClient(\'' + phoneAttr(c.phone) + '\')">Text</button>' : '') +
+      (lastPastVisit ? '<button class="action-btn" onclick="requestReviewForBooking(\'' + lastPastVisit.id + '\', \'' + escAttr(c.name || '') + '\')">Request review</button>' : '') +
       '<button class="action-btn" data-name="' + escAttr(c.name || '') + '" onclick="renameClientByName(this.dataset.name)">Rename</button>' +
       '</div>';
 

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#4a1942">
+<title>Share your visit · Garden Faery</title>
+<meta name="description" content="A few words about your Garden Faery visit.">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --plum: #4a1942;
+  --cream: #f8f4ed;
+  --petal-pink: #c48bb0;
+  --spring-sage: #a3b88c;
+  --pollen-gold: #d4c27a;
+  --white: #ffffff;
+  --gray-100: #f2efe8;
+  --gray-200: #e0dbd3;
+  --gray-400: #a89e96;
+  --gray-600: #6b5f56;
+  --red: #a03020;
+  --green: #0a7a3a;
+  --gold: #d4a017;
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(74,25,66,0.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--cream);
+  color: var(--plum);
+  min-height: 100vh;
+  padding: 24px 16px 80px;
+  line-height: 1.55;
+}
+.wrap { max-width: 560px; margin: 0 auto; }
+.brand { font-family: 'Fraunces', serif; font-weight: 500; font-size: 1.5rem; text-align: center; margin-bottom: 18px; }
+.brand a { color: var(--plum); text-decoration: none; }
+.card { background: var(--white); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+h1 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 1.4rem; margin-bottom: 4px; }
+.sub { color: var(--gray-600); font-size: 0.92rem; margin-bottom: 22px; }
+fieldset { border: none; margin-bottom: 18px; }
+legend { font-weight: 600; font-size: 0.88rem; margin-bottom: 8px; }
+.stars { display: flex; gap: 4px; }
+.stars button {
+  background: transparent; border: none; cursor: pointer;
+  font-size: 2.2rem; color: var(--gray-200); padding: 0 2px;
+  transition: color 0.1s;
+}
+.stars button.lit { color: var(--gold); }
+.stars button:hover { transform: scale(1.05); }
+textarea, input[type="text"], input[type="email"] {
+  width: 100%; padding: 12px 14px;
+  border: 2px solid var(--gray-200); border-radius: 8px;
+  font-family: inherit; font-size: 1rem; background: var(--white);
+  color: var(--plum); line-height: 1.5;
+}
+textarea:focus, input:focus { outline: none; border-color: var(--petal-pink); }
+.radio-group { display: flex; flex-direction: column; gap: 6px; }
+.radio-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 8px; cursor: pointer;
+  font-size: 0.92rem;
+}
+.radio-row:hover { background: var(--cream); }
+.radio-row input[type="radio"] { margin: 0; }
+.radio-row strong { font-weight: 600; }
+.radio-row span.example { color: var(--gray-600); font-size: 0.82rem; }
+#custom-name { margin-left: 30px; margin-top: 4px; display: none; max-width: 240px; }
+#custom-name.show { display: block; }
+.consent-box {
+  background: var(--cream); border-radius: 8px;
+  padding: 12px 14px; margin-bottom: 18px; font-size: 0.92rem;
+}
+.consent-box label {
+  display: flex; align-items: flex-start; gap: 10px; cursor: pointer;
+  font-weight: 500;
+}
+.consent-box input { margin-top: 3px; }
+.consent-box .help { color: var(--gray-600); font-size: 0.82rem; margin-top: 4px; margin-left: 26px; }
+.btn {
+  width: 100%; padding: 14px 22px; border: none; border-radius: 8px;
+  font-family: inherit; font-size: 1.05rem; font-weight: 600; cursor: pointer;
+  background: var(--plum); color: var(--white);
+}
+.btn:hover { background: #5a1f54; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.err { color: var(--red); font-size: 0.88rem; margin: 10px 0; }
+.thanks { text-align: center; padding: 20px 0; }
+.thanks h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 1.6rem; margin-bottom: 10px; }
+.foot { text-align: center; font-size: 0.78rem; color: var(--gray-600); margin-top: 22px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><a href="/">Garden Faery</a></div>
+  <div id="root"><div class="card"><p class="sub">Loading…</p></div></div>
+  <div class="foot">Only Pollen reads this. Nothing is published without your OK and her approval.</div>
+</div>
+
+<script>
+const PB_URL = 'https://bookings.gardenfaery.love';
+const TOKEN = new URLSearchParams(location.search).get('t') || '';
+
+let _ctx = null;
+let _rating = 0;
+let _displayFormat = 'first_initial';
+
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+async function init() {
+  if (!TOKEN) { showErr('Missing invite link.'); return; }
+  try {
+    const r = await fetch(PB_URL + '/api/review/load?token=' + encodeURIComponent(TOKEN));
+    const d = await r.json();
+    if (!d.ok) { showErr(d.error || 'Could not load this invite.'); return; }
+    _ctx = d;
+    if (d.existing) {
+      _rating = d.existing.rating || 0;
+      _displayFormat = d.existing.display_format || 'first_initial';
+    }
+    render();
+  } catch (err) { showErr('Network error: ' + err.message); }
+}
+
+function deriveDisplayPreview(format) {
+  const name = (_ctx && _ctx.client_name) || '';
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (format === 'full') return name || 'Anonymous';
+  if (format === 'anonymous') return 'Anonymous';
+  if (format === 'first_initial') {
+    if (parts.length <= 1) return parts[0] || 'Anonymous';
+    return parts[0] + ' ' + parts[parts.length-1].charAt(0).toUpperCase() + '.';
+  }
+  if (format === 'initials') {
+    if (parts.length === 0) return 'Anonymous';
+    return parts.map(p => p.charAt(0).toUpperCase()).join('.') + '.';
+  }
+  return '';
+}
+
+function render() {
+  const visit = _ctx.visit_date || '';
+  const visitNice = visit ? new Date(visit + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' }) : 'your visit';
+  const fullName = (_ctx.client_name || '').trim() || '';
+  const ex = _ctx.existing;
+
+  document.getElementById('root').innerHTML =
+    '<div class="card">' +
+      '<h1>How was your visit?</h1>' +
+      '<p class="sub">' + (visit ? esc(visitNice) : 'Your Garden Faery visit') + '</p>' +
+
+      '<fieldset>' +
+        '<legend>Your rating</legend>' +
+        '<div class="stars">' +
+          [1,2,3,4,5].map(n =>
+            '<button type="button" class="' + (_rating >= n ? 'lit' : '') + '" data-n="' + n + '" aria-label="' + n + ' stars">★</button>'
+          ).join('') +
+        '</div>' +
+      '</fieldset>' +
+
+      '<fieldset>' +
+        '<legend>What did you like?</legend>' +
+        '<textarea id="rv-body" rows="6" placeholder="Anything — what worked, what stood out, what you\'d tell a friend.">' + esc(ex ? ex.body : '') + '</textarea>' +
+      '</fieldset>' +
+
+      '<fieldset>' +
+        '<legend>How should we credit you?</legend>' +
+        '<div class="radio-group">' +
+          radioRow('first_initial', 'First name + initial', fullName ? deriveDisplayPreview('first_initial') : 'e.g. Sarah K.') +
+          radioRow('full',          'Full name',            fullName || 'e.g. Sarah Karpinski') +
+          radioRow('initials',      'Initials',             fullName ? deriveDisplayPreview('initials') : 'e.g. S.K.') +
+          radioRow('anonymous',     'Anonymous',            'No name shown') +
+          radioRow('custom',        'Something else',       '') +
+        '</div>' +
+        '<input type="text" id="custom-name" placeholder="How to credit you" maxlength="60" value="' + esc(ex && ex.display_format === "custom" ? ex.display_name : "") + '">' +
+      '</fieldset>' +
+
+      '<div class="consent-box">' +
+        '<label><input type="checkbox" id="rv-consent" ' + (ex && ex.consent_to_publish ? 'checked' : '') + '> It\'s OK to show this on gardenfaery.love</label>' +
+        '<div class="help">Unchecked is fine. Pollen will keep it as private feedback either way.</div>' +
+      '</div>' +
+
+      '<button class="btn" id="rv-submit" onclick="submit()">' + (ex ? 'Update' : 'Send') + '</button>' +
+      '<p id="rv-err" class="err" style="display:none;"></p>' +
+    '</div>';
+
+  // Wire stars.
+  document.querySelectorAll('.stars button').forEach(b => {
+    b.addEventListener('click', () => {
+      _rating = Number(b.dataset.n);
+      document.querySelectorAll('.stars button').forEach(x => {
+        x.classList.toggle('lit', Number(x.dataset.n) <= _rating);
+      });
+    });
+  });
+  // Wire radios.
+  document.querySelectorAll('input[name="rv-fmt"]').forEach(r => {
+    r.addEventListener('change', () => {
+      _displayFormat = r.value;
+      document.getElementById('custom-name').classList.toggle('show', _displayFormat === 'custom');
+    });
+  });
+  if (_displayFormat === 'custom') document.getElementById('custom-name').classList.add('show');
+}
+
+function radioRow(value, label, example) {
+  const sel = value === _displayFormat;
+  return '<label class="radio-row">' +
+    '<input type="radio" name="rv-fmt" value="' + value + '" ' + (sel ? 'checked' : '') + '>' +
+    '<div><strong>' + esc(label) + '</strong>' + (example ? ' &middot; <span class="example">' + esc(example) + '</span>' : '') + '</div>' +
+  '</label>';
+}
+
+async function submit() {
+  const btn = document.getElementById('rv-submit');
+  const errEl = document.getElementById('rv-err');
+  errEl.style.display = 'none';
+  if (_rating < 1) { errEl.textContent = 'Please pick a star rating.'; errEl.style.display = 'block'; return; }
+  const body = (document.getElementById('rv-body').value || '').trim();
+  if (body.length < 10) { errEl.textContent = 'Add at least a sentence.'; errEl.style.display = 'block'; return; }
+  const customName = (document.getElementById('custom-name').value || '').trim();
+  if (_displayFormat === 'custom' && !customName) { errEl.textContent = 'Tell us how to credit you, or pick another option.'; errEl.style.display = 'block'; return; }
+
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const res = await fetch(PB_URL + '/api/review/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: TOKEN,
+        rating: _rating,
+        body: body,
+        display_format: _displayFormat,
+        display_name: customName,
+        consent_to_publish: document.getElementById('rv-consent').checked,
+      }),
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      btn.disabled = false; btn.textContent = 'Send';
+      errEl.textContent = data.error || 'Could not send. Try again.';
+      errEl.style.display = 'block';
+      return;
+    }
+    document.getElementById('root').innerHTML =
+      '<div class="card thanks">' +
+        '<h2>Thank you</h2>' +
+        '<p class="sub">Pollen reads every one of these. ' + (data.updated ? 'Your update has been received.' : '') + '</p>' +
+        '<p><a href="/" style="color:var(--plum);">Back to gardenfaery.love &rarr;</a></p>' +
+      '</div>';
+  } catch (err) {
+    btn.disabled = false; btn.textContent = 'Send';
+    errEl.textContent = 'Network error: ' + err.message;
+    errEl.style.display = 'block';
+  }
+}
+
+function showErr(msg) {
+  document.getElementById('root').innerHTML = '<div class="card"><p class="err">' + esc(msg) + '</p></div>';
+}
+
+init();
+</script>
+</body>
+</html>
