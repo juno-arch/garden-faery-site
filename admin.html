@@ -1169,6 +1169,7 @@ html[data-theme="dark"] .tab.active { background: var(--gray-100); color: var(--
       <label>Service</label>
       <select id="obo-event" onchange="renderObOAvailability()">
         <option value="morning">Morning Garden Care (9am to 2pm)</option>
+        <option value="afternoon">Afternoon Garden Care (2:30pm to 4:30pm)</option>
       </select>
     </div>
     <div class="form-group">
@@ -1552,9 +1553,14 @@ function removeOboDate(ds) {
   renderObOAvailability();
 }
 
-// Days each event runs (0=Sun, 1=Mon, ...). Mirrors book.html booking config.
+// Days each event runs (0=Sun, 1=Mon, ...). Admin OBO is broader than the
+// public booking site — admin can book Mon-Fri at either time slot. Day-level
+// conflict (Kenzie Mon/Thu, James Wed) is filtered at render time by the
+// existing eventType-overlap check, so days held by recurring slots show as
+// "already booked" instead of being hidden.
 const OBO_EVENT_DAYS = {
-  morning: [1, 3, 4, 5]   // Mon, Wed, Thu, Fri (Tue off, Thu held by Kenzie)
+  morning:   [1, 2, 3, 4, 5],
+  afternoon: [1, 2, 3, 4, 5],
 };
 const OBO_LOOKAHEAD_DAYS = 21;
 const OBO_DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -1591,7 +1597,7 @@ function renderObOAvailability() {
     if (isAlreadySelected) {
       statusHtml = '<span style="color:var(--green,#2a8a3a);font-weight:600;font-size:0.82rem;">added</span>';
     } else if (!isAvailableDay) {
-      statusHtml = '<span style="color:var(--gray-500,#888);font-size:0.82rem;">' + (dow === 2 ? 'day off' : 'not available') + '</span>';
+      statusHtml = '<span style="color:var(--gray-500,#888);font-size:0.82rem;">not available</span>';
     } else if (conflict) {
       statusHtml = '<span style="color:var(--gray-500,#888);font-size:0.82rem;">already booked</span>';
     } else {
