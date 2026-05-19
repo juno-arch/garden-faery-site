@@ -9,7 +9,7 @@
 <link rel="icon" type="image/png" href="/icon-moon.png">
 <meta name="apple-mobile-web-app-title" content="Moon">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#1a1036">
+<meta name="theme-color" content="#3d1823">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Prata&family=Josefin+Sans:wght@300;400;500;600;700&display=swap">
@@ -36,11 +36,18 @@
 }
 * { box-sizing: border-box; }
 html, body { margin:0; padding:0; }
+/* html paints the safe-area zone (above body's gradient on iOS) and the
+   pull-to-refresh overscroll. Match it to the top of body's gradient so
+   the chrome blends seamlessly instead of showing a white strip. */
+html {
+  background-color: var(--moon-bg2);
+}
 body {
   font-family: 'Josefin Sans', sans-serif;
   background: radial-gradient(ellipse at top, var(--moon-bg2) 0%, var(--moon-bg) 60%);
   color: var(--moon-text);
   min-height: 100vh;
+  margin: 0;
   padding-bottom: 80px;
   -webkit-font-smoothing: antialiased;
 }
