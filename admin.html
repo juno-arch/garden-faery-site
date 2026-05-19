@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>Garden Faery Studio</title>
+<script>
+// Apply persisted dark/light theme BEFORE first paint to avoid a
+// flash of light theme on dark-mode reloads. Mirrors what setTheme()
+// does later in the page; that function still handles the toggle
+// icon update once the body is parsed.
+(function(){try{var t=localStorage.getItem('gf_theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(_){}})();
+</script>
 <link rel="apple-touch-icon" href="/icon-admin.png">
 <link rel="icon" type="image/png" href="/icon-admin.png">
 <meta name="apple-mobile-web-app-title" content="Admin">
@@ -103,50 +110,6 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
 .tabs::-webkit-scrollbar { height: 4px; }
 .tabs::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 2px; }
 
-/* Tab dropdown group ("Money ▾") */
-.tab-group { position: relative; flex: 1; min-width: 0; }
-.tab-group .tab-group-btn {
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-.tab-group .caret { font-size: 0.65rem; transform: translateY(-1px); }
-.tab-group.open .tab-group-btn { background: var(--white); color: var(--plum); box-shadow: var(--shadow); }
-.tab-group-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--white);
-  border: 1px solid var(--gray-200);
-  border-radius: 10px;
-  box-shadow: 0 6px 24px rgba(74,25,66,0.16);
-  padding: 6px;
-  display: none;
-  z-index: 100;
-  min-width: 160px;
-}
-.tab-group.open .tab-group-menu { display: block; }
-.tab-group-item {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 8px 12px;
-  border: none;
-  background: none;
-  font-family: inherit;
-  font-weight: 500;
-  font-size: 0.88rem;
-  color: var(--plum);
-  cursor: pointer;
-  border-radius: 6px;
-  white-space: nowrap;
-}
-.tab-group-item:hover { background: var(--gray-100); }
-.tab-group-item.active { background: var(--petal-pink-light); color: var(--plum); font-weight: 700; }
-
 /* ============ Dark mode ============ */
 /* Scoped to <html data-theme="dark">; toggled in JS, persisted to localStorage. */
 html[data-theme="dark"] {
@@ -176,11 +139,7 @@ html[data-theme="dark"] .booking-card,
 html[data-theme="dark"] .today-card,
 html[data-theme="dark"] .week-grid,
 html[data-theme="dark"] .modal-content { background: var(--white); }
-html[data-theme="dark"] .tab.active,
-html[data-theme="dark"] .tab-group.open .tab-group-btn { background: var(--gray-100); color: var(--plum); }
-html[data-theme="dark"] .tab-group-menu { background: var(--white); border-color: var(--gray-200); }
-html[data-theme="dark"] .tab-group-item { color: var(--plum); }
-html[data-theme="dark"] .tab-group-item:hover { background: var(--gray-100); }
+html[data-theme="dark"] .tab.active { background: var(--gray-100); color: var(--plum); }
 
 /* Day view */
 .day-nav {
@@ -1683,9 +1642,15 @@ function switchTab(tab) {
   if (tab === 'emails') renderEmails();
   if (tab === 'settings') renderSettings();
 
-  // After switching, scroll the active tab into view (helpful when the bar overflows).
+  // After switching, scroll the active tab into view horizontally only
+  // (manual: scrollIntoView with block:nearest can still bubble to the
+  // document scroller on tall pages and yank the page up/down).
   const active = document.querySelector('.tab.active');
-  if (active && active.scrollIntoView) active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  const tabs = document.querySelector('.tabs');
+  if (active && tabs) {
+    const target = active.offsetLeft - (tabs.clientWidth - active.offsetWidth) / 2;
+    tabs.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+  }
 }
 
 // ----- Dark mode -----
