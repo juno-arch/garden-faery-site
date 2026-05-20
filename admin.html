@@ -1571,7 +1571,7 @@ function removeOboDate(ds, et) {
 // "already booked" instead of being hidden.
 const OBO_EVENT_DAYS = {
   morning:   [1, 2, 3, 4, 5],
-  afternoon: [1, 2, 3, 4, 5],
+  afternoon: [1, 2, 3, 5],   // Thursday afternoons reserved (Pollen has 4:30 therapy)
 };
 const OBO_LOOKAHEAD_DAYS = 21;
 const OBO_DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
