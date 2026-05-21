@@ -6060,7 +6060,8 @@ function clearClientsFilters() { clientsFilterStatus = 'all'; clientsSearch = ''
 
 // Bank tab = SimpleFIN-fed CCCU view (balance + recent bank transactions) +
 // the atomic payments collected ledger below it.
-let _bankBalance = null;        // { amount_cents, currency, as_of, account_name }
+let _bankBalance = null;        // legacy single balance (kept for backward compat)
+let _bankAccounts = [];         // persisted multi-account balances from `bank_accounts`
 let _bankTransactions = [];
 let _bankLoaded = false;
 let _catMemory = []; // learned categorization rules — cached for client-side suggestion
@@ -6112,10 +6113,32 @@ function suggestCategoryFor(payee, description) {
   return best;
 }
 
+async function loadBankAccounts() {
+  if (!PB_URL) { _bankAccounts = []; return; }
+  try {
+    const data = await DB._pb('GET', 'bank_accounts/records?perPage=50&filter=' + encodeURIComponent('hidden = false') + '&sort=display_order,name');
+    _bankAccounts = (data.items || []).map(r => ({
+      id: r.id,
+      accountId: r.account_id,
+      name: r.name,
+      orgName: r.org_name,
+      balanceCents: r.balance_cents || 0,
+      currency: r.currency || 'USD',
+      asOf: r.as_of,
+      kind: r.kind || 'other',
+      displayOrder: r.display_order || 0,
+    }));
+  } catch (err) {
+    console.warn('loadBankAccounts:', err);
+    _bankAccounts = [];
+  }
+}
+
 async function loadBank() {
   if (!PB_URL) { _bankLoaded = true; return; }
-  // Pull categorization memory in parallel so the modal can suggest immediately.
-  await Promise.all([loadCategorizationMemory(), (async () => {})()]);
+  // Pull categorization memory + bank accounts in parallel so the balance card
+  // and modal suggestions both have data when we render.
+  await Promise.all([loadCategorizationMemory(), loadBankAccounts()]);
   try {
     const data = await DB._pb('GET', 'bank_transactions/records?perPage=100&sort=-posted_at');
     _bankTransactions = (data.items || []).map(r => ({
@@ -6166,25 +6189,63 @@ async function renderBank() {
 
   let html = '';
 
-  // --- Top: balance card + Sync button ---
-  const balanceStr = _bankBalance
-    ? '$' + (_bankBalance.amount_cents / 100).toFixed(2)
-    : '—';
-  const balanceSub = _bankBalance
-    ? 'FYHF Biz Checking · as of ' + (new Date(_bankBalance.as_of)).toLocaleString()
-    : 'Click "Sync bank" to fetch from SimpleFIN';
+  // --- Top: account balance cards (persists across refresh from bank_accounts collection) ---
+  const accts = _bankAccounts.slice().sort((a, b) =>
+    (a.displayOrder - b.displayOrder) || a.name.localeCompare(b.name));
 
-  html += '<div class="card" style="background:var(--cream);border:1px solid var(--gray-200);border-radius:12px;padding:18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">' +
-    '<div>' +
-      '<div style="font-size:0.7rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.5px;">CCCU Balance</div>' +
-      '<div style="font-size:2rem;font-weight:700;color:var(--plum);line-height:1.1;margin-top:4px;">' + balanceStr + '</div>' +
-      '<div style="font-size:0.7rem;color:var(--gray-600);margin-top:4px;">' + escapeHtml(balanceSub) + '</div>' +
-    '</div>' +
-    '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
-      '<button class="modal-btn secondary" onclick="openCategoriesView()" style="padding:8px 14px;font-size:0.85rem;">Categories</button>' +
-      '<button class="modal-btn primary" onclick="syncBank()" style="padding:10px 18px;">Sync bank</button>' +
-    '</div>' +
+  const totalCents = accts.reduce((s, a) => s + (a.balanceCents || 0), 0);
+
+  // Kind icon by account.kind
+  const kindLabel = (k) => ({
+    checking: 'Checking', savings: 'Savings', credit: 'Credit', loan: 'Loan', other: 'Account',
+  })[k] || 'Account';
+
+  if (accts.length === 0) {
+    html += '<div class="card" style="background:var(--cream);border:1px solid var(--gray-200);border-radius:12px;padding:18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">' +
+      '<div>' +
+        '<div style="font-size:0.7rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.5px;">Bank balance</div>' +
+        '<div style="font-size:1.4rem;font-weight:700;color:var(--plum);line-height:1.1;margin-top:4px;">—</div>' +
+        '<div style="font-size:0.75rem;color:var(--gray-600);margin-top:4px;">Click "Sync" to pull from SimpleFIN.</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+        '<button class="modal-btn secondary" onclick="openCategoriesView()" style="padding:8px 14px;font-size:0.85rem;">Categories</button>' +
+        '<button class="modal-btn secondary" onclick="syncBankBackfill()" style="padding:8px 14px;font-size:0.85rem;" title="Pull last 12 months">Backfill year</button>' +
+        '<button class="modal-btn primary" onclick="syncBank()" style="padding:10px 18px;">Sync</button>' +
+      '</div>' +
     '</div>';
+  } else {
+    // Total + action buttons header
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px;">' +
+      '<div>' +
+        '<div style="font-size:0.7rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.5px;">Total across accounts</div>' +
+        '<div style="font-size:1.8rem;font-weight:700;color:var(--plum);line-height:1.1;">$' + (totalCents/100).toFixed(2) + '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+        '<button class="modal-btn secondary" onclick="openCategoriesView()" style="padding:8px 14px;font-size:0.85rem;">Categories</button>' +
+        '<button class="modal-btn secondary" onclick="syncBankBackfill()" style="padding:8px 14px;font-size:0.85rem;" title="Pull last 12 months of transactions">Backfill year</button>' +
+        '<button class="modal-btn primary" onclick="syncBank()" style="padding:10px 18px;">Sync</button>' +
+      '</div>' +
+    '</div>';
+
+    // Per-account cards
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px;">';
+    accts.forEach(a => {
+      const ago = a.asOf ? (new Date(a.asOf)).toLocaleString() : '';
+      const isCredit = a.kind === 'credit' || a.kind === 'loan';
+      const valueColor = isCredit && a.balanceCents > 0 ? 'var(--red)' :
+                         isCredit && a.balanceCents < 0 ? 'var(--spring-sage)' :
+                         'var(--plum)';
+      html += '<div style="background:var(--white);border:1px solid var(--gray-200);border-radius:10px;padding:12px 14px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:6px;">' +
+          '<div style="font-size:0.78rem;color:var(--gray-600);font-weight:600;">' + escapeHtml(a.name) + '</div>' +
+          '<span style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--gray-400);">' + kindLabel(a.kind) + '</span>' +
+        '</div>' +
+        '<div style="font-size:1.4rem;font-weight:700;color:' + valueColor + ';line-height:1.1;margin-top:4px;">$' + (a.balanceCents/100).toFixed(2) + '</div>' +
+        '<div style="font-size:0.7rem;color:var(--gray-400);margin-top:4px;">as of ' + escapeHtml(ago) + '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+  }
 
   // --- Counts for headline ---
   const uncatCount = _bankTransactions.filter(t => !t.category).length;
@@ -7232,11 +7293,21 @@ async function refreshPayments() {
 }
 
 // --- Pull new bank transactions from CCCU via SimpleFIN ---
-async function syncBank() {
+// Pull last 12 months of bank transactions in one shot. Used as a manual
+// backfill / testing utility. Idempotent — already-imported transactions
+// dedupe via UNIQUE (source, provider_id).
+async function syncBankBackfill() {
+  if (!confirm('Backfill last 12 months of bank transactions? This may take 30-60s and create lots of categorize-me rows.')) return;
+  return syncBank(365);
+}
+
+async function syncBank(startDays) {
   const btn = event && event.target ? event.target : null;
-  if (btn) { btn.disabled = true; btn.textContent = '🏦 Syncing…'; }
+  const originalText = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = (startDays ? 'Backfilling…' : 'Syncing…'); }
   try {
-    const resp = await fetch(PB_URL + '/api/admin/simplefin-sync', {
+    const url = PB_URL + '/api/admin/simplefin-sync' + (startDays ? ('?start_days=' + startDays) : '');
+    const resp = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
     });
@@ -7263,17 +7334,19 @@ async function syncBank() {
       };
     }
 
-    // Reload both views so indicators show up.
+    // Reload all the views so balances + indicators show up.
+    _bankLoaded = false;
     await Promise.all([loadPayments(), loadBank()]);
     if (document.getElementById('tab-bank') && document.getElementById('tab-bank').style.display === 'block') {
       renderBank();
-    } else {
-      renderPayments();
+    }
+    if (document.getElementById('tab-income') && document.getElementById('tab-income').style.display === 'block') {
+      renderIncome();
     }
   } catch (err) {
     alert('Network error: ' + err.message);
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = '🏦 Sync bank'; }
+    if (btn) { btn.disabled = false; btn.textContent = originalText || 'Sync'; }
   }
 }
 
