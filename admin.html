@@ -970,9 +970,7 @@ html[data-theme="dark"] .tab.active { background: var(--gray-100); color: var(--
         <option value="">-</option>
         <option value="cash">Cash</option>
         <option value="check">Check</option>
-        <option value="card">Card</option>
-        <option value="venmo">Venmo</option>
-        <option value="zelle">Zelle</option>
+        <option value="square">Square (card)</option>
         <option value="other">Other</option>
       </select>
     </div>
@@ -6029,8 +6027,8 @@ let _payingBookingId = null;
 // Re-render the Income tab while preserving focus + cursor in the search
 // input. Needed because each keystroke calls renderIncome() which replaces
 // the entire tab content via innerHTML.
-function rerenderIncome() {
-  renderIncome();
+async function rerenderIncome() {
+  await renderIncome();
   const el = document.getElementById('income-search');
   if (el) {
     el.focus();
@@ -6158,8 +6156,10 @@ async function renderBank() {
     document.getElementById('bank-content').innerHTML = '<div class="empty-day"><p>Loading bank data…</p></div>';
     await loadBank();
   }
-  // Payments ledger renders into its own div below.
-  renderPayments();
+  // Payments ledger no longer rendered here — it lives in the Income tab now.
+  // Bank tab is focused on bank-feed reconciliation only.
+  const paymentsHost = document.getElementById('payments-content');
+  if (paymentsHost) paymentsHost.innerHTML = '';
 
   const container = document.getElementById('bank-content');
   if (!container) return;
@@ -6757,15 +6757,17 @@ function bankMatchPill(status) {
   return '<span style="background:' + m.bg + ';color:' + m.fg + ';padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:600;">' + m.label + '</span>';
 }
 
-function renderIncome() {
+async function renderIncome() {
   const el = document.getElementById('income-content');
+  if (!_paymentsLoaded && PB_URL) {
+    el.innerHTML = '<div class="empty-day"><p>Loading income…</p></div>';
+    await loadPayments();
+  }
+
   const all = getBookings().filter(b => b.status !== 'canceled');
   const today = formatDate(new Date());
-  // Pull all months that have bookings
-  const months = Array.from(new Set(all.map(b => (b.date||'').slice(0,7)).filter(Boolean))).sort().reverse();
-  if (!months.includes(incomeViewMonth)) months.unshift(incomeViewMonth);
 
-  // --- Overall outstanding balance (all past visits, any month) ---
+  // --- Money expected but not received (overdue bookings, action card) ---
   const overdue = all.filter(b => (b.date||'') < today && !b.paid && (Number(b.price)||0) > 0);
   const overdueTotal = overdue.reduce((s,b) => s + (Number(b.price)||0), 0);
   const overdueByClient = {};
@@ -6777,32 +6779,64 @@ function renderIncome() {
     if ((b.date||'') < overdueByClient[k].oldest) overdueByClient[k].oldest = b.date;
   });
 
-  const inMonth = all.filter(b => (b.date||'').slice(0,7) === incomeViewMonth);
-  const gross = inMonth.reduce((s,b) => s + (Number(b.price)||0), 0);
-  const paid  = inMonth.filter(b => b.paid).reduce((s,b) => s + (Number(b.price)||0), 0);
-  const outstanding = gross - paid;
+  // --- Months available come from payments + bookings unioned ---
+  const monthSet = new Set();
+  (_paymentsCache || []).forEach(p => { const m = (p.capturedAt || '').slice(0, 7); if (m) monthSet.add(m); });
+  all.forEach(b => { const m = (b.date || '').slice(0, 7); if (m) monthSet.add(m); });
+  const months = [...monthSet].sort().reverse();
+  if (!months.includes(incomeViewMonth)) months.unshift(incomeViewMonth);
 
-  // Per-client breakdown for the month
+  // --- Payments in selected month ---
+  const monthPayments = (_paymentsCache || []).filter(p => {
+    if ((p.capturedAt || '').slice(0, 7) !== incomeViewMonth) return false;
+    // Exclude refunded/failed so the totals reflect actually-received money.
+    if (p.status && p.status !== 'completed' && p.status !== 'captured' && p.status !== 'paid') return false;
+    return true;
+  });
+  const grossCents = monthPayments.reduce((s, p) => s + (p.amountCents || 0), 0);
+  const feeCents = monthPayments.reduce((s, p) => s + (p.feeCents || 0), 0);
+  const netCents = grossCents - feeCents;
+  const gross = grossCents / 100;
+  const paid  = gross; // every payment row is received money
+  const outstanding = overdueTotal; // outstanding lives in the "You're owed" card now
+
+  // By-source split (Square / Cash / Check / Other).
+  const bySource = { square: 0, cash: 0, check: 0, other: 0 };
+  monthPayments.forEach(p => {
+    const k = (p.processor === 'square') ? 'square'
+            : (p.processor === 'cash') ? 'cash'
+            : (p.processor === 'check') ? 'check'
+            : 'other';
+    bySource[k] = (bySource[k] || 0) + (p.amountCents || 0);
+  });
+
+  // Per-client breakdown from payments.
   const byClient = {};
-  inMonth.forEach(b => {
-    const k = b.clientName || 'Unknown';
-    if (!byClient[k]) byClient[k] = { count:0, gross:0, paid:0 };
+  monthPayments.forEach(p => {
+    const k = p.customerName || 'Unknown';
+    if (!byClient[k]) byClient[k] = { count: 0, gross: 0, paid: 0 };
     byClient[k].count++;
-    byClient[k].gross += Number(b.price)||0;
-    if (b.paid) byClient[k].paid += Number(b.price)||0;
+    byClient[k].gross += (p.amountCents || 0) / 100;
+    byClient[k].paid  += (p.amountCents || 0) / 100;
   });
 
   const monthOpts = months.map(m => `<option value="${m}"${m===incomeViewMonth?' selected':''}>${escapeHtml(formatDisplayMonth(m))}</option>`).join('');
 
   // Apply filters to the month's bookings: status + client + free-text search
+  // Filter status now applies to payments: all | square | cash | check | other | unmatched
   const q = (incomeSearch || '').toLowerCase().trim();
-  const filtered = inMonth.filter(b => {
-    if (incomeFilterStatus === 'paid'   && !b.paid) return false;
-    if (incomeFilterStatus === 'unpaid' &&  b.paid) return false;
-    if (incomeFilterClient && (b.clientName || '') !== incomeFilterClient) return false;
+  const filtered = monthPayments.filter(p => {
+    const s = incomeFilterStatus;
+    if (s === 'square' && p.processor !== 'square') return false;
+    if (s === 'cash'   && p.processor !== 'cash')   return false;
+    if (s === 'check'  && p.processor !== 'check')  return false;
+    if (s === 'other'  && (['square','cash','check'].includes(p.processor))) return false;
+    if (s === 'unmatched' && !!p.bookingId) return false;
+    if (incomeFilterClient && (p.customerName || '') !== incomeFilterClient) return false;
     if (q) {
-      const name = (b.clientName || '').toLowerCase();
-      if (!name.includes(q)) return false;
+      const name = (p.customerName || '').toLowerCase();
+      const email = (p.customerEmail || '').toLowerCase();
+      if (!name.includes(q) && !email.includes(q)) return false;
     }
     return true;
   });
@@ -6837,15 +6871,29 @@ function renderIncome() {
         <button class="modal-btn secondary" style="padding:8px 12px;" onclick="exportIncomeCsv()">CSV</button>
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
-        <div><div style="font-size:0.75rem;color:var(--gray-600);">Gross</div><div style="font-size:1.3rem;font-weight:700;">$${gross.toFixed(0)}</div></div>
-        <div><div style="font-size:0.75rem;color:var(--gray-600);">Paid</div><div style="font-size:1.3rem;font-weight:700;color:var(--spring-sage,#6b8f52);">$${paid.toFixed(0)}</div></div>
-        <div><div style="font-size:0.75rem;color:var(--gray-600);">Outstanding</div><div style="font-size:1.3rem;font-weight:700;color:${outstanding>0?'var(--red)':'var(--gray-400)'};">$${outstanding.toFixed(0)}</div></div>
+        <div><div style="font-size:0.75rem;color:var(--gray-600);">Received</div><div style="font-size:1.3rem;font-weight:700;color:var(--spring-sage,#6b8f52);">$${gross.toFixed(0)}</div></div>
+        <div><div style="font-size:0.75rem;color:var(--gray-600);">Fees</div><div style="font-size:1.3rem;font-weight:700;color:var(--gray-600);">$${(feeCents/100).toFixed(0)}</div></div>
+        <div><div style="font-size:0.75rem;color:var(--gray-600);">Net</div><div style="font-size:1.3rem;font-weight:700;">$${(netCents/100).toFixed(0)}</div></div>
       </div>
+      ${ (bySource.square + bySource.cash + bySource.check + bySource.other) > 0
+        ? `<div style="display:flex;gap:4px;height:6px;border-radius:3px;overflow:hidden;margin-top:10px;">
+            ${bySource.square > 0 ? `<div title="Square: $${(bySource.square/100).toFixed(2)}" style="flex:${bySource.square};background:#0a7a3a;"></div>` : ''}
+            ${bySource.cash > 0 ? `<div title="Cash: $${(bySource.cash/100).toFixed(2)}" style="flex:${bySource.cash};background:var(--pollen-gold,#d4c27a);"></div>` : ''}
+            ${bySource.check > 0 ? `<div title="Check: $${(bySource.check/100).toFixed(2)}" style="flex:${bySource.check};background:var(--gray-400);"></div>` : ''}
+            ${bySource.other > 0 ? `<div title="Other: $${(bySource.other/100).toFixed(2)}" style="flex:${bySource.other};background:var(--petal-pink,#c2557a);"></div>` : ''}
+          </div>
+          <div style="display:flex;justify-content:center;gap:12px;margin-top:6px;font-size:0.7rem;color:var(--gray-600);">
+            ${bySource.square > 0 ? `<span><span style="display:inline-block;width:8px;height:8px;background:#0a7a3a;border-radius:50%;margin-right:3px;vertical-align:middle;"></span>Square $${(bySource.square/100).toFixed(0)}</span>` : ''}
+            ${bySource.cash > 0 ? `<span><span style="display:inline-block;width:8px;height:8px;background:var(--pollen-gold,#d4c27a);border-radius:50%;margin-right:3px;vertical-align:middle;"></span>Cash $${(bySource.cash/100).toFixed(0)}</span>` : ''}
+            ${bySource.check > 0 ? `<span><span style="display:inline-block;width:8px;height:8px;background:var(--gray-400);border-radius:50%;margin-right:3px;vertical-align:middle;"></span>Check $${(bySource.check/100).toFixed(0)}</span>` : ''}
+            ${bySource.other > 0 ? `<span><span style="display:inline-block;width:8px;height:8px;background:var(--petal-pink,#c2557a);border-radius:50%;margin-right:3px;vertical-align:middle;"></span>Other $${(bySource.other/100).toFixed(0)}</span>` : ''}
+          </div>`
+        : '' }
     </div>
   `;
 
-  // ----- Bookings card with filter bar -----
-  const pill = (label, value) => {
+  // ----- Payments card with filter bar -----
+  const pill = (label, value, count) => {
     const active = incomeFilterStatus === value;
     return '<button onclick="setIncomeStatus(\'' + value + '\')" style="' +
       'border:1px solid ' + (active ? 'var(--plum)' : 'var(--gray-200)') + ';' +
@@ -6853,22 +6901,32 @@ function renderIncome() {
       'color:' + (active ? 'var(--white)' : 'var(--gray-600)') + ';' +
       'font-family:Nunito,sans-serif;font-weight:600;font-size:0.8rem;' +
       'padding:6px 12px;border-radius:999px;cursor:pointer;' +
-      '">' + label + '</button>';
+      '">' + label + (count != null ? ' (' + count + ')' : '') + '</button>';
   };
+  const cSquare = monthPayments.filter(p => p.processor === 'square').length;
+  const cCash   = monthPayments.filter(p => p.processor === 'cash').length;
+  const cCheck  = monthPayments.filter(p => p.processor === 'check').length;
+  const cOther  = monthPayments.filter(p => !['square','cash','check'].includes(p.processor)).length;
+  const cUnmatched = monthPayments.filter(p => !p.bookingId).length;
 
   html += '<div style="background:var(--white);border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:var(--shadow);">' +
     '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;">' +
-      '<h3 style="font-size:1rem;">Bookings</h3>' +
+      '<h3 style="font-size:1rem;">Received this month</h3>' +
       '<span style="font-size:0.8rem;color:var(--gray-600);">' +
-        filtered.length + ' of ' + inMonth.length +
+        filtered.length + ' of ' + monthPayments.length +
       '</span>' +
     '</div>' +
     '<input type="search" id="income-search" value="' + escapeHtml(incomeSearch) + '"' +
-      ' oninput="incomeSearch=this.value;rerenderIncome()" placeholder="Search by client name..."' +
+      ' oninput="incomeSearch=this.value;rerenderIncome()" placeholder="Search by client name or email..."' +
       ' autocomplete="off" style="width:100%;padding:8px 10px;border-radius:8px;' +
       'border:1px solid var(--gray-200);font-family:Nunito,sans-serif;font-size:0.9rem;margin-bottom:8px;">' +
     '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">' +
-      pill('All', 'all') + pill('Unpaid', 'unpaid') + pill('Paid', 'paid') +
+      pill('All', 'all', monthPayments.length) +
+      pill('Square', 'square', cSquare) +
+      pill('Cash', 'cash', cCash) +
+      pill('Check', 'check', cCheck) +
+      (cOther > 0 ? pill('Other', 'other', cOther) : '') +
+      (cUnmatched > 0 ? pill('Unmatched', 'unmatched', cUnmatched) : '') +
     '</div>';
 
   // Active-filter chip row (shows client filter + a Clear button when active)
@@ -6891,44 +6949,49 @@ function renderIncome() {
 
   if (!filtered.length) {
     html += '<div style="color:var(--gray-600);font-size:0.9rem;padding:12px 0;">' +
-      (inMonth.length ? 'No bookings match these filters.' : 'No bookings this month.') +
+      (monthPayments.length ? 'No payments match these filters.' : 'No payments received this month.') +
     '</div>';
   } else {
-    // Oldest first (chronological reading order)
-    filtered.sort((a,b) => (a.date||'').localeCompare(b.date||''));
-    filtered.forEach(b => {
-      const price = Number(b.price)||0;
-      const paidBadge = b.paid
-        ? '<span style="background:#dfe8d4;color:var(--plum);padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:700;white-space:nowrap;">PAID' + (b.paymentMethod ? ' &middot; ' + escapeHtml(b.paymentMethod) : '') + '</span>'
-        : (price > 0
-            ? '<span style="background:var(--red-light);color:var(--red);padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:700;white-space:nowrap;">UNPAID</span>'
-            : '<span style="color:var(--gray-400);font-size:0.8rem;white-space:nowrap;">no price</span>');
-      // Quick actions only visible when useful (unpaid + has a price).
-      // data-id carries the booking id (HTML-attribute-escaped) instead of
-      // interpolating it into the JS string, so exotic ids (or a future
-      // schema change) can't break these handlers.
-      const idAttr = escAttr(b.id);
-      const quickActions = (!b.paid && price > 0)
-        ? '<button class="modal-btn primary" style="padding:4px 10px;font-size:0.8rem;" data-id="' + idAttr + '" onclick="event.stopPropagation();quickMarkPaid(this.dataset.id)">Paid</button>' +
-          '<button class="modal-btn secondary" style="padding:4px 10px;font-size:0.8rem;" data-id="' + idAttr + '" onclick="event.stopPropagation();sendInvoice(this.dataset.id)">Invoice</button>'
+    // Most recent first.
+    filtered.sort((a, b) => (b.capturedAt || '').localeCompare(a.capturedAt || ''));
+    const processorBadge = (p) => {
+      const map = {
+        square: ['#0a7a3a', 'rgba(10,122,58,0.1)', 'Square'],
+        cash:   ['#7a5a00', 'rgba(212,194,122,0.18)', 'Cash'],
+        check:  ['#444', 'rgba(0,0,0,0.06)', 'Check'],
+      };
+      const m = map[p.processor] || ['#444', 'rgba(0,0,0,0.06)', (p.processor || 'other').toUpperCase()];
+      return '<span style="background:' + m[1] + ';color:' + m[0] + ';padding:2px 8px;border-radius:10px;font-size:0.72rem;font-weight:700;white-space:nowrap;">' + escapeHtml(m[2]) + '</span>';
+    };
+    const depositBadge = (p) => {
+      if (!p.depositedAt) return '';
+      return '<span style="background:#dfe8d4;color:var(--plum);padding:2px 8px;border-radius:10px;font-size:0.72rem;font-weight:600;white-space:nowrap;" title="Deposited ' + escapeHtml(p.depositedAt) + '">deposited</span>';
+    };
+    filtered.forEach(p => {
+      const idAttr = escAttr(p.id);
+      const amountDollars = (p.amountCents || 0) / 100;
+      const dateNice = p.capturedAt ? formatDisplayDate(p.capturedAt.slice(0, 10)) : '—';
+      const name = p.customerName || p.customerEmail || 'Unknown';
+      const sub = p.bookingId
+        ? 'Booking · ' + (p.processor || '')
+        : '<span style="color:var(--red);">No booking linked</span>';
+      const matchBtn = !p.bookingId
+        ? '<button class="modal-btn secondary" style="padding:4px 10px;font-size:0.75rem;" data-id="' + idAttr + '" onclick="event.stopPropagation();openMatchPayment(this.dataset.id)">Match</button>'
         : '';
       html +=
-        '<div data-id="' + idAttr + '" onclick="openPayment(this.dataset.id)"' +
-          ' title="Tap to edit income"' +
+        '<div data-id="' + idAttr + '"' +
+          ' onclick="openPaymentDetail(this.dataset.id)"' +
+          ' title="Tap to see details"' +
           ' onmouseover="this.style.background=\'var(--gray-100)\'"' +
           ' onmouseout="this.style.background=\'transparent\'"' +
           ' style="display:flex;justify-content:space-between;align-items:center;gap:8px;' +
             'padding:8px 6px;border-bottom:1px solid var(--gray-100);cursor:pointer;border-radius:6px;">' +
           '<div style="flex:1;min-width:0;">' +
-            '<div style="font-weight:600;">' +
-              escapeHtml(formatDisplayDate(b.date)) + ' &middot; ' + escapeHtml(b.clientName || 'Client') +
-            '</div>' +
-            '<div style="font-size:0.8rem;color:var(--gray-600);">' +
-              escapeHtml(EVENT_LABELS[b.eventType] || b.eventType || '') + ' &middot; $' + price.toFixed(0) +
-            '</div>' +
+            '<div style="font-weight:600;">$' + amountDollars.toFixed(2) + ' &middot; ' + escapeHtml(name) + '</div>' +
+            '<div style="font-size:0.78rem;color:var(--gray-600);">' + escapeHtml(dateNice) + ' &middot; ' + sub + '</div>' +
           '</div>' +
           '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">' +
-            paidBadge + quickActions +
+            processorBadge(p) + depositBadge(p) + matchBtn +
           '</div>' +
           '<div style="color:var(--gray-400);font-size:1.1rem;margin-left:2px;flex-shrink:0;" aria-hidden="true">&rsaquo;</div>' +
         '</div>';
@@ -7285,22 +7348,120 @@ async function submitLogPayment() {
 }
 
 // --- Match payment to booking (simple numbered prompt — replace with picker UI later) ---
+// Match-to-booking picker — replaces the old prompt() with a real searchable
+// modal. Suggests the closest amount/date match at the top, then lets you
+// search through the rest of the bookings by client name.
+let _matchPaymentId = null;
+let _matchSearchTerm = '';
+
 async function openMatchPayment(paymentId) {
-  const p = _paymentsCache.find(x => x.id === paymentId);
+  const p = (_paymentsCache || []).find(x => x.id === paymentId);
   if (!p) return;
-  const recent = getBookings()
-    .filter(b => b.status !== 'canceled')
-    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
-    .slice(0, 30);
-  const choices = recent.map((b, i) =>
-    (i + 1) + '. ' + b.date + ' · ' + (b.clientName || 'unknown') + ' · ' + (b.eventType || '')
-  ).join('\n');
-  const pick = prompt('Match payment of ' + fmtMoney(p.amountCents) + ' from ' + (p.customerName || p.customerEmail || '?') +
-    '\n\nType the number of the booking to match:\n\n' + choices, '');
-  if (!pick) return;
-  const idx = parseInt(pick, 10) - 1;
-  if (isNaN(idx) || idx < 0 || idx >= recent.length) { alert('Invalid pick.'); return; }
-  const bookingId = recent[idx].id;
+  _matchPaymentId = paymentId;
+  _matchSearchTerm = '';
+  renderMatchPickerModal();
+}
+
+function closeMatchPicker() {
+  _matchPaymentId = null;
+  const m = document.getElementById('match-picker-modal');
+  if (m) m.remove();
+}
+
+function renderMatchPickerModal() {
+  const paymentId = _matchPaymentId;
+  if (!paymentId) return;
+  const p = (_paymentsCache || []).find(x => x.id === paymentId);
+  if (!p) return;
+
+  let modal = document.getElementById('match-picker-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'match-picker-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;';
+    modal.addEventListener('click', (ev) => { if (ev.target === modal) closeMatchPicker(); });
+    document.body.appendChild(modal);
+  }
+
+  const allBookings = getBookings().filter(b => b.status !== 'canceled');
+  // Score each booking: amount match (50pts), name match if customer name set (30pts),
+  // recency within ±10 days of payment (20pts).
+  const payDate = (p.capturedAt || '').slice(0, 10);
+  const payAmount = p.amountCents || 0;
+  const payName = (p.customerName || '').toLowerCase().trim();
+  function score(b) {
+    let s = 0;
+    const price = Math.round((Number(b.price) || 0) * 100);
+    if (price > 0 && price === payAmount) s += 50;
+    const bName = (b.clientName || '').toLowerCase().trim();
+    if (payName && bName && (bName.includes(payName.split(/\s+/)[0]) || payName.includes(bName.split(/\s+/)[0]))) s += 30;
+    if (payDate && b.date) {
+      const dayDiff = Math.abs((new Date(b.date) - new Date(payDate)) / 86400000);
+      if (dayDiff <= 10) s += Math.max(0, 20 - Math.floor(dayDiff * 2));
+    }
+    return s;
+  }
+  const scored = allBookings.map(b => ({ b: b, s: score(b) }));
+  scored.sort((a, b) => b.s - a.s || (b.b.date || '').localeCompare(a.b.date || ''));
+
+  const q = (_matchSearchTerm || '').toLowerCase().trim();
+  const filtered = q
+    ? scored.filter(x => {
+        const hay = ((x.b.clientName || '') + ' ' + (x.b.date || '') + ' ' + (x.b.clientEmail || '')).toLowerCase();
+        return hay.includes(q);
+      })
+    : scored;
+
+  const top = filtered.slice(0, 40);
+
+  const amtStr = '$' + (payAmount / 100).toFixed(2);
+  const whenStr = payDate ? new Date(payDate + 'T12:00:00').toLocaleDateString() : '?';
+
+  const rows = top.length === 0
+    ? '<p style="opacity:0.6;padding:16px;text-align:center;font-size:0.9rem;">No bookings match.</p>'
+    : top.map(({ b, s }) => {
+        const price = Number(b.price) || 0;
+        const isBest = s >= 50;
+        const exactBadge = (Math.round(price * 100) === payAmount && payAmount > 0)
+          ? '<span style="background:#dfe8d4;color:var(--plum);padding:1px 6px;border-radius:6px;font-size:0.65rem;font-weight:700;margin-left:6px;">EXACT</span>'
+          : '';
+        return '<button type="button" onclick="confirmMatchPayment(\'' + b.id + '\')" style="' +
+          'display:flex;width:100%;justify-content:space-between;align-items:center;gap:10px;' +
+          'padding:10px 12px;border:1px solid ' + (isBest ? 'var(--spring-sage,#9bbd85)' : 'var(--gray-200)') + ';' +
+          'background:' + (isBest ? 'rgba(155,189,133,0.08)' : 'var(--white)') + ';border-radius:8px;font-family:inherit;cursor:pointer;text-align:left;color:inherit;">' +
+          '<div style="flex:1;min-width:0;">' +
+            '<div style="font-weight:600;font-size:0.95rem;">' +
+              escapeHtml(b.clientName || 'Unknown') + exactBadge +
+            '</div>' +
+            '<div style="font-size:0.78rem;color:var(--gray-600);">' +
+              escapeHtml(b.date || '?') + ' · ' + escapeHtml(EVENT_LABELS[b.eventType] || b.eventType || '') +
+              (price > 0 ? ' · $' + price.toFixed(2) : '') +
+              (b.paid ? ' · already paid' : '') +
+            '</div>' +
+          '</div>' +
+          '<div style="color:var(--gray-400);font-size:1.1rem;flex-shrink:0;">›</div>' +
+        '</button>';
+      }).join('');
+
+  modal.innerHTML =
+    '<div style="background:#fff;border-radius:10px;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;padding:22px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:10px;">' +
+        '<div>' +
+          '<h2 style="margin:0;font-size:1.2rem;">Match to booking</h2>' +
+          '<div style="font-size:0.85rem;color:var(--gray-600);margin-top:4px;">' +
+            amtStr + ' from ' + escapeHtml(p.customerName || p.customerEmail || 'Unknown') + ' · ' + whenStr +
+          '</div>' +
+        '</div>' +
+        '<button onclick="closeMatchPicker()" style="background:transparent;border:none;cursor:pointer;font-size:1.4rem;color:var(--plum);">&times;</button>' +
+      '</div>' +
+      '<input type="search" autofocus placeholder="Search by name or date…" value="' + escapeHtml(_matchSearchTerm) + '" oninput="_matchSearchTerm=this.value;renderMatchPickerModal();" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--gray-200);font-size:0.9rem;margin:10px 0 12px;background:var(--white);color:var(--plum);">' +
+      '<div style="display:flex;flex-direction:column;gap:6px;">' + rows + '</div>' +
+    '</div>';
+}
+
+async function confirmMatchPayment(bookingId) {
+  const paymentId = _matchPaymentId;
+  if (!paymentId || !bookingId) return;
   try {
     const resp = await fetch(PB_URL + '/api/admin/match-payment', {
       method: 'POST',
@@ -7312,13 +7473,13 @@ async function openMatchPayment(paymentId) {
       alert('Match failed: ' + (err.error || resp.status));
       return;
     }
+    closeMatchPicker();
+    _paymentsLoaded = false;
     await loadPayments();
-    renderPayments();
-    // Re-pull bookings so Income tab sees the new paid flag.
     _cachedBookings = await DB.getBookings();
-  } catch (err) {
-    alert('Network error: ' + err.message);
-  }
+    renderIncome();
+    renderBank();
+  } catch (err) { alert('Network error: ' + err.message); }
 }
 
 function openPayment(bookingId) {
@@ -7334,6 +7495,19 @@ function openPayment(bookingId) {
   document.getElementById('modal-payment').classList.add('open');
 }
 
+// Tapping a payment row in the Income tab: if it's linked to a booking,
+// jump into that booking's payment modal so admin can adjust. If unmatched,
+// open the Match-to-booking picker.
+function openPaymentDetail(paymentId) {
+  const p = (_paymentsCache || []).find(x => x.id === paymentId);
+  if (!p) return;
+  if (p.bookingId) {
+    openPayment(p.bookingId);
+  } else {
+    openMatchPayment(paymentId);
+  }
+}
+
 async function savePayment() {
   if (!_payingBookingId) return;
   const price = parseFloat(document.getElementById('pay-price').value) || 0;
@@ -7347,6 +7521,27 @@ async function savePayment() {
     await DB.updateBooking(_payingBookingId, {
       price, paid, paymentMethod: method, paidDate: finalDate, paymentNotes: notes
     });
+
+    // Mirror the booking-paid state into the unified `payments` collection
+    // so Income tab sees this dollar. Square payments are managed by the
+    // webhook and aren't touched here.
+    try {
+      await fetch(PB_URL + '/api/admin/payments/booking-upsert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+        body: JSON.stringify({
+          booking_id: _payingBookingId,
+          paid: !!paid,
+          amount_cents: Math.round(price * 100),
+          method: method || 'cash',
+          paid_date: finalDate || '',
+          notes: notes,
+        }),
+      });
+    } catch (err) {
+      console.warn('payments booking-upsert failed:', err && err.message);
+    }
+
     // Update cache
     const b = _cachedBookings.find(x => x.id === _payingBookingId);
     if (b) { b.price = price; b.paid = paid; b.paymentMethod = method; b.paidDate = finalDate; b.paymentNotes = notes; }
@@ -7354,6 +7549,7 @@ async function savePayment() {
     _payingBookingId = null;
     // Refresh whichever views might be showing this booking so totals
     // stay in sync whether the edit was triggered from Income or Clients.
+    _paymentsLoaded = false; // force a re-pull of the unified ledger
     renderIncome();
     renderClients();
   } catch (e) {
