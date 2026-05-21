@@ -52,7 +52,12 @@ html {
 }
 body {
   font-family: 'Josefin Sans', sans-serif;
-  background: radial-gradient(ellipse at top, var(--moon-bg2) 0%, var(--moon-bg) 60%);
+  /* Linear (not radial) so the entire top edge is uniformly bg2, matching the
+     html background exactly — no color seam at the top-left/top-right corners
+     where a radial-at-top gradient was already transitioning to bg. */
+  background: linear-gradient(to bottom, var(--moon-bg2) 0%, var(--moon-bg) 60%) no-repeat;
+  background-attachment: fixed;
+  background-color: var(--moon-bg);    /* fallback below the gradient stop */
   color: var(--moon-text);
   min-height: 100vh;
   margin: 0;
