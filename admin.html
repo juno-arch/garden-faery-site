@@ -3555,6 +3555,13 @@ function invoiceRow(inv) {
   }
   actions.push('<button class="modal-btn secondary" style="padding:5px 10px;font-size:0.76rem;" onclick="invoiceCopyLink(\'' + inv.view_token + '\')">Copy link</button>');
   actions.push('<button class="modal-btn secondary" style="padding:5px 10px;font-size:0.76rem;" onclick="invoiceOpenPublic(\'' + inv.view_token + '\')">View</button>');
+  // Text-invoice action: only on unpaid invoices, and only when a phone is
+  // known via the linked booking/client. Backend gates the actual send on
+  // SMS_ENABLED + TWILIO_* env vars.
+  if (inv.status !== 'paid' && inv.status !== 'void') {
+    const smsLabel = inv.sent_sms_at ? 'Re-text' : 'Text invoice';
+    actions.push('<button class="modal-btn secondary" style="padding:5px 10px;font-size:0.76rem;" onclick="invoiceSendSms(\'' + inv.id + '\')">' + smsLabel + '</button>');
+  }
   if (isDraft || isOpen) {
     actions.push('<button class="modal-btn secondary" style="padding:5px 10px;font-size:0.76rem;" onclick="openInvoiceEditModal(\'' + inv.id + '\')">Edit</button>');
   }
@@ -3568,6 +3575,10 @@ function invoiceRow(inv) {
         '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">' +
           '<strong style="font-size:0.95rem;">' + escHtml(inv.number) + '</strong>' +
           invoiceStatusPill(inv) +
+          (inv.sent_sms_at
+            ? '<span style="background:#dbeafe;color:#0a5a8a;padding:2px 8px;border-radius:99px;font-size:0.68rem;font-weight:600;" title="Texted ' + escHtml(inv.sent_sms_at) + (inv.sent_sms_to ? ' to ' + escHtml(inv.sent_sms_to) : '') + '">texted</span>'
+            : ''
+          ) +
         '</div>' +
         '<div style="margin-top:4px;font-size:0.85rem;">' + escHtml(inv.client_name || '(no name)') +
           (inv.client_email ? ' &middot; <span style="opacity:0.7;">' + escHtml(inv.client_email) + '</span>' : '') +
@@ -3969,6 +3980,37 @@ function invoiceCopyLink(token) {
 }
 function invoiceOpenPublic(token) {
   window.open(invoicePublicUrl(token), '_blank');
+}
+
+// Text the public invoice link to the client. Backend looks up the phone
+// from the linked booking / client record. Gracefully reports if Twilio
+// isn't configured yet (TCR approval pending).
+async function invoiceSendSms(id) {
+  const inv = _invoices.find(x => x.id === id);
+  if (!inv) return;
+  const balance = ((inv.total_cents || 0) - (inv.paid_cents || 0)) / 100;
+  const who = inv.client_name || inv.client_email || 'this client';
+  const confirmMsg = (inv.sent_sms_at ? 'Re-text ' : 'Text ') + who +
+    ' the invoice for $' + balance.toFixed(2) + '?';
+  if (!confirm(confirmMsg)) return;
+
+  try {
+    const resp = await fetch(PB_URL + '/api/admin/invoices/send-sms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+      body: JSON.stringify({ id: id }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok || !data.ok) {
+      alert('Could not send: ' + (data.error || resp.status));
+      return;
+    }
+    _invoicesLoaded = false;
+    await renderInvoices();
+    alert('Sent to ' + data.to);
+  } catch (err) {
+    alert('Network error: ' + err.message);
+  }
 }
 
 // ============================================
