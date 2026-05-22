@@ -1769,22 +1769,44 @@ function renderTodayCard() {
   }
   const focused = bks.find(b => b.id === _todayFocusedBookingId) || bks[0];
   const label = EVENT_LABELS[focused.eventType] || focused.eventType || 'visit';
-  const price = Number(focused.price) || 0;
+  const setPrice = Number(focused.price) || 0;
+
+  // Fallback: if no price is set on this visit, look up the client's most
+  // recent paid visit price. Lets the "Log payment" button suggest the
+  // right amount for recurring clients (Kenzie/James) without making her
+  // type the price each time.
+  let suggested = 0, suggestedFromHistory = false;
+  if (setPrice > 0) {
+    suggested = setPrice;
+  } else {
+    const allBks = (typeof getBookings === 'function' ? getBookings() : []);
+    const key = (focused.clientEmail || focused.clientName || '').toLowerCase().trim();
+    if (key) {
+      const last = allBks
+        .filter(b => b.paid && (Number(b.price) || 0) > 0 &&
+          ((b.clientEmail || b.clientName || '').toLowerCase().trim() === key))
+        .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
+      if (last) { suggested = Number(last.price) || 0; suggestedFromHistory = true; }
+    }
+  }
 
   // Greeting line is now the CLIENT name (the actual headline).
   greet.textContent = focused.clientName || 'Client';
   sum.className = 'today-summary';
-  sum.textContent = (focused.time ? focused.time + ' · ' : '') + label + (price > 0 ? ' · $' + price.toFixed(0) : '');
+  sum.textContent = (focused.time ? focused.time + ' · ' : '') + label +
+    (setPrice > 0 ? ' · $' + setPrice.toFixed(0)
+                  : (suggested > 0 ? ' · ~$' + suggested.toFixed(0) + ' (typical)' : ''));
 
   // Payment quick-action.
   if (payEl) {
-    if (price <= 0) {
-      payEl.innerHTML = '<button class="today-pay-btn" onclick="openPayment(\'' + escAttr(focused.id) + '\')">Set price + log payment</button>';
-    } else if (focused.paid) {
+    if (focused.paid) {
       const meth = focused.paymentMethod ? ' · ' + escapeHtml(focused.paymentMethod) : '';
-      payEl.innerHTML = '<button class="today-pay-btn paid" onclick="openPayment(\'' + escAttr(focused.id) + '\')">✓ Paid $' + price.toFixed(0) + meth + ' (edit)</button>';
+      payEl.innerHTML = '<button class="today-pay-btn paid" onclick="openPayment(\'' + escAttr(focused.id) + '\')">✓ Paid $' + setPrice.toFixed(0) + meth + ' (edit)</button>';
+    } else if (suggested > 0) {
+      const label2 = suggestedFromHistory ? '~$' + suggested.toFixed(0) : '$' + suggested.toFixed(0);
+      payEl.innerHTML = '<button class="today-pay-btn" onclick="openPayment(\'' + escAttr(focused.id) + '\')">Log ' + label2 + ' payment</button>';
     } else {
-      payEl.innerHTML = '<button class="today-pay-btn" onclick="openPayment(\'' + escAttr(focused.id) + '\')">Log $' + price.toFixed(0) + ' payment</button>';
+      payEl.innerHTML = '<button class="today-pay-btn" onclick="openPayment(\'' + escAttr(focused.id) + '\')">Set price + log payment</button>';
     }
   }
 
@@ -1850,16 +1872,45 @@ async function renderDashboard() {
 
   // --- Next 30 days expected income ---
   // "Expected" = bookings in the next 30 days that haven't been paid yet.
-  // The previous calc summed ALL upcoming bookings, double-counting deposits
-  // and Square-paid visits that already landed in the books.
+  // When a future booking has no price set yet (common for Kenzie/James
+  // recurring slots that get priced after the work is done), fall back
+  // to that client's most recent paid visit price so the dashboard still
+  // shows a realistic forecast instead of $0.
+  const lastPaidPriceByClient = {};
+  bookings.forEach(b => {
+    if (!b.paid) return;
+    const price = Number(b.price) || 0;
+    if (price <= 0) return;
+    const key = (b.clientEmail || b.clientName || '').toLowerCase().trim();
+    if (!key) return;
+    const cur = lastPaidPriceByClient[key];
+    if (!cur || (b.date || '') > cur.date) {
+      lastPaidPriceByClient[key] = { date: b.date || '', price: price };
+    }
+  });
+  function expectedPriceFor(b) {
+    const set = Number(b.price) || 0;
+    if (set > 0) return { price: set, inferred: false };
+    const key = (b.clientEmail || b.clientName || '').toLowerCase().trim();
+    const hist = lastPaidPriceByClient[key];
+    if (hist) return { price: hist.price, inferred: true };
+    return { price: 0, inferred: false };
+  }
+
   const next30End = new Date(todayDate); next30End.setDate(next30End.getDate() + 30);
   const next30EndStr = formatDate(next30End);
   const upcoming = bookings.filter(b => (b.date||'') >= today && (b.date||'') <= next30EndStr);
   const next30Unpaid = upcoming.filter(b => !b.paid);
-  const next30Expected = next30Unpaid.reduce((s,b) => s + (Number(b.price)||0), 0);
+  let next30Expected = 0, next30Inferred = 0;
+  next30Unpaid.forEach(b => {
+    const { price, inferred } = expectedPriceFor(b);
+    next30Expected += price;
+    if (inferred && price > 0) next30Inferred++;
+  });
   const next30AlreadyPaid = upcoming.filter(b => b.paid).reduce((s,b) => s + (Number(b.price)||0), 0);
   const next30Count = upcoming.length;
   const next30UnpaidCount = next30Unpaid.length;
+  const next30NoPriceCount = next30Unpaid.filter(b => (Number(b.price) || 0) === 0 && !lastPaidPriceByClient[(b.clientEmail || b.clientName || '').toLowerCase().trim()]).length;
 
   // --- 12-month revenue (last 12 including current) ---
   const months = [];
@@ -1976,7 +2027,14 @@ async function renderDashboard() {
     </div>
   `;
 
-  // Next 30 days — expected income = unpaid upcoming only.
+  // Next 30 days — expected income (unpaid upcoming, with last-paid
+  // fallback for visits that haven't had a price entered yet).
+  const noPriceWarning = next30NoPriceCount > 0
+    ? '<div style="margin-top:6px;padding:6px 10px;background:rgba(212,194,122,0.18);border-radius:6px;font-size:0.74rem;color:var(--gray-600);">' +
+        next30NoPriceCount + ' upcoming visit' + (next30NoPriceCount === 1 ? '' : 's') +
+        ' from new clients have no price set yet — open the booking to add one.' +
+      '</div>'
+    : '';
   html += `
     <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
       <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -1988,9 +2046,12 @@ async function renderDashboard() {
         </div>
         <div style="text-align:right;">
           <div style="font-size:1.4rem;font-weight:700;color:#6b8f52;">${fmt(next30Expected)}</div>
-          <div style="font-size:0.68rem;color:var(--gray-400);">expected</div>
+          <div style="font-size:0.68rem;color:var(--gray-400);">
+            expected${next30Inferred > 0 ? ' · ' + next30Inferred + ' est' : ''}
+          </div>
         </div>
       </div>
+      ${noPriceWarning}
     </div>
   `;
 
@@ -7670,7 +7731,22 @@ function openPayment(bookingId) {
   if (!b) return;
   _payingBookingId = bookingId;
   document.getElementById('pay-booking-info').textContent = `${formatDisplayDate(b.date)} · ${b.clientName||'Client'} · ${EVENT_LABELS[b.eventType]||b.eventType}`;
-  document.getElementById('pay-price').value = b.price || '';
+
+  // If no price set on this booking, pre-fill with the client's most recent
+  // paid visit price so recurring clients don't need re-entry every time.
+  let priceVal = Number(b.price) || 0;
+  if (priceVal <= 0) {
+    const key = (b.clientEmail || b.clientName || '').toLowerCase().trim();
+    if (key) {
+      const last = (getBookings() || [])
+        .filter(x => x.paid && (Number(x.price) || 0) > 0 &&
+          ((x.clientEmail || x.clientName || '').toLowerCase().trim() === key) &&
+          x.id !== b.id)
+        .sort((x, y) => (y.date || '').localeCompare(x.date || ''))[0];
+      if (last) priceVal = Number(last.price) || 0;
+    }
+  }
+  document.getElementById('pay-price').value = priceVal || '';
   document.getElementById('pay-paid').checked = !!b.paid;
   document.getElementById('pay-method').value = b.paymentMethod || '';
   document.getElementById('pay-date').value = (b.paidDate||'').slice(0,10);
