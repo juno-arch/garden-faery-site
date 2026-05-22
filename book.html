@@ -1054,6 +1054,19 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
         </div>
       </div>
 
+      <div class="form-group">
+        <label for="f-source">How did you find me?</label>
+        <select id="f-source" style="width:100%;padding:10px 12px;border:1px solid var(--gray-200);border-radius:8px;background:var(--white);font-family:inherit;font-size:0.95rem;color:var(--plum);">
+          <option value="">— pick one (optional) —</option>
+          <option value="word_of_mouth">Word of mouth</option>
+          <option value="referral">Friend or neighbor referral</option>
+          <option value="website">Searched online</option>
+          <option value="instagram">Instagram</option>
+          <option value="returning">I've been a client before</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
       <!-- Marketing opt-in. Both unchecked by default (opt-in is opt-in).
            Distinct from the operational SMS consent below — that one
            covers visit reminders, weather reroutes, login codes, etc.
@@ -1275,6 +1288,7 @@ const DB = {
       auto_reschedule_on_rain: !!booking.autoRescheduleOnRain,
       marketing_email_opt_in: !!booking.marketingEmailOptIn,
       marketing_sms_opt_in: !!booking.marketingSmsOptIn,
+      source: booking.source || '',
     };
     if (booking.recurringSeriesId) payload.recurring_series_id = booking.recurringSeriesId;
     if (booking.recurringFrequency) payload.recurring_frequency = booking.recurringFrequency;
@@ -1952,6 +1966,7 @@ async function submitBooking() {
     const autoReschedule = !!document.getElementById('f-auto-reschedule')?.checked;
     const mktEmail = !!document.getElementById('f-mkt-email')?.checked;
     const mktSms   = !!document.getElementById('f-mkt-sms')?.checked;
+    const source   = (document.getElementById('f-source')?.value || '').trim();
     try {
       for (const ds of multiDates) {
         const b = {
@@ -1971,6 +1986,7 @@ async function submitBooking() {
           autoRescheduleOnRain: autoReschedule,
           marketingEmailOptIn: mktEmail,
           marketingSmsOptIn: mktSms,
+          source: source,
           createdAt: new Date().toISOString()
         };
         await DB.saveBooking(b);
@@ -2004,6 +2020,7 @@ async function submitBooking() {
     autoRescheduleOnRain: !!document.getElementById('f-auto-reschedule')?.checked,
     marketingEmailOptIn: !!document.getElementById('f-mkt-email')?.checked,
     marketingSmsOptIn:   !!document.getElementById('f-mkt-sms')?.checked,
+    source: (document.getElementById('f-source')?.value || '').trim(),
     createdAt: new Date().toISOString()
   };
 
