@@ -1724,6 +1724,24 @@ function toggleTheme() {
 })();
 
 // ----- Today card population -----
+// Shared price-from-rate-and-duration helper. Used by the Today card,
+// the openPayment modal, and the dashboard's Next-30-Days widget so
+// the suggested price stays consistent across the three surfaces.
+// Returns 0 when the event_type isn't priceable (unknown duration).
+const _EVENT_DURATION_HOURS = { morning: 5, afternoon: 2, monday: 3.5 };
+function expectedPriceForBooking(b) {
+  const dur = _EVENT_DURATION_HOURS[b.eventType] || 0;
+  if (dur <= 0) return 0;
+  let rate = 30;
+  const key = (b.clientEmail || b.clientName || '').toLowerCase().trim();
+  const phoneKey = (b.clientPhone || '').replace(/\D/g, '');
+  if (typeof _clientsByEmail !== 'undefined') {
+    const crec = (key && _clientsByEmail[key]) || (phoneKey.length >= 7 && _clientsByPhone[phoneKey]);
+    if (crec && Number(crec.hourly_rate) > 0) rate = Number(crec.hourly_rate);
+  }
+  return Math.round(rate * dur);
+}
+
 // Today card leads with the focused client of the day. If she has more
 // than one visit, the others show as pills below — tap one to switch
 // focus. The big button opens the payment modal pre-filled so logging
@@ -1771,23 +1789,12 @@ function renderTodayCard() {
   const label = EVENT_LABELS[focused.eventType] || focused.eventType || 'visit';
   const setPrice = Number(focused.price) || 0;
 
-  // Fallback: if no price is set on this visit, look up the client's most
-  // recent paid visit price. Lets the "Log payment" button suggest the
-  // right amount for recurring clients (Kenzie/James) without making her
-  // type the price each time.
-  let suggested = 0, suggestedFromHistory = false;
-  if (setPrice > 0) {
-    suggested = setPrice;
-  } else {
-    const allBks = (typeof getBookings === 'function' ? getBookings() : []);
-    const key = (focused.clientEmail || focused.clientName || '').toLowerCase().trim();
-    if (key) {
-      const last = allBks
-        .filter(b => b.paid && (Number(b.price) || 0) > 0 &&
-          ((b.clientEmail || b.clientName || '').toLowerCase().trim() === key))
-        .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
-      if (last) { suggested = Number(last.price) || 0; suggestedFromHistory = true; }
-    }
+  // Same rate × duration calc used by the dashboard's Next-30-Days widget,
+  // so the suggested price matches everywhere.
+  let suggested = setPrice, suggestedFromHistory = false;
+  if (setPrice <= 0) {
+    const guess = expectedPriceForBooking(focused);
+    if (guess > 0) { suggested = guess; suggestedFromHistory = true; }
   }
 
   // Greeting line is now the CLIENT name (the actual headline).
@@ -1872,29 +1879,16 @@ async function renderDashboard() {
 
   // --- Next 30 days expected income ---
   // "Expected" = bookings in the next 30 days that haven't been paid yet.
-  // When a future booking has no price set yet (common for Kenzie/James
-  // recurring slots that get priced after the work is done), fall back
-  // to that client's most recent paid visit price so the dashboard still
-  // shows a realistic forecast instead of $0.
-  const lastPaidPriceByClient = {};
-  bookings.forEach(b => {
-    if (!b.paid) return;
-    const price = Number(b.price) || 0;
-    if (price <= 0) return;
-    const key = (b.clientEmail || b.clientName || '').toLowerCase().trim();
-    if (!key) return;
-    const cur = lastPaidPriceByClient[key];
-    if (!cur || (b.date || '') > cur.date) {
-      lastPaidPriceByClient[key] = { date: b.date || '', price: price };
-    }
-  });
+  // When a future booking has no price set yet (Kenzie/James recurring
+  // slots get priced after the work is done), fall back to
+  // client.hourly_rate × visit duration. Default rate is $30/hr,
+  // Kenzie's is $25/hr — set on the clients collection so admin can
+  // tweak per-client from the Detail modal.
   function expectedPriceFor(b) {
     const set = Number(b.price) || 0;
     if (set > 0) return { price: set, inferred: false };
-    const key = (b.clientEmail || b.clientName || '').toLowerCase().trim();
-    const hist = lastPaidPriceByClient[key];
-    if (hist) return { price: hist.price, inferred: true };
-    return { price: 0, inferred: false };
+    const guess = expectedPriceForBooking(b);
+    return { price: guess, inferred: guess > 0 };
   }
 
   const next30End = new Date(todayDate); next30End.setDate(next30End.getDate() + 30);
@@ -1910,7 +1904,8 @@ async function renderDashboard() {
   const next30AlreadyPaid = upcoming.filter(b => b.paid).reduce((s,b) => s + (Number(b.price)||0), 0);
   const next30Count = upcoming.length;
   const next30UnpaidCount = next30Unpaid.length;
-  const next30NoPriceCount = next30Unpaid.filter(b => (Number(b.price) || 0) === 0 && !lastPaidPriceByClient[(b.clientEmail || b.clientName || '').toLowerCase().trim()]).length;
+  // Visits that even the rate×duration calc can't price (unknown event type).
+  const next30NoPriceCount = next30Unpaid.filter(b => expectedPriceFor(b).price === 0).length;
 
   // --- 12-month revenue (last 12 including current) ---
   const months = [];
@@ -2032,7 +2027,7 @@ async function renderDashboard() {
   const noPriceWarning = next30NoPriceCount > 0
     ? '<div style="margin-top:6px;padding:6px 10px;background:rgba(212,194,122,0.18);border-radius:6px;font-size:0.74rem;color:var(--gray-600);">' +
         next30NoPriceCount + ' upcoming visit' + (next30NoPriceCount === 1 ? '' : 's') +
-        ' from new clients have no price set yet — open the booking to add one.' +
+        ' couldn\'t auto-price (unknown event type) — open the booking to set one manually.' +
       '</div>'
     : '';
   html += `
@@ -7732,20 +7727,11 @@ function openPayment(bookingId) {
   _payingBookingId = bookingId;
   document.getElementById('pay-booking-info').textContent = `${formatDisplayDate(b.date)} · ${b.clientName||'Client'} · ${EVENT_LABELS[b.eventType]||b.eventType}`;
 
-  // If no price set on this booking, pre-fill with the client's most recent
-  // paid visit price so recurring clients don't need re-entry every time.
+  // If no price set on this booking, pre-fill with client.hourly_rate
+  // × visit duration so the common case (recurring client, standard slot)
+  // is one tap to save.
   let priceVal = Number(b.price) || 0;
-  if (priceVal <= 0) {
-    const key = (b.clientEmail || b.clientName || '').toLowerCase().trim();
-    if (key) {
-      const last = (getBookings() || [])
-        .filter(x => x.paid && (Number(x.price) || 0) > 0 &&
-          ((x.clientEmail || x.clientName || '').toLowerCase().trim() === key) &&
-          x.id !== b.id)
-        .sort((x, y) => (y.date || '').localeCompare(x.date || ''))[0];
-      if (last) priceVal = Number(last.price) || 0;
-    }
-  }
+  if (priceVal <= 0) priceVal = expectedPriceForBooking(b);
   document.getElementById('pay-price').value = priceVal || '';
   document.getElementById('pay-paid').checked = !!b.paid;
   document.getElementById('pay-method').value = b.paymentMethod || '';
@@ -8863,6 +8849,8 @@ function openClientDetailModal(cid) {
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">' +
         '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Status</label><select id="cd-status" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;">' + statusOpts + '</select></div>' +
         '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Source</label><select id="cd-source" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;">' + sourceOpts + '</select></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Hourly rate ($/hr)</label><input id="cd-rate" type="number" step="0.5" min="0" value="' + (Number(c.hourly_rate) > 0 ? c.hourly_rate : 30) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
+        '<div></div>' +
         '<div style="grid-column:span 2;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Tags (comma-separated)</label><input id="cd-tags" value="' + escA(c.tags) + '" placeholder="VIP, new, monthly, hard-to-reach" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
       '</div>' +
 
@@ -8900,6 +8888,7 @@ async function saveClientDetail(cid) {
     tags: document.getElementById('cd-tags').value.trim(),
     marketing_email_opt_in: document.getElementById('cd-email-opt').checked,
     marketing_sms_opt_in: false, // GF never sends promo SMS; field kept for schema parity
+    hourly_rate: Number(document.getElementById('cd-rate').value) || 30,
     notes: document.getElementById('cd-notes').value,
   };
   try {
