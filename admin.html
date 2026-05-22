@@ -8270,8 +8270,7 @@ function renderClients() {
         ).join('')
       : '';
     const optIns = [];
-    if (crec && crec.marketing_email_opt_in) optIns.push('<span title="Email opt-in" style="font-size:0.85rem;" aria-label="Email opt-in">@</span>');
-    if (crec && crec.marketing_sms_opt_in) optIns.push('<span title="SMS opt-in" style="font-size:0.85rem;" aria-label="SMS opt-in">SMS</span>');
+    if (crec && crec.marketing_email_opt_in) optIns.push('<span title="Email newsletter opt-in" style="font-size:0.85rem;" aria-label="Email opt-in">@</span>');
     const optInHtml = optIns.length
       ? '<span style="display:inline-flex;gap:4px;align-items:center;color:var(--gray-600);">' + optIns.join('') + '</span>'
       : '';
@@ -8633,9 +8632,8 @@ function openClientDetailModal(cid) {
       '</div>' +
 
       '<div style="background:var(--cream);border-radius:6px;padding:10px 12px;margin-bottom:10px;">' +
-        '<div style="font-size:0.8rem;opacity:0.7;margin-bottom:6px;">Marketing opt-in (client-confirmed only)</div>' +
-        '<label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;margin-bottom:4px;font-weight:normal;"><input type="checkbox" id="cd-email-opt" ' + (c.marketing_email_opt_in ? 'checked' : '') + '> Email newsletter</label>' +
-        '<label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;font-weight:normal;"><input type="checkbox" id="cd-sms-opt" ' + (c.marketing_sms_opt_in ? 'checked' : '') + '> SMS messages</label>' +
+        '<div style="font-size:0.8rem;opacity:0.7;margin-bottom:6px;">Email newsletter opt-in (client-confirmed only)</div>' +
+        '<label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;font-weight:normal;"><input type="checkbox" id="cd-email-opt" ' + (c.marketing_email_opt_in ? 'checked' : '') + '> Email newsletter</label>' +
       '</div>' +
 
       '<div style="margin-bottom:14px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Notes (private)</label><textarea id="cd-notes" rows="4" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;">' + esc(c.notes) + '</textarea></div>' +
@@ -8666,7 +8664,7 @@ async function saveClientDetail(cid) {
     source: document.getElementById('cd-source').value,
     tags: document.getElementById('cd-tags').value.trim(),
     marketing_email_opt_in: document.getElementById('cd-email-opt').checked,
-    marketing_sms_opt_in: document.getElementById('cd-sms-opt').checked,
+    marketing_sms_opt_in: false, // GF never sends promo SMS; field kept for schema parity
     notes: document.getElementById('cd-notes').value,
   };
   try {
