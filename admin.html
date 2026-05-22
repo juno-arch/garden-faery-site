@@ -1871,9 +1871,10 @@ async function renderDashboard() {
     const bs = bookings.filter(b => (b.date||'').slice(0,7) === m.key);
     const paid = bs.filter(b => b.paid).reduce((s,b) => s + (Number(b.price)||0), 0);
     const outstanding = bs.filter(b => !b.paid).reduce((s,b) => s + (Number(b.price)||0), 0);
-    return { ...m, paid, outstanding, total: paid + outstanding };
+    const monthExpenses = expenses.filter(e => (e.date||'').slice(0,7) === m.key && e.onBiz).reduce((s,e) => s + e.amount, 0);
+    return { ...m, paid, outstanding, total: paid + outstanding, expenses: monthExpenses };
   });
-  const maxMonth = Math.max(1, ...monthBuckets.map(m => m.total));
+  const maxMonth = Math.max(1, ...monthBuckets.map(m => Math.max(m.paid, m.expenses)));
 
   // --- Top 5 clients YTD ---
   const clientTotals = {};
@@ -1925,9 +1926,35 @@ async function renderDashboard() {
     </div>
   `;
 
-  // 12-month bar chart removed — wasn't earning its space on the dashboard.
-  // The net-profit trend line below still uses monthBuckets for its data,
-  // so the underlying calc stays.
+  // 12-month income vs expenses — grouped bars per month. Reads
+  // monthBuckets.paid (collected revenue, only money actually received)
+  // and monthBuckets.expenses (biz-tagged expenses).
+  html += `
+    <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
+        <h3 style="margin:0;font-size:1rem;">Last 12 months · income vs expenses</h3>
+        <span style="font-size:0.75rem;color:var(--gray-600);"><span style="display:inline-block;width:10px;height:10px;background:#6b8f52;border-radius:2px;vertical-align:middle;margin-right:4px;"></span>income <span style="display:inline-block;width:10px;height:10px;background:#c9553a;border-radius:2px;vertical-align:middle;margin-right:4px;margin-left:10px;"></span>expenses</span>
+      </div>
+      <div style="display:flex;align-items:stretch;gap:6px;height:140px;padding:0 4px;border-bottom:1px solid var(--gray-200);">
+  `;
+  monthBuckets.forEach(m => {
+    const incPct = maxMonth > 0 ? (m.paid / maxMonth) * 100 : 0;
+    const expPct = maxMonth > 0 ? (m.expenses / maxMonth) * 100 : 0;
+    const netMo = m.paid - m.expenses;
+    html += `
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;min-width:0;" title="${m.label} ${m.year}: ${fmt(m.paid)} in · ${fmt(m.expenses)} out · ${fmt(netMo)} net">
+        <div style="display:flex;align-items:flex-end;gap:2px;width:100%;height:100%;">
+          <div style="flex:1;background:#6b8f52;height:${incPct}%;min-height:${m.paid>0?'2px':'0'};border-radius:2px 2px 0 0;"></div>
+          <div style="flex:1;background:#c9553a;height:${expPct}%;min-height:${m.expenses>0?'2px':'0'};border-radius:2px 2px 0 0;"></div>
+        </div>
+      </div>
+    `;
+  });
+  html += `</div><div style="display:flex;gap:6px;padding:4px 4px 0;">`;
+  monthBuckets.forEach(m => {
+    html += `<div style="flex:1;text-align:center;font-size:0.65rem;color:var(--gray-600);">${m.label}</div>`;
+  });
+  html += `</div></div>`;
 
   // 3. Outstanding balance card
   html += `
@@ -8291,9 +8318,20 @@ function renderClients() {
     return;
   }
 
+  // Expand/collapse all controls — only relevant when there's more than
+  // one client to expand.
+  if (filtered.length > 1) {
+    html += '<div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:8px;font-size:0.8rem;">' +
+      '<button onclick="toggleAllClients(true)" style="background:transparent;border:none;color:var(--gray-600);cursor:pointer;text-decoration:underline;padding:0;">Expand all</button>' +
+      '<span style="color:var(--gray-400);">·</span>' +
+      '<button onclick="toggleAllClients(false)" style="background:transparent;border:none;color:var(--gray-600);cursor:pointer;text-decoration:underline;padding:0;">Collapse all</button>' +
+    '</div>';
+  }
+
   filtered.forEach(c => {
     const borderColor = c.outstanding > 0 ? 'var(--red)' : 'var(--plum)';
     const crec = findClientRecord(c);
+    const isOpen = !!_clientsExpanded[c.key];
 
     // Status pill + tag chips + marketing opt-in icons (from clients collection)
     const status = crec ? (crec.status || 'active') : 'active';
@@ -8316,94 +8354,132 @@ function renderClients() {
       ? '<span style="display:inline-flex;gap:4px;align-items:center;color:var(--gray-600);">' + optIns.join('') + '</span>'
       : '';
 
-    // Header: name, visit count, last visit
-    let card = '<div class="booking-card" style="border-left-color:' + borderColor + ';">' +
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;">' +
-        '<div style="flex:1;min-width:0;">' +
-          '<h3 style="margin-bottom:4px;">' + esc(c.name || 'Client') + '</h3>' +
-          '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:4px;">' + statusPill + tagsHtml + optInHtml + '</div>' +
+    // ----- HEADER (always visible) — tap to expand/collapse. -----
+    let card = '<div class="booking-card" style="border-left-color:' + borderColor + ';padding:0;overflow:hidden;">';
+
+    // Click area = the header row. Stop-propagation on the Details button so
+    // it doesn't also toggle the accordion.
+    const caret = isOpen ? '&#9662;' : '&#9656;'; // ▾ open / ▸ collapsed
+    const collapsedMeta = c.count + ' visit' + (c.count === 1 ? '' : 's') +
+      (c.lastVisit ? ' · last ' + esc(formatDisplayDate(c.lastVisit)) : '') +
+      (c.outstanding > 0 ? ' · <span style="color:var(--red);font-weight:700;">' + money(c.outstanding) + ' owed</span>' : '');
+
+    card += '<div data-key="' + escAttr(c.key) + '" onclick="toggleClientExpanded(this.dataset.key)" ' +
+      'style="cursor:pointer;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;" ' +
+      'onmouseover="this.style.background=\'var(--gray-100)\'" onmouseout="this.style.background=\'transparent\'">' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="display:flex;align-items:center;gap:8px;">' +
+          '<span style="color:var(--gray-400);font-size:0.9em;line-height:1;flex-shrink:0;">' + caret + '</span>' +
+          '<h3 style="margin:0;font-size:1rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(c.name || 'Client') + '</h3>' +
+          statusPill +
         '</div>' +
-        (crec
-          ? '<button class="action-btn" data-cid="' + esc(crec.id) + '" onclick="openClientDetailModal(this.dataset.cid)" style="flex-shrink:0;">Details</button>'
-          : '')
-      + '</div>' +
-      '<div class="booking-meta">' + c.count + ' visit' + (c.count === 1 ? '' : 's') +
-        (c.lastVisit ? ' &middot; Last: ' + esc(formatDisplayDate(c.lastVisit)) : '') +
-      '</div>';
-
-    // Totals row (charged / paid / outstanding)
-    card += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px;font-size:0.8rem;">' +
-      '<span style="background:var(--gray-100);color:var(--plum);padding:3px 9px;border-radius:10px;font-weight:700;">' +
-        money(c.totalCharged) + ' charged</span>' +
-      '<span style="background:#dfe8d4;color:var(--plum);padding:3px 9px;border-radius:10px;font-weight:700;">' +
-        money(c.totalPaid) + ' paid</span>' +
-      (c.outstanding > 0
-        ? '<span style="background:var(--red-light);color:var(--red);padding:3px 9px;border-radius:10px;font-weight:700;">' +
-            money(c.outstanding) + ' outstanding</span>'
+        '<div style="font-size:0.78rem;color:var(--gray-600);margin-top:4px;padding-left:18px;">' + collapsedMeta + '</div>' +
+      '</div>' +
+      (crec
+        ? '<button class="action-btn" data-cid="' + esc(crec.id) + '" onclick="event.stopPropagation();openClientDetailModal(this.dataset.cid)" style="flex-shrink:0;">Details</button>'
         : '') +
-      '</div>';
+    '</div>';
 
-    // Contact line
-    card += '<div class="booking-client">' +
-      (c.phone ? esc(c.phone) : '') +
-      (c.phone && c.email ? ' &middot; ' : '') +
-      (c.email ? esc(c.email) : '') +
-      '</div>';
+    // ----- BODY (collapsed by default; only rendered when open). -----
+    if (isOpen) {
+      card += '<div style="padding:0 16px 14px;border-top:1px solid var(--gray-100);">';
 
-    // "Request review" only when there's at least one past visit (past + not canceled).
-    const hasPastVisit = (c.visits || []).some(v => v.date && v.date < today && v.status !== 'canceled');
-    const lastPastVisit = hasPastVisit ? c.visits.find(v => v.date && v.date < today && v.status !== 'canceled') : null;
-
-    // Action buttons
-    card += '<div class="booking-actions">' +
-      (c.phone ? '<button class="action-btn" onclick="callClient(\'' + phoneAttr(c.phone) + '\')">Call</button>' +
-                 '<button class="action-btn" onclick="textClient(\'' + phoneAttr(c.phone) + '\')">Text</button>' : '') +
-      (lastPastVisit ? '<button class="action-btn" onclick="requestReviewForBooking(\'' + lastPastVisit.id + '\', \'' + escAttr(c.name || '') + '\')">Request review</button>' : '') +
-      '<button class="action-btn" data-name="' + escAttr(c.name || '') + '" onclick="renameClientByName(this.dataset.name)">Rename</button>' +
-      '</div>';
-
-    // Visit history
-    card += '<div style="margin-top:12px;border-top:1px solid var(--gray-100);padding-top:10px;">' +
-      '<div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--gray-600);margin-bottom:6px;">Visits</div>';
-
-    c.visits.forEach(v => {
-      const svc = EVENT_LABELS[v.eventType] || v.eventType || '';
-      const price = Number(v.price) || 0;
-      const isFuture = v.date > today;
-
-      let badge;
-      if (v.paid) {
-        const method = v.paymentMethod ? ' &middot; ' + esc(v.paymentMethod) : '';
-        const payDate = v.paidDate ? ' &middot; ' + esc((v.paidDate || '').slice(5, 10)) : '';
-        badge = '<span style="background:#dfe8d4;color:var(--plum);padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;white-space:nowrap;">' +
-          'PAID' + method + payDate + '</span>';
-      } else if (isFuture) {
-        badge = '<span style="background:var(--gray-100);color:var(--gray-600);padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;white-space:nowrap;">UPCOMING</span>';
-      } else {
-        badge = '<span style="background:var(--red-light);color:var(--red);padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;white-space:nowrap;">UNPAID</span>';
+      // Tags + opt-in row (only when present).
+      if (tagsHtml || optInHtml) {
+        card += '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:10px;">' + tagsHtml + optInHtml + '</div>';
       }
 
-      card += '<div data-id="' + escAttr(v.id) + '" onclick="openPayment(this.dataset.id)"' +
-        ' title="Tap to edit income"' +
-        ' style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--gray-100);font-size:0.85rem;cursor:pointer;border-radius:6px;"' +
-        ' onmouseover="this.style.background=\'var(--gray-100)\'"' +
-        ' onmouseout="this.style.background=\'transparent\'">' +
-        '<div style="min-width:0;flex:1;">' +
-          '<div style="font-weight:600;color:var(--plum);">' + esc(formatDisplayDate(v.date)) + (v.time ? ' &middot; ' + esc(v.time) : '') + '</div>' +
-          '<div style="color:var(--gray-600);font-size:0.78rem;">' + esc(svc) + '</div>' +
-        '</div>' +
-        '<div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px;">' +
-          '<div style="font-weight:700;color:var(--plum);">' + money(price) + '</div>' +
-          badge +
-        '</div>' +
-        '<div style="color:var(--gray-400);font-size:1.1rem;margin-left:2px;flex-shrink:0;" aria-hidden="true">&rsaquo;</div>' +
-      '</div>';
-    });
+      // Totals row (charged / paid / outstanding)
+      card += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;font-size:0.8rem;">' +
+        '<span style="background:var(--gray-100);color:var(--plum);padding:3px 9px;border-radius:10px;font-weight:700;">' +
+          money(c.totalCharged) + ' charged</span>' +
+        '<span style="background:#dfe8d4;color:var(--plum);padding:3px 9px;border-radius:10px;font-weight:700;">' +
+          money(c.totalPaid) + ' paid</span>' +
+        (c.outstanding > 0
+          ? '<span style="background:var(--red-light);color:var(--red);padding:3px 9px;border-radius:10px;font-weight:700;">' +
+              money(c.outstanding) + ' outstanding</span>'
+          : '') +
+        '</div>';
 
-    card += '</div></div>';
+      // Contact line
+      card += '<div class="booking-client">' +
+        (c.phone ? esc(c.phone) : '') +
+        (c.phone && c.email ? ' &middot; ' : '') +
+        (c.email ? esc(c.email) : '') +
+        '</div>';
+
+      // "Request review" only when there's at least one past visit (past + not canceled).
+      const hasPastVisit = (c.visits || []).some(v => v.date && v.date < today && v.status !== 'canceled');
+      const lastPastVisit = hasPastVisit ? c.visits.find(v => v.date && v.date < today && v.status !== 'canceled') : null;
+
+      // Action buttons
+      card += '<div class="booking-actions">' +
+        (c.phone ? '<button class="action-btn" onclick="callClient(\'' + phoneAttr(c.phone) + '\')">Call</button>' +
+                   '<button class="action-btn" onclick="textClient(\'' + phoneAttr(c.phone) + '\')">Text</button>' : '') +
+        (lastPastVisit ? '<button class="action-btn" onclick="requestReviewForBooking(\'' + lastPastVisit.id + '\', \'' + escAttr(c.name || '') + '\')">Request review</button>' : '') +
+        '<button class="action-btn" data-name="' + escAttr(c.name || '') + '" onclick="renameClientByName(this.dataset.name)">Rename</button>' +
+        '</div>';
+
+      // Visit history
+      card += '<div style="margin-top:12px;border-top:1px solid var(--gray-100);padding-top:10px;">' +
+        '<div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--gray-600);margin-bottom:6px;">Visits</div>';
+
+      c.visits.forEach(v => {
+        const svc = EVENT_LABELS[v.eventType] || v.eventType || '';
+        const price = Number(v.price) || 0;
+        const isFuture = v.date > today;
+
+        let badge;
+        if (v.paid) {
+          const method = v.paymentMethod ? ' &middot; ' + esc(v.paymentMethod) : '';
+          const payDate = v.paidDate ? ' &middot; ' + esc((v.paidDate || '').slice(5, 10)) : '';
+          badge = '<span style="background:#dfe8d4;color:var(--plum);padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;white-space:nowrap;">' +
+            'PAID' + method + payDate + '</span>';
+        } else if (isFuture) {
+          badge = '<span style="background:var(--gray-100);color:var(--gray-600);padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;white-space:nowrap;">UPCOMING</span>';
+        } else {
+          badge = '<span style="background:var(--red-light);color:var(--red);padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;white-space:nowrap;">UNPAID</span>';
+        }
+
+        card += '<div data-id="' + escAttr(v.id) + '" onclick="openPayment(this.dataset.id)"' +
+          ' title="Tap to edit income"' +
+          ' style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--gray-100);font-size:0.85rem;cursor:pointer;border-radius:6px;"' +
+          ' onmouseover="this.style.background=\'var(--gray-100)\'"' +
+          ' onmouseout="this.style.background=\'transparent\'">' +
+          '<div style="min-width:0;flex:1;">' +
+            '<div style="font-weight:600;color:var(--plum);">' + esc(formatDisplayDate(v.date)) + (v.time ? ' &middot; ' + esc(v.time) : '') + '</div>' +
+            '<div style="color:var(--gray-600);font-size:0.78rem;">' + esc(svc) + '</div>' +
+          '</div>' +
+          '<div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px;">' +
+            '<div style="font-weight:700;color:var(--plum);">' + money(price) + '</div>' +
+            badge +
+          '</div>' +
+          '<div style="color:var(--gray-400);font-size:1.1rem;margin-left:2px;flex-shrink:0;" aria-hidden="true">&rsaquo;</div>' +
+        '</div>';
+      });
+
+      card += '</div></div>'; // visits + body
+    }
+
+    card += '</div>'; // booking-card
     html += card;
   });
   container.innerHTML = html;
+}
+
+// Accordion state: client.key -> true|false. Resets on tab switch (state lives
+// in JS, not localStorage, since tab freshness usually means new context).
+let _clientsExpanded = {};
+function toggleClientExpanded(key) {
+  _clientsExpanded[key] = !_clientsExpanded[key];
+  renderClients();
+}
+function toggleAllClients(expand) {
+  const bookings = (typeof getBookings === 'function' ? getBookings() : []).filter(b => b.status !== 'canceled');
+  const groups = (typeof groupBookingsByClient === 'function' ? groupBookingsByClient(bookings) : []);
+  _clientsExpanded = {};
+  if (expand) groups.forEach(g => { _clientsExpanded[g.key] = true; });
+  renderClients();
 }
 
 // --- Actions ---
