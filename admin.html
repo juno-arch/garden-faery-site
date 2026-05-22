@@ -74,6 +74,30 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
   font-weight: 500;
 }
 .today-summary.empty { color: var(--gray-600); font-weight: 400; }
+.today-pay { margin-top: 10px; }
+.today-pay-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--plum); color: var(--white);
+  border: none; border-radius: 8px;
+  padding: 8px 14px;
+  font-family: inherit; font-size: 0.88rem; font-weight: 600;
+  cursor: pointer;
+}
+.today-pay-btn:hover { background: #5a1f54; }
+.today-pay-btn.paid {
+  background: var(--spring-sage); color: var(--plum);
+}
+.today-more { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+.today-more-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--gray-100); color: var(--plum);
+  border: 1px solid var(--gray-200); border-radius: 99px;
+  padding: 3px 10px;
+  font-size: 0.75rem; font-weight: 500;
+  cursor: pointer;
+}
+.today-more-pill.active { background: var(--petal-pink-light); border-color: var(--petal-pink); }
+.today-more-pill .pill-paid { color: var(--spring-sage); font-weight: 700; }
 .today-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .icon-btn {
   background: transparent;
@@ -740,6 +764,8 @@ html[data-theme="dark"] .tab.active { background: var(--gray-100); color: var(--
       <div class="today-greeting" id="today-greeting">Good morning</div>
       <div class="today-date" id="today-date"></div>
       <div class="today-summary" id="today-summary"></div>
+      <div class="today-pay" id="today-pay"></div>
+      <div class="today-more" id="today-more"></div>
     </div>
     <div class="today-right">
       <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode">
@@ -1698,21 +1724,29 @@ function toggleTheme() {
 })();
 
 // ----- Today card population -----
+// Today card leads with the focused client of the day. If she has more
+// than one visit, the others show as pills below — tap one to switch
+// focus. The big button opens the payment modal pre-filled so logging
+// income for the visit is a single tap.
+let _todayFocusedBookingId = null;
+
 function renderTodayCard() {
   const greet = document.getElementById('today-greeting');
   const dateEl = document.getElementById('today-date');
   const sum = document.getElementById('today-summary');
+  const payEl = document.getElementById('today-pay');
+  const moreEl = document.getElementById('today-more');
   if (!greet || !dateEl || !sum) return;
 
   const now = new Date();
   const hr = now.getHours();
-  greet.textContent =
-    hr < 5  ? 'Late night, Pollen' :
-    hr < 12 ? 'Good morning, Pollen' :
-    hr < 17 ? 'Good afternoon, Pollen' :
-    hr < 21 ? 'Good evening, Pollen' :
-              'Wind-down hours, Pollen';
-  dateEl.textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const partOfDay =
+    hr < 5  ? 'Late night' :
+    hr < 12 ? 'Good morning' :
+    hr < 17 ? 'Good afternoon' :
+    hr < 21 ? 'Good evening' :
+              'Wind-down hours';
+  dateEl.textContent = partOfDay + ', Pollen · ' + now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
   const todayIso = formatDate(now);
   const bks = (typeof getBookings === 'function' ? getBookings() : [])
@@ -1720,16 +1754,60 @@ function renderTodayCard() {
     .sort((a, b) => (a.time || '').localeCompare(b.time || ''));
 
   if (!bks.length) {
+    greet.textContent = 'No visits today';
     sum.className = 'today-summary empty';
-    sum.textContent = 'No visits today.';
+    sum.textContent = 'Take a breath. Or get ahead on next week.';
+    if (payEl) payEl.innerHTML = '';
+    if (moreEl) moreEl.innerHTML = '';
     return;
   }
+
+  // Default focused booking: first unpaid for today, else first.
+  if (!_todayFocusedBookingId || !bks.some(b => b.id === _todayFocusedBookingId)) {
+    const firstUnpaid = bks.find(b => !b.paid);
+    _todayFocusedBookingId = (firstUnpaid || bks[0]).id;
+  }
+  const focused = bks.find(b => b.id === _todayFocusedBookingId) || bks[0];
+  const label = EVENT_LABELS[focused.eventType] || focused.eventType || 'visit';
+  const price = Number(focused.price) || 0;
+
+  // Greeting line is now the CLIENT name (the actual headline).
+  greet.textContent = focused.clientName || 'Client';
   sum.className = 'today-summary';
-  const n = bks.length;
-  const first = bks[0];
-  const label = EVENT_LABELS[first.eventType] || first.eventType || 'visit';
-  const timeStr = first.time ? ' at ' + first.time : '';
-  sum.textContent = n + ' visit' + (n === 1 ? '' : 's') + ' today · next' + timeStr + ' · ' + (first.clientName || label);
+  sum.textContent = (focused.time ? focused.time + ' · ' : '') + label + (price > 0 ? ' · $' + price.toFixed(0) : '');
+
+  // Payment quick-action.
+  if (payEl) {
+    if (price <= 0) {
+      payEl.innerHTML = '<button class="today-pay-btn" onclick="openPayment(\'' + escAttr(focused.id) + '\')">Set price + log payment</button>';
+    } else if (focused.paid) {
+      const meth = focused.paymentMethod ? ' · ' + escapeHtml(focused.paymentMethod) : '';
+      payEl.innerHTML = '<button class="today-pay-btn paid" onclick="openPayment(\'' + escAttr(focused.id) + '\')">✓ Paid $' + price.toFixed(0) + meth + ' (edit)</button>';
+    } else {
+      payEl.innerHTML = '<button class="today-pay-btn" onclick="openPayment(\'' + escAttr(focused.id) + '\')">Log $' + price.toFixed(0) + ' payment</button>';
+    }
+  }
+
+  // Other-clients pills if more than 1 visit today.
+  if (moreEl) {
+    if (bks.length <= 1) {
+      moreEl.innerHTML = '';
+    } else {
+      moreEl.innerHTML = bks.map(b => {
+        const active = b.id === _todayFocusedBookingId;
+        const cls = 'today-more-pill' + (active ? ' active' : '');
+        const tag = b.paid ? ' <span class="pill-paid">✓</span>' : '';
+        const name = (b.clientName || 'Client').split(/\s+/)[0];
+        return '<button class="' + cls + '" onclick="focusTodayBooking(\'' + escAttr(b.id) + '\')">' +
+          (b.time ? b.time + ' ' : '') + escapeHtml(name) + tag + '</button>';
+      }).join('');
+    }
+  }
+}
+
+function focusTodayBooking(id) {
+  _todayFocusedBookingId = id;
+  renderTodayCard();
 }
 
 // --- Dashboard (Tier 1 widgets) ---
@@ -1770,12 +1848,18 @@ async function renderDashboard() {
   const overdueCount = overdue.length;
   const overdueClients = new Set(overdue.map(b => b.clientEmail || b.clientName)).size;
 
-  // --- Next 30 days projection ---
+  // --- Next 30 days expected income ---
+  // "Expected" = bookings in the next 30 days that haven't been paid yet.
+  // The previous calc summed ALL upcoming bookings, double-counting deposits
+  // and Square-paid visits that already landed in the books.
   const next30End = new Date(todayDate); next30End.setDate(next30End.getDate() + 30);
   const next30EndStr = formatDate(next30End);
   const upcoming = bookings.filter(b => (b.date||'') >= today && (b.date||'') <= next30EndStr);
-  const next30Projected = upcoming.reduce((s,b) => s + (Number(b.price)||0), 0);
+  const next30Unpaid = upcoming.filter(b => !b.paid);
+  const next30Expected = next30Unpaid.reduce((s,b) => s + (Number(b.price)||0), 0);
+  const next30AlreadyPaid = upcoming.filter(b => b.paid).reduce((s,b) => s + (Number(b.price)||0), 0);
   const next30Count = upcoming.length;
+  const next30UnpaidCount = next30Unpaid.length;
 
   // --- 12-month revenue (last 12 including current) ---
   const months = [];
@@ -1841,33 +1925,9 @@ async function renderDashboard() {
     </div>
   `;
 
-  // 2. 12-month revenue chart
-  html += `
-    <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
-        <h3 style="margin:0;font-size:1rem;">Last 12 Months</h3>
-        <span style="font-size:0.75rem;color:var(--gray-600);"><span style="display:inline-block;width:10px;height:10px;background:#6b8f52;border-radius:2px;vertical-align:middle;margin-right:4px;"></span>paid <span style="display:inline-block;width:10px;height:10px;background:#e8b828;border-radius:2px;vertical-align:middle;margin-right:4px;margin-left:10px;"></span>unpaid</span>
-      </div>
-      <div style="display:flex;align-items:stretch;gap:6px;height:140px;padding:0 4px;border-bottom:1px solid var(--gray-200);">
-  `;
-  monthBuckets.forEach(m => {
-    const totalPct = maxMonth > 0 ? (m.total / maxMonth) * 100 : 0;
-    const paidPct = m.total > 0 ? (m.paid / m.total) * 100 : 0;
-    const outstandPct = 100 - paidPct;
-    html += `
-        <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;min-width:0;">
-          <div title="${m.label} ${m.year}: ${fmt(m.paid)} paid + ${fmt(m.outstanding)} unpaid = ${fmt(m.total)}" style="width:100%;height:${totalPct}%;min-height:${m.total>0?'2px':'0'};display:flex;flex-direction:column;justify-content:flex-end;border-radius:3px 3px 0 0;overflow:hidden;">
-            <div style="background:#e8b828;height:${outstandPct}%;min-height:${m.outstanding>0?'2px':'0'};"></div>
-            <div style="background:#6b8f52;height:${paidPct}%;min-height:${m.paid>0?'2px':'0'};"></div>
-          </div>
-        </div>
-    `;
-  });
-  html += `</div><div style="display:flex;gap:6px;padding:4px 4px 0;">`;
-  monthBuckets.forEach(m => {
-    html += `<div style="flex:1;text-align:center;font-size:0.65rem;color:var(--gray-600);">${m.label}</div>`;
-  });
-  html += `</div></div>`;
+  // 12-month bar chart removed — wasn't earning its space on the dashboard.
+  // The net-profit trend line below still uses monthBuckets for its data,
+  // so the underlying calc stays.
 
   // 3. Outstanding balance card
   html += `
@@ -1889,35 +1949,25 @@ async function renderDashboard() {
     </div>
   `;
 
-  // 4. Next 30 days projection
+  // Next 30 days — expected income = unpaid upcoming only.
   html += `
     <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
           <h3 style="margin:0 0 2px;font-size:1rem;">Next 30 days</h3>
           <div style="font-size:0.8rem;color:var(--gray-600);">
-            ${next30Count} booking${next30Count===1?'':'s'} scheduled ${next30Count>0?'· expected revenue':''}
+            ${next30Count} booking${next30Count===1?'':'s'} on the calendar${next30UnpaidCount > 0 ? ' · ' + next30UnpaidCount + ' awaiting payment' : ''}${next30AlreadyPaid > 0 ? ' · ' + fmt(next30AlreadyPaid) + ' already collected' : ''}
           </div>
         </div>
-        <div style="font-size:1.4rem;font-weight:700;color:#6b8f52;text-align:right;">${fmt(next30Projected)}</div>
+        <div style="text-align:right;">
+          <div style="font-size:1.4rem;font-weight:700;color:#6b8f52;">${fmt(next30Expected)}</div>
+          <div style="font-size:0.68rem;color:var(--gray-400);">expected</div>
+        </div>
       </div>
     </div>
   `;
 
-  // 6-7. Service mix pie + Expense donut (side-by-side on wider screens)
-  // Service mix: aggregate YTD revenue by event type
-  const SVC_COLORS = { morning: '#e8b828', afternoon: '#c2557a', monday: '#9bbd85', other: '#a89e96' };
-  const SVC_LABELS = { morning: 'Morning', afternoon: 'Afternoon', monday: 'Monday', other: 'Other' };
-  const svcTotals = { morning: 0, afternoon: 0, monday: 0, other: 0 };
-  ytdBookings.forEach(b => {
-    const k = svcTotals.hasOwnProperty(b.eventType) ? b.eventType : 'other';
-    svcTotals[k] += Number(b.price) || 0;
-  });
-  const svcTotal = Object.values(svcTotals).reduce((s,v) => s+v, 0);
-  const svcSlices = svcTotal > 0
-    ? Object.entries(svcTotals).filter(([,v]) => v > 0).map(([k,v]) => ({ k, v, pct: (v/svcTotal)*100, color: SVC_COLORS[k], label: SVC_LABELS[k] }))
-    : [];
-
+  // Service mix removed — not actionable for the one-service-type biz.
   // Expense categories donut
   const EXP_COLORS = {
     plants: '#6b8f52', soil_amendments: '#8b6b45', tools: '#5a1230', equipment: '#7a3b4e',
@@ -1962,22 +2012,13 @@ async function renderDashboard() {
   };
 
   html += `
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:12px;">
-      <div style="background:var(--white);border-radius:12px;padding:14px;box-shadow:var(--shadow);">
-        <h3 style="margin:0 0 10px;font-size:1rem;">Service mix ${year}</h3>
-        <div style="display:flex;gap:14px;align-items:center;">
-          <div style="width:100px;height:100px;border-radius:50%;flex-shrink:0;background:${buildConic(svcSlices)};"></div>
-          <div style="flex:1;min-width:0;">${renderSlicesLegend(svcSlices)}</div>
+    <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
+      <h3 style="margin:0 0 10px;font-size:1rem;">Expense categories ${year}</h3>
+      <div style="display:flex;gap:14px;align-items:center;">
+        <div style="width:100px;height:100px;border-radius:50%;flex-shrink:0;background:${buildConic(expSlices)};position:relative;">
+          <div style="position:absolute;inset:22px;background:var(--white);border-radius:50%;"></div>
         </div>
-      </div>
-      <div style="background:var(--white);border-radius:12px;padding:14px;box-shadow:var(--shadow);">
-        <h3 style="margin:0 0 10px;font-size:1rem;">Expense categories ${year}</h3>
-        <div style="display:flex;gap:14px;align-items:center;">
-          <div style="width:100px;height:100px;border-radius:50%;flex-shrink:0;background:${buildConic(expSlices)};position:relative;">
-            <div style="position:absolute;inset:22px;background:var(--white);border-radius:50%;"></div>
-          </div>
-          <div style="flex:1;min-width:0;">${renderSlicesLegend(expSlices)}</div>
-        </div>
+        <div style="flex:1;min-width:0;">${renderSlicesLegend(expSlices)}</div>
       </div>
     </div>
   `;
