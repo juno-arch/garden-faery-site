@@ -1209,6 +1209,35 @@ html[data-theme="dark"] .week-day.active { background: var(--sage-light); }
   </div>
 </div>
 
+<!-- Match Deposit modal — reconcile a bank-feed cash deposit to the specific
+     payment rows it contains. The Undeposited-Funds pattern: deposit is a
+     transfer, not income (income was booked when cash was received). -->
+<div class="modal-overlay" id="modal-match-deposit">
+  <div class="modal" style="max-width:560px;">
+    <h2>Match cash deposit</h2>
+    <div id="md-info" style="margin-bottom:8px;color:var(--gray-600);font-size:0.9rem;"></div>
+    <div style="background:var(--gray-100);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:0.78rem;color:var(--gray-600);line-height:1.5;">
+      Pick the cash/check payments that make up this deposit. The bank row gets categorized as a transfer (not double-counted as income) and each payment is stamped with the deposit date for audit trail.
+    </div>
+    <div class="form-group" style="margin-bottom:6px;">
+      <label style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+        <span>Unmatched cash/check payments</span>
+        <label style="font-size:0.75rem;font-weight:400;color:var(--gray-600);display:flex;align-items:center;gap:4px;cursor:pointer;">
+          <input type="checkbox" id="md-window-toggle" onchange="renderMatchDepositList()">
+          show all (default: ±14 days)
+        </label>
+      </label>
+    </div>
+    <div id="md-pmt-list" style="max-height:340px;overflow-y:auto;border:1px solid var(--gray-200);border-radius:8px;padding:4px;background:var(--white);"></div>
+    <div id="md-running" style="margin-top:10px;padding:10px;border-radius:8px;background:var(--gray-100);font-size:0.85rem;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;"></div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-match-deposit')">Cancel</button>
+      <button class="modal-btn secondary" id="md-unlink-btn" style="display:none;color:var(--red);border-color:var(--red);" onclick="submitMatchDeposit(true)">Unlink all</button>
+      <button class="modal-btn primary" onclick="submitMatchDeposit(false)">Save match</button>
+    </div>
+  </div>
+</div>
+
 <!-- Log Payment modal — manual cash/check/etc. entry for payments outside Square webhook flow -->
 <div class="modal-overlay" id="modal-log-payment">
   <div class="modal">
@@ -6000,6 +6029,7 @@ const EXPENSE_CATEGORIES = [
   { v: 'owner_draw',            l: 'Owner draw (out)',             group: 'Non-P&L',    sch_c: '— (capital)' },
   { v: 'transfer_in',           l: 'Transfer from own account',    group: 'Non-P&L',    sch_c: '—' },
   { v: 'transfer_out',          l: 'Transfer to own account',      group: 'Non-P&L',    sch_c: '—' },
+  { v: 'cash_deposit',          l: 'Cash deposit (reconciles to payments)', group: 'Non-P&L', sch_c: '— (Undeposited Funds clearing)' },
   { v: 'loan_proceeds',         l: 'Loan proceeds (in)',           group: 'Non-P&L',    sch_c: '— (liability)' },
   { v: 'loan_payment',          l: 'Loan payment (out)',           group: 'Non-P&L',    sch_c: '— (only interest on Line 16)' },
   { v: 'tax_payment',           l: 'Estimated tax payment',        group: 'Non-P&L',    sch_c: '— (personal, not biz)' },
@@ -7086,6 +7116,22 @@ function bankTxRowHtml(t) {
     catBadge = '<span style="background:var(--gray-200);color:var(--gray-600);padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:600;">uncategorized</span>';
   }
 
+  // Match-deposit button: only for credits. Distinguishes between fresh
+  // ("Match deposit") and previously-linked ("Re-match deposit · N pmts").
+  // Looks at payment_ids for prior link state. Hidden for debits.
+  let matchDepositBtn = '';
+  if (isCredit) {
+    const linkedCount = (t.paymentIds || '').split('|').filter(Boolean).length;
+    const isAlreadyDeposit = t.category === 'cash_deposit' || linkedCount > 0;
+    const label = isAlreadyDeposit
+      ? 'Re-match · ' + linkedCount + ' pmt' + (linkedCount === 1 ? '' : 's')
+      : 'Match deposit';
+    const style = isAlreadyDeposit
+      ? 'padding:4px 10px;font-size:0.75rem;'
+      : 'padding:4px 10px;font-size:0.75rem;background:var(--spring-sage);color:var(--plum);border-color:var(--spring-sage);';
+    matchDepositBtn = '<button class="modal-btn secondary" style="' + style + '" onclick="openMatchDeposit(\'' + t.id + '\')">' + label + '</button>';
+  }
+
   return '<div class="booking-card" style="border-left-color:' + (isCredit ? 'var(--spring-sage)' : 'var(--gray-400)') + ';">' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">' +
       '<div style="min-width:0;flex:1;">' +
@@ -7101,6 +7147,7 @@ function bankTxRowHtml(t) {
       catBadge +
       '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
         suggestionInline +
+        matchDepositBtn +
         '<button class="modal-btn secondary" style="padding:4px 10px;font-size:0.75rem;" onclick="openCategorizeBank(\'' + t.id + '\')">' + (t.category ? 'Re-categorize' : 'Categorize') + '</button>' +
       '</div>' +
     '</div>' +
@@ -7544,11 +7591,398 @@ function bankMatchPill(status) {
   return '<span style="background:' + m.bg + ';color:' + m.fg + ';padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:600;">' + m.label + '</span>';
 }
 
+// =============================================================
+// Match deposit modal — reconcile a cash/check deposit on the bank feed
+// to the specific payment rows that make it up (Undeposited-Funds pattern).
+// State lives in module-scope vars so the checkbox list can re-render
+// when the user toggles the date window.
+// =============================================================
+let _mdBankTxId = null;
+let _mdBankTx = null;
+let _mdSelected = {}; // payment_id -> true
+let _mdWindowAll = false; // false = ±14 day window, true = all
+
+async function openMatchDeposit(bankTxId) {
+  const bt = _bankTransactions.find(x => x.id === bankTxId);
+  if (!bt) return;
+  if (bt.amountCents <= 0) {
+    alert('Only deposits (positive amounts) can be matched to payments.');
+    return;
+  }
+
+  _mdBankTxId = bankTxId;
+  _mdBankTx = bt;
+  _mdWindowAll = false;
+  _mdSelected = {};
+  // Pre-select payments that are already linked to this bank tx.
+  String(bt.paymentIds || '').split('|').filter(Boolean).forEach(pid => {
+    _mdSelected[pid] = true;
+  });
+
+  // Ensure payments are loaded (the Income tab may not have been opened yet).
+  if (!_paymentsLoaded && PB_URL) {
+    document.getElementById('md-pmt-list').innerHTML =
+      '<div style="padding:20px;text-align:center;color:var(--gray-600);font-size:0.85rem;">Loading payments…</div>';
+    document.getElementById('modal-match-deposit').classList.add('open');
+    await loadPayments();
+  }
+
+  // Header info
+  const dateStr = bt.postedAt ? (new Date(bt.postedAt)).toLocaleDateString() : '?';
+  const amtStr = '$' + (bt.amountCents/100).toFixed(2);
+  document.getElementById('md-info').innerHTML =
+    '<strong>+' + amtStr + '</strong> on ' + dateStr +
+    (bt.accountName ? ' · ' + escapeHtml(bt.accountName) : '') +
+    '<br><span style="font-size:0.8rem;">' + escapeHtml((bt.description || bt.payee || '').slice(0, 80)) + '</span>';
+
+  document.getElementById('md-window-toggle').checked = false;
+  // Show "Unlink all" only if there's something already linked.
+  document.getElementById('md-unlink-btn').style.display =
+    Object.keys(_mdSelected).length > 0 ? '' : 'none';
+
+  renderMatchDepositList();
+  document.getElementById('modal-match-deposit').classList.add('open');
+}
+
+// Re-render the checkbox list. Called on open, on window-toggle change, and
+// on each checkbox click so the running total stays live.
+function renderMatchDepositList() {
+  if (!_mdBankTx) return;
+  _mdWindowAll = !!document.getElementById('md-window-toggle').checked;
+
+  const target = _mdBankTx.amountCents;
+  const depDate = _mdBankTx.postedAt ? new Date(_mdBankTx.postedAt).getTime() : Date.now();
+  const WIN_MS = 14 * 24 * 3600 * 1000;
+
+  // Pool: cash/check/venmo/zelle/other (anything that needs a manual deposit
+  // step). Excludes Square/Stripe/ACH (those land in checking electronically
+  // and have their own auto-match path). Also include payments already linked
+  // to THIS deposit so they show up pre-checked.
+  const cashLike = ['cash', 'check', 'venmo', 'zelle', 'other'];
+  let candidates = (_paymentsCache || []).filter(p => {
+    if (p.status !== 'completed') return false;
+    if (!cashLike.includes(p.processor)) return false;
+    // Skip payments already linked to a different deposit (server would 409).
+    if (p.bankTransactionId && p.bankTransactionId !== _mdBankTxId) return false;
+    if (!_mdWindowAll) {
+      const pd = p.capturedAt ? new Date(p.capturedAt).getTime() : 0;
+      if (!pd) return false;
+      if (Math.abs(pd - depDate) > WIN_MS) return false;
+    }
+    return true;
+  });
+
+  // Sort: pre-selected first (so the user sees their current matches at the
+  // top), then by capturedAt desc.
+  candidates.sort((a, b) => {
+    const aSel = _mdSelected[a.id] ? 1 : 0;
+    const bSel = _mdSelected[b.id] ? 1 : 0;
+    if (aSel !== bSel) return bSel - aSel;
+    return (b.capturedAt || '').localeCompare(a.capturedAt || '');
+  });
+
+  const listEl = document.getElementById('md-pmt-list');
+  if (candidates.length === 0) {
+    listEl.innerHTML =
+      '<div style="padding:20px;text-align:center;color:var(--gray-600);font-size:0.85rem;">' +
+        'No unmatched cash/check payments ' + (_mdWindowAll ? 'on file' : 'in the ±14 day window') + '.' +
+        (_mdWindowAll ? '' : '<br><span style="font-size:0.75rem;">Toggle &quot;show all&quot; above if this deposit covers older payments.</span>') +
+      '</div>';
+  } else {
+    listEl.innerHTML = candidates.map(p => {
+      const checked = _mdSelected[p.id] ? ' checked' : '';
+      const pd = p.capturedAt ? (new Date(p.capturedAt)).toLocaleDateString() : '?';
+      const name = p.customerName || '(no name)';
+      const amt = '$' + (p.amountCents/100).toFixed(2);
+      const proc = (p.processor || '').toUpperCase();
+      const note = p.notes ? '<div style="font-size:0.7rem;color:var(--gray-600);margin-top:2px;">' + escapeHtml(String(p.notes).slice(0, 80)) + '</div>' : '';
+      return '<label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-bottom:1px solid var(--gray-200);cursor:pointer;">' +
+        '<input type="checkbox" data-id="' + p.id + '"' + checked + ' onchange="toggleMatchDepositRow(this)" style="margin-top:3px;">' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">' +
+            '<span style="font-weight:600;font-size:0.85rem;">' + escapeHtml(name) + '</span>' +
+            '<span style="font-weight:700;color:var(--spring-sage);">' + amt + '</span>' +
+          '</div>' +
+          '<div style="font-size:0.72rem;color:var(--gray-600);">' + pd + ' · ' + escapeHtml(proc) + '</div>' +
+          note +
+        '</div>' +
+      '</label>';
+    }).join('');
+  }
+
+  // Running total + delta
+  const selSum = Object.keys(_mdSelected).reduce((s, pid) => {
+    const p = (_paymentsCache || []).find(x => x.id === pid);
+    return s + (p ? p.amountCents : 0);
+  }, 0);
+  const delta = selSum - target;
+  let deltaLabel, deltaColor;
+  if (delta === 0) {
+    deltaLabel = 'matches exactly';
+    deltaColor = 'var(--spring-sage)';
+  } else if (delta < 0) {
+    deltaLabel = '$' + (Math.abs(delta)/100).toFixed(2) + ' short — missing a logged payment?';
+    deltaColor = 'var(--pollen-gold)';
+  } else {
+    deltaLabel = '$' + (delta/100).toFixed(2) + ' over — selected more than deposit total';
+    deltaColor = 'var(--red)';
+  }
+  const selCount = Object.keys(_mdSelected).length;
+  document.getElementById('md-running').innerHTML =
+    '<div><strong>' + selCount + '</strong> selected · $' + (selSum/100).toFixed(2) + ' of $' + (target/100).toFixed(2) + '</div>' +
+    '<div style="color:' + deltaColor + ';font-weight:600;">' + deltaLabel + '</div>';
+}
+
+function toggleMatchDepositRow(cb) {
+  const id = cb.getAttribute('data-id');
+  if (cb.checked) _mdSelected[id] = true;
+  else delete _mdSelected[id];
+  renderMatchDepositList();
+}
+
+async function submitMatchDeposit(unlinkAll) {
+  if (!_mdBankTxId) return;
+  const ids = unlinkAll ? [] : Object.keys(_mdSelected);
+  const target = _mdBankTx ? _mdBankTx.amountCents : 0;
+  const sum = ids.reduce((s, pid) => {
+    const p = (_paymentsCache || []).find(x => x.id === pid);
+    return s + (p ? p.amountCents : 0);
+  }, 0);
+
+  // If linking with a delta, ask confirmation — over/under is allowed but
+  // worth a sanity check (often means a missing cash payment).
+  if (!unlinkAll && ids.length > 0 && sum !== target) {
+    const diff = sum - target;
+    const msg = diff < 0
+      ? 'Selected payments are $' + (Math.abs(diff)/100).toFixed(2) + ' short of the deposit total. Save anyway? (Common reasons: a cash payment hasn\'t been logged yet.)'
+      : 'Selected payments are $' + (diff/100).toFixed(2) + ' over the deposit total. Save anyway?';
+    if (!confirm(msg)) return;
+  }
+
+  try {
+    const resp = await fetch(PB_URL + '/api/admin/match-deposit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+      body: JSON.stringify({
+        bank_transaction_id: _mdBankTxId,
+        payment_ids: ids,
+      }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      alert('Match failed: ' + (data.error || resp.status));
+      return;
+    }
+    closeModal('modal-match-deposit');
+    _mdBankTxId = null;
+    _mdBankTx = null;
+    _mdSelected = {};
+    // Refresh both — bank row state + payment deposit stamps both changed.
+    _bankLoaded = false;
+    _paymentsLoaded = false;
+    await Promise.all([loadBank(), loadPayments()]);
+    renderBank();
+  } catch (err) {
+    alert('Network error: ' + err.message);
+  }
+}
+
+// =============================================================
+// Savings sweeps — sinking-fund tracker for tax/compliance reserves.
+// loadSweeps() pulls the full history; the Income tab uses it to compute
+// "income since last sweep" and a suggested transfer amount.
+// =============================================================
+let _sweepsCache = [];
+let _sweepsLoaded = false;
+const SWEEP_RATE_KEY = 'gf_sweep_rate_pct'; // localStorage — user-tunable default
+
+function getSweepRate() {
+  const stored = parseFloat(localStorage.getItem(SWEEP_RATE_KEY) || '');
+  if (isFinite(stored) && stored > 0 && stored <= 100) return stored;
+  return 28; // defensive default: ~15.3% SE + ~12% federal income for a low bracket
+}
+
+function setSweepRate(pct) {
+  if (!isFinite(pct) || pct <= 0 || pct > 100) return;
+  localStorage.setItem(SWEEP_RATE_KEY, String(pct));
+}
+
+async function loadSweeps() {
+  if (!PB_URL) { _sweepsCache = []; _sweepsLoaded = true; return; }
+  try {
+    const data = await DB._pb('GET', 'savings_sweeps/records?perPage=200&sort=-date');
+    _sweepsCache = (data.items || []).map(r => ({
+      id: r.id,
+      date: r.date,
+      amountCents: r.amount_cents || 0,
+      ratePct: r.rate_pct || 0,
+      incomeThrough: r.income_through || '',
+      incomeBasisCents: r.income_basis_cents || 0,
+      bucket: r.bucket || 'tax',
+      notes: r.notes || '',
+    }));
+  } catch (err) {
+    console.warn('loadSweeps failed:', err);
+    _sweepsCache = [];
+  } finally {
+    _sweepsLoaded = true;
+  }
+}
+
+// Returns the income-through date of the most recent sweep, or null if
+// none on file. Used to window "income since last sweep".
+function lastSweepThrough() {
+  if (!_sweepsCache.length) return null;
+  // sweeps sorted by date desc; find first with a usable income_through
+  for (const s of _sweepsCache) {
+    if (s.incomeThrough) return s.incomeThrough.slice(0, 10);
+    if (s.date) return s.date.slice(0, 10);
+  }
+  return null;
+}
+
+// Build the suggested-sweep card. Pure-function for testability — receives
+// payments, returns HTML.
+function savingsSweepCardHtml() {
+  const rate = getSweepRate();
+  const through = lastSweepThrough(); // null = no history; window from beginning of year
+
+  // Default window start: day AFTER last sweep's income_through, OR start
+  // of current year if no sweeps yet (avoids suggesting an absurd backfill
+  // covering all of last year on first use).
+  const yearStart = (new Date()).getFullYear() + '-01-01';
+  const sinceDate = through
+    ? new Date(new Date(through).getTime() + 24*3600*1000).toISOString().slice(0,10)
+    : yearStart;
+  const todayIso = new Date().toISOString().slice(0,10);
+
+  // Income since `sinceDate`. Use completed payments only — refunds/failures
+  // shouldn't drive sweep math.
+  let incomeCents = 0;
+  let txCount = 0;
+  (_paymentsCache || []).forEach(p => {
+    if (p.status && p.status !== 'completed' && p.status !== 'captured' && p.status !== 'paid') return;
+    const d = (p.capturedAt || '').slice(0, 10);
+    if (!d) return;
+    if (d < sinceDate) return;
+    if (d > todayIso) return;
+    incomeCents += (p.amountCents || 0);
+    txCount++;
+  });
+
+  const suggestCents = Math.round(incomeCents * (rate / 100));
+
+  // YTD sweep total — running pile so user can see the bucket growing.
+  const ytd = (_sweepsCache || []).filter(s => (s.date || '').slice(0,4) === String(new Date().getFullYear()));
+  const ytdCents = ytd.reduce((s, r) => s + (r.amountCents || 0), 0);
+  const ytdCount = ytd.length;
+
+  // Empty state — nothing to sweep
+  if (incomeCents <= 0) {
+    return '<div class="card" style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">' +
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;">' +
+        '<h3 style="margin:0;font-size:1rem;">Savings bucket</h3>' +
+        '<span style="font-size:0.75rem;color:var(--gray-600);">Tax/compliance sinking fund</span>' +
+      '</div>' +
+      '<div style="font-size:0.85rem;color:var(--gray-600);margin-top:6px;">' +
+        'No income recorded since ' + escapeHtml(formatDisplayDate(sinceDate)) + '. Next suggestion shows once payments come in.' +
+      '</div>' +
+      (ytdCents > 0
+        ? '<div style="margin-top:8px;font-size:0.78rem;color:var(--plum);">YTD swept: <strong>$' + (ytdCents/100).toFixed(0) + '</strong> across ' + ytdCount + ' transfer' + (ytdCount === 1 ? '' : 's') + '</div>'
+        : '') +
+    '</div>';
+  }
+
+  // Active suggestion
+  return '<div class="card" style="background:linear-gradient(135deg,#f8f4e7,#fef9e6);border:1px solid var(--pollen-gold);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">' +
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px;">' +
+      '<h3 style="margin:0;font-size:1rem;color:var(--plum);">Sweep to savings</h3>' +
+      '<span style="font-size:0.72rem;color:var(--gray-600);cursor:pointer;" onclick="openSweepRateEditor()" title="Change rate">rate: ' + rate + '% ⚙</span>' +
+    '</div>' +
+    '<div style="font-size:0.85rem;color:var(--gray-700);margin-bottom:10px;">' +
+      'Since ' + escapeHtml(formatDisplayDate(sinceDate)) + ', received <strong>$' + (incomeCents/100).toFixed(2) + '</strong> across ' + txCount + ' payment' + (txCount === 1 ? '' : 's') + '.' +
+    '</div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px;background:var(--white);border-radius:8px;margin-bottom:10px;">' +
+      '<div>' +
+        '<div style="font-size:0.7rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.05em;">Suggested transfer</div>' +
+        '<div style="font-size:1.6rem;font-weight:700;color:var(--plum);">$' + (suggestCents/100).toFixed(0) + '</div>' +
+        '<div style="font-size:0.7rem;color:var(--gray-600);">' + rate + '% of $' + (incomeCents/100).toFixed(0) + '</div>' +
+      '</div>' +
+      '<button class="modal-btn primary" style="padding:10px 14px;font-size:0.85rem;" onclick="openSweepLog(' + suggestCents + ',' + incomeCents + ',\'' + sinceDate + '\',\'' + todayIso + '\')">Mark transferred</button>' +
+    '</div>' +
+    '<div style="font-size:0.72rem;color:var(--gray-600);line-height:1.4;">' +
+      'Move this amount from checking → savings in your bank app, then click. ' +
+      (ytdCents > 0 ? 'YTD: <strong>$' + (ytdCents/100).toFixed(0) + '</strong> swept · ' : '') +
+      '<a href="#" onclick="event.preventDefault();openSweepHistory()" style="color:var(--plum);text-decoration:underline;">history</a>' +
+    '</div>' +
+  '</div>';
+}
+
+// Prompt to log a sweep. Plain prompt() chain keeps it 0-modal — fits the
+// "click, type, done" flow. Honors override of the suggested amount.
+async function openSweepLog(suggestCents, incomeCents, sinceDate, todayIso) {
+  const suggestDollars = (suggestCents/100).toFixed(2);
+  const input = prompt(
+    'How much did you transfer to savings? (suggested: $' + suggestDollars + ')',
+    suggestDollars
+  );
+  if (input === null) return;
+  const amt = parseFloat(String(input).replace(/[^0-9.]/g, ''));
+  if (!isFinite(amt) || amt <= 0) { alert('Enter a positive dollar amount.'); return; }
+  const amountCents = Math.round(amt * 100);
+
+  try {
+    await DB._pb('POST', 'savings_sweeps/records', {
+      date: todayIso,
+      amount_cents: amountCents,
+      rate_pct: getSweepRate(),
+      income_through: todayIso,
+      income_basis_cents: incomeCents,
+      bucket: 'tax',
+      notes: '',
+    });
+    _sweepsLoaded = false;
+    await loadSweeps();
+    renderIncome();
+  } catch (err) {
+    alert('Save failed: ' + (err && err.message ? err.message : err));
+  }
+}
+
+function openSweepRateEditor() {
+  const cur = getSweepRate();
+  const input = prompt(
+    'Sweep rate (% of new income to set aside).\n\n' +
+    '~28% is a defensive default covering SE tax + a low federal/state bracket.\n' +
+    'Your CPA can tune this precisely — adjust as you go.',
+    String(cur)
+  );
+  if (input === null) return;
+  const pct = parseFloat(String(input).replace(/[^0-9.]/g, ''));
+  if (!isFinite(pct) || pct <= 0 || pct > 100) { alert('Enter a number between 1 and 100.'); return; }
+  setSweepRate(pct);
+  renderIncome();
+}
+
+function openSweepHistory() {
+  if (!_sweepsCache.length) { alert('No sweeps logged yet.'); return; }
+  const lines = _sweepsCache.slice(0, 20).map(s => {
+    const dt = s.date ? formatDisplayDate(s.date.slice(0,10)) : '?';
+    const amt = '$' + (s.amountCents/100).toFixed(2);
+    const rate = s.ratePct ? ' (' + s.ratePct + '%)' : '';
+    return dt + '  ' + amt + rate;
+  });
+  alert('Recent sweeps:\n\n' + lines.join('\n'));
+}
+
 async function renderIncome() {
   const el = document.getElementById('income-content');
-  if (!_paymentsLoaded && PB_URL) {
+  if ((!_paymentsLoaded || !_sweepsLoaded) && PB_URL) {
     el.innerHTML = '<div class="empty-day"><p>Loading income…</p></div>';
-    await loadPayments();
+    await Promise.all([
+      _paymentsLoaded ? Promise.resolve() : loadPayments(),
+      _sweepsLoaded   ? Promise.resolve() : loadSweeps(),
+    ]);
   }
 
   const all = getBookings().filter(b => b.status !== 'canceled');
@@ -7650,6 +8084,9 @@ async function renderIncome() {
       clientRows +
     '</div>';
   }
+
+  // Savings sweep widget — tax/compliance sinking fund suggestion.
+  html += savingsSweepCardHtml();
 
   html += `
     <div class="card" style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
