@@ -2185,6 +2185,78 @@ async function renderDashboard() {
   });
   html += `</div></div>`;
 
+  // --- Goal-hit chart + streak stats ---
+  // Bars sized to the goal (not max-month) so visually you see whether
+  // each month cleared the bar. Color: sage = hit, gold = ≥75%, pink = below.
+  // Current month is in-progress so we don't penalize it.
+  const goalMonths = monthBuckets.filter((m, i) => i < monthBuckets.length - 1); // exclude current
+  const hitCount = goalMonths.filter(m => m.paid >= monthlyGoal).length;
+
+  // Streaks (looking backward from most-recent COMPLETE month).
+  let currentStreak = 0;
+  for (let i = goalMonths.length - 1; i >= 0; i--) {
+    if (goalMonths[i].paid >= monthlyGoal) currentStreak++;
+    else break;
+  }
+  let longestStreak = 0, run = 0;
+  goalMonths.forEach(m => {
+    if (m.paid >= monthlyGoal) { run++; if (run > longestStreak) longestStreak = run; }
+    else run = 0;
+  });
+  const bestMonth = goalMonths.slice().sort((a, b) => b.paid - a.paid)[0];
+
+  html += `
+    <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;flex-wrap:wrap;gap:6px;">
+        <h3 style="margin:0;font-size:1rem;">Goal hits · last 12</h3>
+        <span style="font-size:0.75rem;color:var(--gray-600);">${fmt(monthlyGoal)} target</span>
+      </div>
+      <div style="position:relative;display:flex;align-items:flex-end;gap:6px;height:100px;padding:0 4px;border-bottom:1px solid var(--gray-200);">
+  `;
+  monthBuckets.forEach((m, i) => {
+    const isCurrent = i === monthBuckets.length - 1;
+    const pct = Math.min(140, (m.paid / monthlyGoal) * 100); // allow up to 140% visually
+    const hit = m.paid >= monthlyGoal;
+    const partial = !hit && m.paid >= monthlyGoal * 0.75;
+    const color = hit ? 'var(--spring-sage)' : (partial ? 'var(--pollen-gold)' : 'var(--petal-pink)');
+    const opacity = isCurrent ? '0.55' : '1';
+    const title = (isCurrent ? '(in progress) ' : '') + m.label + ' ' + m.year + ': ' + fmt(m.paid) +
+                  (hit ? ' — hit' : '');
+    html += `
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;min-width:0;" title="${title}">
+        <div style="width:100%;height:${Math.min(100, pct * 0.71).toFixed(1)}%;background:${color};border-radius:3px 3px 0 0;opacity:${opacity};min-height:${m.paid>0?'3px':'0'};"></div>
+      </div>
+    `;
+  });
+  // Goal line at 100% (which maps to 71% of plot height since we allow 140% room above).
+  html += `<div style="position:absolute;left:4px;right:4px;bottom:${(100*0.71).toFixed(1)}%;border-top:1.5px dashed var(--plum);opacity:0.45;"></div>`;
+  html += `<div style="position:absolute;right:6px;bottom:${(100*0.71 + 2).toFixed(1)}%;font-size:0.6rem;color:var(--plum);opacity:0.7;font-weight:700;">${fmt(monthlyGoal)}</div>`;
+  html += `</div><div style="display:flex;gap:6px;padding:4px 4px 0;">`;
+  monthBuckets.forEach(m => {
+    html += `<div style="flex:1;text-align:center;font-size:0.65rem;color:var(--gray-600);">${m.label}</div>`;
+  });
+  html += `</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--gray-200);">
+        <div>
+          <div style="font-size:1.1rem;font-weight:700;color:var(--spring-sage);">${hitCount}/12</div>
+          <div style="font-size:0.65rem;color:var(--gray-600);">hit goal</div>
+        </div>
+        <div>
+          <div style="font-size:1.1rem;font-weight:700;color:${currentStreak > 0 ? 'var(--pollen-gold)' : 'var(--gray-400)'};">${currentStreak}</div>
+          <div style="font-size:0.65rem;color:var(--gray-600);">current streak</div>
+        </div>
+        <div>
+          <div style="font-size:1.1rem;font-weight:700;">${longestStreak}</div>
+          <div style="font-size:0.65rem;color:var(--gray-600);">longest streak</div>
+        </div>
+        <div>
+          <div style="font-size:1.1rem;font-weight:700;color:var(--plum);">${bestMonth ? fmt(bestMonth.paid) : '—'}</div>
+          <div style="font-size:0.65rem;color:var(--gray-600);">best ${bestMonth ? '· ' + bestMonth.label : ''}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
   // 3. Outstanding balance card
   html += `
     <div style="background:${overdueTotal>0?'#fff4e5':'var(--white)'};border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);border:${overdueTotal>0?'1px solid #e8b828':'none'};">
