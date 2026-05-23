@@ -8727,8 +8727,12 @@ function renderClients() {
         '</div>';
 
       // "Request review" only when there's at least one past visit (past + not canceled).
-      const hasPastVisit = (c.visits || []).some(v => v.date && v.date < today && v.status !== 'canceled');
-      const lastPastVisit = hasPastVisit ? c.visits.find(v => v.date && v.date < today && v.status !== 'canceled') : null;
+      // Pick the most-recent PAID past visit so the review invite lands on a
+      // real, completed transaction. Asking for a review on an unpaid visit
+      // is weird — the work might not have been billed/finalized yet.
+      const lastPastVisit = (c.visits || []).find(v =>
+        v.date && v.date < today && v.status !== 'canceled' && v.paid
+      ) || null;
 
       // Action buttons
       card += '<div class="booking-actions">' +
