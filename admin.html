@@ -74,6 +74,11 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
   font-weight: 500;
 }
 .today-summary.empty { color: var(--gray-600); font-weight: 400; }
+/* Petal-shower keyframe for the once-per-month goal-hit celebration. */
+@keyframes gf-petal-fall {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 0.92; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
 .today-pay { margin-top: 10px; }
 .today-pay-btn {
   display: inline-flex; align-items: center; gap: 6px;
@@ -1959,6 +1964,70 @@ function setMonthlyGoal(v) {
   renderDashboard();
 }
 
+// ---- Goal gamification (B + D + G) ----
+// Celebrations: one entry per goal-hit month. localStorage shape:
+//   [ { month: 'YYYY-MM', amount: 2247.5, reward: 'massage', logged: ISO } ]
+function getCelebrations() {
+  try { return JSON.parse(localStorage.getItem('gf_celebrations') || '[]') || []; }
+  catch (_) { return []; }
+}
+function saveCelebration(monthKey, amount, reward) {
+  const list = getCelebrations();
+  // Idempotent: one celebration per month, last write wins.
+  const others = list.filter(c => c.month !== monthKey);
+  others.push({ month: monthKey, amount: amount, reward: String(reward || '').trim(), logged: new Date().toISOString() });
+  others.sort((a, b) => (b.month || '').localeCompare(a.month || ''));
+  try { localStorage.setItem('gf_celebrations', JSON.stringify(others)); } catch (_) {}
+}
+// Months we've already shown the petal-shower for, so reopens don't re-fire.
+function celebratedMonths() {
+  try { return JSON.parse(localStorage.getItem('gf_celebrated_months') || '[]') || []; }
+  catch (_) { return []; }
+}
+function markMonthCelebrated(monthKey) {
+  const list = celebratedMonths();
+  if (list.includes(monthKey)) return false;
+  list.push(monthKey);
+  try { localStorage.setItem('gf_celebrated_months', JSON.stringify(list)); } catch (_) {}
+  return true;
+}
+
+// One-time petal-shower animation when a month closes hit. Uses petal-pink
+// + sage palette to match the garden vibe; reuses ::keyframes from the
+// existing today-pay-btn area (or inline keyframes if needed).
+function showGoalPetalShower() {
+  const colors = ['var(--petal-pink,#c2557a)', 'var(--pollen-gold,#d4b86a)', 'var(--spring-sage,#9bbd85)', '#ffffff'];
+  const n = 36;
+  for (let i = 0; i < n; i++) {
+    const p = document.createElement('div');
+    p.style.cssText = [
+      'position:fixed', 'left:' + (Math.random() * 100) + '%',
+      'top:-20px', 'width:10px', 'height:14px',
+      'background:' + colors[Math.floor(Math.random() * colors.length)],
+      'border-radius:50% 0',
+      'pointer-events:none', 'z-index:9999',
+      'opacity:0.92',
+      'transform:rotate(' + (Math.random() * 360) + 'deg)',
+      'animation:gf-petal-fall ' + (3 + Math.random() * 2) + 's ease-in forwards',
+      'animation-delay:' + (Math.random() * 1.2) + 's',
+    ].join(';') + ';';
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 5500);
+  }
+}
+
+// Prompt admin for the celebration text once a month tips into goal-hit.
+function openCelebrationPrompt(monthKey, monthLabel, amount) {
+  const existing = getCelebrations().find(c => c.month === monthKey);
+  const placeholder = existing ? existing.reward : 'massage, fancy bath, new boots…';
+  const msg = monthLabel + ' goal hit (' + ('$' + Math.round(amount).toLocaleString()) + ')!\n\n' +
+              'What\'s the treat? (optional — leave blank to skip)';
+  const reward = prompt(msg, existing ? existing.reward : '');
+  if (reward === null) return; // user dismissed
+  saveCelebration(monthKey, amount, reward);
+  renderDashboard();
+}
+
 async function renderDashboard() {
   await loadExpenses();
   const el = document.getElementById('dashboard-content');
@@ -2121,6 +2190,32 @@ async function renderDashboard() {
   const projPct = Math.min(100, (projected / monthlyGoal) * 100);
   const willHitGoal = projected >= monthlyGoal;
   const shortBy = Math.max(0, monthlyGoal - projected);
+
+  // D — Daily pacing: $/day needed for the rest of the month to hit goal,
+  // and whether we're ahead/behind a flat-daily-pace from the 1st.
+  const monthEndDate = new Date(todayDate.getFullYear(), todayDate.getMonth() + 1, 0);
+  const daysInMonth = monthEndDate.getDate();
+  const dayOfMonth = todayDate.getDate();
+  const daysLeft = Math.max(0, daysInMonth - dayOfMonth + 1); // include today
+  const remainingToGoal = Math.max(0, monthlyGoal - monthEarned);
+  const dailyNeeded = daysLeft > 0 ? (remainingToGoal / daysLeft) : 0;
+  const flatPace = monthlyGoal * (dayOfMonth / daysInMonth);
+  const paceDelta = monthEarned - flatPace; // positive = ahead, negative = behind
+
+  // G — Petal shower once per month when goal first tips into hit. Also
+  // open the celebration prompt the first time the month is celebrated.
+  if (goalReached) {
+    const fired = markMonthCelebrated(monthKey);
+    if (fired) {
+      // Defer to next tick so the dashboard finishes rendering first.
+      setTimeout(() => {
+        showGoalPetalShower();
+        const monthName = todayDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+        setTimeout(() => openCelebrationPrompt(monthKey, monthName, monthEarned), 800);
+      }, 200);
+    }
+  }
+  const celebration = getCelebrations().find(c => c.month === monthKey);
   html += `
     <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;gap:10px;">
@@ -2152,6 +2247,26 @@ async function renderDashboard() {
         <span><span style="display:inline-block;width:8px;height:8px;background:rgba(212,184,106,0.6);border-radius:50%;margin-right:4px;vertical-align:middle;"></span>${fmt(restOfMonthExpected)} booked projected${next30Inferred > 0 ? ' · ' + next30Inferred + ' est' : ''}</span>
         <span style="color:var(--gray-400);">${restOfMonthCount} booking${restOfMonthCount===1?'':'s'} left</span>
       </div>
+
+      ${ !goalReached && daysLeft > 0 ? `
+        <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--gray-200);display:flex;justify-content:space-between;align-items:center;font-size:0.74rem;color:var(--gray-600);gap:10px;flex-wrap:wrap;">
+          <span>Need <strong style="color:var(--plum);">${fmt(Math.round(dailyNeeded))}/day</strong> for ${daysLeft} more day${daysLeft===1?'':'s'}</span>
+          <span style="color:${paceDelta >= 0 ? 'var(--spring-sage)' : 'var(--red)'};font-weight:600;">${paceDelta >= 0 ? fmt(paceDelta) + ' ahead of pace' : fmt(Math.abs(paceDelta)) + ' behind pace'}</span>
+        </div>
+      ` : '' }
+
+      ${ goalReached && celebration && celebration.reward ? `
+        <div style="margin-top:10px;padding:8px 12px;background:rgba(155,189,133,0.14);border-radius:8px;font-size:0.82rem;color:var(--plum);">
+          <strong>Treat logged:</strong> ${escapeHtml(celebration.reward)}
+          <button onclick="openCelebrationPrompt('${monthKey}', '${monthLabel}', ${monthEarned})" style="background:none;border:none;color:var(--gray-600);text-decoration:underline;cursor:pointer;font-size:0.72rem;padding:0 0 0 6px;">edit</button>
+        </div>
+      ` : '' }
+
+      ${ goalReached && !celebration ? `
+        <div style="margin-top:10px;padding:8px 12px;background:rgba(212,184,106,0.18);border-radius:8px;font-size:0.82rem;color:var(--plum);text-align:center;">
+          You hit it! <button onclick="openCelebrationPrompt('${monthKey}', '${monthLabel}', ${monthEarned})" style="background:none;border:none;color:var(--plum);text-decoration:underline;cursor:pointer;font-weight:700;padding:0;font-size:0.82rem;">Log your treat</button>
+        </div>
+      ` : '' }
     </div>
   `;
 
