@@ -143,23 +143,48 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
 .tabs::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 2px; }
 
 /* ============ Dark mode ============ */
-/* Scoped to <html data-theme="dark">; toggled in JS, persisted to localStorage. */
+/* Scoped to <html data-theme="dark">; toggled in JS, persisted to localStorage.
+   The base CSS variables flip below so anything using var(--cream/white/plum/
+   gray-N) adapts automatically. The explicit overrides afterwards catch
+   patterns that hardcode their own colors (status pills, modals, charts). */
 html[data-theme="dark"] {
-  --plum:           #ead9e1;
-  --plum-soft:      rgba(234, 217, 225, 0.8);
-  --cream:          #1a1018;
-  --white:          #2a1d27;
-  --gray-100:       #322330;
-  --gray-200:       #3f2e3c;
-  --gray-400:       #8a7585;
-  --gray-600:       #b8a6b4;
-  --red-light:      #4a2025;
+  --plum:             #e8d5dd;     /* primary text — pale rose */
+  --plum-soft:        rgba(232, 213, 221, 0.78);
+  --cream:            #15101a;     /* page background */
+  --white:            #221a26;     /* cards / inputs */
+  --gray-100:         #2a2030;     /* subtle elevation */
+  --gray-200:         #3c2e44;     /* borders */
+  --gray-400:         #847088;     /* mute */
+  --gray-600:         #b9a8bc;     /* secondary text */
+  --gray-800:         #d6c5d4;
+  --red:              #ff8a78;     /* warning red, pulled lighter */
+  --red-light:        #4a2025;
+  --green:            #7eb88e;     /* success green */
+  --petal-pink:       #d488a8;
   --petal-pink-light: #5a2a48;
-  --sage-light:     #2b3a25;
-  --shadow:         0 2px 14px rgba(0,0,0,0.3);
+  --pollen-gold:      #d4b86a;
+  --spring-sage:      #9bbd85;
+  --sage-light:       #2b3a25;
+  --leaf-green:       #84c46b;
+  --accent-1:         #d488a8;     /* the burnt-magenta accent */
+  --shadow:           0 2px 14px rgba(0,0,0,0.35);
+  color-scheme: dark; /* native scrollbars + form controls follow */
 }
-html[data-theme="dark"] body { color: var(--plum); }
+html[data-theme="dark"] body {
+  background: var(--cream);
+  color: var(--plum);
+}
+
+/* Tabs strip */
 html[data-theme="dark"] .tabs { background: var(--gray-200); }
+html[data-theme="dark"] .tab { color: var(--gray-600); }
+html[data-theme="dark"] .tab.active {
+  background: var(--white);
+  color: var(--plum);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04), 0 2px 14px rgba(0,0,0,0.45);
+}
+
+/* Form controls */
 html[data-theme="dark"] input,
 html[data-theme="dark"] select,
 html[data-theme="dark"] textarea {
@@ -167,11 +192,75 @@ html[data-theme="dark"] textarea {
   color: var(--plum);
   border-color: var(--gray-200);
 }
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder { color: var(--gray-400); }
+html[data-theme="dark"] input:focus,
+html[data-theme="dark"] select:focus,
+html[data-theme="dark"] textarea:focus { border-color: var(--accent-1); outline: none; }
+
+/* Cards + surfaces */
 html[data-theme="dark"] .booking-card,
 html[data-theme="dark"] .today-card,
 html[data-theme="dark"] .week-grid,
-html[data-theme="dark"] .modal-content { background: var(--white); }
-html[data-theme="dark"] .tab.active { background: var(--gray-100); color: var(--plum); }
+html[data-theme="dark"] .modal-content,
+html[data-theme="dark"] .modal { background: var(--white); }
+html[data-theme="dark"] .modal-overlay { background: rgba(0,0,0,0.65); }
+
+/* Action buttons */
+html[data-theme="dark"] .action-btn {
+  background: var(--gray-100);
+  color: var(--plum);
+  border-color: var(--gray-200);
+}
+html[data-theme="dark"] .action-btn:hover { background: var(--gray-200); }
+html[data-theme="dark"] .modal-btn.secondary {
+  background: var(--gray-100);
+  color: var(--plum);
+  border-color: var(--gray-200);
+}
+html[data-theme="dark"] .modal-btn.primary {
+  background: var(--accent-1);
+  color: var(--white);
+}
+
+/* Status pills — soften the pale pastels so they don't shout on dark */
+html[data-theme="dark"] [style*="background:#dcefe2"],
+html[data-theme="dark"] [style*="background:#dfe8d4"] { background: rgba(155,189,133,0.16) !important; color: var(--spring-sage) !important; }
+html[data-theme="dark"] [style*="background:#fef0c4"] { background: rgba(212,184,106,0.18) !important; color: var(--pollen-gold) !important; }
+html[data-theme="dark"] [style*="background:#fde2e2"],
+html[data-theme="dark"] [style*="background:#fff5f3"] { background: rgba(255,138,120,0.14) !important; color: var(--red) !important; }
+html[data-theme="dark"] [style*="background:#dbeafe"] { background: rgba(120,170,220,0.18) !important; color: #8db8e6 !important; }
+html[data-theme="dark"] [style*="background:#fce7c7"] { background: rgba(212,184,106,0.22) !important; color: var(--pollen-gold) !important; }
+html[data-theme="dark"] [style*="background:#fff4e5"] { background: rgba(212,184,106,0.10) !important; }
+
+/* Icon-button (theme toggle, etc.) */
+html[data-theme="dark"] .icon-btn {
+  background: var(--gray-100);
+  border-color: var(--gray-200);
+  color: var(--plum);
+}
+html[data-theme="dark"] .icon-btn:hover { background: var(--gray-200); }
+
+/* Custom scrollbar */
+html[data-theme="dark"] .tabs::-webkit-scrollbar-thumb { background: var(--gray-200); }
+
+/* Today card payment button polish */
+html[data-theme="dark"] .today-pay-btn { background: var(--accent-1); color: var(--white); }
+html[data-theme="dark"] .today-pay-btn:hover { filter: brightness(1.1); }
+html[data-theme="dark"] .today-pay-btn.paid { background: var(--sage-light); color: var(--spring-sage); }
+
+/* Empty states */
+html[data-theme="dark"] .empty-day { background: var(--white); color: var(--gray-600); }
+html[data-theme="dark"] .booking-meta,
+html[data-theme="dark"] .booking-client { color: var(--gray-600); }
+
+/* Week strip days */
+html[data-theme="dark"] .week-day { color: var(--plum); }
+html[data-theme="dark"] .week-day:hover { background: var(--gray-100); }
+html[data-theme="dark"] .week-day.active { background: var(--sage-light); }
+
+/* Chart bars + lines retain their semantic colors; nothing to override
+   there. The Y-axis line / month labels read fine on the dark bg. */
 
 /* Day view */
 .day-nav {
@@ -1904,6 +1993,17 @@ async function renderDashboard() {
   const next30AlreadyPaid = upcoming.filter(b => b.paid).reduce((s,b) => s + (Number(b.price)||0), 0);
   const next30Count = upcoming.length;
   const next30UnpaidCount = next30Unpaid.length;
+
+  // Rest-of-current-month projection: same shape as Next-30-Days but
+  // bounded by today and the last day of THIS month.
+  const monthEnd = new Date(todayDate.getFullYear(), todayDate.getMonth() + 1, 0);
+  const monthEndStr = formatDate(monthEnd);
+  const restOfMonthUpcoming = bookings.filter(b => (b.date||'') >= today && (b.date||'') <= monthEndStr);
+  const restOfMonthUnpaid = restOfMonthUpcoming.filter(b => !b.paid);
+  let restOfMonthExpected = 0;
+  restOfMonthUnpaid.forEach(b => { restOfMonthExpected += expectedPriceFor(b).price; });
+  const restOfMonthCount = restOfMonthUpcoming.length;
+  const monthLabel = todayDate.toLocaleString('en-US', { month: 'long' });
   // Visits that even the rate×duration calc can't price (unknown event type).
   const next30NoPriceCount = next30Unpaid.filter(b => expectedPriceFor(b).price === 0).length;
 
@@ -2040,12 +2140,18 @@ async function renderDashboard() {
           </div>
         </div>
         <div style="text-align:right;">
-          <div style="font-size:1.4rem;font-weight:700;color:#6b8f52;">${fmt(next30Expected)}</div>
+          <div style="font-size:1.4rem;font-weight:700;color:var(--spring-sage);">${fmt(next30Expected)}</div>
           <div style="font-size:0.68rem;color:var(--gray-400);">
             expected${next30Inferred > 0 ? ' · ' + next30Inferred + ' est' : ''}
           </div>
         </div>
       </div>
+      ${restOfMonthCount > 0 ? `
+      <div style="border-top:1px solid var(--gray-200);margin-top:10px;padding-top:8px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-size:0.78rem;color:var(--gray-600);">Rest of ${monthLabel} · ${restOfMonthCount} booking${restOfMonthCount===1?'':'s'}</div>
+        <div style="font-size:1rem;font-weight:700;color:var(--plum);">${fmt(restOfMonthExpected)}</div>
+      </div>
+      ` : ''}
       ${noPriceWarning}
     </div>
   `;
