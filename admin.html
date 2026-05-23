@@ -2766,50 +2766,76 @@ function fsaReadinessCardHtml(ctx) {
   const operatingCash = operatingCashCents / 100;
 
   // ---- Score & weakest metric ----
+  // Copy is written for someone who has never read a loan application —
+  // plain English, money in dollar amounts, no jargon, "why this matters"
+  // and "what to do about it" baked into each detail line.
+  const monthsLeftInYear = Math.max(1, 12 - monthsElapsed);
+  const monthlyToHitRevenue = Math.ceil(Math.max(0, FSA_TARGETS.annualRevenue - ytdGross) / monthsLeftInYear);
+
   const metrics = [
     {
       key: 'revenue',
-      label: 'Revenue pace',
+      label: 'Is the business big enough?',
       value: annualPace,
       target: FSA_TARGETS.annualRevenue,
       format: v => '$' + Math.round(v).toLocaleString() + '/yr',
-      detail: 'YTD income annualized. Underwriters want a viable operation, not a hobby. ' +
-              (annualPace >= FSA_TARGETS.annualRevenue
-                ? 'On pace.'
-                : 'Need ~$' + Math.ceil((FSA_TARGETS.annualRevenue - ytdGross) / Math.max(1, 12 - monthsElapsed)).toLocaleString() + '/mo through year-end to hit the target.'),
+      whatItMeans: 'How much you\'ll earn this year if the next months look like the months so far. ' +
+                   '(YTD income × 12 ÷ months elapsed.)',
+      whyItMatters: 'Lenders won\'t finance a side hobby. They want to see at least ~$24k/year flowing through ' +
+                    'the farm operation so the loan payment is a small slice of real income, not a stretch.',
+      nextMove: annualPace >= FSA_TARGETS.annualRevenue
+        ? 'You\'re tracking above the floor &mdash; keep this up.'
+        : 'Bring in about <strong>$' + monthlyToHitRevenue.toLocaleString() + '/month</strong> for the rest of the year ' +
+          'and you\'ll cross the line by December.',
     },
     {
       key: 'margin',
-      label: 'Profit margin',
+      label: 'Does the business look profitable?',
       value: profitMargin,
       target: FSA_TARGETS.profitMarginPct,
-      format: v => v + '%',
-      detail: 'YTD net profit / revenue. <strong>Write-off tension:</strong> if you deduct everything, ' +
-              'your Schedule F shows no profit and lenders see a money-loser. ' +
-              (profitMargin >= FSA_TARGETS.profitMarginPct
-                ? 'Healthy margin.'
-                : 'Consider deferring discretionary write-offs until after submission.'),
+      format: v => v + ' kept per $1',
+      formatValue: v => '$' + (v/100).toFixed(2) + ' kept per $1 earned',
+      whatItMeans: 'For every $1 the business brings in, this is how much you actually keep after expenses ' +
+                   '(supplies, fuel, software, etc.). YTD net profit ÷ YTD revenue.',
+      whyItMatters: '<strong>The write-off trap:</strong> deducting every possible expense lowers your taxes today, ' +
+                    'but it also makes your Schedule F show no profit &mdash; and a lender reading "this business ' +
+                    'made $200 last year" will not approve a $100k loan. They need to see real earnings on paper.',
+      nextMove: profitMargin >= FSA_TARGETS.profitMarginPct
+        ? 'Margin is healthy &mdash; you can keep deducting normal expenses without hurting the application.'
+        : 'In the few months before you submit (target Aug 2026), <strong>hold off on big optional write-offs</strong> ' +
+          '(new equipment you don\'t urgently need, home-office deduction, etc.) so the books show ' +
+          'more profit. You can resume aggressive deductions after the loan closes.',
     },
     {
       key: 'months',
-      label: 'Consistent months',
+      label: 'Is the income steady?',
       value: consistentMonths,
       target: FSA_TARGETS.consistentMonths,
-      format: v => v + ' of 12',
-      detail: 'Months in the last 12 with $500+ in collected revenue. Lenders want recurring income, not seasonal flukes. ' +
-              (consistentMonths >= FSA_TARGETS.consistentMonths
-                ? 'Solid trail.'
-                : 'Land recurring weekly/monthly clients to fill the gaps.'),
+      format: v => v + ' / 12 months',
+      whatItMeans: 'Out of the last 12 months, this is how many brought in at least $500 in actual collected ' +
+                   'revenue. Catches whether income is steady or just a couple lucky months.',
+      whyItMatters: 'Lenders are nervous about seasonal/sporadic income because the loan payment is due every ' +
+                    'month, rain or shine. A steady trail of recurring revenue calms that fear.',
+      nextMove: consistentMonths >= FSA_TARGETS.consistentMonths
+        ? 'Good rhythm. Keep filling the slow months.'
+        : 'Lock in <strong>recurring weekly or biweekly clients</strong> so every month has at least $500. ' +
+          'Even one $30/week regular fills a month.',
     },
     {
       key: 'cash',
-      label: 'FYHF operating cash',
+      label: 'Does the business have a cushion?',
       value: operatingCash,
       target: FSA_TARGETS.operatingCash,
       format: v => '$' + Math.round(v).toLocaleString(),
-      detail: 'FYHF biz checking + savings. This is the operating-buffer figure — ' +
-              'separate from the personal cash you\'ll need for the actual 5% down payment.' +
-              (bankKnown ? '' : ' <em>Bank feed not loaded yet.</em>'),
+      whatItMeans: 'Total balance across your FYHF business checking + savings accounts right now.',
+      whyItMatters: 'Underwriters want to see the business can cover a couple slow months without dipping into ' +
+                    'personal funds. <strong>This is NOT the same as your down-payment cash</strong> &mdash; that ' +
+                    'sits in your personal accounts and gets evaluated separately.',
+      nextMove: operatingCash >= FSA_TARGETS.operatingCash
+        ? 'Healthy cushion.'
+        : 'Use the "Sweep to savings" widget on the Income tab to keep building this up &mdash; ' +
+          'even $50/week compounds quickly.' +
+          (bankKnown ? '' : ' <em>(Bank balances not loaded yet — number may be stale.)</em>'),
     },
   ];
 
@@ -2838,49 +2864,76 @@ function fsaReadinessCardHtml(ctx) {
     '<div onclick="toggleFsaWidget()" style="display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer;user-select:none;">' +
       '<div style="display:flex;align-items:center;gap:6px;min-width:0;">' +
         '<span style="color:var(--gray-600);font-size:0.9rem;">' + chevron + '</span>' +
-        '<h3 style="margin:0;font-size:1rem;">FSA loan readiness</h3>' +
-        '<span style="font-size:0.7rem;color:var(--gray-600);background:var(--gray-100);padding:2px 6px;border-radius:8px;">biz-side only</span>' +
+        '<h3 style="margin:0;font-size:1rem;">Farm loan readiness</h3>' +
       '</div>' +
       '<div style="text-align:right;flex-shrink:0;">' +
         '<div style="font-size:1.4rem;font-weight:700;color:' + overallColor + ';">' + overallPct + '%</div>' +
-        '<div style="font-size:0.65rem;color:var(--gray-600);">ready</div>' +
+        '<div style="font-size:0.65rem;color:var(--gray-600);">on track</div>' +
       '</div>' +
     '</div>';
 
+  // Plain-English intro line so the card explains itself even collapsed.
+  h += '<div style="margin-top:6px;font-size:0.75rem;color:var(--gray-600);line-height:1.4;">' +
+    'How the FYHF business looks to a farm-loan underwriter today. ' +
+    '<span onclick="toggleFsaWidget();event.stopPropagation();" style="color:var(--plum);text-decoration:underline;cursor:pointer;">' +
+      (expanded ? 'show less' : 'tap to see what each score means') +
+    '</span>' +
+  '</div>';
+
   // Headline gap line (always visible, collapsed or not)
   if (weakest.pct < 100) {
-    h += '<div style="margin-top:8px;padding:8px 10px;background:var(--gray-100);border-radius:8px;font-size:0.78rem;color:var(--gray-700);line-height:1.4;">' +
-      '<strong>Biggest gap:</strong> ' + escapeHtml(weakest.label) + ' &mdash; ' +
-      escapeHtml(weakest.format(weakest.value)) + ' of ' + escapeHtml(weakest.format(weakest.target)) +
+    h += '<div style="margin-top:8px;padding:10px;background:var(--gray-100);border-radius:8px;font-size:0.8rem;color:var(--gray-700);line-height:1.5;">' +
+      '<div style="font-size:0.7rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Biggest gap right now</div>' +
+      '<div><strong>' + escapeHtml(weakest.label) + '</strong></div>' +
+      '<div style="margin-top:2px;color:var(--gray-600);">You\'re at ' +
+        escapeHtml(weakest.format(weakest.value)) + ' &mdash; aiming for ' +
+        escapeHtml(weakest.format(weakest.target)) + '.</div>' +
     '</div>';
   } else {
-    h += '<div style="margin-top:8px;padding:8px 10px;background:rgba(163,184,140,0.15);border-radius:8px;font-size:0.78rem;color:var(--plum);">' +
-      '<strong>All biz-side metrics hitting target.</strong> Personal-side (down payment cash, credit, Josh\'s side) still matters.' +
+    h += '<div style="margin-top:8px;padding:10px;background:rgba(163,184,140,0.15);border-radius:8px;font-size:0.8rem;color:var(--plum);line-height:1.5;">' +
+      '<strong>The business looks solid on paper.</strong> Down-payment cash, your credit score, and Josh\'s side ' +
+      'are tracked separately &mdash; this widget can\'t see those.' +
     '</div>';
   }
 
-  // ---- Expanded body: per-metric bars + details ----
+  // ---- Expanded body: per-metric bars + plain-English explainers ----
   if (expanded) {
-    h += '<div style="margin-top:12px;display:flex;flex-direction:column;gap:10px;">';
+    h += '<div style="margin-top:12px;display:flex;flex-direction:column;gap:14px;">';
     metrics.forEach(m => {
-      h += '<div>' +
-        '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:0.82rem;margin-bottom:4px;">' +
-          '<span style="font-weight:600;color:var(--plum);">' + escapeHtml(m.label) + '</span>' +
-          '<span style="color:var(--gray-700);">' + escapeHtml(m.format(m.value)) + ' / ' + escapeHtml(m.format(m.target)) + '</span>' +
+      const statusEmoji =
+        m.pct >= 100 ? '<span style="color:var(--spring-sage);font-weight:700;">on target</span>' :
+        m.pct >= 60  ? '<span style="color:var(--pollen-gold);font-weight:700;">close</span>' :
+                       '<span style="color:var(--red);font-weight:700;">below target</span>';
+
+      h += '<div style="padding:10px;background:var(--gray-100);border-radius:10px;">' +
+        // Question-style title + status pill
+        '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px;">' +
+          '<div style="font-weight:700;color:var(--plum);font-size:0.88rem;">' + escapeHtml(m.label) + '</div>' +
+          '<div style="font-size:0.7rem;">' + statusEmoji + '</div>' +
         '</div>' +
-        '<div style="height:8px;background:var(--gray-200);border-radius:4px;overflow:hidden;">' +
+        // Bar with current / target labels above
+        '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:0.75rem;margin-bottom:4px;color:var(--gray-700);">' +
+          '<span><strong>' + escapeHtml(m.format(m.value)) + '</strong> right now</span>' +
+          '<span>target: ' + escapeHtml(m.format(m.target)) + '</span>' +
+        '</div>' +
+        '<div style="height:8px;background:var(--white);border-radius:4px;overflow:hidden;margin-bottom:8px;">' +
           '<div style="height:100%;width:' + m.pct + '%;background:' + m.barColor + ';transition:width 0.3s;"></div>' +
         '</div>' +
-        '<div style="font-size:0.72rem;color:var(--gray-600);margin-top:4px;line-height:1.4;">' + m.detail + '</div>' +
+        // Three explainer lines
+        '<div style="font-size:0.75rem;color:var(--gray-700);line-height:1.5;">' +
+          '<div style="margin-bottom:6px;"><strong style="color:var(--plum);">What this is:</strong> ' + m.whatItMeans + '</div>' +
+          '<div style="margin-bottom:6px;"><strong style="color:var(--plum);">Why it matters:</strong> ' + m.whyItMatters + '</div>' +
+          '<div><strong style="color:var(--plum);">Next move:</strong> ' + m.nextMove + '</div>' +
+        '</div>' +
       '</div>';
     });
     h += '</div>';
 
     // Footer disclaimer — keep this honest so she doesn't over-rely.
     h += '<div style="margin-top:10px;padding-top:8px;border-top:1px dashed var(--gray-200);font-size:0.7rem;color:var(--gray-600);line-height:1.4;">' +
-      'Targets are defensive defaults for a ~$200-250k farm purchase via FSA Beginning Farmer Down Payment Loan. ' +
-      'Your loan officer will set real numbers. This widget only sees FYHF data &mdash; ' +
-      'down-payment cash, credit score, and Josh\'s side are tracked separately.' +
+      'Targets are educated guesses for a ~$200-250k farm purchase through the FSA Beginning Farmer Down Payment Loan program. ' +
+      'When you sit down with your loan officer they\'ll set the real numbers &mdash; tweak these in the code if they say otherwise. ' +
+      'Personal cash, credit scores, and Josh\'s side aren\'t visible here.' +
     '</div>';
   }
 
