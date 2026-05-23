@@ -1940,6 +1940,17 @@ function setTaxReservePct(pct) {
   renderDashboard();
 }
 
+// Monthly income goal — admin-editable, default $2000.
+function getMonthlyGoal() {
+  const v = parseFloat(localStorage.getItem('gf_monthly_goal'));
+  return (v > 0 && v < 100000) ? v : 2000;
+}
+function setMonthlyGoal(v) {
+  const n = parseFloat(v);
+  if (n > 0 && n < 100000) localStorage.setItem('gf_monthly_goal', String(n));
+  renderDashboard();
+}
+
 async function renderDashboard() {
   await loadExpenses();
   const el = document.getElementById('dashboard-content');
@@ -1950,6 +1961,26 @@ async function renderDashboard() {
   const today = formatDate(new Date());
   const year = today.slice(0,4);
   const todayDate = new Date(today + 'T00:00:00');
+
+  // --- Monthly goal progress ---
+  const monthlyGoal = getMonthlyGoal();
+  const monthKey = today.slice(0, 7);
+  const monthCollected = bookings
+    .filter(b => (b.paidDate || b.date || '').slice(0, 7) === monthKey && b.paid)
+    .reduce((s, b) => s + (Number(b.price) || 0), 0);
+  // Also pull payments captured this month (Square + manual) for completeness.
+  const monthPaymentsTotal = (typeof _paymentsCache !== 'undefined' && Array.isArray(_paymentsCache))
+    ? _paymentsCache
+        .filter(p => (p.capturedAt || '').slice(0, 7) === monthKey &&
+                     (p.status === 'completed' || p.status === 'paid' || p.status === 'captured'))
+        .reduce((s, p) => s + ((p.amountCents || 0) / 100), 0)
+    : 0;
+  // Use whichever source counts more income (payments ledger is authoritative
+  // when populated; bookings.paid covers the gap when payments collection
+  // hasn't been backfilled).
+  const monthEarned = Math.max(monthCollected, monthPaymentsTotal);
+  const monthGoalPct = Math.min(100, (monthEarned / monthlyGoal) * 100);
+  const monthGoalRemaining = Math.max(0, monthlyGoal - monthEarned);
 
   // --- YTD totals ---
   const ytdBookings = bookings.filter(b => (b.date||'').startsWith(year) && (b.date||'') <= today);
@@ -2072,6 +2103,34 @@ async function renderDashboard() {
     </div>
   `;
 
+  // Monthly goal progress card. Editable inline; default $2000.
+  const goalReached = monthEarned >= monthlyGoal;
+  const goalFillColor = goalReached ? 'var(--spring-sage)' :
+                       monthGoalPct >= 75 ? 'var(--pollen-gold)' :
+                       'var(--petal-pink)';
+  html += `
+    <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;gap:10px;">
+        <div>
+          <h3 style="margin:0;font-size:1rem;">${monthLabel} goal ${goalReached ? '🎉' : ''}</h3>
+          <div style="font-size:0.78rem;color:var(--gray-600);margin-top:2px;">
+            ${fmt(monthEarned)} of ${fmt(monthlyGoal)} ${goalReached ? '· goal hit' : '· ' + fmt(monthGoalRemaining) + ' to go'}
+          </div>
+        </div>
+        <div style="text-align:right;font-size:0.7rem;color:var(--gray-600);">
+          Goal $<input type="number" min="100" max="50000" step="50" value="${monthlyGoal}" onchange="setMonthlyGoal(this.value)" style="width:62px;padding:1px 4px;font-size:0.75rem;border:1px solid var(--gray-200);border-radius:4px;text-align:right;">/mo
+        </div>
+      </div>
+      <div style="height:14px;background:var(--gray-100);border-radius:7px;overflow:hidden;position:relative;">
+        <div style="height:100%;width:${monthGoalPct.toFixed(1)}%;background:${goalFillColor};border-radius:7px;transition:width 0.4s ease;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:0.68rem;color:var(--gray-400);margin-top:4px;">
+        <span>${monthGoalPct.toFixed(0)}%</span>
+        <span>${fmt(monthlyGoal)}</span>
+      </div>
+    </div>
+  `;
+
   // 12-month income vs expenses — grouped bars per month. Reads
   // monthBuckets.paid (collected revenue, only money actually received)
   // and monthBuckets.expenses (biz-tagged expenses).
@@ -2152,6 +2211,25 @@ async function renderDashboard() {
         <div style="font-size:1rem;font-weight:700;color:var(--plum);">${fmt(restOfMonthExpected)}</div>
       </div>
       ` : ''}
+      ${(() => {
+        // Projected end-of-month: what's already collected + what's expected
+        // for the rest of the month. Compared against the monthly goal.
+        const projected = monthEarned + restOfMonthExpected;
+        const projPct = Math.min(100, (projected / monthlyGoal) * 100);
+        const hitting = projected >= monthlyGoal;
+        const fillColor = hitting ? 'var(--spring-sage)' : 'var(--petal-pink)';
+        const gap = monthlyGoal - projected;
+        return `
+        <div style="border-top:1px solid var(--gray-200);margin-top:10px;padding-top:8px;">
+          <div style="display:flex;justify-content:space-between;font-size:0.74rem;color:var(--gray-600);margin-bottom:4px;">
+            <span>Projected EOM</span>
+            <span>${fmt(projected)} / ${fmt(monthlyGoal)} ${hitting ? '✓' : (gap > 0 ? '· ' + fmt(gap) + ' short' : '')}</span>
+          </div>
+          <div style="height:6px;background:var(--gray-100);border-radius:3px;overflow:hidden;">
+            <div style="height:100%;width:${projPct.toFixed(1)}%;background:${fillColor};border-radius:3px;"></div>
+          </div>
+        </div>`;
+      })()}
       ${noPriceWarning}
     </div>
   `;
@@ -2200,14 +2278,59 @@ async function renderDashboard() {
     `).join('');
   };
 
+  // --- How clients find Garden Faery (from clients.source attribution) ---
+  const SOURCE_COLORS = {
+    word_of_mouth: '#c2557a',
+    referral:      '#9bbd85',
+    instagram:     '#7a3b4e',
+    website:       '#506a6e',
+    returning:     '#d4b86a',
+    other:         '#a89e96',
+  };
+  const SOURCE_LABELS = {
+    word_of_mouth: 'Word of mouth',
+    referral:      'Friend referral',
+    instagram:     'Instagram',
+    website:       'Searched online',
+    returning:     'Returning client',
+    other:         'Other',
+  };
+  const sourceTotals = {};
+  if (typeof _clientsById !== 'undefined') {
+    Object.values(_clientsById).forEach(c => {
+      const k = c.source || 'other';
+      sourceTotals[k] = (sourceTotals[k] || 0) + 1;
+    });
+  }
+  const sourceTotal = Object.values(sourceTotals).reduce((s, v) => s + v, 0);
+  const sourceSlices = sourceTotal > 0
+    ? Object.entries(sourceTotals).sort((a, b) => b[1] - a[1]).map(([k, v]) => ({
+        k, v, pct: (v / sourceTotal) * 100,
+        color: SOURCE_COLORS[k] || '#a89e96',
+        label: SOURCE_LABELS[k] || k.replace(/_/g, ' '),
+      }))
+    : [];
+
   html += `
-    <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
-      <h3 style="margin:0 0 10px;font-size:1rem;">Expense categories ${year}</h3>
-      <div style="display:flex;gap:14px;align-items:center;">
-        <div style="width:100px;height:100px;border-radius:50%;flex-shrink:0;background:${buildConic(expSlices)};position:relative;">
-          <div style="position:absolute;inset:22px;background:var(--white);border-radius:50%;"></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:12px;">
+      <div style="background:var(--white);border-radius:12px;padding:14px;box-shadow:var(--shadow);">
+        <h3 style="margin:0 0 10px;font-size:1rem;">How clients find me</h3>
+        ${sourceTotal === 0
+          ? '<div style="color:var(--gray-600);font-size:0.85rem;">No source data yet. The dropdown on book.html starts capturing this on the next booking.</div>'
+          : `<div style="display:flex;gap:14px;align-items:center;">
+              <div style="width:100px;height:100px;border-radius:50%;flex-shrink:0;background:${buildConic(sourceSlices)};"></div>
+              <div style="flex:1;min-width:0;">${renderSlicesLegend(sourceSlices, '')}</div>
+            </div>`
+        }
+      </div>
+      <div style="background:var(--white);border-radius:12px;padding:14px;box-shadow:var(--shadow);">
+        <h3 style="margin:0 0 10px;font-size:1rem;">Expense categories ${year}</h3>
+        <div style="display:flex;gap:14px;align-items:center;">
+          <div style="width:100px;height:100px;border-radius:50%;flex-shrink:0;background:${buildConic(expSlices)};position:relative;">
+            <div style="position:absolute;inset:22px;background:var(--white);border-radius:50%;"></div>
+          </div>
+          <div style="flex:1;min-width:0;">${renderSlicesLegend(expSlices)}</div>
         </div>
-        <div style="flex:1;min-width:0;">${renderSlicesLegend(expSlices)}</div>
       </div>
     </div>
   `;

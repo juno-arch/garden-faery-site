@@ -1145,6 +1145,19 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
 const PB_URL = 'https://bookings.gardenfaery.love'; // production PocketBase instance
 
 // --- Config ---
+// Build a friendly "9am to 2pm" / "2:30pm to 4:30pm" range from an event
+// type's start/end hour. Drops the ":00" when minute is zero, drops the
+// minute entirely when both ends are on the hour.
+function eventTimeRange(et) {
+  if (!et) return '';
+  const fmt = (h, m) => {
+    const ampm = h >= 12 ? 'pm' : 'am';
+    const h12 = ((h + 11) % 12) + 1;
+    return h12 + (m ? ':' + String(m).padStart(2, '0') : '') + ampm;
+  };
+  return fmt(et.startHour, et.startMin || 0) + ' to ' + fmt(et.endHour, et.endMin || 0);
+}
+
 const EVENT_TYPES = {
   morning: {
     name: 'Morning Garden Care',
@@ -1866,7 +1879,7 @@ function renderSummary() {
       '<div class="summary-item"><span class="summary-label">First visit</span><span class="summary-value">' + startLabel + '</span></div>' +
       '<div class="summary-item"><span class="summary-label">Last visit</span><span class="summary-value">' + endLabel + '</span></div>' +
       '<div class="summary-item"><span class="summary-label">Visits</span><span class="summary-value">' + okDates.length + '</span></div>' +
-      '<div class="summary-item"><span class="summary-label">Time</span><span class="summary-value">' + et.slots[0] + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Time</span><span class="summary-value">' + eventTimeRange(et) + '</span></div>' +
       '<div class="summary-item"><span class="summary-label">Duration</span><span class="summary-value">' + durationStr + '</span></div>' +
       '<div class="summary-item"><span class="summary-label">Rate</span><span class="summary-value">' + priceStr + '</span></div>';
     if (skipped.length > 0) {
@@ -1887,7 +1900,7 @@ function renderSummary() {
       '<div class="summary-item"><span class="summary-label">Service</span><span class="summary-value">' + et.name + '</span></div>' +
       '<div class="summary-item"><span class="summary-label">Visits</span><span class="summary-value">' + multiDates.length + '</span></div>' +
       '<div class="summary-item"><span class="summary-label">Dates</span><span class="summary-value" style="text-align:right;max-width:60%;">' + list + '</span></div>' +
-      '<div class="summary-item"><span class="summary-label">Time</span><span class="summary-value">' + et.slots[0] + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Time</span><span class="summary-value">' + eventTimeRange(et) + '</span></div>' +
       '<div class="summary-item"><span class="summary-label">Duration</span><span class="summary-value">' + durationStr + '</span></div>' +
       '<div class="summary-item"><span class="summary-label">Rate</span><span class="summary-value">' + priceStr + '</span></div>';
     return;
@@ -1899,7 +1912,7 @@ function renderSummary() {
   document.getElementById('booking-summary').innerHTML =
     '<div class="summary-item"><span class="summary-label">Service</span><span class="summary-value">' + et.name + '</span></div>' +
     '<div class="summary-item"><span class="summary-label">Date</span><span class="summary-value">' + dateStr + '</span></div>' +
-    '<div class="summary-item"><span class="summary-label">Time</span><span class="summary-value">' + selectedTime + '</span></div>' +
+    '<div class="summary-item"><span class="summary-label">Time</span><span class="summary-value">' + eventTimeRange(et) + '</span></div>' +
     '<div class="summary-item"><span class="summary-label">Duration</span><span class="summary-value">' + durationStr + '</span></div>' +
     '<div class="summary-item"><span class="summary-label">Rate</span><span class="summary-value">' + priceStr + '</span></div>';
 }
@@ -2064,7 +2077,7 @@ function showMultipleConfirmation(et, dates, seriesId) {
       '<div class="summary-item"><span class="summary-label">What</span><span class="summary-value">' + et.name + '</span></div>' +
       '<div class="summary-item"><span class="summary-label">Visits</span><span class="summary-value">' + dates.length + '</span></div>' +
       '<div class="summary-item"><span class="summary-label">Dates</span><span class="summary-value" style="text-align:right;max-width:60%;">' + list + '</span></div>' +
-      '<div class="summary-item"><span class="summary-label">Time</span><span class="summary-value">' + et.slots[0] + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Time</span><span class="summary-value">' + eventTimeRange(et) + '</span></div>' +
       '<div class="summary-item"><span class="summary-label">Where</span><span class="summary-value">' + (address || 'TBD') + '</span></div>' +
       '<div class="summary-item"><span class="summary-label">Who</span><span class="summary-value">' + name + '</span></div>';
   }
