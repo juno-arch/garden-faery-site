@@ -6885,6 +6885,7 @@ async function renderBank() {
       '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
         '<button class="modal-btn secondary" onclick="openCategoriesView()" style="padding:8px 14px;font-size:0.85rem;">Categories</button>' +
         '<button class="modal-btn secondary" onclick="syncBankBackfill()" style="padding:8px 14px;font-size:0.85rem;" title="Pull last 12 months">Backfill year</button>' +
+        '<button class="modal-btn secondary" onclick="openPlaidLink()" style="padding:8px 14px;font-size:0.85rem;" title="Connect a bank via Plaid (more reliable than SimpleFIN; requires PLAID_CLIENT_ID + PLAID_SECRET on the VPS)">Connect via Plaid</button>' +
         '<button class="modal-btn primary" onclick="syncBank()" style="padding:10px 18px;">Sync</button>' +
       '</div>' +
     '</div>';
@@ -6898,6 +6899,7 @@ async function renderBank() {
       '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
         '<button class="modal-btn secondary" onclick="openCategoriesView()" style="padding:8px 14px;font-size:0.85rem;">Categories</button>' +
         '<button class="modal-btn secondary" onclick="syncBankBackfill()" style="padding:8px 14px;font-size:0.85rem;" title="Pull last 12 months of transactions">Backfill year</button>' +
+        '<button class="modal-btn secondary" onclick="openPlaidLink()" style="padding:8px 14px;font-size:0.85rem;" title="Connect a bank via Plaid (more reliable than SimpleFIN; requires PLAID_CLIENT_ID + PLAID_SECRET on the VPS)">Connect via Plaid</button>' +
         '<button class="modal-btn primary" onclick="syncBank()" style="padding:10px 18px;">Sync</button>' +
       '</div>' +
     '</div>';
@@ -8000,6 +8002,83 @@ async function refreshPayments() {
 // Pull last 12 months of bank transactions in one shot. Used as a manual
 // backfill / testing utility. Idempotent — already-imported transactions
 // dedupe via UNIQUE (source, provider_id).
+// Plaid Link entry point. Inert until PLAID_CLIENT_ID + PLAID_SECRET are
+// set on the VPS — until then, this just surfaces setup instructions.
+// Once configured, dynamically loads Plaid's Link JS, opens the picker,
+// and pipes the public_token to /api/admin/plaid/exchange.
+async function openPlaidLink() {
+  let linkResp, linkData;
+  try {
+    linkResp = await fetch(PB_URL + '/api/admin/plaid/link-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+      body: '{}',
+    });
+    linkData = await linkResp.json().catch(() => ({}));
+  } catch (err) {
+    alert('Network error reaching Plaid endpoint: ' + err.message);
+    return;
+  }
+
+  if (!linkResp.ok || !linkData.link_token) {
+    // Most common reason: env vars not set yet. Show concise setup steps.
+    const msg = (linkData.error || ('HTTP ' + linkResp.status)) + '\n\n' +
+      'Plaid setup (one-time):\n' +
+      '1. dashboard.plaid.com/signup (free Development tier, no credit card)\n' +
+      '2. Copy client_id + secret from dashboard.plaid.com/team/keys\n' +
+      '3. SSH to bookings.gardenfaery.love, create:\n' +
+      '   /etc/systemd/system/pocketbase.service.d/plaid.conf\n' +
+      '   [Service]\n' +
+      '   Environment="PLAID_CLIENT_ID=xxx"\n' +
+      '   Environment="PLAID_SECRET=xxx"\n' +
+      '   Environment="PLAID_ENV=development"\n' +
+      '   Environment="PLAID_WEBHOOK_URL=https://bookings.gardenfaery.love/api/webhooks/plaid"\n' +
+      '4. sudo systemctl daemon-reload && sudo systemctl restart pocketbase\n' +
+      '5. Come back here, tap Connect via Plaid again.';
+    alert(msg);
+    return;
+  }
+
+  // Lazy-load Plaid Link's JS bundle (~80KB). Cached after first use.
+  await new Promise((resolve, reject) => {
+    if (window.Plaid) return resolve();
+    const s = document.createElement('script');
+    s.src = 'https://cdn.plaid.com/link/v2/stable/link-initialize.js';
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('failed to load Plaid Link JS'));
+    document.head.appendChild(s);
+  }).catch(err => { alert('Could not load Plaid Link: ' + err.message); return null; });
+  if (!window.Plaid) return;
+
+  const handler = window.Plaid.create({
+    token: linkData.link_token,
+    onSuccess: async (public_token, metadata) => {
+      try {
+        const exchResp = await fetch(PB_URL + '/api/admin/plaid/exchange', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+          body: JSON.stringify({
+            public_token: public_token,
+            institution_id: (metadata && metadata.institution && metadata.institution.institution_id) || '',
+            institution_name: (metadata && metadata.institution && metadata.institution.name) || '',
+          }),
+        });
+        const exchData = await exchResp.json().catch(() => ({}));
+        if (!exchResp.ok || !exchData.ok) {
+          alert('Exchange failed: ' + (exchData.error || exchResp.status));
+          return;
+        }
+        alert('Connected ' + (exchData.institution_name || 'institution') + ' via Plaid. Tap Sync to pull transactions.');
+        // Reload Bank tab so any new accounts show up.
+        _bankLoaded = false;
+        if (typeof renderBank === 'function') await renderBank();
+      } catch (err) { alert('Exchange network error: ' + err.message); }
+    },
+    onExit: (err) => { if (err) console.warn('[plaid-link] exit error:', err); },
+  });
+  handler.open();
+}
+
 async function syncBankBackfill() {
   if (!confirm('Backfill last 12 months of bank transactions? This may take 30-60s and create lots of categorize-me rows.')) return;
   return syncBank(365);
