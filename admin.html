@@ -2111,30 +2111,46 @@ async function renderDashboard() {
     </div>
   `;
 
-  // Monthly goal progress card. Editable inline; default $2000.
+  // Month card — combines goal progress with rest-of-month projection.
+  // Replaces both the standalone goal card and the Next-30-Days widget.
+  // Stack of two bars: solid sage = earned, hashed pink = booked-projected
+  // for the rest of the month. Together they form the projected EOM total.
   const goalReached = monthEarned >= monthlyGoal;
-  const goalFillColor = goalReached ? 'var(--spring-sage)' :
-                       monthGoalPct >= 75 ? 'var(--pollen-gold)' :
-                       'var(--petal-pink)';
+  const earnedPct = Math.min(100, (monthEarned / monthlyGoal) * 100);
+  const projected = monthEarned + restOfMonthExpected;
+  const projPct = Math.min(100, (projected / monthlyGoal) * 100);
+  const willHitGoal = projected >= monthlyGoal;
+  const shortBy = Math.max(0, monthlyGoal - projected);
   html += `
     <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;gap:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;gap:10px;">
         <div>
-          <h3 style="margin:0;font-size:1rem;">${monthLabel} goal ${goalReached ? '🎉' : ''}</h3>
-          <div style="font-size:0.78rem;color:var(--gray-600);margin-top:2px;">
-            ${fmt(monthEarned)} of ${fmt(monthlyGoal)} ${goalReached ? '· goal hit' : '· ' + fmt(monthGoalRemaining) + ' to go'}
+          <h3 style="margin:0;font-size:1.05rem;">${monthLabel} ${goalReached ? '🎉' : (willHitGoal ? '✓' : '')}</h3>
+          <div style="font-size:0.8rem;color:var(--gray-600);margin-top:3px;">
+            ${fmt(monthEarned)} of ${fmt(monthlyGoal)}
           </div>
         </div>
-        <div style="text-align:right;font-size:0.7rem;color:var(--gray-600);">
-          Goal $<input type="number" min="100" max="50000" step="50" value="${monthlyGoal}" onchange="setMonthlyGoal(this.value)" style="width:62px;padding:1px 4px;font-size:0.75rem;border:1px solid var(--gray-200);border-radius:4px;text-align:right;">/mo
+        <div style="text-align:right;">
+          <div style="font-size:1.15rem;font-weight:700;color:${goalReached ? 'var(--spring-sage)' : (willHitGoal ? 'var(--pollen-gold)' : 'var(--petal-pink)')};">
+            ${goalReached ? 'Goal hit' : shortBy > 0 ? fmt(shortBy) + ' short' : 'On pace'}
+          </div>
+          <div style="font-size:0.68rem;color:var(--gray-400);margin-top:2px;">
+            Goal $<input type="number" min="100" max="50000" step="50" value="${monthlyGoal}" onchange="setMonthlyGoal(this.value)" style="width:60px;padding:1px 4px;font-size:0.7rem;border:1px solid var(--gray-200);border-radius:4px;text-align:right;background:transparent;color:var(--plum);">/mo
+          </div>
         </div>
       </div>
+
+      <!-- Stacked progress: solid earned + striped projected. Same scale,
+           bounded by the goal so anything over 100% wraps to a full bar. -->
       <div style="height:14px;background:var(--gray-100);border-radius:7px;overflow:hidden;position:relative;">
-        <div style="height:100%;width:${monthGoalPct.toFixed(1)}%;background:${goalFillColor};border-radius:7px;transition:width 0.4s ease;"></div>
+        <div style="position:absolute;inset:0;width:${projPct.toFixed(1)}%;background:repeating-linear-gradient(135deg, rgba(212,184,106,0.35) 0 6px, rgba(212,184,106,0.55) 6px 12px);border-radius:7px;"></div>
+        <div style="position:absolute;inset:0;width:${earnedPct.toFixed(1)}%;background:${goalReached ? 'var(--spring-sage)' : 'var(--accent-1,#c2557a)'};border-radius:7px;transition:width 0.4s ease;"></div>
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:0.68rem;color:var(--gray-400);margin-top:4px;">
-        <span>${monthGoalPct.toFixed(0)}%</span>
-        <span>${fmt(monthlyGoal)}</span>
+
+      <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--gray-600);margin-top:8px;gap:10px;flex-wrap:wrap;">
+        <span><span style="display:inline-block;width:8px;height:8px;background:var(--accent-1,#c2557a);border-radius:50%;margin-right:4px;vertical-align:middle;"></span>${fmt(monthEarned)} earned</span>
+        <span><span style="display:inline-block;width:8px;height:8px;background:rgba(212,184,106,0.6);border-radius:50%;margin-right:4px;vertical-align:middle;"></span>${fmt(restOfMonthExpected)} booked projected${next30Inferred > 0 ? ' · ' + next30Inferred + ' est' : ''}</span>
+        <span style="color:var(--gray-400);">${restOfMonthCount} booking${restOfMonthCount===1?'':'s'} left</span>
       </div>
     </div>
   `;
@@ -2189,58 +2205,15 @@ async function renderDashboard() {
     </div>
   `;
 
-  // Next 30 days — expected income (unpaid upcoming, with last-paid
-  // fallback for visits that haven't had a price entered yet).
-  const noPriceWarning = next30NoPriceCount > 0
-    ? '<div style="margin-top:6px;padding:6px 10px;background:rgba(212,194,122,0.18);border-radius:6px;font-size:0.74rem;color:var(--gray-600);">' +
-        next30NoPriceCount + ' upcoming visit' + (next30NoPriceCount === 1 ? '' : 's') +
-        ' couldn\'t auto-price (unknown event type) — open the booking to set one manually.' +
-      '</div>'
-    : '';
-  html += `
-    <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <h3 style="margin:0 0 2px;font-size:1rem;">Next 30 days</h3>
-          <div style="font-size:0.8rem;color:var(--gray-600);">
-            ${next30Count} booking${next30Count===1?'':'s'} on the calendar${next30UnpaidCount > 0 ? ' · ' + next30UnpaidCount + ' awaiting payment' : ''}${next30AlreadyPaid > 0 ? ' · ' + fmt(next30AlreadyPaid) + ' already collected' : ''}
-          </div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:1.4rem;font-weight:700;color:var(--spring-sage);">${fmt(next30Expected)}</div>
-          <div style="font-size:0.68rem;color:var(--gray-400);">
-            expected${next30Inferred > 0 ? ' · ' + next30Inferred + ' est' : ''}
-          </div>
-        </div>
-      </div>
-      ${restOfMonthCount > 0 ? `
-      <div style="border-top:1px solid var(--gray-200);margin-top:10px;padding-top:8px;display:flex;justify-content:space-between;align-items:center;">
-        <div style="font-size:0.78rem;color:var(--gray-600);">Rest of ${monthLabel} · ${restOfMonthCount} booking${restOfMonthCount===1?'':'s'}</div>
-        <div style="font-size:1rem;font-weight:700;color:var(--plum);">${fmt(restOfMonthExpected)}</div>
-      </div>
-      ` : ''}
-      ${(() => {
-        // Projected end-of-month: what's already collected + what's expected
-        // for the rest of the month. Compared against the monthly goal.
-        const projected = monthEarned + restOfMonthExpected;
-        const projPct = Math.min(100, (projected / monthlyGoal) * 100);
-        const hitting = projected >= monthlyGoal;
-        const fillColor = hitting ? 'var(--spring-sage)' : 'var(--petal-pink)';
-        const gap = monthlyGoal - projected;
-        return `
-        <div style="border-top:1px solid var(--gray-200);margin-top:10px;padding-top:8px;">
-          <div style="display:flex;justify-content:space-between;font-size:0.74rem;color:var(--gray-600);margin-bottom:4px;">
-            <span>Projected EOM</span>
-            <span>${fmt(projected)} / ${fmt(monthlyGoal)} ${hitting ? '✓' : (gap > 0 ? '· ' + fmt(gap) + ' short' : '')}</span>
-          </div>
-          <div style="height:6px;background:var(--gray-100);border-radius:3px;overflow:hidden;">
-            <div style="height:100%;width:${projPct.toFixed(1)}%;background:${fillColor};border-radius:3px;"></div>
-          </div>
-        </div>`;
-      })()}
-      ${noPriceWarning}
-    </div>
-  `;
+  // (Next 30 days widget removed — its info lives in the unified May card
+  // above. A standalone "manual-pricing-needed" hint stays as its own card
+  // when there are upcoming bookings the rate×duration calc can't price.)
+  if (next30NoPriceCount > 0) {
+    html += '<div style="margin-bottom:12px;padding:10px 14px;background:rgba(212,194,122,0.18);border:1px solid var(--pollen-gold);border-radius:8px;font-size:0.8rem;color:var(--gray-600);">' +
+      next30NoPriceCount + ' upcoming visit' + (next30NoPriceCount === 1 ? '' : 's') +
+      ' couldn\'t auto-price (unknown event type) — open the booking to set one manually.' +
+    '</div>';
+  }
 
   // Service mix removed — not actionable for the one-service-type biz.
   // Expense categories donut
