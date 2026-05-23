@@ -1882,6 +1882,51 @@ function expectedPriceForBooking(b) {
   return Math.round(rate * dur);
 }
 
+// Garden-themed quips for the empty-day card. Deterministic by date so the
+// blurb is stable across re-renders within a day, and rotates daily. Mix of
+// puns, dad-jokes, riddles (answer hidden until tap), and tiny challenges.
+const EMPTY_DAY_BLURBS = [
+  { kind: 'pun',    text: 'A free day. Thyme to do whatever you want with it.' },
+  { kind: 'pun',    text: 'No clients on the calendar — you really mint to take this one off.' },
+  { kind: 'pun',    text: 'Quiet day. Even the soil is loamy and slow.' },
+  { kind: 'pun',    text: 'Lettuce romaine calm — the schedule is empty for a reason.' },
+  { kind: 'pun',    text: 'No visits today. Beet you didn\'t see that coming.' },
+  { kind: 'pun',    text: 'A clear day. Don\'t leaf this opportunity unplanted.' },
+  { kind: 'pun',    text: 'No bookings. Compost yourself.' },
+  { kind: 'joke',   text: 'Why did the gardener plant a lightbulb? She wanted to grow a power plant.' },
+  { kind: 'joke',   text: 'What did the big flower say to the little flower? Hi, bud!' },
+  { kind: 'joke',   text: 'How do you know if a plant is good at math? It has square roots.' },
+  { kind: 'joke',   text: 'What\'s a tree\'s favorite drink? Root beer.' },
+  { kind: 'joke',   text: 'Why don\'t plants ever get embarrassed? They use lots of blush-leaf.' },
+  { kind: 'riddle', text: 'Riddle: I have many leaves but I\'m not a tree. I get cracked open but I don\'t crack a smile.', answer: 'A book.' },
+  { kind: 'riddle', text: 'Riddle: I rise without seeds, fall without wings, and wake the garden by morning.', answer: 'Dew.' },
+  { kind: 'riddle', text: 'Riddle: The more of me there is, the less you see. What am I?', answer: 'Darkness.' },
+  { kind: 'riddle', text: 'Riddle: I\'m planted in winter and harvested in spring, yet I\'m not a seed at all. What am I?', answer: 'A bulb.' },
+  { kind: 'task',   text: 'Free day mission: name three perennials you haven\'t planted yet but want to.' },
+  { kind: 'task',   text: 'Free day mission: text one client who hasn\'t booked in a while just to say hi.' },
+  { kind: 'task',   text: 'Free day mission: walk outside, find one weed, pull it. That\'s the whole task.' },
+  { kind: 'task',   text: 'Free day mission: drink a glass of water before you scroll again.' },
+];
+
+// Returns { html, isHtml } so the riddle variant can render a tap-to-reveal
+// answer while regular puns/jokes stay plain text.
+function emptyDayBlurb(isoDate) {
+  const d = new Date(isoDate || new Date().toISOString().slice(0,10));
+  const start = new Date(d.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor((d - start) / (24*3600*1000));
+  const pick = EMPTY_DAY_BLURBS[dayOfYear % EMPTY_DAY_BLURBS.length];
+  if (pick.kind === 'riddle') {
+    return {
+      isHtml: true,
+      html: escapeHtml(pick.text) +
+        ' <span onclick="this.nextElementSibling.style.display=\'inline\';this.style.display=\'none\';" ' +
+          'style="cursor:pointer;text-decoration:underline;color:var(--pollen-gold);">tap for answer</span>' +
+        '<span style="display:none;font-weight:600;color:var(--plum);"> &mdash; ' + escapeHtml(pick.answer) + '</span>',
+    };
+  }
+  return { isHtml: false, html: pick.text };
+}
+
 // Today card leads with the focused client of the day. If she has more
 // than one visit, the others show as pills below — tap one to switch
 // focus. The big button opens the payment modal pre-filled so logging
@@ -1914,7 +1959,9 @@ function renderTodayCard() {
   if (!bks.length) {
     greet.textContent = 'No visits today';
     sum.className = 'today-summary empty';
-    sum.textContent = 'Take a breath. Or get ahead on next week.';
+    const blurb = emptyDayBlurb(todayIso);
+    if (blurb.isHtml) sum.innerHTML = blurb.html;
+    else sum.textContent = blurb.html;
     if (payEl) payEl.innerHTML = '';
     if (moreEl) moreEl.innerHTML = '';
     return;
