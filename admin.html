@@ -2712,16 +2712,19 @@ async function renderDashboard() {
 // =============================================================
 // FSA Loan Readiness widget (biz-side only)
 // =============================================================
-// Targets — calibrated to a $200-250k farm purchase via FSA Beginning
-// Farmer Direct Down Payment Loan. These are *defensive* benchmarks an
-// underwriter would look for in the FYHF books specifically; they
-// deliberately ignore personal CCCU savings, credit scores, and Josh's
-// financials (different widget).
+// Targets — calibrated to the "smaller parcel I'd happily stay on for 20+
+// years" path: ~$150-250k purchase, joint with Josh covering his half
+// (his W-2 carries household ability-to-repay), FSA Beginning Farmer
+// Direct Down Payment Loan. Targets bias toward DEMONSTRATING a viable
+// operation rather than financing a large operation single-handed.
+//
+// To recalibrate for a bigger purchase (e.g. $550k dream-farm path),
+// roughly: annualRevenue 35-50k, operatingCash 10-12k, consistentMonths 9.
 const FSA_TARGETS = {
-  annualRevenue:    24000,  // ~$2k/mo floor — demonstrates a viable operation
+  annualRevenue:    18000,  // ~$1.5k/mo — shows a real, ongoing operation
   profitMarginPct:  25,     // net profit / revenue; below this and Schedule F looks like a hobby
-  consistentMonths: 6,      // # of last 12 months with ≥$500 in revenue
-  operatingCash:    5000,   // FYHF checking+savings — biz operating buffer, NOT the down payment
+  consistentMonths: 7,      // # of last 12 months with ≥$500 in revenue
+  operatingCash:    6000,   // FYHF checking+savings — biz buffer, NOT the down payment
 };
 
 // State: expanded or collapsed. Lives in localStorage so a tap to expand
@@ -2931,8 +2934,9 @@ function fsaReadinessCardHtml(ctx) {
 
     // Footer disclaimer — keep this honest so she doesn't over-rely.
     h += '<div style="margin-top:10px;padding-top:8px;border-top:1px dashed var(--gray-200);font-size:0.7rem;color:var(--gray-600);line-height:1.4;">' +
-      'Targets are educated guesses for a ~$200-250k farm purchase through the FSA Beginning Farmer Down Payment Loan program. ' +
-      'When you sit down with your loan officer they\'ll set the real numbers &mdash; tweak these in the code if they say otherwise. ' +
+      'Targets are calibrated to the <strong>small-parcel-to-stay-on</strong> path: ~$150-250k purchase, joint with Josh ' +
+      'covering his half via W-2 income, FSA Beginning Farmer Down Payment Loan. ' +
+      'When you sit down with your loan officer they\'ll set the real numbers. ' +
       'Personal cash, credit scores, and Josh\'s side aren\'t visible here.' +
     '</div>';
   }
