@@ -5268,30 +5268,48 @@ async function renderExpenses() {
   // scopeLabel is rendered in the list heading.
   const inMonth = inScope;
 
-  // Pending-review section — pinned at the top regardless of date filter so
-  // OCR'd-but-not-confirmed receipts never disappear into a wrong month.
-  // Covers the date-misread case (5/20 read as 8/01 etc.) we just guarded
-  // against on the server, plus historical pending rows from before that.
+  // Needs-review section — pinned at the top regardless of date filter so
+  // OCR'd-but-not-confirmed receipts AND receipts missing a photo never
+  // disappear into a wrong month. Audit trail safety net.
   const pendingReceipts = all.filter(e =>
     e.reviewStatus === 'pending_review' || e.reviewStatus === 'possible_duplicate'
-  ).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  );
+  // Missing-photo: any biz expense without a `receipt` file attached.
+  // (Personal expenses don't need photo for IRS Schedule C.)
+  const missingPhoto = all.filter(e => e.onBiz && !e.receipt);
+  // Dedupe: a pending row that's ALSO missing a photo only shows once,
+  // tagged with both badges.
+  const seen = new Set();
+  const flagged = [];
+  [...pendingReceipts, ...missingPhoto].forEach(e => {
+    if (seen.has(e.id)) return;
+    seen.add(e.id);
+    flagged.push(e);
+  });
+  flagged.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
-  if (pendingReceipts.length > 0) {
+  if (flagged.length > 0) {
     html += '<div style="background:rgba(212,194,122,0.14);border:1px solid var(--pollen-gold);border-radius:12px;padding:12px;margin-bottom:12px;">' +
       '<h3 style="margin-bottom:8px;font-size:1rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px;">' +
         '<span>Needs review</span>' +
-        '<span style="font-size:0.75rem;font-weight:400;color:var(--gray-600);">' + pendingReceipts.length + ' receipt' + (pendingReceipts.length === 1 ? '' : 's') + ' awaiting confirmation</span>' +
+        '<span style="font-size:0.75rem;font-weight:400;color:var(--gray-600);">' + flagged.length + ' receipt' + (flagged.length === 1 ? '' : 's') + ' need attention</span>' +
       '</h3>';
-    pendingReceipts.forEach(e => {
-      const dupeBadge = e.reviewStatus === 'possible_duplicate'
-        ? '<span style="background:rgba(255,138,120,0.16);color:var(--red);padding:2px 8px;border-radius:99px;font-size:0.66rem;font-weight:700;margin-left:6px;">possible duplicate</span>'
-        : '<span style="background:rgba(212,194,122,0.3);color:#7a5a00;padding:2px 8px;border-radius:99px;font-size:0.66rem;font-weight:700;margin-left:6px;">pending</span>';
-      const dateOffBadge = (e.notes || '').includes('[date_off]')
-        ? '<span style="background:rgba(255,138,120,0.12);color:var(--red);padding:2px 8px;border-radius:99px;font-size:0.66rem;font-weight:700;margin-left:6px;" title="OCR extracted a future date; auto-corrected to today">date corrected</span>'
-        : '';
+    flagged.forEach(e => {
+      const badges = [];
+      if (e.reviewStatus === 'possible_duplicate') {
+        badges.push('<span style="background:rgba(255,138,120,0.16);color:var(--red);padding:2px 8px;border-radius:99px;font-size:0.66rem;font-weight:700;margin-left:6px;">possible duplicate</span>');
+      } else if (e.reviewStatus === 'pending_review') {
+        badges.push('<span style="background:rgba(212,194,122,0.3);color:#7a5a00;padding:2px 8px;border-radius:99px;font-size:0.66rem;font-weight:700;margin-left:6px;">pending</span>');
+      }
+      if ((e.notes || '').includes('[date_off]')) {
+        badges.push('<span style="background:rgba(255,138,120,0.12);color:var(--red);padding:2px 8px;border-radius:99px;font-size:0.66rem;font-weight:700;margin-left:6px;" title="OCR extracted a future date; auto-corrected to today">date corrected</span>');
+      }
+      if (e.onBiz && !e.receipt) {
+        badges.push('<span style="background:rgba(80,106,110,0.16);color:#506a6e;padding:2px 8px;border-radius:99px;font-size:0.66rem;font-weight:700;margin-left:6px;" title="No receipt photo on file — attach for audit trail">no photo</span>');
+      }
       html += '<div data-id="' + escAttr(e.id) + '" onclick="openExpense(this.dataset.id)" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;background:var(--white);border-radius:8px;margin-bottom:6px;cursor:pointer;font-size:0.88rem;">' +
         '<div style="flex:1;min-width:0;">' +
-          '<div style="font-weight:600;">' + escapeHtml(e.vendor) + ' &middot; $' + e.amount.toFixed(2) + dupeBadge + dateOffBadge + '</div>' +
+          '<div style="font-weight:600;">' + escapeHtml(e.vendor) + ' &middot; $' + e.amount.toFixed(2) + badges.join('') + '</div>' +
           '<div style="font-size:0.74rem;color:var(--gray-600);">' + escapeHtml(e.date || '?') + (e.category ? ' &middot; ' + escapeHtml(e.category) : '') + '</div>' +
         '</div>' +
         '<div style="color:var(--gray-400);font-size:1.1rem;flex-shrink:0;" aria-hidden="true">&rsaquo;</div>' +
@@ -5818,11 +5836,42 @@ async function submitScanReceipt() {
       showScanError('Save failed: ' + (data.error || resp.status));
       return;
     }
+
+    // Attach the scanned photo to the new expense row. The ingest-receipt
+    // endpoint only writes structured fields; the photo file has to ride
+    // in on a separate multipart PATCH. Without this, the receipt photo
+    // gets lost — historically that's how some receipts ended up with no
+    // image_xxx.jpg in their `receipt` column.
+    let photoAttached = false;
+    if (data.id && _srImageDataUrl) {
+      try {
+        const blob = await (await fetch(_srImageDataUrl)).blob();
+        const ext = (blob.type && blob.type.split('/')[1]) || 'jpg';
+        const filename = 'receipt_' + Date.now() + '.' + (ext === 'jpeg' ? 'jpg' : ext);
+        const fd = new FormData();
+        fd.append('receipt', blob, filename);
+        const photoResp = await fetch(PB_URL + '/api/collections/expenses/records/' + data.id, {
+          method: 'PATCH',
+          headers: { 'Authorization': 'Bearer ' + PB_TOKEN },
+          body: fd,
+        });
+        photoAttached = photoResp.ok;
+        if (!photoAttached) {
+          console.warn('[scan] photo attach failed:', photoResp.status, await photoResp.text());
+        }
+      } catch (photoErr) {
+        console.warn('[scan] photo attach threw:', photoErr && photoErr.message);
+      }
+    }
+
     let matchMsg = data.bank_transaction_id
-      ? '✓ Saved and auto-matched to bank transaction.'
+      ? 'Saved and auto-matched to bank transaction.'
       : (data.review_status === 'possible_duplicate'
-          ? '⚠ Saved as possible duplicate — review in Expenses.'
-          : '✓ Saved as pending review. Will auto-match when the bank transaction arrives.');
+          ? 'Saved as possible duplicate — review in Expenses.'
+          : 'Saved as pending review. Will auto-match when the bank transaction arrives.');
+    if (!photoAttached && _srImageDataUrl) {
+      matchMsg += '\n\nHeads up: the photo did not attach. Open the expense and add it manually so the audit trail is complete.';
+    }
     if (split.hasSplit) {
       matchMsg += '\n\nBiz: $' + split.biz.toFixed(2) + ' (deductible)\nPersonal: $' + split.personal.toFixed(2);
     }
