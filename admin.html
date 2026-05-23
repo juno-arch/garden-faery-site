@@ -2055,7 +2055,27 @@ async function renderDashboard() {
   // Use whichever source counts more income (payments ledger is authoritative
   // when populated; bookings.paid covers the gap when payments collection
   // hasn't been backfilled).
-  const monthEarned = Math.max(monthCollected, monthPaymentsTotal);
+  const monthEarnedCash = Math.max(monthCollected, monthPaymentsTotal);
+
+  // Accrual basis: count every non-canceled visit whose date has already
+  // happened (date <= today) in this month, paid or not. The work was
+  // done; the money is owed, even if it hasn't landed yet. Falls back
+  // to client.hourly_rate × duration when no explicit price is set.
+  const monthAccrued = bookings
+    .filter(b =>
+      (b.date || '').slice(0, 7) === monthKey &&
+      (b.date || '') <= today &&
+      b.status !== 'canceled')
+    .reduce((s, b) => {
+      const set = Number(b.price) || 0;
+      const px = set > 0 ? set : (typeof expectedPriceForBooking === 'function' ? expectedPriceForBooking(b) : 0);
+      return s + px;
+    }, 0);
+  const monthOwed = Math.max(0, monthAccrued - monthEarnedCash);
+  // monthEarned is the headline number — accrual by default so pace
+  // reflects work completed, not just money received. The cash split is
+  // surfaced in the May card legend.
+  const monthEarned = Math.max(monthEarnedCash, monthAccrued);
   const monthGoalPct = Math.min(100, (monthEarned / monthlyGoal) * 100);
   const monthGoalRemaining = Math.max(0, monthlyGoal - monthEarned);
 
@@ -2250,7 +2270,7 @@ async function renderDashboard() {
       </div>
 
       <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--gray-600);margin-top:8px;gap:10px;flex-wrap:wrap;">
-        <span><span style="display:inline-block;width:8px;height:8px;background:var(--accent-1,#c2557a);border-radius:50%;margin-right:4px;vertical-align:middle;"></span>${fmt(monthEarned)} earned</span>
+        <span><span style="display:inline-block;width:8px;height:8px;background:var(--accent-1,#c2557a);border-radius:50%;margin-right:4px;vertical-align:middle;"></span>${fmt(monthEarned)} earned${monthOwed > 0 ? ' <span style="color:var(--gray-400);" title="' + fmt(monthEarnedCash) + ' received + ' + fmt(monthOwed) + ' owed = ' + fmt(monthEarned) + ' accrued">(' + fmt(monthEarnedCash) + ' received · ' + fmt(monthOwed) + ' owed)</span>' : ''}</span>
         <span><span style="display:inline-block;width:8px;height:8px;background:rgba(212,184,106,0.6);border-radius:50%;margin-right:4px;vertical-align:middle;"></span>${fmt(restOfMonthExpected)} booked projected${next30Inferred > 0 ? ' · ' + next30Inferred + ' est' : ''}</span>
         <span style="color:var(--gray-400);">${restOfMonthCount} booking${restOfMonthCount===1?'':'s'} left</span>
       </div>
