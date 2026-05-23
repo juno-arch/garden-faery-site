@@ -2691,11 +2691,201 @@ async function renderDashboard() {
     `;
   }
 
+  // --- FSA loan readiness (biz-side only) ---
+  // The widget compares FYHF's current biz metrics against rough targets
+  // a farm-loan underwriter would want to see. Skips personal-side stuff
+  // (your CCCU, credit score, Josh) — those go in a different lens.
+  const fsaCardHtml = fsaReadinessCardHtml({
+    todayDate,
+    ytdGross,
+    ytdExpensesBiz,
+    monthBuckets,
+    monthlyGoal,
+  });
+
   // Final assembly. Per Pollen's "goals up top" preference: May goal card
   // first, then the Goal-hits history chart, then YTD orientation, then
-  // the income/expense bars, then the rest of the dashboard (sources +
-  // expense categories, etc.).
-  el.innerHTML = mayCardHtml + goalHitsHtml + ytdHtml + twelveMoHtml + html;
+  // the income/expense bars, then FSA readiness lens, then the rest.
+  el.innerHTML = mayCardHtml + goalHitsHtml + ytdHtml + twelveMoHtml + fsaCardHtml + html;
+}
+
+// =============================================================
+// FSA Loan Readiness widget (biz-side only)
+// =============================================================
+// Targets — calibrated to a $200-250k farm purchase via FSA Beginning
+// Farmer Direct Down Payment Loan. These are *defensive* benchmarks an
+// underwriter would look for in the FYHF books specifically; they
+// deliberately ignore personal CCCU savings, credit scores, and Josh's
+// financials (different widget).
+const FSA_TARGETS = {
+  annualRevenue:    24000,  // ~$2k/mo floor — demonstrates a viable operation
+  profitMarginPct:  25,     // net profit / revenue; below this and Schedule F looks like a hobby
+  consistentMonths: 6,      // # of last 12 months with ≥$500 in revenue
+  operatingCash:    5000,   // FYHF checking+savings — biz operating buffer, NOT the down payment
+};
+
+// State: expanded or collapsed. Lives in localStorage so a tap to expand
+// sticks across re-renders.
+function fsaWidgetExpanded() {
+  return localStorage.getItem('gf_fsa_widget_expanded') === '1';
+}
+function toggleFsaWidget() {
+  const cur = fsaWidgetExpanded();
+  localStorage.setItem('gf_fsa_widget_expanded', cur ? '0' : '1');
+  renderDashboard();
+}
+
+function fsaReadinessCardHtml(ctx) {
+  const { todayDate, ytdGross, ytdExpensesBiz, monthBuckets } = ctx;
+  const expanded = fsaWidgetExpanded();
+
+  // ---- Metric 1: annualized revenue pace ----
+  const monthsElapsed = todayDate.getMonth() + 1; // Jan=1
+  const annualPace = ytdGross > 0 ? Math.round(ytdGross * 12 / monthsElapsed) : 0;
+
+  // ---- Metric 2: profit margin (YTD) ----
+  // If no revenue, margin is undefined. Treat as 0 so the bar shows red.
+  const profitMargin = ytdGross > 0
+    ? Math.round(((ytdGross - ytdExpensesBiz) / ytdGross) * 100)
+    : 0;
+
+  // ---- Metric 3: months with ≥$500 in last 12 ----
+  // Pulled from monthBuckets which is already computed above. Counts paid
+  // revenue only — outstanding doesn't show stability to a lender.
+  const consistentMonths = (monthBuckets || []).filter(m => m.paid >= 500).length;
+
+  // ---- Metric 4: FYHF operating cash ----
+  // Sum of every loaded bank account balance. If SimpleFIN is broken or
+  // accounts aren't loaded yet, show "—" rather than 0 (don't lie low).
+  let operatingCashCents = 0;
+  let bankKnown = false;
+  if (typeof _bankAccounts !== 'undefined' && Array.isArray(_bankAccounts) && _bankAccounts.length) {
+    operatingCashCents = _bankAccounts.reduce((s, a) => s + (a.balanceCents || 0), 0);
+    bankKnown = true;
+  }
+  const operatingCash = operatingCashCents / 100;
+
+  // ---- Score & weakest metric ----
+  const metrics = [
+    {
+      key: 'revenue',
+      label: 'Revenue pace',
+      value: annualPace,
+      target: FSA_TARGETS.annualRevenue,
+      format: v => '$' + Math.round(v).toLocaleString() + '/yr',
+      detail: 'YTD income annualized. Underwriters want a viable operation, not a hobby. ' +
+              (annualPace >= FSA_TARGETS.annualRevenue
+                ? 'On pace.'
+                : 'Need ~$' + Math.ceil((FSA_TARGETS.annualRevenue - ytdGross) / Math.max(1, 12 - monthsElapsed)).toLocaleString() + '/mo through year-end to hit the target.'),
+    },
+    {
+      key: 'margin',
+      label: 'Profit margin',
+      value: profitMargin,
+      target: FSA_TARGETS.profitMarginPct,
+      format: v => v + '%',
+      detail: 'YTD net profit / revenue. <strong>Write-off tension:</strong> if you deduct everything, ' +
+              'your Schedule F shows no profit and lenders see a money-loser. ' +
+              (profitMargin >= FSA_TARGETS.profitMarginPct
+                ? 'Healthy margin.'
+                : 'Consider deferring discretionary write-offs until after submission.'),
+    },
+    {
+      key: 'months',
+      label: 'Consistent months',
+      value: consistentMonths,
+      target: FSA_TARGETS.consistentMonths,
+      format: v => v + ' of 12',
+      detail: 'Months in the last 12 with $500+ in collected revenue. Lenders want recurring income, not seasonal flukes. ' +
+              (consistentMonths >= FSA_TARGETS.consistentMonths
+                ? 'Solid trail.'
+                : 'Land recurring weekly/monthly clients to fill the gaps.'),
+    },
+    {
+      key: 'cash',
+      label: 'FYHF operating cash',
+      value: operatingCash,
+      target: FSA_TARGETS.operatingCash,
+      format: v => '$' + Math.round(v).toLocaleString(),
+      detail: 'FYHF biz checking + savings. This is the operating-buffer figure — ' +
+              'separate from the personal cash you\'ll need for the actual 5% down payment.' +
+              (bankKnown ? '' : ' <em>Bank feed not loaded yet.</em>'),
+    },
+  ];
+
+  // Compute percent-to-target per metric (clamped 0-100) for bars + sorting.
+  metrics.forEach(m => {
+    m.pct = m.target > 0 ? Math.min(100, Math.round((m.value / m.target) * 100)) : 0;
+    m.barColor =
+      m.pct >= 100 ? 'var(--spring-sage)' :
+      m.pct >= 60  ? 'var(--pollen-gold)' :
+                     'var(--red)';
+  });
+
+  // Overall readiness = average of metric pcts.
+  const overallPct = Math.round(metrics.reduce((s, m) => s + m.pct, 0) / metrics.length);
+  const overallColor =
+    overallPct >= 90 ? 'var(--spring-sage)' :
+    overallPct >= 60 ? 'var(--pollen-gold)' :
+                       'var(--red)';
+
+  // Biggest gap = lowest pct metric (where to focus).
+  const weakest = metrics.slice().sort((a, b) => a.pct - b.pct)[0];
+
+  // ---- Render collapsed header ----
+  const chevron = expanded ? '▾' : '▸';
+  let h = '<div class="card" style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">' +
+    '<div onclick="toggleFsaWidget()" style="display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer;user-select:none;">' +
+      '<div style="display:flex;align-items:center;gap:6px;min-width:0;">' +
+        '<span style="color:var(--gray-600);font-size:0.9rem;">' + chevron + '</span>' +
+        '<h3 style="margin:0;font-size:1rem;">FSA loan readiness</h3>' +
+        '<span style="font-size:0.7rem;color:var(--gray-600);background:var(--gray-100);padding:2px 6px;border-radius:8px;">biz-side only</span>' +
+      '</div>' +
+      '<div style="text-align:right;flex-shrink:0;">' +
+        '<div style="font-size:1.4rem;font-weight:700;color:' + overallColor + ';">' + overallPct + '%</div>' +
+        '<div style="font-size:0.65rem;color:var(--gray-600);">ready</div>' +
+      '</div>' +
+    '</div>';
+
+  // Headline gap line (always visible, collapsed or not)
+  if (weakest.pct < 100) {
+    h += '<div style="margin-top:8px;padding:8px 10px;background:var(--gray-100);border-radius:8px;font-size:0.78rem;color:var(--gray-700);line-height:1.4;">' +
+      '<strong>Biggest gap:</strong> ' + escapeHtml(weakest.label) + ' &mdash; ' +
+      escapeHtml(weakest.format(weakest.value)) + ' of ' + escapeHtml(weakest.format(weakest.target)) +
+    '</div>';
+  } else {
+    h += '<div style="margin-top:8px;padding:8px 10px;background:rgba(163,184,140,0.15);border-radius:8px;font-size:0.78rem;color:var(--plum);">' +
+      '<strong>All biz-side metrics hitting target.</strong> Personal-side (down payment cash, credit, Josh\'s side) still matters.' +
+    '</div>';
+  }
+
+  // ---- Expanded body: per-metric bars + details ----
+  if (expanded) {
+    h += '<div style="margin-top:12px;display:flex;flex-direction:column;gap:10px;">';
+    metrics.forEach(m => {
+      h += '<div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:0.82rem;margin-bottom:4px;">' +
+          '<span style="font-weight:600;color:var(--plum);">' + escapeHtml(m.label) + '</span>' +
+          '<span style="color:var(--gray-700);">' + escapeHtml(m.format(m.value)) + ' / ' + escapeHtml(m.format(m.target)) + '</span>' +
+        '</div>' +
+        '<div style="height:8px;background:var(--gray-200);border-radius:4px;overflow:hidden;">' +
+          '<div style="height:100%;width:' + m.pct + '%;background:' + m.barColor + ';transition:width 0.3s;"></div>' +
+        '</div>' +
+        '<div style="font-size:0.72rem;color:var(--gray-600);margin-top:4px;line-height:1.4;">' + m.detail + '</div>' +
+      '</div>';
+    });
+    h += '</div>';
+
+    // Footer disclaimer — keep this honest so she doesn't over-rely.
+    h += '<div style="margin-top:10px;padding-top:8px;border-top:1px dashed var(--gray-200);font-size:0.7rem;color:var(--gray-600);line-height:1.4;">' +
+      'Targets are defensive defaults for a ~$200-250k farm purchase via FSA Beginning Farmer Down Payment Loan. ' +
+      'Your loan officer will set real numbers. This widget only sees FYHF data &mdash; ' +
+      'down-payment cash, credit score, and Josh\'s side are tracked separately.' +
+    '</div>';
+  }
+
+  h += '</div>';
+  return h;
 }
 
 // --- Taxes (Tier 3: quarterly tracker, Schedule C mapper, accountant CSV) ---
