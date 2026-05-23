@@ -8855,8 +8855,10 @@ function openClientDetailModal(cid) {
       '</div>' +
 
       '<div style="background:var(--cream);border-radius:6px;padding:10px 12px;margin-bottom:10px;">' +
-        '<div style="font-size:0.8rem;opacity:0.7;margin-bottom:6px;">Email newsletter opt-in (client-confirmed only)</div>' +
-        '<label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;font-weight:normal;"><input type="checkbox" id="cd-email-opt" ' + (c.marketing_email_opt_in ? 'checked' : '') + '> Email newsletter</label>' +
+        '<div style="font-size:0.8rem;opacity:0.7;margin-bottom:6px;">Preferences</div>' +
+        '<label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;margin-bottom:6px;font-weight:normal;"><input type="checkbox" id="cd-sms-reminders" ' + (!c.sms_reminders_opt_out ? 'checked' : '') + '> Send SMS visit reminders</label>' +
+        '<label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;margin-bottom:6px;font-weight:normal;"><input type="checkbox" id="cd-default-arr" ' + (c.default_auto_reschedule_on_rain ? 'checked' : '') + '> Auto-reschedule on rain by default</label>' +
+        '<label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;font-weight:normal;"><input type="checkbox" id="cd-email-opt" ' + (c.marketing_email_opt_in ? 'checked' : '') + '> Email newsletter (client-confirmed)</label>' +
       '</div>' +
 
       '<div style="margin-bottom:14px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Notes (private)</label><textarea id="cd-notes" rows="4" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;">' + esc(c.notes) + '</textarea></div>' +
@@ -8888,6 +8890,8 @@ async function saveClientDetail(cid) {
     tags: document.getElementById('cd-tags').value.trim(),
     marketing_email_opt_in: document.getElementById('cd-email-opt').checked,
     marketing_sms_opt_in: false, // GF never sends promo SMS; field kept for schema parity
+    sms_reminders_opt_out: !document.getElementById('cd-sms-reminders').checked,
+    default_auto_reschedule_on_rain: document.getElementById('cd-default-arr').checked,
     hourly_rate: Number(document.getElementById('cd-rate').value) || 30,
     notes: document.getElementById('cd-notes').value,
   };

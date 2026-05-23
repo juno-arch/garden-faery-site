@@ -1067,6 +1067,18 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
         </select>
       </div>
 
+      <!-- SMS reminders: visible operational opt-in. Default CHECKED so the
+           reminder flow keeps working unless someone deliberately opts out.
+           A "no" here flips clients.sms_reminders_opt_out so the
+           notification hooks skip this person for future visits too. -->
+      <div class="form-group" style="background: var(--cream); padding: 12px 14px; border-radius: 8px; margin-top: 4px;">
+        <label for="f-sms-reminders" style="display: block; cursor: pointer; font-weight: 400; line-height: 1.35; font-size: 0.92em;">
+          <input type="checkbox" id="f-sms-reminders" checked style="margin-right: 8px; vertical-align: -1px;">
+          Text me reminders about my visits
+          <span style="display: block; padding-left: 24px; font-size: 0.85em; color: var(--gray-600); margin-top: 2px;">Booking confirmation, day-before reminder, weather changes, cancellation notices. Reply STOP anytime.</span>
+        </label>
+      </div>
+
       <!-- Email newsletter opt-in. Unchecked by default (opt-in is opt-in).
            No promo SMS option — Garden Faery doesn't send marketing texts.
            Visit reminders, weather reroutes, login codes, etc. are
@@ -1281,6 +1293,7 @@ const DB = {
       booked_by: booking.bookedBy || 'client',
       auto_reschedule_on_rain: !!booking.autoRescheduleOnRain,
       marketing_email_opt_in: !!booking.marketingEmailOptIn,
+      sms_reminders_opt_out: !!booking.smsRemindersOptOut,
       source: booking.source || '',
     };
     if (booking.recurringSeriesId) payload.recurring_series_id = booking.recurringSeriesId;
@@ -1958,6 +1971,8 @@ async function submitBooking() {
     let saved = 0;
     const autoReschedule = !!document.getElementById('f-auto-reschedule')?.checked;
     const mktEmail = !!document.getElementById('f-mkt-email')?.checked;
+    // SMS reminders opt-OUT is the inverse of the checkbox (which defaults checked).
+    const smsRemindersOptOut = !document.getElementById('f-sms-reminders')?.checked;
     const source   = (document.getElementById('f-source')?.value || '').trim();
     try {
       for (const ds of multiDates) {
@@ -1977,6 +1992,7 @@ async function submitBooking() {
           bookedBy: 'client',
           autoRescheduleOnRain: autoReschedule,
           marketingEmailOptIn: mktEmail,
+          smsRemindersOptOut: smsRemindersOptOut,
           source: source,
           createdAt: new Date().toISOString()
         };
@@ -2010,6 +2026,7 @@ async function submitBooking() {
     bookedBy: 'client',
     autoRescheduleOnRain: !!document.getElementById('f-auto-reschedule')?.checked,
     marketingEmailOptIn: !!document.getElementById('f-mkt-email')?.checked,
+    smsRemindersOptOut: !document.getElementById('f-sms-reminders')?.checked,
     source: (document.getElementById('f-source')?.value || '').trim(),
     createdAt: new Date().toISOString()
   };
