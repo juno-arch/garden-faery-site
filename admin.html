@@ -5080,6 +5080,8 @@ async function loadExpenses() {
       notes: r.notes || '',
       receipt: r.receipt || '',
       lineItems: r.line_items || null,
+      reviewStatus: r.review_status || '',
+      duplicateOf: r.duplicate_of || '',
       _collection: r.collectionId
     }));
   } catch(e) { console.error(e); }
@@ -5150,6 +5152,38 @@ async function renderExpenses() {
   // From here on, inScope replaces what the old code called inMonth, and
   // scopeLabel is rendered in the list heading.
   const inMonth = inScope;
+
+  // Pending-review section — pinned at the top regardless of date filter so
+  // OCR'd-but-not-confirmed receipts never disappear into a wrong month.
+  // Covers the date-misread case (5/20 read as 8/01 etc.) we just guarded
+  // against on the server, plus historical pending rows from before that.
+  const pendingReceipts = all.filter(e =>
+    e.reviewStatus === 'pending_review' || e.reviewStatus === 'possible_duplicate'
+  ).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+  if (pendingReceipts.length > 0) {
+    html += '<div style="background:rgba(212,194,122,0.14);border:1px solid var(--pollen-gold);border-radius:12px;padding:12px;margin-bottom:12px;">' +
+      '<h3 style="margin-bottom:8px;font-size:1rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px;">' +
+        '<span>Needs review</span>' +
+        '<span style="font-size:0.75rem;font-weight:400;color:var(--gray-600);">' + pendingReceipts.length + ' receipt' + (pendingReceipts.length === 1 ? '' : 's') + ' awaiting confirmation</span>' +
+      '</h3>';
+    pendingReceipts.forEach(e => {
+      const dupeBadge = e.reviewStatus === 'possible_duplicate'
+        ? '<span style="background:rgba(255,138,120,0.16);color:var(--red);padding:2px 8px;border-radius:99px;font-size:0.66rem;font-weight:700;margin-left:6px;">possible duplicate</span>'
+        : '<span style="background:rgba(212,194,122,0.3);color:#7a5a00;padding:2px 8px;border-radius:99px;font-size:0.66rem;font-weight:700;margin-left:6px;">pending</span>';
+      const dateOffBadge = (e.notes || '').includes('[date_off]')
+        ? '<span style="background:rgba(255,138,120,0.12);color:var(--red);padding:2px 8px;border-radius:99px;font-size:0.66rem;font-weight:700;margin-left:6px;" title="OCR extracted a future date; auto-corrected to today">date corrected</span>'
+        : '';
+      html += '<div data-id="' + escAttr(e.id) + '" onclick="openExpense(this.dataset.id)" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;background:var(--white);border-radius:8px;margin-bottom:6px;cursor:pointer;font-size:0.88rem;">' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="font-weight:600;">' + escapeHtml(e.vendor) + ' &middot; $' + e.amount.toFixed(2) + dupeBadge + dateOffBadge + '</div>' +
+          '<div style="font-size:0.74rem;color:var(--gray-600);">' + escapeHtml(e.date || '?') + (e.category ? ' &middot; ' + escapeHtml(e.category) : '') + '</div>' +
+        '</div>' +
+        '<div style="color:var(--gray-400);font-size:1.1rem;flex-shrink:0;" aria-hidden="true">&rsaquo;</div>' +
+      '</div>';
+    });
+    html += '</div>';
+  }
 
   html += '<div style="background:var(--white);border-radius:12px;padding:12px;box-shadow:var(--shadow);"><h3 style="margin-bottom:8px;font-size:1rem;">Expenses ' + scopeLabel + '</h3>';
   if (!inMonth.length) {
