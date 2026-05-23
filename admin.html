@@ -2144,10 +2144,17 @@ async function renderDashboard() {
   const fmt = n => '$' + Math.round(n).toLocaleString();
   const netColor = ytdNet >= 0 ? '#6b8f52' : 'var(--red)';
 
+  // Each card builds its HTML into its own variable so we can reorder
+  // them at the end. New order per Pollen: May (goal-focused current
+  // month) → Goal hits chart → YTD → 12-month income/expenses → rest.
+  let mayCardHtml = '';
+  let goalHitsHtml = '';
+  let ytdHtml = '';
+  let twelveMoHtml = '';
   let html = '';
 
   // 1. YTD snapshot row
-  html += `
+  ytdHtml += `
     <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
         <h3 style="margin:0;font-size:1rem;">${year} Year-to-Date</h3>
@@ -2216,7 +2223,7 @@ async function renderDashboard() {
     }
   }
   const celebration = getCelebrations().find(c => c.month === monthKey);
-  html += `
+  mayCardHtml += `
     <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;gap:10px;">
         <div>
@@ -2273,7 +2280,7 @@ async function renderDashboard() {
   // 12-month income vs expenses — grouped bars per month. Reads
   // monthBuckets.paid (collected revenue, only money actually received)
   // and monthBuckets.expenses (biz-tagged expenses).
-  html += `
+  twelveMoHtml += `
     <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
         <h3 style="margin:0;font-size:1rem;">Last 12 months · income vs expenses</h3>
@@ -2285,7 +2292,7 @@ async function renderDashboard() {
     const incPct = maxMonth > 0 ? (m.paid / maxMonth) * 100 : 0;
     const expPct = maxMonth > 0 ? (m.expenses / maxMonth) * 100 : 0;
     const netMo = m.paid - m.expenses;
-    html += `
+    twelveMoHtml += `
       <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;min-width:0;" title="${m.label} ${m.year}: ${fmt(m.paid)} in · ${fmt(m.expenses)} out · ${fmt(netMo)} net">
         <div style="display:flex;align-items:flex-end;gap:2px;width:100%;height:100%;">
           <div style="flex:1;background:#6b8f52;height:${incPct}%;min-height:${m.paid>0?'2px':'0'};border-radius:2px 2px 0 0;"></div>
@@ -2294,11 +2301,11 @@ async function renderDashboard() {
       </div>
     `;
   });
-  html += `</div><div style="display:flex;gap:6px;padding:4px 4px 0;">`;
+  twelveMoHtml += `</div><div style="display:flex;gap:6px;padding:4px 4px 0;">`;
   monthBuckets.forEach(m => {
-    html += `<div style="flex:1;text-align:center;font-size:0.65rem;color:var(--gray-600);">${m.label}</div>`;
+    twelveMoHtml += `<div style="flex:1;text-align:center;font-size:0.65rem;color:var(--gray-600);">${m.label}</div>`;
   });
-  html += `</div></div>`;
+  twelveMoHtml += `</div></div>`;
 
   // --- Goal-hit chart + streak stats ---
   // Bars sized to the goal (not max-month) so visually you see whether
@@ -2320,7 +2327,7 @@ async function renderDashboard() {
   });
   const bestMonth = goalMonths.slice().sort((a, b) => b.paid - a.paid)[0];
 
-  html += `
+  goalHitsHtml += `
     <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;flex-wrap:wrap;gap:6px;">
         <h3 style="margin:0;font-size:1rem;">Goal hits · last 12</h3>
@@ -2328,6 +2335,9 @@ async function renderDashboard() {
       </div>
       <div style="position:relative;display:flex;align-items:flex-end;gap:6px;height:100px;padding:0 4px;border-bottom:1px solid var(--gray-200);">
   `;
+  // Layout: each month column is a column-flex parent with height:100% so
+  // the inner percentage-height bar has a defined parent height to resolve
+  // against. Goal line at 71% so bars >100% of goal still have headroom.
   monthBuckets.forEach((m, i) => {
     const isCurrent = i === monthBuckets.length - 1;
     const pct = Math.min(140, (m.paid / monthlyGoal) * 100); // allow up to 140% visually
@@ -2337,20 +2347,24 @@ async function renderDashboard() {
     const opacity = isCurrent ? '0.55' : '1';
     const title = (isCurrent ? '(in progress) ' : '') + m.label + ' ' + m.year + ': ' + fmt(m.paid) +
                   (hit ? ' — hit' : '');
-    html += `
-      <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;min-width:0;" title="${title}">
-        <div style="width:100%;height:${Math.min(100, pct * 0.71).toFixed(1)}%;background:${color};border-radius:3px 3px 0 0;opacity:${opacity};min-height:${m.paid>0?'3px':'0'};"></div>
+    // Bar height: pct=100 -> 71% of plot (the goal line). pct=140 -> 100%
+    // (the top). pct=0 -> 0.
+    const barHeightPct = Math.min(100, pct * 0.71);
+    goalHitsHtml += `
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;min-width:0;height:100%;" title="${title}">
+        <div style="width:100%;height:${barHeightPct.toFixed(1)}%;background:${color};border-radius:3px 3px 0 0;opacity:${opacity};min-height:${m.paid>0?'3px':'0'};"></div>
       </div>
     `;
   });
-  // Goal line at 100% (which maps to 71% of plot height since we allow 140% room above).
-  html += `<div style="position:absolute;left:4px;right:4px;bottom:${(100*0.71).toFixed(1)}%;border-top:1.5px dashed var(--plum);opacity:0.45;"></div>`;
-  html += `<div style="position:absolute;right:6px;bottom:${(100*0.71 + 2).toFixed(1)}%;font-size:0.6rem;color:var(--plum);opacity:0.7;font-weight:700;">${fmt(monthlyGoal)}</div>`;
-  html += `</div><div style="display:flex;gap:6px;padding:4px 4px 0;">`;
+  // Dashed goal line + label. Position 29px from top (100px plot * 0.29) so
+  // it sits at the "100% of goal" mark.
+  goalHitsHtml += `<div style="position:absolute;left:4px;right:4px;top:29px;border-top:1.5px dashed var(--plum);opacity:0.55;pointer-events:none;"></div>`;
+  goalHitsHtml += `<div style="position:absolute;right:6px;top:14px;font-size:0.6rem;color:var(--plum);opacity:0.85;font-weight:700;background:var(--white);padding:1px 4px;border-radius:3px;">${fmt(monthlyGoal)}</div>`;
+  goalHitsHtml += `</div><div style="display:flex;gap:6px;padding:4px 4px 0;">`;
   monthBuckets.forEach(m => {
-    html += `<div style="flex:1;text-align:center;font-size:0.65rem;color:var(--gray-600);">${m.label}</div>`;
+    goalHitsHtml += `<div style="flex:1;text-align:center;font-size:0.65rem;color:var(--gray-600);">${m.label}</div>`;
   });
-  html += `</div>
+  goalHitsHtml += `</div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--gray-200);">
         <div>
           <div style="font-size:1.1rem;font-weight:700;color:var(--spring-sage);">${hitCount}/12</div>
@@ -2572,7 +2586,11 @@ async function renderDashboard() {
     `;
   }
 
-  el.innerHTML = html;
+  // Final assembly. Per Pollen's "goals up top" preference: May goal card
+  // first, then the Goal-hits history chart, then YTD orientation, then
+  // the income/expense bars, then the rest of the dashboard (sources +
+  // expense categories, etc.).
+  el.innerHTML = mayCardHtml + goalHitsHtml + ytdHtml + twelveMoHtml + html;
 }
 
 // --- Taxes (Tier 3: quarterly tracker, Schedule C mapper, accountant CSV) ---
