@@ -560,6 +560,17 @@ html[data-theme="dark"] .week-day.active { background: var(--sage-light); }
   font-size: 0.9rem;
   color: var(--plum);
 }
+/* Checkboxes / radios shouldn't get the text-input width/padding/border
+   treatment — without this override they render as full-width oversized
+   boxes that wreck flex/grid layouts inside modals. */
+.modal input[type="checkbox"], .modal input[type="radio"] {
+  width: auto;
+  padding: 0;
+  border: 0;
+  margin: 0;
+  accent-color: var(--spring-sage);
+  flex: 0 0 auto;
+}
 .modal input:focus, .modal select:focus, .modal textarea:focus {
   outline: none;
   border-color: var(--spring-sage);
@@ -1219,16 +1230,14 @@ html[data-theme="dark"] .week-day.active { background: var(--sage-light); }
     <div style="background:var(--gray-100);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:0.78rem;color:var(--gray-600);line-height:1.5;">
       Pick the cash/check payments that make up this deposit. The bank row gets categorized as a transfer (not double-counted as income) and each payment is stamped with the deposit date for audit trail.
     </div>
-    <div class="form-group" style="margin-bottom:6px;">
-      <label style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-        <span>Unmatched cash/check payments</span>
-        <label style="font-size:0.75rem;font-weight:400;color:var(--gray-600);display:flex;align-items:center;gap:4px;cursor:pointer;">
-          <input type="checkbox" id="md-window-toggle" onchange="renderMatchDepositList()">
-          show all (default: ±14 days)
-        </label>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+      <div style="font-weight:700;font-size:0.85rem;">Unmatched cash/check payments</div>
+      <label style="font-size:0.75rem;font-weight:400;color:var(--gray-600);display:inline-flex;align-items:center;gap:6px;cursor:pointer;margin:0;">
+        <input type="checkbox" id="md-window-toggle" onchange="renderMatchDepositList()">
+        <span>show all (default ±14 days)</span>
       </label>
     </div>
-    <div id="md-pmt-list" style="max-height:340px;overflow-y:auto;border:1px solid var(--gray-200);border-radius:8px;padding:4px;background:var(--white);"></div>
+    <div id="md-pmt-list" style="max-height:340px;overflow-y:auto;border:1px solid var(--gray-200);border-radius:8px;background:var(--white);"></div>
     <div id="md-running" style="margin-top:10px;padding:10px;border-radius:8px;background:var(--gray-100);font-size:0.85rem;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;"></div>
     <div class="modal-actions">
       <button class="modal-btn secondary" onclick="closeModal('modal-match-deposit')">Cancel</button>
@@ -7695,15 +7704,18 @@ function renderMatchDepositList() {
       const name = p.customerName || '(no name)';
       const amt = '$' + (p.amountCents/100).toFixed(2);
       const proc = (p.processor || '').toUpperCase();
-      const note = p.notes ? '<div style="font-size:0.7rem;color:var(--gray-600);margin-top:2px;">' + escapeHtml(String(p.notes).slice(0, 80)) + '</div>' : '';
-      return '<label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-bottom:1px solid var(--gray-200);cursor:pointer;">' +
-        '<input type="checkbox" data-id="' + p.id + '"' + checked + ' onchange="toggleMatchDepositRow(this)" style="margin-top:3px;">' +
-        '<div style="flex:1;min-width:0;">' +
+      const note = p.notes ? '<div style="font-size:0.7rem;color:var(--gray-600);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(String(p.notes).slice(0, 80)) + '</div>' : '';
+      // Fixed-width checkbox column + 1fr content; label wraps the whole row
+      // so tapping anywhere toggles the checkbox. min-width:0 on the content
+      // cell prevents flex/grid blowout when names + amounts are long.
+      return '<label style="display:grid;grid-template-columns:20px 1fr;align-items:start;gap:10px;padding:10px 12px;border-bottom:1px solid var(--gray-200);cursor:pointer;margin:0;font-weight:400;">' +
+        '<input type="checkbox" data-id="' + p.id + '"' + checked + ' onchange="toggleMatchDepositRow(this)" style="margin-top:2px;">' +
+        '<div style="min-width:0;">' +
           '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">' +
-            '<span style="font-weight:600;font-size:0.85rem;">' + escapeHtml(name) + '</span>' +
-            '<span style="font-weight:700;color:var(--spring-sage);">' + amt + '</span>' +
+            '<span style="font-weight:600;font-size:0.9rem;color:var(--plum);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(name) + '</span>' +
+            '<span style="font-weight:700;color:var(--spring-sage);white-space:nowrap;">' + amt + '</span>' +
           '</div>' +
-          '<div style="font-size:0.72rem;color:var(--gray-600);">' + pd + ' · ' + escapeHtml(proc) + '</div>' +
+          '<div style="font-size:0.72rem;color:var(--gray-600);margin-top:2px;">' + pd + ' &middot; ' + escapeHtml(proc) + '</div>' +
           note +
         '</div>' +
       '</label>';
