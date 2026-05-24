@@ -2114,7 +2114,13 @@ function openCelebrationPrompt(monthKey, monthLabel, amount) {
 }
 
 async function renderDashboard() {
-  await loadExpenses();
+  // Pull expenses + payments in parallel so the FSA-readiness widget can
+  // base its revenue numbers on actually-collected money (payments
+  // collection) rather than billed-but-unpaid bookings.
+  await Promise.all([
+    loadExpenses(),
+    (typeof loadPayments === 'function' && !_paymentsLoaded) ? loadPayments() : Promise.resolve(),
+  ]);
   const el = document.getElementById('dashboard-content');
   if (!el) return;
 
@@ -2695,12 +2701,18 @@ async function renderDashboard() {
   // The widget compares FYHF's current biz metrics against rough targets
   // a farm-loan underwriter would want to see. Skips personal-side stuff
   // (your CCCU, credit score, Josh) — those go in a different lens.
+  //
+  // Revenue numbers use what an underwriter would actually see on
+  // Schedule F: cash-basis COLLECTED money. For each month + YTD, we take
+  // max(bookings.paid-sum, payments-collection-sum) — payments is the
+  // authoritative source post-Square-webhook, but old bookings predate
+  // the payments collection and need the fallback.
   const fsaCardHtml = fsaReadinessCardHtml({
     todayDate,
-    ytdGross,
+    ytdPaid,                  // collected-only revenue (not billed)
     ytdExpensesBiz,
     monthBuckets,
-    monthlyGoal,
+    paymentsCache: (typeof _paymentsCache !== 'undefined') ? _paymentsCache : [],
   });
 
   // Final assembly. Per Pollen's "goals up top" preference: May goal card
@@ -2739,23 +2751,53 @@ function toggleFsaWidget() {
 }
 
 function fsaReadinessCardHtml(ctx) {
-  const { todayDate, ytdGross, ytdExpensesBiz, monthBuckets } = ctx;
+  const { todayDate, ytdPaid, ytdExpensesBiz, monthBuckets, paymentsCache } = ctx;
   const expanded = fsaWidgetExpanded();
+  const year = String(todayDate.getFullYear());
 
-  // ---- Metric 1: annualized revenue pace ----
+  // ---- Collected-revenue helper ----
+  // For any given month-key (YYYY-MM), pick the larger of:
+  //   - bookings.paid sum for that month (legacy source, pre-payments-collection)
+  //   - payments collection sum for that month (authoritative, Square + manual)
+  // Taking max (not sum) avoids double-counting cases where a Square
+  // webhook AND a manual booking-paid flip both fired for the same money.
+  function collectedForMonth(monthKey) {
+    const bk = (monthBuckets || []).find(m => m.key === monthKey);
+    const fromBookings = bk ? (bk.paid || 0) : 0;
+    const fromPayments = (paymentsCache || [])
+      .filter(p => {
+        if (p.status && p.status !== 'completed' && p.status !== 'paid' && p.status !== 'captured') return false;
+        return (p.capturedAt || '').slice(0, 7) === monthKey;
+      })
+      .reduce((s, p) => s + ((p.amountCents || 0) / 100), 0);
+    return Math.max(fromBookings, fromPayments);
+  }
+
+  // ---- Metric 1: annualized revenue pace (COLLECTED, not billed) ----
   const monthsElapsed = todayDate.getMonth() + 1; // Jan=1
-  const annualPace = ytdGross > 0 ? Math.round(ytdGross * 12 / monthsElapsed) : 0;
+  // YTD collected = sum of max(bookings.paid, payments) for each month YTD.
+  // Underwriters care about what hit your bank, not what you invoiced.
+  let ytdCollected = 0;
+  for (let mi = 0; mi < monthsElapsed; mi++) {
+    const mk = year + '-' + String(mi + 1).padStart(2, '0');
+    ytdCollected += collectedForMonth(mk);
+  }
+  // Fall back to bookings-only ytdPaid if everything above came up empty
+  // (e.g. payments collection hasn't backfilled and monthBuckets only
+  // has current year — unlikely but defensive).
+  if (ytdCollected === 0 && ytdPaid > 0) ytdCollected = ytdPaid;
+  const annualPace = ytdCollected > 0 ? Math.round(ytdCollected * 12 / monthsElapsed) : 0;
 
-  // ---- Metric 2: profit margin (YTD) ----
-  // If no revenue, margin is undefined. Treat as 0 so the bar shows red.
-  const profitMargin = ytdGross > 0
-    ? Math.round(((ytdGross - ytdExpensesBiz) / ytdGross) * 100)
+  // ---- Metric 2: profit margin (YTD, on collected revenue) ----
+  const profitMargin = ytdCollected > 0
+    ? Math.round(((ytdCollected - ytdExpensesBiz) / ytdCollected) * 100)
     : 0;
 
-  // ---- Metric 3: months with ≥$500 in last 12 ----
-  // Pulled from monthBuckets which is already computed above. Counts paid
-  // revenue only — outstanding doesn't show stability to a lender.
-  const consistentMonths = (monthBuckets || []).filter(m => m.paid >= 500).length;
+  // ---- Metric 3: months with ≥$500 collected in last 12 ----
+  // Uses same collected-for-month helper so a month with Square income
+  // but no booking link still counts.
+  const consistentMonths = (monthBuckets || [])
+    .filter(m => collectedForMonth(m.key) >= 500).length;
 
   // ---- Metric 4: FYHF operating cash ----
   // Sum of every loaded bank account balance. If SimpleFIN is broken or
@@ -2773,7 +2815,7 @@ function fsaReadinessCardHtml(ctx) {
   // plain English, money in dollar amounts, no jargon, "why this matters"
   // and "what to do about it" baked into each detail line.
   const monthsLeftInYear = Math.max(1, 12 - monthsElapsed);
-  const monthlyToHitRevenue = Math.ceil(Math.max(0, FSA_TARGETS.annualRevenue - ytdGross) / monthsLeftInYear);
+  const monthlyToHitRevenue = Math.ceil(Math.max(0, FSA_TARGETS.annualRevenue - ytdCollected) / monthsLeftInYear);
 
   const metrics = [
     {
