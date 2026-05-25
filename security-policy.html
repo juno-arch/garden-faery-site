@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#5a1230">
+  <title>Information Security Policy | Feed Your Head Farm LLC</title>
+  <meta name="description" content="Feed Your Head Farm LLC (Garden Faery) information security policy.">
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="https://gardenfaery.love/security-policy.html">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Garden Faery">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Fraunces:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="shared.css?v=2026-05-02b">
+  <style>
+    body {
+      font-family: 'Inter', 'Nunito', -apple-system, sans-serif;
+      background: var(--cream);
+      color: var(--plum);
+      line-height: 1.65;
+      padding: 40px 20px 80px;
+    }
+    .wrap { max-width: 760px; margin: 0 auto; }
+    .back {
+      display: inline-block;
+      color: var(--gray);
+      text-decoration: none;
+      font-size: 0.9rem;
+      margin-bottom: 24px;
+    }
+    .back:hover { color: var(--plum); }
+    h1 {
+      font-family: 'Fraunces', 'Lora', Georgia, serif;
+      font-size: 2rem;
+      margin-bottom: 6px;
+    }
+    .meta {
+      color: var(--gray);
+      font-size: 0.9rem;
+      margin-bottom: 32px;
+    }
+    .meta strong { color: var(--plum); }
+    h2 {
+      font-family: 'Fraunces', 'Lora', Georgia, serif;
+      font-size: 1.3rem;
+      margin: 32px 0 10px;
+      color: var(--plum);
+    }
+    p { margin-bottom: 14px; }
+    ul { margin: 0 0 14px 22px; }
+    li { margin-bottom: 6px; }
+    a { color: var(--plum); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 18px;
+      font-size: 0.9rem;
+    }
+    th, td {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(90, 18, 48, 0.15);
+      vertical-align: top;
+    }
+    th { font-weight: 600; color: var(--plum); background: rgba(90, 18, 48, 0.04); }
+    code {
+      background: rgba(90, 18, 48, 0.08);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+    .scope-note {
+      font-style: italic;
+      color: var(--gray);
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px dashed rgba(90, 18, 48, 0.2);
+    }
+    footer {
+      margin-top: 60px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(90, 18, 48,0.1);
+      text-align: center;
+      color: var(--gray);
+      font-size: 0.85rem;
+    }
+    footer a { color: var(--gray); text-decoration: none; margin: 0 8px; }
+    footer a:hover { color: var(--plum); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <a href="/" class="back">&larr; Garden Faery</a>
+  <h1>Information Security Policy</h1>
+  <p class="meta">
+    <strong>Feed Your Head Farm LLC</strong> (DBA Garden Faery)<br>
+    Version 1.0 &middot; Effective May 25, 2026<br>
+    Owner: Taylor Burnsed, Sole Member &middot; <a href="mailto:taya@gardenfaery.love">taya@gardenfaery.love</a><br>
+    Review cadence: Annually, or upon material change to systems
+  </p>
+
+  <h2>1. Scope</h2>
+  <p>This policy covers all systems, data, and processes used by Feed Your Head Farm LLC ("the Company") to operate the Garden Faery Studio bookkeeping admin and any connected third-party services (PocketBase backend, Plaid, Square, Twilio, SimpleFIN, Stripe, etc.).</p>
+  <p>The Company is a single-member LLC. The sole member, Taylor Burnsed, is also the sole employee and the sole user of all systems described below.</p>
+
+  <h2>2. Roles and Responsibilities</h2>
+  <ul>
+    <li><strong>Information security owner:</strong> Taylor Burnsed (sole member)</li>
+    <li><strong>All access requests, security incidents, and policy questions:</strong> <a href="mailto:taya@gardenfaery.love">taya@gardenfaery.love</a></li>
+    <li><strong>Annual policy review:</strong> Taylor Burnsed</li>
+  </ul>
+
+  <h2>3. Data Classification</h2>
+  <table>
+    <thead>
+      <tr><th>Classification</th><th>Examples</th><th>Handling</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Restricted</td><td>Bank credentials, API secrets, Plaid access tokens, Square tokens, Twilio Auth tokens</td><td>Encrypted at rest; never logged; never pasted in chat; never committed to git</td></tr>
+      <tr><td>Sensitive</td><td>Client names, emails, phones, payment amounts, bank transactions</td><td>Stored in PocketBase with admin-only access rules; encrypted in transit; encrypted at rest via cloud provider disk encryption</td></tr>
+      <tr><td>Internal</td><td>Bookings, expenses, business plans</td><td>Same as above</td></tr>
+      <tr><td>Public</td><td>Website content, brand assets</td><td>No special protection required</td></tr>
+    </tbody>
+  </table>
+
+  <h2>4. Access Control</h2>
+  <ul>
+    <li>The Garden Faery admin is <strong>single-user</strong>. Only the sole member has credentials.</li>
+    <li>VPS shell access requires an SSH ed25519 key with passphrase. Password-based SSH is not permitted.</li>
+    <li>PocketBase superuser access requires email + password authentication.</li>
+    <li>API secrets (Plaid, Square, Stripe, Twilio, SimpleFIN) are stored as systemd <code>Environment=</code> directives on the VPS and in a local password manager. Secrets are never committed to source control or shared in chat/email.</li>
+    <li>Third-party vendor accounts (Plaid Dashboard, Stripe Dashboard, etc.) have unique passwords stored in a password manager and have multi-factor authentication enabled where the vendor supports it.</li>
+  </ul>
+
+  <h2>5. Authentication</h2>
+  <ul>
+    <li>Strong, unique passwords are generated and stored in a password manager for every account.</li>
+    <li>Multi-factor authentication is enabled on the password manager itself and on every vendor account that supports it.</li>
+    <li>SSH access to production servers uses public-key authentication (ed25519). Private keys are stored only on the sole member's primary workstation, protected by a passphrase &mdash; this constitutes phishing-resistant multi-factor authentication (something the user has plus something the user knows).</li>
+  </ul>
+
+  <h2>6. Data Handling</h2>
+  <p><strong>In transit.</strong> All web traffic between client browsers, the admin, the PocketBase backend, and third-party APIs is encrypted via TLS 1.2 or higher. Let's Encrypt certificates are auto-renewed on the VPS via Caddy.</p>
+  <p><strong>At rest.</strong> The PocketBase database file resides on Oracle Cloud Block Storage, which encrypts all data at rest with AES-256 by default. Backups inherit the same encryption-at-rest protections as the live database. Restricted credentials are never written to plaintext logs.</p>
+
+  <h2>7. Endpoint Security</h2>
+  <ul>
+    <li>The sole member's primary workstation runs current macOS with FileVault disk encryption enabled and automatic security updates.</li>
+    <li>The workstation requires password / Touch ID authentication.</li>
+    <li>The workstation does not host production data; all data lives on the VPS.</li>
+  </ul>
+
+  <h2>8. Backups and Continuity</h2>
+  <ul>
+    <li>PocketBase data is backed up nightly to <code>/opt/pocketbase/pb_data/backups/</code> on the VPS via an automated cron job that takes an atomic SQLite snapshot of <code>data.db</code> and <code>auxiliary.db</code>, compresses them with gzip, and retains the most recent 14 days.</li>
+    <li>Backup files inherit the same encryption-at-rest protections as the live database.</li>
+  </ul>
+
+  <h2>9. Logging and Monitoring</h2>
+  <ul>
+    <li>PocketBase logs all admin authentication events and surfaces "login from new location" alerts to the sole member's email.</li>
+    <li>Application logs do not capture restricted credentials.</li>
+    <li>Logs are retained on the VPS and rotated by systemd-journald defaults.</li>
+  </ul>
+
+  <h2>10. Vulnerability Management</h2>
+  <ul>
+    <li>The VPS runs Ubuntu LTS with <code>unattended-upgrades</code> enabled for automatic security patching (typically applied within 24 hours of upstream advisory publication).</li>
+    <li>End-of-life software is actively monitored and avoided across the stack (Ubuntu LTS, current PocketBase, current macOS).</li>
+    <li>Vendor dashboards (Plaid, Stripe, etc.) are reviewed periodically for security advisories.</li>
+    <li>Formal vulnerability scanning is not performed; risk is mitigated by minimizing the attack surface (no public write endpoints, admin-only access rules, minimal dependency footprint).</li>
+  </ul>
+
+  <h2>11. Incident Response</h2>
+  <p>If a security incident is suspected (unauthorized access, leaked credential, suspicious activity on a vendor account):</p>
+  <ol>
+    <li><strong>Contain:</strong> revoke the affected credential (rotate API keys, change passwords, terminate sessions).</li>
+    <li><strong>Assess:</strong> review logs to determine what was accessed.</li>
+    <li><strong>Notify:</strong> if consumer financial data may have been exposed, notify the affected vendor (Plaid, Square, Stripe, etc.) and any potentially affected individuals as required by applicable law.</li>
+    <li><strong>Document:</strong> record the incident, root cause, and remediation.</li>
+  </ol>
+
+  <h2>12. Data Deletion and Retention</h2>
+  <ul>
+    <li>Client records are retained for the duration of the client relationship plus a reasonable period for tax and compliance purposes (typically 7 years for financial records per IRS guidance).</li>
+    <li>A client may request deletion of their personal data at any time; records will be deleted within 30 days, retaining only what is required for legal/tax compliance.</li>
+    <li>Plaid access tokens are deleted when the corresponding bank connection is removed.</li>
+    <li>Backups are pruned to retain a rolling 14-day window appropriate to recovery needs.</li>
+    <li>This policy is reviewed annually alongside the rest of this document.</li>
+  </ul>
+
+  <h2>13. Third-Party Data Sharing</h2>
+  <p>The Company does not share data collected via Plaid, Square, Stripe, or any other vendor with third parties, except as required to operate the Company's own bookkeeping and tax preparation. Vendors process their respective data under their own published terms.</p>
+
+  <h2>14. Review and Changes</h2>
+  <p>This policy is reviewed at least annually by the sole member, or sooner upon any material change to the systems, vendors, or data flows described above.</p>
+
+  <p class="scope-note">This policy is proportionate to the Company's size (single-member LLC, single user, internal bookkeeping use case) and is updated as operations evolve. Questions: <a href="mailto:taya@gardenfaery.love">taya@gardenfaery.love</a>.</p>
+
+  <footer>
+    <a href="/privacy.html">Privacy</a>
+    <a href="/terms.html">Terms</a>
+    <a href="/">Home</a>
+  </footer>
+</div>
+</body>
+</html>
