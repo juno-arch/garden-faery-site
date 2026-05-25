@@ -8168,6 +8168,8 @@ async function loadSweeps() {
       incomeBasisCents: r.income_basis_cents || 0,
       bucket: r.bucket || 'tax',
       notes: r.notes || '',
+      bankTransactionId: r.bank_transaction_id || '',
+      confirmedAt: r.confirmed_at || '',
     }));
   } catch (err) {
     console.warn('loadSweeps failed:', err);
@@ -8224,6 +8226,13 @@ function savingsSweepCardHtml() {
   const ytd = (_sweepsCache || []).filter(s => (s.date || '').slice(0,4) === String(new Date().getFullYear()));
   const ytdCents = ytd.reduce((s, r) => s + (r.amountCents || 0), 0);
   const ytdCount = ytd.length;
+  const ytdConfirmed = ytd.filter(s => s.bankTransactionId).length;
+  // Phrase the confirmation count for the footer line. Says "all confirmed"
+  // when 100%, "N of M confirmed on bank" otherwise.
+  const confirmLine = ytdCount === 0 ? '' :
+    (ytdConfirmed === ytdCount
+      ? ' all confirmed on bank'
+      : ' &middot; ' + ytdConfirmed + ' of ' + ytdCount + ' confirmed on bank');
 
   // Empty state — nothing to sweep
   if (incomeCents <= 0) {
@@ -8236,7 +8245,7 @@ function savingsSweepCardHtml() {
         'No income recorded since ' + escapeHtml(formatDisplayDate(sinceDate)) + '. Next suggestion shows once payments come in.' +
       '</div>' +
       (ytdCents > 0
-        ? '<div style="margin-top:8px;font-size:0.78rem;color:var(--plum);">YTD swept: <strong>$' + (ytdCents/100).toFixed(0) + '</strong> across ' + ytdCount + ' transfer' + (ytdCount === 1 ? '' : 's') + '</div>'
+        ? '<div style="margin-top:8px;font-size:0.78rem;color:var(--plum);">YTD swept: <strong>$' + (ytdCents/100).toFixed(0) + '</strong> across ' + ytdCount + ' transfer' + (ytdCount === 1 ? '' : 's') + confirmLine + '</div>'
         : '') +
     '</div>';
   }
@@ -8260,7 +8269,7 @@ function savingsSweepCardHtml() {
     '</div>' +
     '<div style="font-size:0.72rem;color:var(--gray-600);line-height:1.4;">' +
       'Move this amount from checking → savings in your bank app, then click. ' +
-      (ytdCents > 0 ? 'YTD: <strong>$' + (ytdCents/100).toFixed(0) + '</strong> swept · ' : '') +
+      (ytdCents > 0 ? 'YTD: <strong>$' + (ytdCents/100).toFixed(0) + '</strong> swept' + confirmLine + ' &middot; ' : '') +
       '<a href="#" onclick="event.preventDefault();openSweepHistory()" style="color:var(--plum);text-decoration:underline;">history</a>' +
     '</div>' +
   '</div>';
@@ -8318,9 +8327,12 @@ function openSweepHistory() {
     const dt = s.date ? formatDisplayDate(s.date.slice(0,10)) : '?';
     const amt = '$' + (s.amountCents/100).toFixed(2);
     const rate = s.ratePct ? ' (' + s.ratePct + '%)' : '';
-    return dt + '  ' + amt + rate;
+    // Mark with [confirmed] when the bank feed has matched it, otherwise
+    // [pending] so user knows which sweeps are still unverified.
+    const status = s.bankTransactionId ? ' [confirmed]' : ' [pending]';
+    return dt + '  ' + amt + rate + status;
   });
-  alert('Recent sweeps:\n\n' + lines.join('\n'));
+  alert('Recent sweeps:\n\n' + lines.join('\n') + '\n\n[confirmed] = matched a bank transfer\n[pending] = no matching bank row found yet');
 }
 
 async function renderIncome() {
