@@ -198,6 +198,12 @@ function render(inv) {
         (canPay ? '<button class="btn" onclick="payInvoice()" id="pay-btn">Pay ' + fmt(balance) + '</button>' : '') +
         '<button class="btn secondary" onclick="window.print()">Print / Save PDF</button>' +
       '</div>' +
+      (canPay
+        ? '<p style="margin-top:14px;font-size:0.82rem;color:#666;line-height:1.45;text-align:center;">' +
+          'On the checkout page you can choose <strong>Card</strong> or <strong>Bank account (ACH)</strong>. ' +
+          'Paying by bank saves Garden Faery about 3% in processing fees and goes to the same place.' +
+          '</p>'
+        : '') +
     '</div>' +
     '<div class="foot">Questions? Reply to your invoice email or write to <a href="mailto:hello@gardenfaery.love">hello@gardenfaery.love</a>.</div>';
 }
