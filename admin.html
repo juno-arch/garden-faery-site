@@ -1382,22 +1382,18 @@ html[data-theme="dark"] .week-day.active { background: var(--sage-light); }
 
 <!-- Reschedule modal -->
 <div class="modal-overlay" id="modal-reschedule">
-  <div class="modal">
+  <div class="modal" style="max-width:520px;">
     <h2>Reschedule Booking</h2>
     <div id="reschedule-info"></div>
-    <div class="form-group">
-      <label>New date</label>
-      <input type="date" id="reschedule-date">
+    <div id="reschedule-selected" style="background:rgba(155,189,133,0.18);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:0.85rem;color:var(--plum);display:none;"></div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;flex-wrap:wrap;gap:6px;">
+      <div style="font-weight:700;font-size:0.85rem;">Pick a new slot</div>
+      <div style="font-size:0.7rem;color:var(--gray-600);">next 21 days</div>
     </div>
-    <div class="form-group">
-      <label>New time slot</label>
-      <select id="reschedule-slot">
-        <option value="morning">Morning (9:00am)</option>
-      </select>
-    </div>
+    <div id="reschedule-availability" style="max-height:340px;overflow-y:auto;border:1px solid var(--gray-200);border-radius:8px;background:var(--white);padding:4px;"></div>
     <div class="modal-actions">
       <button class="modal-btn secondary" onclick="closeModal('modal-reschedule')">Cancel</button>
-      <button class="modal-btn primary" onclick="confirmReschedule()">Reschedule</button>
+      <button class="modal-btn primary" id="reschedule-confirm-btn" onclick="confirmReschedule()" disabled>Reschedule</button>
     </div>
   </div>
 </div>
@@ -10599,28 +10595,123 @@ async function saveOBO() {
 
 // --- Reschedule ---
 let rescheduleBookingId = null;
+let _rescheduleSelected = null; // { date, eventType }
 
 function openReschedule(id) {
   rescheduleBookingId = id;
+  _rescheduleSelected = null;
   const bookings = getBookings();
   const b = bookings.find(x => x.id === id);
   if (!b) return;
 
   document.getElementById('reschedule-info').innerHTML =
-    '<div style="padding:10px 0; margin-bottom:12px; border-bottom:1px solid var(--gray-200);">' +
-    '<strong>' + b.clientName + '</strong><br>' +
-    '<span style="color:var(--gray-600); font-size:0.9rem;">' + b.eventName + ' on ' + b.date + ' at ' + b.time + '</span></div>';
+    '<div style="padding:8px 0 10px;margin-bottom:10px;border-bottom:1px solid var(--gray-200);">' +
+    '<strong>' + escapeHtml(b.clientName || '') + '</strong><br>' +
+    '<span style="color:var(--gray-600);font-size:0.85rem;">Currently: ' + escapeHtml(b.eventName || '') + ' on ' + escapeHtml(b.date || '') + ' at ' + escapeHtml(b.time || '') + '</span></div>';
 
-  document.getElementById('reschedule-date').value = b.date;
-  document.getElementById('reschedule-slot').value = b.eventType;
+  document.getElementById('reschedule-selected').style.display = 'none';
+  document.getElementById('reschedule-confirm-btn').disabled = true;
+
+  renderRescheduleAvailability(b);
   document.getElementById('modal-reschedule').classList.add('open');
 }
 
+// Render the same kind of slot picker the Book-Client modal uses, but
+// without multi-select. Tapping a slot stages it in _rescheduleSelected.
+// The CURRENT booking's slot is shown with a "current" tag and skipped as
+// a conflict so the user can re-select the same slot if they really mean to.
+function renderRescheduleAvailability(b) {
+  const wrap = document.getElementById('reschedule-availability');
+  if (!wrap) return;
+
+  let allBookings = [];
+  try { allBookings = (typeof getBookings === 'function' ? getBookings() : []) || []; } catch (_) {}
+  // Skip canceled bookings AND the booking we're rescheduling (don't treat
+  // its own slot as a conflict against itself).
+  const bookings = allBookings.filter(x => x && x.status !== 'canceled' && x.id !== b.id);
+
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+
+  function slotPill(ds, eventType, dayBookings) {
+    const allowedDays = OBO_EVENT_DAYS[eventType] || [];
+    const parts = ds.split('-');
+    const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    const isAvailableDay = allowedDays.indexOf(d.getDay()) !== -1;
+    const conflict = dayBookings.some(x => x.eventType === eventType);
+    const isSelected = _rescheduleSelected && _rescheduleSelected.date === ds && _rescheduleSelected.eventType === eventType;
+    const isCurrent = b.date === ds && b.eventType === eventType;
+    const timeShort = eventType === 'morning' ? '9–2' : '2:30–4:30';
+
+    if (isSelected) {
+      return '<button type="button" onclick="pickRescheduleSlot(null, null)" ' +
+        'style="background:var(--spring-sage,#9bbd85);color:var(--plum);border:none;border-radius:6px;padding:5px 11px;font-size:0.8rem;font-weight:700;cursor:pointer;white-space:nowrap;" ' +
+        'title="Tap to clear">✓ ' + timeShort + '</button>';
+    }
+    if (conflict) {
+      const booked = dayBookings.find(x => x.eventType === eventType);
+      const who = (booked && booked.clientName) ? booked.clientName.split(/\s+/)[0] : 'booked';
+      return '<span style="background:transparent;color:var(--gray-500,#888);border:1px dashed var(--gray-300,#ddd);border-radius:6px;padding:5px 11px;font-size:0.78rem;white-space:nowrap;" title="Booked: ' + escapeHtml(booked && booked.clientName || '') + '">' + escapeHtml(who) + '</span>';
+    }
+    if (!isAvailableDay) {
+      return '<span style="opacity:0.35;color:var(--gray-500,#888);font-size:0.78rem;white-space:nowrap;padding:5px 0;" title="Not a work day for this slot">—</span>';
+    }
+    const currentTag = isCurrent ? ' style="position:relative;"' : '';
+    const ribbon = isCurrent
+      ? '<span style="position:absolute;top:-7px;right:-4px;background:var(--pollen-gold,#d4c27a);color:var(--plum);font-size:0.55rem;font-weight:700;padding:1px 4px;border-radius:6px;">now</span>'
+      : '';
+    return '<button type="button" onclick="pickRescheduleSlot(\'' + ds + '\',\'' + eventType + '\')"' + currentTag +
+      ' style="background:var(--accent-1,#5a1230);color:var(--white);border:none;border-radius:6px;padding:5px 11px;font-size:0.8rem;font-weight:600;cursor:pointer;white-space:nowrap;">' +
+      ribbon + timeShort + '</button>';
+  }
+
+  let html = '';
+  for (let i = 0; i < OBO_LOOKAHEAD_DAYS; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    const ds = formatDate(d);
+    const label = OBO_DAY_NAMES[d.getDay()] + ' ' + OBO_MONTH_NAMES[d.getMonth()] + ' ' + d.getDate();
+    const dayBookings = bookings.filter(x => x.date === ds);
+    const isSelectedDay = _rescheduleSelected && _rescheduleSelected.date === ds;
+    const rowBg = isSelectedDay ? 'rgba(155,189,133,0.18)' : 'transparent';
+
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;border-radius:6px;background:' + rowBg + ';margin-bottom:2px;">';
+    html += '<div style="font-size:0.86rem;color:var(--gray-800,#222);min-width:0;flex:1;"><strong>' + label + '</strong></div>';
+    html += '<div style="display:flex;gap:6px;flex-shrink:0;">';
+    html += slotPill(ds, 'morning', dayBookings);
+    html += slotPill(ds, 'afternoon', dayBookings);
+    html += '</div>';
+    html += '</div>';
+  }
+  wrap.innerHTML = html;
+}
+
+// Stage a slot selection (or clear it). Re-renders the picker so the
+// selected pill highlights, then enables the Reschedule button.
+function pickRescheduleSlot(date, eventType) {
+  if (date && eventType) {
+    _rescheduleSelected = { date: date, eventType: eventType };
+    const label = (eventType === 'morning') ? 'Morning (9:00am–2:00pm)' : 'Afternoon (2:30pm–4:30pm)';
+    document.getElementById('reschedule-selected').style.display = '';
+    document.getElementById('reschedule-selected').innerHTML =
+      '<strong>New slot:</strong> ' + escapeHtml(formatDisplayDate(date)) + ' &middot; ' + label;
+    document.getElementById('reschedule-confirm-btn').disabled = false;
+  } else {
+    _rescheduleSelected = null;
+    document.getElementById('reschedule-selected').style.display = 'none';
+    document.getElementById('reschedule-confirm-btn').disabled = true;
+  }
+  const bookings = getBookings();
+  const b = bookings.find(x => x.id === rescheduleBookingId);
+  if (b) renderRescheduleAvailability(b);
+}
+
 async function confirmReschedule() {
-  if (!rescheduleBookingId) return;
-  const newDate = document.getElementById('reschedule-date').value;
-  const newSlot = document.getElementById('reschedule-slot').value;
-  if (!newDate) { alert('Pick a new date.'); return; }
+  if (!rescheduleBookingId || !_rescheduleSelected) {
+    alert('Pick a new slot first.');
+    return;
+  }
+  const newDate = _rescheduleSelected.date;
+  const newSlot = _rescheduleSelected.eventType;
 
   try {
     await DB.updateBooking(rescheduleBookingId, {
@@ -10633,6 +10724,7 @@ async function confirmReschedule() {
     });
     closeModal('modal-reschedule');
     rescheduleBookingId = null;
+    _rescheduleSelected = null;
     await refreshData();
     renderAll();
   } catch (err) {
