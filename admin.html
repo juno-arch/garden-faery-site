@@ -2234,7 +2234,21 @@ async function renderDashboard() {
   }
   const monthBuckets = months.map(m => {
     const bs = bookings.filter(b => (b.date||'').slice(0,7) === m.key);
-    const paid = bs.filter(b => b.paid).reduce((s,b) => s + (Number(b.price)||0), 0);
+    const bookingsPaid = bs.filter(b => b.paid).reduce((s,b) => s + (Number(b.price)||0), 0);
+    // Pull collected money from the payments collection (Square / Stripe /
+    // manually logged cash & check) for the same month — this catches
+    // Stripe Checkout payments + Square invoices + cash payments logged
+    // outside the bookings.paid flow, which were previously invisible to
+    // the streak + bar chart.
+    const paymentsCollected = (typeof _paymentsCache !== 'undefined' && Array.isArray(_paymentsCache))
+      ? _paymentsCache
+          .filter(p => (p.capturedAt || '').slice(0, 7) === m.key &&
+                       (p.status === 'completed' || p.status === 'paid' || p.status === 'captured'))
+          .reduce((s, p) => s + ((p.amountCents || 0) / 100), 0)
+      : 0;
+    // Take the max (not the sum) so a Square webhook AND a manual
+    // booking-paid flip for the same money don't double-count.
+    const paid = Math.max(bookingsPaid, paymentsCollected);
     const outstanding = bs.filter(b => !b.paid).reduce((s,b) => s + (Number(b.price)||0), 0);
     const monthExpenses = expenses.filter(e => (e.date||'').slice(0,7) === m.key && e.onBiz).reduce((s,e) => s + e.amount, 0);
     return { ...m, paid, outstanding, total: paid + outstanding, expenses: monthExpenses };
