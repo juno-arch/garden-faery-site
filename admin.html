@@ -1329,7 +1329,18 @@ html[data-theme="dark"] .week-day.active { background: var(--sage-light); }
 <div class="modal-overlay" id="modal-book">
   <div class="modal">
     <h2>Book for a Client</h2>
-    <div class="form-group">
+
+    <!-- Mode toggle: standard slot picker OR custom-time shift. Admin-only;
+         the public booking form on the website always uses standard slots. -->
+    <div style="display:flex;background:var(--gray-100);border-radius:8px;padding:3px;margin-bottom:12px;gap:3px;">
+      <button type="button" id="obo-mode-standard" onclick="setOboMode('standard')"
+        style="flex:1;background:var(--white);color:var(--plum);border:none;border-radius:6px;padding:7px 10px;font-size:0.82rem;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,0.06);">Standard slot</button>
+      <button type="button" id="obo-mode-custom" onclick="setOboMode('custom')"
+        style="flex:1;background:transparent;color:var(--gray-600);border:none;border-radius:6px;padding:7px 10px;font-size:0.82rem;font-weight:500;cursor:pointer;">Custom shift</button>
+    </div>
+
+    <!-- Standard-slot picker (existing) -->
+    <div class="form-group" id="obo-standard-fields">
       <label>Pick the slots <span style="color:var(--gray-600,#666);font-weight:400;font-size:0.85em;">(click any open slot to add it; pick as many as you need across both times)</span></label>
       <div id="obo-availability" style="max-height:340px;overflow-y:auto;border:1px solid var(--gray-300,#ddd);border-radius:8px;padding:6px;background:var(--gray-50,#fafafa);"></div>
       <div id="obo-dates-chips" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;"></div>
@@ -1337,6 +1348,27 @@ html[data-theme="dark"] .week-day.active { background: var(--sage-light); }
            don't throw before being torn out. -->
       <select id="obo-event" style="display:none;"><option value="morning">morning</option></select>
       <input type="hidden" id="obo-date">
+    </div>
+
+    <!-- Custom-shift fields (admin-only — any start/end time on any day) -->
+    <div id="obo-custom-fields" style="display:none;">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="obo-custom-date">
+      </div>
+      <div class="form-group">
+        <label>Time</label>
+        <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;">
+          <input type="time" id="obo-custom-start" value="10:00" style="width:100%;">
+          <span style="color:var(--gray-600);font-size:0.85rem;">to</span>
+          <input type="time" id="obo-custom-end" value="13:00" style="width:100%;">
+        </div>
+        <div style="margin-top:6px;font-size:0.72rem;color:var(--gray-600);">Custom shifts skip the morning/afternoon slot rules — overlap detection is on you.</div>
+      </div>
+      <div class="form-group">
+        <label>Label <span style="color:var(--gray-600);font-weight:400;font-size:0.85em;">(optional)</span></label>
+        <input type="text" id="obo-custom-label" placeholder="e.g. Spring install, Evening visit">
+      </div>
     </div>
     <!-- Recurring removed: pick the specific dates above. Stubs kept hidden
          so any legacy reference to obo-recurring/obo-weeks doesn't throw. -->
@@ -1671,18 +1703,49 @@ function findClientRecord(c) {
 const EVENT_LABELS = {
   morning: 'Morning Garden Care',
   afternoon: 'Afternoon Garden Care',
-  monday: 'Monday After Ceramics'
+  monday: 'Monday After Ceramics',
+  custom: 'Custom shift',
 };
 const EVENT_TIMES = {
   morning: '9:00am to 2:00pm',
   afternoon: '2:30pm to 4:30pm',
-  monday: '1:00pm to 4:30pm'
+  monday: '1:00pm to 4:30pm',
+  // custom: filled in from the booking's own time + end_time fields
 };
 const EVENT_TIME_SLOTS = {
   morning: '9:00am',
   afternoon: '2:30pm',
-  monday: '1:00pm'
+  monday: '1:00pm',
+  // custom: filled in from the booking's own time field
 };
+
+// Pull the display "9–2" / "2:30–4:30" / "10:15am–1:00pm" string for a
+// booking, preferring the booking's own time fields for custom shifts.
+function bookingDisplayTime(b) {
+  if (!b) return '';
+  if (b.eventType === 'custom') {
+    const s = b.time || '';
+    const e = b.endTime || b.end_time || '';
+    if (s && e) return s + ' to ' + e;
+    if (s) return s;
+    return 'custom shift';
+  }
+  return EVENT_TIMES[b.eventType] || b.time || '';
+}
+
+// Convert a 24h "HH:MM" to a 12h "H:MMam/pm" — Pollen's display preference
+// (no military time). Used by the Custom-shift booking flow.
+function fmt12h(hhmm) {
+  if (!hhmm) return '';
+  const parts = String(hhmm).split(':');
+  let h = parseInt(parts[0], 10);
+  const m = parts[1] || '00';
+  if (isNaN(h)) return hhmm;
+  const ampm = h >= 12 ? 'pm' : 'am';
+  if (h === 0) h = 12;
+  else if (h > 12) h -= 12;
+  return h + ':' + m + ampm;
+}
 
 let viewDate = new Date();
 
@@ -9458,7 +9521,7 @@ function renderDay() {
           '<h3>' + b.clientName +
             (b.recurringSeriesId ? '<span class="series-badge">' + (b.recurringFrequency || 'recurring') + '</span>' : '') +
           '</h3>' +
-          '<div class="booking-meta">' + EVENT_LABELS[b.eventType] + ' (' + EVENT_TIMES[b.eventType] + ')</div>' +
+          '<div class="booking-meta">' + (EVENT_LABELS[b.eventType] || b.eventName || 'Visit') + ' (' + bookingDisplayTime(b) + ')</div>' +
           '<div class="booking-client">' +
             (b.clientPhone ? b.clientPhone : '') +
             (b.clientAddress ? ' &middot; ' + b.clientAddress : '') +
@@ -10101,6 +10164,13 @@ function openModal(id) {
   if (id === 'modal-book') {
     oboDates = [];
     renderOboChips();
+    // Also reset to standard mode + clear any custom-shift inputs so
+    // re-opening doesn't carry state from a previous session.
+    if (typeof setOboMode === 'function') setOboMode('standard');
+    const cd = document.getElementById('obo-custom-date');
+    const cl = document.getElementById('obo-custom-label');
+    if (cd) cd.value = '';
+    if (cl) cl.value = '';
   }
   modal.classList.add('open');
 }
@@ -10482,6 +10552,32 @@ async function saveBlock() {
   }
 }
 
+// Track which mode the Book modal is in. 'standard' = slot picker;
+// 'custom' = arbitrary start/end time on a single date. Default standard.
+let _oboMode = 'standard';
+
+function setOboMode(mode) {
+  _oboMode = (mode === 'custom') ? 'custom' : 'standard';
+  const standardBtn = document.getElementById('obo-mode-standard');
+  const customBtn = document.getElementById('obo-mode-custom');
+  const standardFields = document.getElementById('obo-standard-fields');
+  const customFields = document.getElementById('obo-custom-fields');
+  if (_oboMode === 'custom') {
+    standardFields.style.display = 'none';
+    customFields.style.display = '';
+    standardBtn.style.cssText = 'flex:1;background:transparent;color:var(--gray-600);border:none;border-radius:6px;padding:7px 10px;font-size:0.82rem;font-weight:500;cursor:pointer;';
+    customBtn.style.cssText = 'flex:1;background:var(--white);color:var(--plum);border:none;border-radius:6px;padding:7px 10px;font-size:0.82rem;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,0.06);';
+    if (!document.getElementById('obo-custom-date').value) {
+      document.getElementById('obo-custom-date').value = formatDate(new Date());
+    }
+  } else {
+    standardFields.style.display = '';
+    customFields.style.display = 'none';
+    standardBtn.style.cssText = 'flex:1;background:var(--white);color:var(--plum);border:none;border-radius:6px;padding:7px 10px;font-size:0.82rem;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,0.06);';
+    customBtn.style.cssText = 'flex:1;background:transparent;color:var(--gray-600);border:none;border-radius:6px;padding:7px 10px;font-size:0.82rem;font-weight:500;cursor:pointer;';
+  }
+}
+
 async function saveOBO() {
   const firstName = document.getElementById('obo-first-name').value.trim().replace(/\s+/g, ' ');
   const lastName  = document.getElementById('obo-last-name').value.trim().replace(/\s+/g, ' ');
@@ -10491,6 +10587,57 @@ async function saveOBO() {
   const address = document.getElementById('obo-address').value.trim();
   const notes = document.getElementById('obo-notes').value.trim();
 
+  // --- Custom-shift branch: single booking with admin-supplied start/end ---
+  if (_oboMode === 'custom') {
+    const cDate = document.getElementById('obo-custom-date').value;
+    const cStart24 = document.getElementById('obo-custom-start').value; // HH:MM
+    const cEnd24   = document.getElementById('obo-custom-end').value;
+    const cLabel = (document.getElementById('obo-custom-label').value || '').trim();
+    if (!cDate) { alert('Pick a date for the custom shift.'); return; }
+    if (!cStart24 || !cEnd24) { alert('Set both a start and end time.'); return; }
+    if (cEnd24 <= cStart24) { alert('End time must be after start time.'); return; }
+    if (!firstName) { alert("Enter the client's first name."); document.getElementById('obo-first-name').focus(); return; }
+    if (!lastName) { alert("Enter the client's last name."); document.getElementById('obo-last-name').focus(); return; }
+
+    // Compute duration in MINUTES (matches existing duration_min convention).
+    const startMin = parseInt(cStart24.split(':')[0], 10) * 60 + parseInt(cStart24.split(':')[1] || '0', 10);
+    const endMin   = parseInt(cEnd24.split(':')[0], 10) * 60 + parseInt(cEnd24.split(':')[1] || '0', 10);
+    const durationMin = endMin - startMin;
+
+    const booking = {
+      id: 'b_' + Date.now() + '_custom',
+      eventType: 'custom',
+      eventName: cLabel || 'Custom shift',
+      date: cDate,
+      time: fmt12h(cStart24),
+      endTime: fmt12h(cEnd24),
+      end_time: fmt12h(cEnd24), // server-snake-case for PB
+      duration: durationMin,
+      clientName: name,
+      clientEmail: email,
+      clientPhone: phone,
+      clientAddress: address,
+      gardenNotes: notes,
+      status: 'confirmed',
+      createdAt: new Date().toISOString(),
+      bookedBy: 'admin',
+    };
+    try {
+      await DB.saveBooking(booking);
+      closeModal('modal-book');
+      // Reset state
+      _oboMode = 'standard';
+      document.getElementById('obo-custom-date').value = '';
+      document.getElementById('obo-custom-label').value = '';
+      await refreshData();
+      renderAll();
+    } catch (err) {
+      alert('Could not save custom shift: ' + (err && err.message ? err.message : err));
+    }
+    return;
+  }
+
+  // --- Standard-slot branch (existing flow) ---
   oboDates.sort((a, b) => (a.date + a.eventType).localeCompare(b.date + b.eventType));
 
   if (oboDates.length === 0) { alert('Click a slot to add it first.'); return; }
