@@ -9304,6 +9304,20 @@ async function savePayment() {
     _paymentsLoaded = false; // force a re-pull of the unified ledger
     renderIncome();
     renderClients();
+    // Today card needs to re-render too so the "Log $X payment" button
+    // flips to the ✓ Paid pill — otherwise it stays stale until a tab
+    // switch / hard reload, which makes it feel like nothing happened.
+    if (typeof renderTodayCard === 'function') {
+      try { renderTodayCard(); } catch (_) {}
+    }
+    // If the Day view is showing today, keep its rows in sync as well.
+    if (typeof renderDay === 'function') {
+      try { renderDay(); } catch (_) {}
+    }
+    // And the dashboard's monthly / streak math will shift now.
+    if (typeof renderDashboard === 'function') {
+      try { renderDashboard(); } catch (_) {}
+    }
   } catch (e) {
     alert('Save failed: ' + e.message);
   }
