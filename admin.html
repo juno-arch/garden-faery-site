@@ -2276,9 +2276,14 @@ async function renderDashboard() {
   // bounded by today and the last day of THIS month. The month card uses
   // ONLY these (not the next30* values) so every figure on it stays inside
   // the current calendar month.
+  //
+  // STRICTLY AFTER today ('> today', not '>= today'): a visit dated today
+  // is already counted in monthEarned via the accrual bucket (date <= today).
+  // Including it here too would double-count today's visit across the
+  // earned + projected halves of the stacked bar.
   const monthEnd = new Date(todayDate.getFullYear(), todayDate.getMonth() + 1, 0);
   const monthEndStr = formatDate(monthEnd);
-  const restOfMonthUpcoming = bookings.filter(b => (b.date||'') >= today && (b.date||'') <= monthEndStr && b.status !== 'canceled');
+  const restOfMonthUpcoming = bookings.filter(b => (b.date||'') > today && (b.date||'') <= monthEndStr && b.status !== 'canceled');
   const restOfMonthUnpaid = restOfMonthUpcoming.filter(b => !b.paid);
   let restOfMonthExpected = 0, restOfMonthInferred = 0;
   restOfMonthUnpaid.forEach(b => {
