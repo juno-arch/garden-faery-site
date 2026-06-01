@@ -2273,14 +2273,22 @@ async function renderDashboard() {
   const next30UnpaidCount = next30Unpaid.length;
 
   // Rest-of-current-month projection: same shape as Next-30-Days but
-  // bounded by today and the last day of THIS month.
+  // bounded by today and the last day of THIS month. The month card uses
+  // ONLY these (not the next30* values) so every figure on it stays inside
+  // the current calendar month.
   const monthEnd = new Date(todayDate.getFullYear(), todayDate.getMonth() + 1, 0);
   const monthEndStr = formatDate(monthEnd);
-  const restOfMonthUpcoming = bookings.filter(b => (b.date||'') >= today && (b.date||'') <= monthEndStr);
+  const restOfMonthUpcoming = bookings.filter(b => (b.date||'') >= today && (b.date||'') <= monthEndStr && b.status !== 'canceled');
   const restOfMonthUnpaid = restOfMonthUpcoming.filter(b => !b.paid);
-  let restOfMonthExpected = 0;
-  restOfMonthUnpaid.forEach(b => { restOfMonthExpected += expectedPriceFor(b).price; });
-  const restOfMonthCount = restOfMonthUpcoming.length;
+  let restOfMonthExpected = 0, restOfMonthInferred = 0;
+  restOfMonthUnpaid.forEach(b => {
+    const { price, inferred } = expectedPriceFor(b);
+    restOfMonthExpected += price;
+    if (inferred && price > 0) restOfMonthInferred++;
+  });
+  // "bookings left" = upcoming UNPAID visits still to come this month
+  // (a paid visit isn't really "left" to collect on).
+  const restOfMonthCount = restOfMonthUnpaid.length;
   const monthLabel = todayDate.toLocaleString('en-US', { month: 'long' });
   // Visits that even the rate×duration calc can't price (unknown event type).
   const next30NoPriceCount = next30Unpaid.filter(b => expectedPriceFor(b).price === 0).length;
@@ -2435,7 +2443,7 @@ async function renderDashboard() {
 
       <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--gray-600);margin-top:8px;gap:10px;flex-wrap:wrap;">
         <span><span style="display:inline-block;width:8px;height:8px;background:var(--accent-1,#c2557a);border-radius:50%;margin-right:4px;vertical-align:middle;"></span>${fmt(monthEarned)} earned${monthOwed > 0 ? ' <span style="color:var(--gray-400);" title="' + fmt(monthEarnedCash) + ' received + ' + fmt(monthOwed) + ' owed = ' + fmt(monthEarned) + ' accrued">(' + fmt(monthEarnedCash) + ' received · ' + fmt(monthOwed) + ' owed)</span>' : ''}</span>
-        <span><span style="display:inline-block;width:8px;height:8px;background:rgba(212,184,106,0.6);border-radius:50%;margin-right:4px;vertical-align:middle;"></span>${fmt(restOfMonthExpected)} booked projected${next30Inferred > 0 ? ' · ' + next30Inferred + ' est' : ''}</span>
+        <span><span style="display:inline-block;width:8px;height:8px;background:rgba(212,184,106,0.6);border-radius:50%;margin-right:4px;vertical-align:middle;"></span>${fmt(restOfMonthExpected)} booked projected${restOfMonthInferred > 0 ? ' · ' + restOfMonthInferred + ' est' : ''}</span>
         <span style="color:var(--gray-400);">${restOfMonthCount} booking${restOfMonthCount===1?'':'s'} left</span>
       </div>
 
