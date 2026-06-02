@@ -9505,20 +9505,28 @@ async function openPlaidLink() {
   }
 
   if (!linkResp.ok || !linkData.link_token) {
-    // Most common reason: env vars not set yet. Show concise setup steps.
-    const msg = (linkData.error || ('HTTP ' + linkResp.status)) + '\n\n' +
-      'Plaid setup (one-time):\n' +
-      '1. dashboard.plaid.com/signup (free Development tier, no credit card)\n' +
-      '2. Copy client_id + secret from dashboard.plaid.com/team/keys\n' +
-      '3. SSH to bookings.gardenfaery.love, create:\n' +
-      '   /etc/systemd/system/pocketbase.service.d/plaid.conf\n' +
-      '   [Service]\n' +
-      '   Environment="PLAID_CLIENT_ID=xxx"\n' +
-      '   Environment="PLAID_SECRET=xxx"\n' +
-      '   Environment="PLAID_ENV=development"\n' +
-      '   Environment="PLAID_WEBHOOK_URL=https://bookings.gardenfaery.love/api/webhooks/plaid"\n' +
-      '4. sudo systemctl daemon-reload && sudo systemctl restart pocketbase\n' +
-      '5. Come back here, tap Connect via Plaid again.';
+    // Log the full response so the real cause is visible in the console.
+    console.error('[plaid] link-token failed', linkResp.status, linkData);
+    // PocketBase puts errors in either `error` (our routes) or `message`
+    // (its built-ins). Surface whichever exists.
+    const serverMsg = linkData.error || linkData.message || '';
+
+    let msg;
+    if (linkResp.status === 401) {
+      // Expired/invalid admin session — the keys are fine, the login isn't.
+      msg = 'Your admin session expired.\n\nLog out and back in (Settings → Log out), ' +
+            'then tap Connect via Plaid again. Plaid itself is set up and ready.';
+    } else if (serverMsg && /not configured/i.test(serverMsg)) {
+      msg = 'Server says Plaid isn\'t configured — but the keys ARE set. ' +
+            'You\'re almost certainly on a cached old version of this page.\n\n' +
+            'Fully close this tab and reopen bookings.gardenfaery.love/admin ' +
+            '(on iPhone: swipe the tab away, don\'t just back out), then try again.';
+    } else {
+      msg = 'Couldn\'t start Plaid (HTTP ' + linkResp.status + ')' +
+            (serverMsg ? ': ' + serverMsg : '') + '\n\n' +
+            'If this keeps happening, fully close + reopen the page (clears a stale cache), ' +
+            'or log out and back in.';
+    }
     alert(msg);
     return;
   }
