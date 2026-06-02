@@ -1265,8 +1265,7 @@ html[data-theme="dark"] .week-day.active { background: var(--sage-light); }
     <div class="form-group">
       <label>What kind of time</label>
       <select id="lt-category">
-        <option value="coding">Claude coding / app building</option>
-        <option value="admin">Admin / bookkeeping</option>
+        <option value="admin">Admin / Claude time</option>
         <option value="other">Other business time</option>
         <option value="client_work">Client work (non-booking)</option>
       </select>
@@ -7384,7 +7383,10 @@ async function loadBank() {
 // =============================================================
 let _timeEntries = [];
 let _timeEntriesLoaded = false;
-let _timePeriod = 'this-week'; // this-week | last-week | this-month | ytd
+let _timeFrom = ''; // ISO yyyy-mm-dd (inclusive)
+let _timeTo = '';   // ISO yyyy-mm-dd (inclusive)
+let _claudeTimerInterval = null;
+const CLAUDE_TIMER_KEY = 'gf_claude_timer_start'; // localStorage epoch-ms
 
 async function loadTimeEntries() {
   if (!PB_URL) { _timeEntries = []; _timeEntriesLoaded = true; return; }
@@ -7393,7 +7395,9 @@ async function loadTimeEntries() {
     _timeEntries = (data.items || []).map(r => ({
       id: r.id,
       date: r.date ? String(r.date).slice(0, 10) : '',
-      category: r.category || 'other',
+      // Fold the retired 'coding' category into 'admin' so any legacy rows
+      // (there shouldn't be any) still land in the admin bucket.
+      category: (r.category === 'coding') ? 'admin' : (r.category || 'other'),
       hours: Number(r.hours) || 0,
       label: r.label || '',
       notes: r.notes || '',
@@ -7406,52 +7410,93 @@ async function loadTimeEntries() {
   }
 }
 
-// Hours for a single booking: actual_hours override > duration field >
-// slot default. This is the "auto from bookings + editable" behavior.
+// Hours for a single booking from its slot length. Read-only — Pollen only
+// uses this tab to TRACK, not to correct booking times, so there's no
+// per-visit editing. actual_hours is still honored if it ever gets set
+// elsewhere, but the default is the slot length.
 function bookingHours(b) {
   if (b.actualHours != null && Number(b.actualHours) > 0) return Number(b.actualHours);
-  // duration is stored in minutes on some rows; treat >0 as authoritative
-  // ONLY if it differs from the slot default (default is unreliable noise).
-  const slotDefault = _EVENT_DURATION_HOURS[b.eventType] || 0;
-  // For custom shifts, duration is the real figure.
   if (b.eventType === 'custom' && Number(b.duration) > 0) return Number(b.duration) / 60;
-  return slotDefault;
+  return _EVENT_DURATION_HOURS[b.eventType] || 0;
 }
 
-// Period window → { start, end (exclusive), label }. Mirrors periodWindow
-// but adds week granularity.
-function timePeriodWindow(p) {
-  const now = new Date(); now.setHours(0,0,0,0);
-  const iso = d => formatDate(d);
-  if (p === 'this-week' || p === 'last-week') {
-    // Week = Sun..Sat. Find this week's Sunday.
-    const dow = now.getDay();
-    const sunday = new Date(now); sunday.setDate(now.getDate() - dow);
-    if (p === 'last-week') sunday.setDate(sunday.getDate() - 7);
-    const sat = new Date(sunday); sat.setDate(sunday.getDate() + 6);
-    const endExcl = new Date(sat); endExcl.setDate(sat.getDate() + 1);
-    return {
-      start: iso(sunday), end: iso(endExcl),
-      label: (p === 'last-week' ? 'Last week' : 'This week') +
-             ' (' + formatDisplayDate(iso(sunday)) + ' – ' + formatDisplayDate(iso(sat)) + ')',
-    };
-  }
-  if (p === 'this-month') {
-    const first = new Date(now.getFullYear(), now.getMonth(), 1);
-    const nextFirst = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    return { start: iso(first), end: iso(nextFirst), label: now.toLocaleString('en-US', { month: 'long', year: 'numeric' }) };
-  }
-  // ytd
-  const jan1 = new Date(now.getFullYear(), 0, 1);
-  const nextJan1 = new Date(now.getFullYear() + 1, 0, 1);
-  return { start: iso(jan1), end: iso(nextJan1), label: now.getFullYear() + ' year-to-date' };
+// Default the date range to the current calendar month on first open.
+function ensureTimeRangeDefault() {
+  if (_timeFrom && _timeTo) return;
+  const now = new Date();
+  _timeFrom = formatDate(new Date(now.getFullYear(), now.getMonth(), 1));
+  _timeTo = formatDate(now);
 }
 
-function setTimePeriod(p) { _timePeriod = p; renderTime(); }
+function setTimeRange() {
+  const f = document.getElementById('time-from');
+  const t = document.getElementById('time-to');
+  if (f && f.value) _timeFrom = f.value;
+  if (t && t.value) _timeTo = t.value;
+  renderTime();
+}
+
+// =============================================================
+// Claude / admin timer — a start/stop stopwatch so Pollen can MONITOR how
+// much time she spends in Claude without guessing. Start when a session
+// begins, Stop & log when done; it writes the elapsed time as an 'admin'
+// time entry. Persisted in localStorage so it survives navigation / reload.
+// =============================================================
+function claudeTimerStartMs() {
+  const v = parseInt(localStorage.getItem(CLAUDE_TIMER_KEY) || '', 10);
+  return isFinite(v) && v > 0 ? v : 0;
+}
+function startClaudeTimer() {
+  localStorage.setItem(CLAUDE_TIMER_KEY, String(Date.now()));
+  renderTime();
+}
+function cancelClaudeTimer() {
+  if (!confirm('Discard this running timer without logging it?')) return;
+  localStorage.removeItem(CLAUDE_TIMER_KEY);
+  renderTime();
+}
+async function stopClaudeTimer() {
+  const start = claudeTimerStartMs();
+  if (!start) { renderTime(); return; }
+  const ms = Date.now() - start;
+  const hours = Math.round((ms / 3600000) * 100) / 100; // 2 decimals
+  if (hours <= 0) { localStorage.removeItem(CLAUDE_TIMER_KEY); renderTime(); return; }
+  if (!confirm('Stop timer and log ' + hours + ' hr of Claude/admin time?')) return;
+  try {
+    await DB._pb('POST', 'time_entries/records', {
+      date: formatDate(new Date()),
+      category: 'admin',
+      hours: hours,
+      label: 'Claude session',
+      notes: '',
+    });
+    localStorage.removeItem(CLAUDE_TIMER_KEY);
+    _timeEntriesLoaded = false;
+    await loadTimeEntries();
+    renderTime();
+  } catch (err) {
+    alert('Could not log the session: ' + (err && err.message ? err.message : err));
+  }
+}
+// Live-update the running elapsed display. Called on a 1s interval while a
+// timer is active. Safe to call when the element is gone (re-render).
+function tickClaudeTimer() {
+  const span = document.getElementById('claude-timer-display');
+  const start = claudeTimerStartMs();
+  if (!span || !start) return;
+  const s = Math.floor((Date.now() - start) / 1000);
+  const hh = String(Math.floor(s / 3600)).padStart(2, '0');
+  const mm = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+  const ss = String(s % 60).padStart(2, '0');
+  span.textContent = hh + ':' + mm + ':' + ss;
+}
 
 async function renderTime() {
   const el = document.getElementById('time-content');
   if (!el) return;
+  // Clear any prior ticking interval before we (maybe) re-create it.
+  if (_claudeTimerInterval) { clearInterval(_claudeTimerInterval); _claudeTimerInterval = null; }
+
   if ((!_timeEntriesLoaded || !_paymentsLoaded) && PB_URL) {
     el.innerHTML = '<div class="empty-day"><p>Loading time…</p></div>';
     await Promise.all([
@@ -7461,7 +7506,13 @@ async function renderTime() {
     ]);
   }
 
-  const win = timePeriodWindow(_timePeriod);
+  ensureTimeRangeDefault();
+  // Window: inclusive from..to. Convert to [start, endExclusive).
+  const winStart = _timeFrom;
+  const endD = new Date(_timeTo + 'T00:00:00'); endD.setDate(endD.getDate() + 1);
+  const winEnd = formatDate(endD);
+  const winLabel = formatDisplayDate(_timeFrom) + ' – ' + formatDisplayDate(_timeTo);
+
   const fmt = n => '$' + Math.round(n).toLocaleString();
   const fmtH = h => (Math.round(h * 100) / 100).toString();
 
@@ -7469,7 +7520,7 @@ async function renderTime() {
   const allBookings = getBookings().filter(b => b.status !== 'canceled');
   const clientVisits = allBookings.filter(b => {
     const d = (b.date || '').slice(0, 10);
-    return d >= win.start && d < win.end;
+    return d >= winStart && d < winEnd;
   }).sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 
   let clientHours = 0;
@@ -7480,27 +7531,23 @@ async function renderTime() {
     clientGross += set > 0 ? set : expectedPriceForBooking(b);
   });
 
-  // --- Admin / coding / other: time_entries in window ---
-  const entries = _timeEntries.filter(t => t.date >= win.start && t.date < win.end);
-  let codingHours = 0, adminHours = 0, otherHours = 0, entryClientHours = 0;
+  // --- Admin / other: time_entries in window (coding folded to admin) ---
+  const entries = _timeEntries.filter(t => t.date >= winStart && t.date < winEnd);
+  let adminHours = 0, otherHours = 0, entryClientHours = 0;
   entries.forEach(t => {
-    if (t.category === 'coding') codingHours += t.hours;
-    else if (t.category === 'admin') adminHours += t.hours;
+    if (t.category === 'admin') adminHours += t.hours;
     else if (t.category === 'client_work') entryClientHours += t.hours;
     else otherHours += t.hours;
   });
-  // Manually-logged client_work hours add to client hours (rare; e.g. a
-  // consult not tied to a booking). They don't add income on their own.
   clientHours += entryClientHours;
 
-  const overheadHours = codingHours + adminHours + otherHours;
+  const overheadHours = adminHours + otherHours;
   const totalHours = clientHours + overheadHours;
 
-  // --- Money: gross (earned for client work this period) ---
-  // Use the booking-derived gross. Expenses (deductions) dated in window.
+  // --- Money: gross earned for client work in window; expenses as deductions ---
   const expenses = (_cachedExpenses || []).filter(e => {
     const d = (e.date || '').slice(0, 10);
-    return d >= win.start && d < win.end && e.onBiz;
+    return d >= winStart && d < winEnd && e.onBiz;
   });
   const expenseTotal = expenses.reduce((s, e) => s + (Number(e.amount) || 0), 0);
 
@@ -7514,23 +7561,36 @@ async function renderTime() {
   // ---- Render ----
   let html = '';
 
-  // Period selector
-  const periods = [
-    ['this-week', 'This week'],
-    ['last-week', 'Last week'],
-    ['this-month', 'This month'],
-    ['ytd', 'YTD'],
-  ];
-  html += '<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">' +
-    periods.map(([v, l]) =>
-      '<button class="modal-btn secondary" style="padding:6px 12px;font-size:0.8rem;' +
-      (_timePeriod === v ? 'background:var(--plum);color:var(--white);border-color:var(--plum);' : '') +
-      '" onclick="setTimePeriod(\'' + v + '\')">' + l + '</button>'
-    ).join('') +
+  // Date-range filter (replaces the period buttons).
+  html += '<div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:12px;flex-wrap:wrap;">' +
+    '<div><label style="font-size:0.68rem;color:var(--gray-600);display:block;margin-bottom:2px;">From</label>' +
+      '<input type="date" id="time-from" value="' + _timeFrom + '" onchange="setTimeRange()" style="padding:6px 8px;font-size:0.82rem;border:1px solid var(--gray-200);border-radius:6px;"></div>' +
+    '<div><label style="font-size:0.68rem;color:var(--gray-600);display:block;margin-bottom:2px;">To</label>' +
+      '<input type="date" id="time-to" value="' + _timeTo + '" onchange="setTimeRange()" style="padding:6px 8px;font-size:0.82rem;border:1px solid var(--gray-200);border-radius:6px;"></div>' +
     '<button class="modal-btn primary" style="padding:6px 12px;font-size:0.8rem;margin-left:auto;" onclick="openLogTime()">+ Log time</button>' +
   '</div>';
 
-  html += '<div style="font-size:0.85rem;color:var(--gray-600);margin-bottom:12px;">' + escapeHtml(win.label) + '</div>';
+  // Claude / admin timer card.
+  const timerStart = claudeTimerStartMs();
+  if (timerStart) {
+    html += '<div class="card" style="background:linear-gradient(135deg,#efe7f0,#faf6fb);border:1px solid var(--plum);border-radius:12px;padding:14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">' +
+      '<div>' +
+        '<div style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.05em;">Claude session running</div>' +
+        '<div id="claude-timer-display" style="font-size:1.7rem;font-weight:700;color:var(--plum);font-variant-numeric:tabular-nums;">00:00:00</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:6px;">' +
+        '<button class="modal-btn secondary" style="padding:8px 12px;font-size:0.82rem;color:var(--gray-600);" onclick="cancelClaudeTimer()">Discard</button>' +
+        '<button class="modal-btn primary" style="padding:8px 14px;font-size:0.82rem;" onclick="stopClaudeTimer()">Stop &amp; log</button>' +
+      '</div>' +
+    '</div>';
+  } else {
+    html += '<div class="card" style="background:var(--white);border-radius:12px;padding:12px 14px;margin-bottom:12px;box-shadow:var(--shadow);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">' +
+      '<div style="font-size:0.85rem;color:var(--gray-700);"><strong>Claude / admin timer</strong><div style="font-size:0.72rem;color:var(--gray-600);">Start it when you sit down with Claude; logs to admin time when you stop.</div></div>' +
+      '<button class="modal-btn primary" style="padding:8px 16px;font-size:0.85rem;" onclick="startClaudeTimer()">▶ Start session</button>' +
+    '</div>';
+  }
+
+  html += '<div style="font-size:0.85rem;color:var(--gray-600);margin-bottom:12px;">' + escapeHtml(winLabel) + '</div>';
 
   // Headline cards: take-home + true $/hr
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">' +
@@ -7546,44 +7606,39 @@ async function renderTime() {
     '</div>' +
   '</div>';
 
-  // Hours breakdown
+  // Hours breakdown — Client work / Admin (Claude) / Other / Total.
   html += '<div class="card" style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">' +
     '<h3 style="margin:0 0 10px;font-size:1rem;">Hours</h3>' +
     '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;">' +
       timeStatCell('Client work', fmtH(clientHours), 'var(--spring-sage)') +
-      timeStatCell('Coding', fmtH(codingHours), 'var(--plum)') +
-      timeStatCell('Admin', fmtH(adminHours), 'var(--pollen-gold)') +
+      timeStatCell('Admin (Claude)', fmtH(adminHours), 'var(--plum)') +
+      timeStatCell('Other', fmtH(otherHours), 'var(--gray-500)') +
       timeStatCell('Total', fmtH(totalHours), 'var(--plum)') +
     '</div>' +
     (billableRate > 0
       ? '<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--gray-200);font-size:0.78rem;color:var(--gray-600);">' +
         'Billable rate on client work: <strong>' + fmt(billableRate) + '/hr</strong>. ' +
-        'After counting ' + fmtH(overheadHours) + ' unpaid overhead hours and taxes, your <strong>real rate is ' + fmt(effectiveRate) + '/hr</strong>.' +
+        'After counting ' + fmtH(overheadHours) + ' unpaid admin hours and taxes, your <strong>real rate is ' + fmt(effectiveRate) + '/hr</strong>.' +
         '</div>'
       : '') +
   '</div>';
 
-  // Client visits detail (editable hours)
+  // Client visits — READ ONLY (tracking, not correcting).
   if (clientVisits.length) {
     html += '<div class="card" style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">' +
       '<h3 style="margin:0 0 8px;font-size:1rem;">Client visits</h3>' +
-      '<div style="font-size:0.72rem;color:var(--gray-600);margin-bottom:8px;">Hours pre-fill from each visit\'s slot. Tap a number to correct the actual time worked.</div>';
+      '<div style="font-size:0.72rem;color:var(--gray-600);margin-bottom:8px;">Hours come from each visit\'s slot length.</div>';
     clientVisits.forEach(b => {
       const h = bookingHours(b);
       const set = Number(b.price) || 0;
       const price = set > 0 ? set : expectedPriceForBooking(b);
-      const overridden = (b.actualHours != null && Number(b.actualHours) > 0);
       html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--gray-100);font-size:0.85rem;">' +
         '<div style="min-width:0;flex:1;">' +
           '<strong>' + escapeHtml(b.clientName || 'Client') + '</strong> ' +
           '<span style="color:var(--gray-600);font-size:0.78rem;">' + escapeHtml(formatDisplayDate(b.date)) + '</span>' +
         '</div>' +
-        '<div style="display:flex;align-items:center;gap:8px;">' +
-          '<input type="number" min="0" step="0.25" value="' + fmtH(h) + '" ' +
-            'onchange="setBookingHours(\'' + b.id + '\', this.value)" ' +
-            'style="width:54px;padding:3px 5px;font-size:0.82rem;border:1px solid ' + (overridden ? 'var(--spring-sage)' : 'var(--gray-200)') + ';border-radius:5px;text-align:right;" ' +
-            'title="' + (overridden ? 'Actual hours (edited)' : 'Slot default — tap to set actual') + '">' +
-          '<span style="color:var(--gray-600);font-size:0.78rem;">hr</span>' +
+        '<div style="display:flex;align-items:center;gap:10px;">' +
+          '<span style="color:var(--gray-600);font-size:0.8rem;">' + fmtH(h) + ' hr</span>' +
           '<span style="font-weight:600;min-width:48px;text-align:right;">' + fmt(price) + '</span>' +
         '</div>' +
       '</div>';
@@ -7591,13 +7646,13 @@ async function renderTime() {
     html += '</div>';
   }
 
-  // Logged overhead entries (admin/coding/other)
+  // Logged time (admin / other) — tap to edit/delete.
   if (entries.length) {
     html += '<div class="card" style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">' +
       '<h3 style="margin:0 0 8px;font-size:1rem;">Logged time</h3>';
     entries.slice().sort((a,b) => (b.date||'').localeCompare(a.date||'')).forEach(t => {
-      const catLabel = { coding: 'Coding', admin: 'Admin', client_work: 'Client', other: 'Other' }[t.category] || t.category;
-      const catColor = { coding: 'var(--plum)', admin: 'var(--pollen-gold)', client_work: 'var(--spring-sage)', other: 'var(--gray-400)' }[t.category] || 'var(--gray-400)';
+      const catLabel = { admin: 'Admin', client_work: 'Client', other: 'Other' }[t.category] || t.category;
+      const catColor = { admin: 'var(--plum)', client_work: 'var(--spring-sage)', other: 'var(--gray-400)' }[t.category] || 'var(--gray-400)';
       html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--gray-100);font-size:0.85rem;cursor:pointer;" onclick="openLogTime(\'' + t.id + '\')">' +
         '<div style="min-width:0;flex:1;">' +
           '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + catColor + ';margin-right:6px;"></span>' +
@@ -7612,31 +7667,23 @@ async function renderTime() {
 
   if (!clientVisits.length && !entries.length) {
     html += '<div class="empty-day" style="text-align:center;padding:30px;color:var(--gray-600);">' +
-      '<p>No hours yet for ' + escapeHtml(win.label) + '.</p>' +
-      '<p style="font-size:0.85rem;">Client visits show up automatically. Tap <strong>+ Log time</strong> to add coding or admin hours.</p>' +
+      '<p>No hours in this range.</p>' +
+      '<p style="font-size:0.85rem;">Client visits show up automatically. Use the timer or <strong>+ Log time</strong> for Claude/admin hours.</p>' +
     '</div>';
   }
 
   el.innerHTML = html;
+
+  // If a timer is running, paint it now + tick every second.
+  if (claudeTimerStartMs()) {
+    tickClaudeTimer();
+    _claudeTimerInterval = setInterval(tickClaudeTimer, 1000);
+  }
 }
 
 function timeStatCell(label, value, color) {
   return '<div><div style="font-size:1.3rem;font-weight:700;color:' + color + ';">' + value + '</div>' +
     '<div style="font-size:0.68rem;color:var(--gray-600);">' + label + '</div></div>';
-}
-
-// Edit a booking's actual hours inline (the "+ editable" half of the spec).
-async function setBookingHours(bookingId, val) {
-  const hours = parseFloat(val);
-  if (!isFinite(hours) || hours < 0) { renderTime(); return; }
-  try {
-    await DB._pb('PATCH', 'bookings/records/' + bookingId, { actual_hours: hours });
-    const b = (_cachedBookings || []).find(x => x.id === bookingId);
-    if (b) b.actualHours = hours;
-    renderTime();
-  } catch (err) {
-    alert('Could not save hours: ' + (err && err.message ? err.message : err));
-  }
 }
 
 // --- Log Time modal ---
@@ -7656,7 +7703,7 @@ function openLogTime(id) {
     }
   } else {
     document.getElementById('lt-date').value = formatDate(new Date());
-    document.getElementById('lt-category').value = 'coding';
+    document.getElementById('lt-category').value = 'admin';
     document.getElementById('lt-hours').value = '';
     document.getElementById('lt-label').value = '';
     document.getElementById('lt-notes').value = '';
