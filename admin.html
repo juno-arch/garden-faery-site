@@ -4679,7 +4679,10 @@ function showInvoiceModal() {
         '<thead><tr style="text-align:left;border-bottom:1px solid #eee;"><th style="padding:6px 4px;">Description</th><th style="padding:6px 4px;text-align:right;">Qty</th><th style="padding:6px 4px;text-align:right;">Unit</th><th style="padding:6px 4px;text-align:right;">Total</th><th></th></tr></thead>' +
         '<tbody>' + itemRows + '</tbody>' +
       '</table>' +
-      '<button class="modal-btn secondary" style="margin-top:6px;padding:5px 10px;font-size:0.78rem;" onclick="invItemAdd()">+ Add item</button>' +
+      '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">' +
+        '<button class="modal-btn secondary" style="padding:5px 10px;font-size:0.78rem;" onclick="invItemAdd()">+ Add item</button>' +
+        '<button class="modal-btn secondary" style="padding:5px 10px;font-size:0.78rem;background:var(--spring-sage);color:var(--plum);border-color:var(--spring-sage);" onclick="openInvoiceVisitPicker()">+ Pull from visits</button>' +
+      '</div>' +
 
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px;">' +
         '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Tax %</label><input type="number" step="0.01" id="inv-tax" value="' + (s.tax_pct||0) + '" oninput="_invDraftState.tax_pct=parseFloat(this.value||0);showInvoiceModal();" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
@@ -4812,6 +4815,160 @@ function invItemAdd() {
 function invItemRemove(i) {
   if (_invDraftItems.length <= 1) return;
   _invDraftItems.splice(i, 1);
+  showInvoiceModal();
+}
+
+// =============================================================
+// "Pull from visits" — pick a client's unpaid past visits and turn each
+// into an invoice line item. Built for the "client was away, now paying
+// for everything I did while they were gone" case (e.g. Kenzie returning).
+// =============================================================
+let _invVisitClient = '';   // currently-selected client name in the picker
+let _invVisitChecked = {};  // booking id -> true
+
+function openInvoiceVisitPicker() {
+  // Default the picker's client to whatever name is already on the invoice.
+  if (!_invVisitClient && _invDraftState && _invDraftState.client_name) {
+    _invVisitClient = _invDraftState.client_name;
+  }
+  _invVisitChecked = {};
+  renderInvoiceVisitPicker();
+}
+
+function renderInvoiceVisitPicker() {
+  const today = formatDate(new Date());
+  // Unpaid, non-canceled visits whose date has already happened (work done).
+  const pool = getBookings().filter(b =>
+    b.status !== 'canceled' && !b.paid && (b.date || '') <= today &&
+    (Number(b.price) > 0 || expectedPriceForBooking(b) > 0)
+  );
+
+  // Unique client names with unpaid past work, sorted.
+  const clientNames = [...new Set(pool.map(b => b.clientName || 'Unknown'))].sort();
+  if (!_invVisitClient && clientNames.length) _invVisitClient = clientNames[0];
+
+  const visits = pool
+    .filter(b => (b.clientName || 'Unknown') === _invVisitClient)
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+  let modal = document.getElementById('inv-visit-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'inv-visit-modal';
+    modal.className = 'modal-overlay';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:10001;display:flex;align-items:center;justify-content:center;padding:20px;';
+    document.body.appendChild(modal);
+  }
+
+  // Running total of checked visits.
+  let selCount = 0, selTotal = 0;
+  visits.forEach(b => {
+    if (_invVisitChecked[b.id]) {
+      selCount++;
+      const set = Number(b.price) || 0;
+      selTotal += set > 0 ? set : expectedPriceForBooking(b);
+    }
+  });
+
+  const clientOpts = clientNames.map(n =>
+    '<option value="' + escAttr(n) + '"' + (n === _invVisitClient ? ' selected' : '') + '>' + escHtml(n) + '</option>'
+  ).join('');
+
+  const visitRows = visits.length ? visits.map(b => {
+    const set = Number(b.price) || 0;
+    const price = set > 0 ? set : expectedPriceForBooking(b);
+    const estimated = set <= 0;
+    const label = (EVENT_LABELS[b.eventType] || b.eventName || 'Garden visit');
+    const checked = _invVisitChecked[b.id] ? ' checked' : '';
+    return '<label style="display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid var(--gray-100);cursor:pointer;font-size:0.88rem;">' +
+      '<input type="checkbox"' + checked + ' onchange="invVisitToggle(\'' + b.id + '\', this.checked)">' +
+      '<div style="flex:1;min-width:0;">' +
+        '<strong>' + escHtml(formatDisplayDate(b.date)) + '</strong> · ' + escHtml(label) +
+      '</div>' +
+      '<div style="font-weight:600;white-space:nowrap;">$' + price.toFixed(0) +
+        (estimated ? '<span style="font-size:0.68rem;color:var(--gray-500);font-weight:400;"> est</span>' : '') +
+      '</div>' +
+    '</label>';
+  }).join('') : '<div style="padding:20px;text-align:center;color:var(--gray-600);font-size:0.85rem;">No unpaid past visits for this client.</div>';
+
+  modal.innerHTML =
+    '<div style="background:var(--white);border-radius:10px;width:100%;max-width:520px;max-height:88vh;overflow:auto;padding:20px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
+        '<h2 style="margin:0;font-size:1.15rem;">Pull from visits</h2>' +
+        '<button onclick="closeInvoiceVisitPicker()" style="background:transparent;border:none;cursor:pointer;font-size:1.4rem;">&times;</button>' +
+      '</div>' +
+      '<div style="font-size:0.8rem;color:var(--gray-600);margin-bottom:12px;">Pick the unpaid visits to bill. Each becomes a line item on the invoice.</div>' +
+      '<div style="margin-bottom:10px;">' +
+        '<label style="font-size:0.78rem;color:var(--gray-600);display:block;margin-bottom:3px;">Client</label>' +
+        '<select onchange="invVisitClientChange(this.value)" style="width:100%;padding:7px 8px;border:1px solid var(--gray-200);border-radius:6px;">' + (clientOpts || '<option>(no unpaid visits)</option>') + '</select>' +
+      '</div>' +
+      '<div style="border:1px solid var(--gray-200);border-radius:8px;max-height:340px;overflow-y:auto;background:var(--white);">' + visitRows + '</div>' +
+      '<div style="margin-top:10px;padding:10px;background:var(--gray-100);border-radius:8px;font-size:0.85rem;display:flex;justify-content:space-between;align-items:center;">' +
+        '<span><strong>' + selCount + '</strong> selected</span>' +
+        '<span style="font-weight:700;">$' + selTotal.toFixed(2) + '</span>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;margin-top:14px;">' +
+        '<button class="modal-btn secondary" style="flex:1;" onclick="closeInvoiceVisitPicker()">Cancel</button>' +
+        '<button class="modal-btn primary" style="flex:1;"' + (selCount ? '' : ' disabled') + ' onclick="addSelectedVisitsToInvoice()">Add ' + (selCount || '') + ' to invoice</button>' +
+      '</div>' +
+    '</div>';
+}
+
+function invVisitClientChange(name) {
+  _invVisitClient = name;
+  _invVisitChecked = {}; // reset selection when switching client
+  renderInvoiceVisitPicker();
+}
+function invVisitToggle(id, checked) {
+  if (checked) _invVisitChecked[id] = true;
+  else delete _invVisitChecked[id];
+  renderInvoiceVisitPicker();
+}
+function closeInvoiceVisitPicker() {
+  const m = document.getElementById('inv-visit-modal');
+  if (m) m.remove();
+}
+
+function addSelectedVisitsToInvoice() {
+  const ids = Object.keys(_invVisitChecked);
+  if (!ids.length) return;
+  const all = getBookings();
+  const picked = ids.map(id => all.find(b => b.id === id)).filter(Boolean)
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  if (!picked.length) return;
+
+  // Build line items: one per visit.
+  const newItems = picked.map(b => {
+    const set = Number(b.price) || 0;
+    const cents = Math.round((set > 0 ? set : expectedPriceForBooking(b)) * 100);
+    const label = (EVENT_LABELS[b.eventType] || b.eventName || 'Garden visit');
+    return {
+      description: label + ' — ' + formatDisplayDate(b.date),
+      qty: 1,
+      unit_cents: cents,
+    };
+  });
+
+  // If the only existing line is the empty starter row, replace it.
+  const onlyBlank = _invDraftItems.length === 1 &&
+    !(_invDraftItems[0].description || '').trim() &&
+    !(_invDraftItems[0].unit_cents);
+  _invDraftItems = onlyBlank ? newItems : _invDraftItems.concat(newItems);
+
+  // Backfill client info from the first picked visit / client record if blank.
+  const first = picked[0];
+  if (!(_invDraftState.client_name || '').trim()) _invDraftState.client_name = first.clientName || '';
+  if (!(_invDraftState.client_email || '').trim()) _invDraftState.client_email = first.clientEmail || '';
+  if (!(_invDraftState.client_address || '').trim()) _invDraftState.client_address = first.clientAddress || '';
+
+  // Audit trail: note which visit dates this invoice covers (internal only).
+  const dateList = picked.map(b => b.date).join(', ');
+  const note = 'Covers visits: ' + dateList;
+  _invDraftState.internal_notes = (_invDraftState.internal_notes || '').trim()
+    ? _invDraftState.internal_notes + '\n' + note
+    : note;
+
+  closeInvoiceVisitPicker();
   showInvoiceModal();
 }
 
