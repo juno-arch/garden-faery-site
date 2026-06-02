@@ -889,6 +889,7 @@ html[data-theme="dark"] .week-day.active { background: var(--sage-light); }
     <button class="tab" data-tab="month" onclick="switchTab('month')">Calendar</button>
     <button class="tab" data-tab="clients" onclick="switchTab('clients')">Clients</button>
     <button class="tab" data-tab="income" onclick="switchTab('income')">Income</button>
+    <button class="tab" data-tab="time" onclick="switchTab('time')">Time</button>
     <button class="tab" data-tab="bank" onclick="switchTab('bank')">Bank</button>
     <button class="tab" data-tab="invoices" onclick="switchTab('invoices')">Invoices</button>
     <button class="tab" data-tab="coupons" onclick="switchTab('coupons')">Coupons</button>
@@ -936,6 +937,11 @@ html[data-theme="dark"] .week-day.active { background: var(--sage-light); }
   <!-- Income view (bookings-driven: gross / paid / outstanding by month, per-client) -->
   <div class="tab-panel" id="tab-income" style="display:none;">
     <div id="income-content"></div>
+  </div>
+
+  <!-- Time view — hours worked (client + admin/coding) with after-tax net + true $/hr -->
+  <div class="tab-panel" id="tab-time" style="display:none;">
+    <div id="time-content"></div>
   </div>
 
   <!-- Bank view — SimpleFIN-fed CCCU balance + recent transactions + payments ledger -->
@@ -1247,6 +1253,44 @@ html[data-theme="dark"] .week-day.active { background: var(--sage-light); }
   </div>
 </div>
 
+<!-- Log Time modal — admin/coding/other non-billable business hours -->
+<div class="modal-overlay" id="modal-log-time">
+  <div class="modal">
+    <h2 id="lt-title">Log time</h2>
+    <input type="hidden" id="lt-id">
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="lt-date">
+    </div>
+    <div class="form-group">
+      <label>What kind of time</label>
+      <select id="lt-category">
+        <option value="coding">Claude coding / app building</option>
+        <option value="admin">Admin / bookkeeping</option>
+        <option value="other">Other business time</option>
+        <option value="client_work">Client work (non-booking)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Hours</label>
+      <input type="number" id="lt-hours" min="0" step="0.25" placeholder="e.g. 1.5">
+    </div>
+    <div class="form-group">
+      <label>Label <span style="color:var(--gray-600);font-weight:400;font-size:0.85em;">(what you did)</span></label>
+      <input type="text" id="lt-label" placeholder="e.g. Stripe wiring, weekly bookkeeping">
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="lt-notes" rows="2" placeholder="optional"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" id="lt-delete-btn" style="display:none;color:var(--red);border-color:var(--red);margin-right:auto;" onclick="deleteTimeEntry()">Delete</button>
+      <button class="modal-btn secondary" onclick="closeModal('modal-log-time')">Cancel</button>
+      <button class="modal-btn primary" onclick="saveTimeEntry()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Log Payment modal — manual cash/check/etc. entry for payments outside Square webhook flow -->
 <div class="modal-overlay" id="modal-log-payment">
   <div class="modal">
@@ -1496,6 +1540,8 @@ const DB = {
       paymentMethod: r.payment_method,
       paidDate: r.paid_date,
       paymentNotes: r.payment_notes,
+      actualHours: r.actual_hours,
+      endTime: r.end_time,
       clientId: r.client_id,
       createdAt: r.created,
       // Preferences set by the client on the booking form. These surface
@@ -1877,6 +1923,7 @@ function switchTab(tab) {
   if (tab === 'upcoming') renderUpcoming();
   if (tab === 'clients') renderClients();
   if (tab === 'income') renderIncome();
+  if (tab === 'time') renderTime();
   if (tab === 'bank') renderBank();
   if (tab === 'invoices') renderInvoices();
   if (tab === 'coupons') renderCoupons();
@@ -7325,6 +7372,336 @@ async function loadBank() {
 }
 
 // Filter + paging state for the Bank tab.
+// =============================================================
+// TIME TAB — hours worked (client + admin/coding), after-tax net,
+// and a true effective $/hr that counts the unpaid admin time too.
+//
+// Two data sources:
+//   - Client work hours come from `bookings` (actual_hours override if
+//     set, else the slot default from _EVENT_DURATION_HOURS).
+//   - Admin / coding / other hours come from the `time_entries` collection
+//     (manually logged via the Log Time modal).
+// =============================================================
+let _timeEntries = [];
+let _timeEntriesLoaded = false;
+let _timePeriod = 'this-week'; // this-week | last-week | this-month | ytd
+
+async function loadTimeEntries() {
+  if (!PB_URL) { _timeEntries = []; _timeEntriesLoaded = true; return; }
+  try {
+    const data = await DB._pb('GET', 'time_entries/records?perPage=500&sort=-date');
+    _timeEntries = (data.items || []).map(r => ({
+      id: r.id,
+      date: r.date ? String(r.date).slice(0, 10) : '',
+      category: r.category || 'other',
+      hours: Number(r.hours) || 0,
+      label: r.label || '',
+      notes: r.notes || '',
+    }));
+  } catch (err) {
+    console.warn('loadTimeEntries failed:', err);
+    _timeEntries = [];
+  } finally {
+    _timeEntriesLoaded = true;
+  }
+}
+
+// Hours for a single booking: actual_hours override > duration field >
+// slot default. This is the "auto from bookings + editable" behavior.
+function bookingHours(b) {
+  if (b.actualHours != null && Number(b.actualHours) > 0) return Number(b.actualHours);
+  // duration is stored in minutes on some rows; treat >0 as authoritative
+  // ONLY if it differs from the slot default (default is unreliable noise).
+  const slotDefault = _EVENT_DURATION_HOURS[b.eventType] || 0;
+  // For custom shifts, duration is the real figure.
+  if (b.eventType === 'custom' && Number(b.duration) > 0) return Number(b.duration) / 60;
+  return slotDefault;
+}
+
+// Period window → { start, end (exclusive), label }. Mirrors periodWindow
+// but adds week granularity.
+function timePeriodWindow(p) {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const iso = d => formatDate(d);
+  if (p === 'this-week' || p === 'last-week') {
+    // Week = Sun..Sat. Find this week's Sunday.
+    const dow = now.getDay();
+    const sunday = new Date(now); sunday.setDate(now.getDate() - dow);
+    if (p === 'last-week') sunday.setDate(sunday.getDate() - 7);
+    const sat = new Date(sunday); sat.setDate(sunday.getDate() + 6);
+    const endExcl = new Date(sat); endExcl.setDate(sat.getDate() + 1);
+    return {
+      start: iso(sunday), end: iso(endExcl),
+      label: (p === 'last-week' ? 'Last week' : 'This week') +
+             ' (' + formatDisplayDate(iso(sunday)) + ' – ' + formatDisplayDate(iso(sat)) + ')',
+    };
+  }
+  if (p === 'this-month') {
+    const first = new Date(now.getFullYear(), now.getMonth(), 1);
+    const nextFirst = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    return { start: iso(first), end: iso(nextFirst), label: now.toLocaleString('en-US', { month: 'long', year: 'numeric' }) };
+  }
+  // ytd
+  const jan1 = new Date(now.getFullYear(), 0, 1);
+  const nextJan1 = new Date(now.getFullYear() + 1, 0, 1);
+  return { start: iso(jan1), end: iso(nextJan1), label: now.getFullYear() + ' year-to-date' };
+}
+
+function setTimePeriod(p) { _timePeriod = p; renderTime(); }
+
+async function renderTime() {
+  const el = document.getElementById('time-content');
+  if (!el) return;
+  if ((!_timeEntriesLoaded || !_paymentsLoaded) && PB_URL) {
+    el.innerHTML = '<div class="empty-day"><p>Loading time…</p></div>';
+    await Promise.all([
+      _timeEntriesLoaded ? Promise.resolve() : loadTimeEntries(),
+      _paymentsLoaded ? Promise.resolve() : loadPayments(),
+      loadExpenses(),
+    ]);
+  }
+
+  const win = timePeriodWindow(_timePeriod);
+  const fmt = n => '$' + Math.round(n).toLocaleString();
+  const fmtH = h => (Math.round(h * 100) / 100).toString();
+
+  // --- Client work: bookings in window (non-canceled) ---
+  const allBookings = getBookings().filter(b => b.status !== 'canceled');
+  const clientVisits = allBookings.filter(b => {
+    const d = (b.date || '').slice(0, 10);
+    return d >= win.start && d < win.end;
+  }).sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+  let clientHours = 0;
+  let clientGross = 0;
+  clientVisits.forEach(b => {
+    clientHours += bookingHours(b);
+    const set = Number(b.price) || 0;
+    clientGross += set > 0 ? set : expectedPriceForBooking(b);
+  });
+
+  // --- Admin / coding / other: time_entries in window ---
+  const entries = _timeEntries.filter(t => t.date >= win.start && t.date < win.end);
+  let codingHours = 0, adminHours = 0, otherHours = 0, entryClientHours = 0;
+  entries.forEach(t => {
+    if (t.category === 'coding') codingHours += t.hours;
+    else if (t.category === 'admin') adminHours += t.hours;
+    else if (t.category === 'client_work') entryClientHours += t.hours;
+    else otherHours += t.hours;
+  });
+  // Manually-logged client_work hours add to client hours (rare; e.g. a
+  // consult not tied to a booking). They don't add income on their own.
+  clientHours += entryClientHours;
+
+  const overheadHours = codingHours + adminHours + otherHours;
+  const totalHours = clientHours + overheadHours;
+
+  // --- Money: gross (earned for client work this period) ---
+  // Use the booking-derived gross. Expenses (deductions) dated in window.
+  const expenses = (_cachedExpenses || []).filter(e => {
+    const d = (e.date || '').slice(0, 10);
+    return d >= win.start && d < win.end && e.onBiz;
+  });
+  const expenseTotal = expenses.reduce((s, e) => s + (Number(e.amount) || 0), 0);
+
+  const taxPct = getTaxReservePct();
+  const netBeforeTax = clientGross - expenseTotal;
+  const taxReserve = Math.max(0, netBeforeTax) * taxPct;
+  const takeHome = netBeforeTax - taxReserve;
+  const effectiveRate = totalHours > 0 ? (takeHome / totalHours) : 0;
+  const billableRate = clientHours > 0 ? (clientGross / clientHours) : 0;
+
+  // ---- Render ----
+  let html = '';
+
+  // Period selector
+  const periods = [
+    ['this-week', 'This week'],
+    ['last-week', 'Last week'],
+    ['this-month', 'This month'],
+    ['ytd', 'YTD'],
+  ];
+  html += '<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">' +
+    periods.map(([v, l]) =>
+      '<button class="modal-btn secondary" style="padding:6px 12px;font-size:0.8rem;' +
+      (_timePeriod === v ? 'background:var(--plum);color:var(--white);border-color:var(--plum);' : '') +
+      '" onclick="setTimePeriod(\'' + v + '\')">' + l + '</button>'
+    ).join('') +
+    '<button class="modal-btn primary" style="padding:6px 12px;font-size:0.8rem;margin-left:auto;" onclick="openLogTime()">+ Log time</button>' +
+  '</div>';
+
+  html += '<div style="font-size:0.85rem;color:var(--gray-600);margin-bottom:12px;">' + escapeHtml(win.label) + '</div>';
+
+  // Headline cards: take-home + true $/hr
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">' +
+    '<div style="background:linear-gradient(135deg,#f0f5e9,#fafdf5);border:1px solid var(--spring-sage);border-radius:12px;padding:14px;">' +
+      '<div style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.05em;">Take-home (after tax + deductions)</div>' +
+      '<div style="font-size:1.7rem;font-weight:700;color:var(--plum);margin-top:2px;">' + fmt(takeHome) + '</div>' +
+      '<div style="font-size:0.7rem;color:var(--gray-600);margin-top:2px;">' + fmt(clientGross) + ' earned − ' + fmt(expenseTotal) + ' expenses − ' + fmt(taxReserve) + ' tax</div>' +
+    '</div>' +
+    '<div style="background:linear-gradient(135deg,#f8f4e7,#fef9e6);border:1px solid var(--pollen-gold);border-radius:12px;padding:14px;">' +
+      '<div style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.05em;">True rate (all hours)</div>' +
+      '<div style="font-size:1.7rem;font-weight:700;color:var(--plum);margin-top:2px;">' + fmt(effectiveRate) + '<span style="font-size:0.9rem;font-weight:500;color:var(--gray-600);">/hr</span></div>' +
+      '<div style="font-size:0.7rem;color:var(--gray-600);margin-top:2px;">' + fmt(takeHome) + ' ÷ ' + fmtH(totalHours) + ' total hrs</div>' +
+    '</div>' +
+  '</div>';
+
+  // Hours breakdown
+  html += '<div class="card" style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">' +
+    '<h3 style="margin:0 0 10px;font-size:1rem;">Hours</h3>' +
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;">' +
+      timeStatCell('Client work', fmtH(clientHours), 'var(--spring-sage)') +
+      timeStatCell('Coding', fmtH(codingHours), 'var(--plum)') +
+      timeStatCell('Admin', fmtH(adminHours), 'var(--pollen-gold)') +
+      timeStatCell('Total', fmtH(totalHours), 'var(--plum)') +
+    '</div>' +
+    (billableRate > 0
+      ? '<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--gray-200);font-size:0.78rem;color:var(--gray-600);">' +
+        'Billable rate on client work: <strong>' + fmt(billableRate) + '/hr</strong>. ' +
+        'After counting ' + fmtH(overheadHours) + ' unpaid overhead hours and taxes, your <strong>real rate is ' + fmt(effectiveRate) + '/hr</strong>.' +
+        '</div>'
+      : '') +
+  '</div>';
+
+  // Client visits detail (editable hours)
+  if (clientVisits.length) {
+    html += '<div class="card" style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">' +
+      '<h3 style="margin:0 0 8px;font-size:1rem;">Client visits</h3>' +
+      '<div style="font-size:0.72rem;color:var(--gray-600);margin-bottom:8px;">Hours pre-fill from each visit\'s slot. Tap a number to correct the actual time worked.</div>';
+    clientVisits.forEach(b => {
+      const h = bookingHours(b);
+      const set = Number(b.price) || 0;
+      const price = set > 0 ? set : expectedPriceForBooking(b);
+      const overridden = (b.actualHours != null && Number(b.actualHours) > 0);
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--gray-100);font-size:0.85rem;">' +
+        '<div style="min-width:0;flex:1;">' +
+          '<strong>' + escapeHtml(b.clientName || 'Client') + '</strong> ' +
+          '<span style="color:var(--gray-600);font-size:0.78rem;">' + escapeHtml(formatDisplayDate(b.date)) + '</span>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:8px;">' +
+          '<input type="number" min="0" step="0.25" value="' + fmtH(h) + '" ' +
+            'onchange="setBookingHours(\'' + b.id + '\', this.value)" ' +
+            'style="width:54px;padding:3px 5px;font-size:0.82rem;border:1px solid ' + (overridden ? 'var(--spring-sage)' : 'var(--gray-200)') + ';border-radius:5px;text-align:right;" ' +
+            'title="' + (overridden ? 'Actual hours (edited)' : 'Slot default — tap to set actual') + '">' +
+          '<span style="color:var(--gray-600);font-size:0.78rem;">hr</span>' +
+          '<span style="font-weight:600;min-width:48px;text-align:right;">' + fmt(price) + '</span>' +
+        '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Logged overhead entries (admin/coding/other)
+  if (entries.length) {
+    html += '<div class="card" style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">' +
+      '<h3 style="margin:0 0 8px;font-size:1rem;">Logged time</h3>';
+    entries.slice().sort((a,b) => (b.date||'').localeCompare(a.date||'')).forEach(t => {
+      const catLabel = { coding: 'Coding', admin: 'Admin', client_work: 'Client', other: 'Other' }[t.category] || t.category;
+      const catColor = { coding: 'var(--plum)', admin: 'var(--pollen-gold)', client_work: 'var(--spring-sage)', other: 'var(--gray-400)' }[t.category] || 'var(--gray-400)';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--gray-100);font-size:0.85rem;cursor:pointer;" onclick="openLogTime(\'' + t.id + '\')">' +
+        '<div style="min-width:0;flex:1;">' +
+          '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + catColor + ';margin-right:6px;"></span>' +
+          '<strong>' + escapeHtml(t.label || catLabel) + '</strong> ' +
+          '<span style="color:var(--gray-600);font-size:0.78rem;">' + escapeHtml(formatDisplayDate(t.date)) + ' · ' + catLabel + '</span>' +
+        '</div>' +
+        '<div style="font-weight:600;white-space:nowrap;">' + fmtH(t.hours) + ' hr</div>' +
+      '</div>';
+    });
+    html += '</div>';
+  }
+
+  if (!clientVisits.length && !entries.length) {
+    html += '<div class="empty-day" style="text-align:center;padding:30px;color:var(--gray-600);">' +
+      '<p>No hours yet for ' + escapeHtml(win.label) + '.</p>' +
+      '<p style="font-size:0.85rem;">Client visits show up automatically. Tap <strong>+ Log time</strong> to add coding or admin hours.</p>' +
+    '</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+function timeStatCell(label, value, color) {
+  return '<div><div style="font-size:1.3rem;font-weight:700;color:' + color + ';">' + value + '</div>' +
+    '<div style="font-size:0.68rem;color:var(--gray-600);">' + label + '</div></div>';
+}
+
+// Edit a booking's actual hours inline (the "+ editable" half of the spec).
+async function setBookingHours(bookingId, val) {
+  const hours = parseFloat(val);
+  if (!isFinite(hours) || hours < 0) { renderTime(); return; }
+  try {
+    await DB._pb('PATCH', 'bookings/records/' + bookingId, { actual_hours: hours });
+    const b = (_cachedBookings || []).find(x => x.id === bookingId);
+    if (b) b.actualHours = hours;
+    renderTime();
+  } catch (err) {
+    alert('Could not save hours: ' + (err && err.message ? err.message : err));
+  }
+}
+
+// --- Log Time modal ---
+function openLogTime(id) {
+  const isEdit = !!id;
+  document.getElementById('lt-title').textContent = isEdit ? 'Edit time entry' : 'Log time';
+  document.getElementById('lt-id').value = id || '';
+  document.getElementById('lt-delete-btn').style.display = isEdit ? '' : 'none';
+  if (isEdit) {
+    const t = _timeEntries.find(x => x.id === id);
+    if (t) {
+      document.getElementById('lt-date').value = t.date;
+      document.getElementById('lt-category').value = t.category;
+      document.getElementById('lt-hours').value = t.hours;
+      document.getElementById('lt-label').value = t.label;
+      document.getElementById('lt-notes').value = t.notes;
+    }
+  } else {
+    document.getElementById('lt-date').value = formatDate(new Date());
+    document.getElementById('lt-category').value = 'coding';
+    document.getElementById('lt-hours').value = '';
+    document.getElementById('lt-label').value = '';
+    document.getElementById('lt-notes').value = '';
+  }
+  document.getElementById('modal-log-time').classList.add('open');
+}
+
+async function saveTimeEntry() {
+  const id = document.getElementById('lt-id').value;
+  const date = document.getElementById('lt-date').value;
+  const category = document.getElementById('lt-category').value;
+  const hours = parseFloat(document.getElementById('lt-hours').value);
+  const label = document.getElementById('lt-label').value.trim();
+  const notes = document.getElementById('lt-notes').value.trim();
+  if (!date) { alert('Pick a date.'); return; }
+  if (!isFinite(hours) || hours <= 0) { alert('Enter hours (e.g. 1.5).'); return; }
+
+  const payload = { date: date, category: category, hours: hours, label: label, notes: notes };
+  try {
+    if (id) await DB._pb('PATCH', 'time_entries/records/' + id, payload);
+    else await DB._pb('POST', 'time_entries/records', payload);
+    closeModal('modal-log-time');
+    _timeEntriesLoaded = false;
+    await loadTimeEntries();
+    renderTime();
+  } catch (err) {
+    alert('Save failed: ' + (err && err.message ? err.message : err));
+  }
+}
+
+async function deleteTimeEntry() {
+  const id = document.getElementById('lt-id').value;
+  if (!id) return;
+  if (!confirm('Delete this time entry?')) return;
+  try {
+    await DB._pb('DELETE', 'time_entries/records/' + id);
+    closeModal('modal-log-time');
+    _timeEntriesLoaded = false;
+    await loadTimeEntries();
+    renderTime();
+  } catch (err) {
+    alert('Delete failed: ' + (err && err.message ? err.message : err));
+  }
+}
+
 let _bankFilter = 'uncategorized'; // 'uncategorized' | 'all' | 'income' | 'expense' | 'categorized'
 let _bankSearch = '';
 let _bankPageSize = 30;
