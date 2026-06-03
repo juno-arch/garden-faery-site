@@ -8082,9 +8082,20 @@ async function renderBank() {
   }
 
   const visible = rows.slice(0, _bankVisibleCount);
-  visible.forEach(t => {
-    html += bankTxRowHtml(t);
-  });
+
+  // QuickBooks-style spreadsheet: one scrollable table, inline category edit.
+  html += bankCatDatalist();
+  html += '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--gray-200);border-radius:10px;background:var(--white);">';
+  html += '<table style="width:100%;min-width:600px;border-collapse:collapse;font-size:0.82rem;">';
+  html += '<thead><tr style="text-align:left;background:var(--gray-100);color:var(--gray-700);">' +
+    '<th style="padding:8px 10px;white-space:nowrap;font-weight:700;">Date</th>' +
+    '<th style="padding:8px 10px;font-weight:700;">Description</th>' +
+    '<th style="padding:8px 10px;text-align:right;font-weight:700;white-space:nowrap;">Amount</th>' +
+    '<th style="padding:8px 10px;font-weight:700;">Category</th>' +
+    '<th style="padding:8px 10px;font-weight:700;"></th>' +
+  '</tr></thead><tbody>';
+  visible.forEach(t => { html += bankTxTableRow(t); });
+  html += '</tbody></table></div>';
 
   if (rows.length > _bankVisibleCount) {
     html += '<div style="text-align:center;margin-top:10px;">' +
@@ -8094,6 +8105,99 @@ async function renderBank() {
   }
 
   container.innerHTML = html;
+}
+
+// Datalist of all category labels for the inline category inputs.
+function bankCatDatalist() {
+  let opts = '';
+  EXPENSE_CATEGORIES.forEach(c => { opts += '<option value="' + escAttr(c.l) + '"></option>'; });
+  return '<datalist id="bank-cat-dl">' + opts + '</datalist>';
+}
+
+// One spreadsheet row. Inline category input (datalist autocomplete) saves
+// straight to the categorize endpoint; ✨ suggestion + Match deposit + a ⋯
+// button for the full modal (notes / create-expense toggle) sit in actions.
+function bankTxTableRow(t) {
+  const dateStr = t.postedAt ? (new Date(t.postedAt)).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' }) : '?';
+  const isCredit = t.amountCents > 0;
+  const amtColor = isCredit ? 'var(--spring-sage)' : (t.amountCents < 0 ? 'var(--red)' : 'var(--gray-600)');
+  const amt = (isCredit ? '+' : '−') + '$' + (Math.abs(t.amountCents) / 100).toFixed(2);
+  const desc = t.vendor || t.description || t.payee || 'transaction';
+  const curLabel = t.category ? categoryLabel(t.category) : '';
+  const suggestion = !t.category ? suggestCategoryFor(t.payee, t.description) : null;
+  const placeholder = suggestion ? ('✨ ' + categoryLabel(suggestion.rule.category)) : 'Categorize…';
+
+  // Actions cell
+  let actions = '';
+  if (suggestion) {
+    actions += '<button class="modal-btn secondary" style="padding:3px 7px;font-size:0.7rem;background:rgba(212,194,122,0.25);border:1px solid var(--pollen-gold);white-space:nowrap;" title="Apply learned (' + suggestion.rule.confidence + 'x)" onclick="applySuggestion(\'' + t.id + '\')">✨</button> ';
+  }
+  if (isCredit) {
+    const linkedCount = (t.paymentIds || '').split('|').filter(Boolean).length;
+    const isDeposit = t.category === 'cash_deposit' || linkedCount > 0;
+    const lbl = isDeposit ? ('✓' + linkedCount) : 'Match';
+    const st = isDeposit ? 'padding:3px 7px;font-size:0.7rem;white-space:nowrap;' : 'padding:3px 7px;font-size:0.7rem;background:var(--spring-sage);color:var(--plum);border-color:var(--spring-sage);white-space:nowrap;';
+    actions += '<button class="modal-btn secondary" style="' + st + '" title="Match deposit to payments" onclick="openMatchDeposit(\'' + t.id + '\')">' + lbl + '</button> ';
+  }
+  actions += '<button class="modal-btn secondary" style="padding:3px 7px;font-size:0.8rem;" title="More: notes, create expense" onclick="openCategorizeBank(\'' + t.id + '\')">⋯</button>';
+
+  const matchPill = bankMatchPill(t.matchStatus);
+  const catBorder = t.category ? 'var(--spring-sage)' : 'var(--gray-300)';
+
+  return '<tr style="border-top:1px solid var(--gray-100);">' +
+    '<td style="padding:7px 10px;white-space:nowrap;color:var(--gray-600);font-size:0.74rem;vertical-align:top;">' + dateStr + '</td>' +
+    '<td style="padding:7px 10px;max-width:190px;vertical-align:top;">' +
+      '<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + escAttr(desc) + '">' + escapeHtml(String(desc).slice(0, 80)) + '</div>' +
+      (matchPill ? '<div style="margin-top:3px;">' + matchPill + '</div>' : '') +
+      (t.expenseId ? '<div style="font-size:0.66rem;color:var(--gray-500);margin-top:2px;">→ expense</div>' : '') +
+    '</td>' +
+    '<td style="padding:7px 10px;text-align:right;white-space:nowrap;font-weight:700;color:' + amtColor + ';font-variant-numeric:tabular-nums;vertical-align:top;">' + amt + '</td>' +
+    '<td style="padding:7px 6px;vertical-align:top;">' +
+      '<input list="bank-cat-dl" value="' + escAttr(curLabel) + '" placeholder="' + escAttr(placeholder) + '" ' +
+        'onchange="setBankCatInline(\'' + t.id + '\', this.value)" onfocus="this.select()" ' +
+        'style="width:100%;min-width:135px;padding:4px 7px;font-size:0.78rem;border:1px solid ' + catBorder + ';border-radius:5px;background:var(--white);color:var(--plum);">' +
+    '</td>' +
+    '<td style="padding:7px 8px;white-space:nowrap;vertical-align:top;">' + actions + '</td>' +
+  '</tr>';
+}
+
+// Inline category save from the spreadsheet input. Maps the typed label back
+// to a category value, categorizes, and (for debits) creates a linked expense.
+async function setBankCatInline(id, label) {
+  const t = _bankTransactions.find(x => x.id === id);
+  if (!t) return;
+  const lbl = (label || '').trim();
+  if (!lbl) return;
+  const cat = EXPENSE_CATEGORIES.find(c => c.l.toLowerCase() === lbl.toLowerCase());
+  if (!cat) {
+    alert('Pick a category from the list (start typing to filter).');
+    renderBank();
+    return;
+  }
+  // No-op if unchanged.
+  if (t.category === cat.v) return;
+  try {
+    const isCredit = t.amountCents > 0;
+    const createExp = !isCredit && !t.expenseId; // auto-create expense row for debits
+    const resp = await fetch(PB_URL + '/api/admin/categorize-bank-tx', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+      body: JSON.stringify({
+        bank_transaction_id: id,
+        category: cat.v,
+        vendor: t.vendor || t.payee || '',
+        notes: '',
+        create_expense: createExp,
+      }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) { alert('Categorize failed: ' + (data.error || resp.status)); return; }
+    _bankLoaded = false;
+    await Promise.all([loadCategorizationMemory(), loadBank()]);
+    renderBank();
+  } catch (err) {
+    alert('Network error: ' + err.message);
+  }
 }
 
 function setBankFilter(f) {
