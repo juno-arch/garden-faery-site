@@ -9588,44 +9588,61 @@ async function syncBank(startDays) {
   const btn = event && event.target ? event.target : null;
   const originalText = btn ? btn.textContent : '';
   if (btn) { btn.disabled = true; btn.textContent = (startDays ? 'Backfilling…' : 'Syncing…'); }
-  try {
-    const url = PB_URL + '/api/admin/simplefin-sync' + (startDays ? ('?start_days=' + startDays) : '');
-    const resp = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
-    });
-    const data = await resp.json().catch(() => ({}));
-    if (!resp.ok) {
-      alert('Bank sync failed: ' + (data.error || resp.status));
-      return;
-    }
-    const parts = [];
-    if (typeof data.inserted === 'number')         parts.push(data.inserted + ' new');
-    if (typeof data.matched === 'number')          parts.push(data.matched + ' deposit-matched');
-    if (typeof data.auto_categorized === 'number' && data.auto_categorized > 0)
-                                                   parts.push(data.auto_categorized + ' ✨ auto-categorized');
-    if (data.multi_match)                          parts.push(data.multi_match + ' need review');
-    alert('Bank sync complete: ' + (parts.join(' · ') || 'no new transactions'));
 
-    // Capture balance for the Bank tab card if returned.
-    if (data.balance) {
-      _bankBalance = {
-        amount_cents: Math.round(parseFloat(data.balance.amount) * 100),
-        currency: data.balance.currency || 'USD',
-        as_of: data.balance.as_of || new Date().toISOString(),
-        account_name: data.balance.account_name || '',
-      };
-    }
+  const H = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN };
+  let totalNew = 0, totalMatched = 0, totalAuto = 0, totalMulti = 0;
+  const errors = [];
+
+  try {
+    // --- Plaid first (the live connection now) ---
+    try {
+      const pr = await fetch(PB_URL + '/api/admin/plaid/sync', { method: 'POST', headers: H, body: '{}' });
+      const pd = await pr.json().catch(() => ({}));
+      if (pr.ok && pd.ok) {
+        totalNew += pd.added || 0;
+        // per_item carries matched counts when present
+        (pd.per_item || []).forEach(it => { totalMatched += (it.matched || 0); });
+      } else if (pd.error && !/no plaid items/i.test(pd.error)) {
+        errors.push('Plaid: ' + pd.error);
+      }
+    } catch (e) { errors.push('Plaid: ' + e.message); }
+
+    // --- SimpleFIN second (legacy; harmless no-op once CCCU is on Plaid) ---
+    try {
+      const url = PB_URL + '/api/admin/simplefin-sync' + (startDays ? ('?start_days=' + startDays) : '');
+      const sr = await fetch(url, { method: 'POST', headers: H });
+      const sd = await sr.json().catch(() => ({}));
+      if (sr.ok) {
+        totalNew += sd.inserted || 0;
+        totalMatched += sd.matched || 0;
+        totalAuto += sd.auto_categorized || 0;
+        totalMulti += sd.multi_match || 0;
+        if (sd.balance) {
+          _bankBalance = {
+            amount_cents: Math.round(parseFloat(sd.balance.amount) * 100),
+            currency: sd.balance.currency || 'USD',
+            as_of: sd.balance.as_of || new Date().toISOString(),
+            account_name: sd.balance.account_name || '',
+          };
+        }
+      }
+      // SimpleFIN errors are expected now (CCCU moved to Plaid) — swallow.
+    } catch (_) {}
+
+    const parts = [];
+    parts.push(totalNew + ' new');
+    if (totalMatched) parts.push(totalMatched + ' deposit-matched');
+    if (totalAuto)    parts.push(totalAuto + ' ✨ auto-categorized');
+    if (totalMulti)   parts.push(totalMulti + ' need review');
+    let msg = 'Bank sync complete: ' + parts.join(' · ');
+    if (errors.length) msg += '\n\n' + errors.join('\n');
+    alert(msg);
 
     // Reload all the views so balances + indicators show up.
     _bankLoaded = false;
     await Promise.all([loadPayments(), loadBank()]);
-    if (document.getElementById('tab-bank') && document.getElementById('tab-bank').style.display === 'block') {
-      renderBank();
-    }
-    if (document.getElementById('tab-income') && document.getElementById('tab-income').style.display === 'block') {
-      renderIncome();
-    }
+    if (document.getElementById('tab-bank') && document.getElementById('tab-bank').style.display === 'block') renderBank();
+    if (document.getElementById('tab-income') && document.getElementById('tab-income').style.display === 'block') renderIncome();
   } catch (err) {
     alert('Network error: ' + err.message);
   } finally {
