@@ -5845,6 +5845,14 @@ function renderSettings() {
         Scanning a receipt uses Claude's vision API (~$0.01/scan). Set a monthly cap in your Anthropic console.
       </p>
     </div>
+
+    <div style="background:var(--white);border-radius:12px;padding:16px;box-shadow:var(--shadow);margin-top:12px;">
+      <h3 style="margin-bottom:10px;">Account</h3>
+      <p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:12px;">
+        Signed in as taya@gardenfaery.love. Your login now stays put across refreshes.
+      </p>
+      <button class="modal-btn secondary" style="color:var(--red);border-color:var(--red);" onclick="logout()">Log out</button>
+    </div>
   `;
 }
 function saveApiKey() {
@@ -11557,9 +11565,21 @@ function renderAll() {
 const ADMIN_PIN_HASH_KEY = 'gf_admin_pin';
 const ADMIN_SESSION_KEY = 'gf_admin_session';
 
+const PB_TOKEN_KEY = 'gf_pb_token'; // persists the admin auth token across refreshes
+
+// Is a PocketBase JWT still valid (not expired)? Decodes the exp claim.
+function tokenValid(tok) {
+  if (!tok || tok.split('.').length !== 3) return false;
+  try {
+    const payload = JSON.parse(atob(tok.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    // exp is unix seconds; give a 30s skew margin.
+    return payload.exp && (payload.exp * 1000) > (Date.now() - 30000);
+  } catch (_) { return false; }
+}
+
 function isLoggedIn() {
-  // If PocketBase is configured, check for auth token
-  if (PB_URL && PB_TOKEN) return true;
+  // PocketBase mode: a valid (unexpired) token means logged in.
+  if (PB_URL) return tokenValid(PB_TOKEN);
   // For localStorage mode, check session (valid for 24 hours)
   const session = localStorage.getItem(ADMIN_SESSION_KEY);
   if (!session) return false;
@@ -11567,6 +11587,16 @@ function isLoggedIn() {
     const s = JSON.parse(session);
     return s.expires > Date.now();
   } catch { return false; }
+}
+
+// Clear the session everywhere and return to the login screen.
+function logout() {
+  PB_TOKEN = '';
+  try { localStorage.removeItem(PB_TOKEN_KEY); } catch (_) {}
+  try { localStorage.removeItem(ADMIN_SESSION_KEY); } catch (_) {}
+  const app = document.getElementById('app-wrap'); if (app) app.style.display = 'none';
+  const login = document.getElementById('login-screen'); if (login) login.style.display = 'flex';
+  const pin = document.getElementById('login-pin'); if (pin) pin.value = '';
 }
 
 function showApp() {
@@ -11611,6 +11641,8 @@ async function doLogin() {
       if (!resp.ok) throw new Error('Auth failed');
       const data = await resp.json();
       PB_TOKEN = data.token;
+      // Persist the token so a refresh / reopen keeps you logged in.
+      try { localStorage.setItem(PB_TOKEN_KEY, data.token); } catch (_) {}
       showApp();
       return;
     } catch (e) {
@@ -11658,6 +11690,17 @@ var _gfHandoff = sessionStorage.getItem('gf_pb_handoff');
 if (_gfHandoff) {
   sessionStorage.removeItem('gf_pb_handoff');
   PB_TOKEN = _gfHandoff;
+  try { localStorage.setItem(PB_TOKEN_KEY, _gfHandoff); } catch (_) {}
+}
+
+// Restore a persisted token on load so refresh / reopen stays logged in.
+// If it's expired, drop it (the login screen will show).
+if (!PB_TOKEN) {
+  try {
+    const saved = localStorage.getItem(PB_TOKEN_KEY);
+    if (saved && tokenValid(saved)) PB_TOKEN = saved;
+    else if (saved) localStorage.removeItem(PB_TOKEN_KEY);
+  } catch (_) {}
 }
 
 if (isLoggedIn()) {
