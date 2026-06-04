@@ -5143,32 +5143,27 @@ function invoiceOpenPublic(token) {
 // Text the public invoice link to the client. Backend looks up the phone
 // from the linked booking / client record. Gracefully reports if Twilio
 // isn't configured yet (TCR approval pending).
-async function invoiceSendSms(id) {
+// Text invoice — opens YOUR Messages app with the invoice link + a friendly
+// note prefilled, so the text comes from your own number. (No Twilio needed;
+// the automated-SMS service is still pending carrier approval.) You just pick
+// the client and hit send. The link is also copied to the clipboard as backup.
+function invoiceSendSms(id) {
   const inv = _invoices.find(x => x.id === id);
   if (!inv) return;
   const balance = ((inv.total_cents || 0) - (inv.paid_cents || 0)) / 100;
-  const who = inv.client_name || inv.client_email || 'this client';
-  const confirmMsg = (inv.sent_sms_at ? 'Re-text ' : 'Text ') + who +
-    ' the invoice for $' + balance.toFixed(2) + '?';
-  if (!confirm(confirmMsg)) return;
+  const link = 'https://gardenfaery.love/invoice.html?t=' + inv.view_token;
+  const firstName = (inv.client_name || '').trim().split(/\s+/)[0] || 'there';
+  const body = 'Hi ' + firstName + '! Here\'s your Garden Faery invoice for $' +
+    balance.toFixed(2) + ' — you can pay by card or bank at the link: ' + link;
 
-  try {
-    const resp = await fetch(PB_URL + '/api/admin/invoices/send-sms', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
-      body: JSON.stringify({ id: id }),
-    });
-    const data = await resp.json().catch(() => ({}));
-    if (!resp.ok || !data.ok) {
-      alert('Could not send: ' + (data.error || resp.status));
-      return;
-    }
-    _invoicesLoaded = false;
-    await renderInvoices();
-    alert('Sent to ' + data.to);
-  } catch (err) {
-    alert('Network error: ' + err.message);
-  }
+  // Copy the link too, in case the Messages hand-off doesn't fire.
+  try { if (navigator.clipboard) navigator.clipboard.writeText(link); } catch (_) {}
+
+  // If we know the client's phone, prefill the recipient; otherwise open a
+  // blank new message and you pick the contact.
+  const phone = (inv.client_phone || '').replace(/[^\d+]/g, '');
+  const smsUrl = (phone ? 'sms:' + phone : 'sms:') + '&body=' + encodeURIComponent(body);
+  window.location.href = smsUrl;
 }
 
 // ============================================
