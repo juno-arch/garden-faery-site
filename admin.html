@@ -5159,9 +5159,23 @@ function invoiceSendSms(id) {
   // Copy the link too, in case the Messages hand-off doesn't fire.
   try { if (navigator.clipboard) navigator.clipboard.writeText(link); } catch (_) {}
 
-  // If we know the client's phone, prefill the recipient; otherwise open a
-  // blank new message and you pick the contact.
-  const phone = (inv.client_phone || '').replace(/[^\d+]/g, '');
+  // Resolve the client's phone NUMBER ON FILE: invoice field first, then the
+  // clients record looked up by email or name. This addresses the message to
+  // them directly so it's a one-tap send.
+  let phone = (inv.client_phone || '').replace(/[^\d+]/g, '');
+  if (!phone) {
+    let crec = null;
+    const em = (inv.client_email || '').toLowerCase().trim();
+    if (em && typeof _clientsByEmail !== 'undefined' && _clientsByEmail[em]) crec = _clientsByEmail[em];
+    if (!crec && typeof _clientsById !== 'undefined') {
+      const nm = (inv.client_name || '').toLowerCase().trim();
+      for (const id in _clientsById) {
+        if (String(_clientsById[id].name || '').toLowerCase().trim() === nm) { crec = _clientsById[id]; break; }
+      }
+    }
+    if (crec && crec.phone) phone = String(crec.phone).replace(/[^\d+]/g, '');
+  }
+
   const smsUrl = (phone ? 'sms:' + phone : 'sms:') + '&body=' + encodeURIComponent(body);
   window.location.href = smsUrl;
 }
