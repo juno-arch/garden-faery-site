@@ -983,11 +983,52 @@ async function submitReschedule() {
 
 function renderAccount() {
   const p = _data.profile;
+  const smsOn = p.sms_opt_in !== false;
   document.getElementById('account-info').innerHTML =
     '<div class="account-row"><span class="label">Name</span><span class="value">' + escapeHtml(p.name || '—') + '</span></div>' +
     '<div class="account-row"><span class="label">Email</span><span class="value">' + escapeHtml(p.email || '—') + '</span></div>' +
     '<div class="account-row"><span class="label">Phone</span><span class="value">' + escapeHtml(p.phone || '—') + '</span></div>' +
-    '<div class="account-row"><span class="label">Address</span><span class="value">' + escapeHtml(p.address || '—') + '</span></div>';
+    '<div class="account-row"><span class="label">Address</span><span class="value">' + escapeHtml(p.address || '—') + '</span></div>' +
+    '<div class="account-row" style="align-items:center;">' +
+      '<span class="label">Text reminders</span>' +
+      '<span class="value">' +
+        '<label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;">' +
+          '<span id="sms-pref-label" style="font-size:0.9rem;">' + (smsOn ? 'On' : 'Off') + '</span>' +
+          '<input type="checkbox" id="sms-pref-toggle" ' + (smsOn ? 'checked' : '') + ' onchange="setSmsPref(this.checked)" style="width:18px;height:18px;cursor:pointer;">' +
+        '</label>' +
+      '</span>' +
+    '</div>' +
+    '<p style="font-size:0.78rem;color:var(--gray-600);margin:8px 2px 0;">' +
+      'Booking confirmations, day-before reminders, and visit updates by text. ' +
+      'Turn off here anytime, or reply STOP to any message.' +
+    '</p>';
+}
+
+// Toggle appointment-text opt-in from the account pane. Propagates to the
+// client's bookings server-side (POST /api/portal/sms-pref).
+async function setSmsPref(optIn) {
+  const token = localStorage.getItem(STORAGE_TOKEN);
+  const cb = document.getElementById('sms-pref-toggle');
+  const lbl = document.getElementById('sms-pref-label');
+  if (cb) cb.disabled = true;
+  if (lbl) lbl.textContent = 'Saving…';
+  try {
+    const resp = await fetch(PB_URL + '/api/portal/sms-pref', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: token, opt_in: !!optIn }),
+    });
+    const data = await resp.json();
+    if (!resp.ok || !data.ok) throw new Error(data.error || 'Save failed');
+    if (_data && _data.profile) _data.profile.sms_opt_in = !!data.sms_opt_in;
+    if (lbl) lbl.textContent = data.sms_opt_in ? 'On' : 'Off';
+  } catch (err) {
+    if (cb) cb.checked = !optIn; // revert the switch
+    if (lbl) lbl.textContent = optIn ? 'Off' : 'On';
+    alert('Could not update your text preference: ' + (err.message || err));
+  } finally {
+    if (cb) cb.disabled = false;
+  }
 }
 
 // ----- SAVED CARDS -----
