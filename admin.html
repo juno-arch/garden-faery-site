@@ -7610,6 +7610,47 @@ function setTimeRange() {
   renderTime();
 }
 
+// Quick-range presets so a week (or month) is one tap, no date typing.
+// Weeks run Sunday–Saturday to match how Pollen reads her weeks; current
+// periods are capped at today so future visits don't inflate hours.
+function timePresetRange(which) {
+  const now = new Date();
+  const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const today = startOfDay(now);
+  let from, to;
+  if (which === 'thisWeek' || which === 'lastWeek') {
+    const sun = startOfDay(now); sun.setDate(sun.getDate() - sun.getDay());
+    if (which === 'lastWeek') sun.setDate(sun.getDate() - 7);
+    from = sun; to = new Date(sun); to.setDate(sun.getDate() + 6);
+  } else if (which === 'thisMonth') {
+    from = new Date(now.getFullYear(), now.getMonth(), 1);
+    to = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  } else if (which === 'lastMonth') {
+    from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    to = new Date(now.getFullYear(), now.getMonth(), 0);
+  } else { return null; }
+  if (to > today) to = today;
+  if (from > to) from = to;
+  return { from: formatDate(from), to: formatDate(to) };
+}
+
+function setTimeRangePreset(which) {
+  const r = timePresetRange(which);
+  if (!r) return;
+  _timeFrom = r.from;
+  _timeTo = r.to;
+  renderTime();
+}
+
+function timePresetBtn(label, which) {
+  const r = timePresetRange(which);
+  const active = r && r.from === _timeFrom && r.to === _timeTo;
+  return '<button onclick="setTimeRangePreset(\'' + which + '\')" style="padding:6px 10px;font-size:0.78rem;border:1px solid ' +
+    (active ? 'var(--plum)' : 'var(--gray-200)') + ';border-radius:6px;background:' +
+    (active ? 'var(--plum)' : 'var(--white)') + ';color:' + (active ? 'var(--white)' : 'var(--plum)') +
+    ';cursor:pointer;white-space:nowrap;">' + label + '</button>';
+}
+
 // =============================================================
 // Claude / admin timer — a start/stop stopwatch so Pollen can MONITOR how
 // much time she spends in Claude without guessing. Start when a session
@@ -7741,6 +7782,12 @@ async function renderTime() {
       '<input type="date" id="time-from" value="' + _timeFrom + '" onchange="setTimeRange()" style="padding:6px 8px;font-size:0.82rem;border:1px solid var(--gray-200);border-radius:6px;"></div>' +
     '<div><label style="font-size:0.68rem;color:var(--gray-600);display:block;margin-bottom:2px;">To</label>' +
       '<input type="date" id="time-to" value="' + _timeTo + '" onchange="setTimeRange()" style="padding:6px 8px;font-size:0.82rem;border:1px solid var(--gray-200);border-radius:6px;"></div>' +
+    '<div style="display:flex;gap:4px;align-items:flex-end;flex-wrap:wrap;">' +
+      timePresetBtn('This week', 'thisWeek') +
+      timePresetBtn('Last week', 'lastWeek') +
+      timePresetBtn('This month', 'thisMonth') +
+      timePresetBtn('Last month', 'lastMonth') +
+    '</div>' +
     '<button class="modal-btn primary" style="padding:6px 12px;font-size:0.8rem;margin-left:auto;" onclick="openLogTime()">+ Log time</button>' +
   '</div>';
 
