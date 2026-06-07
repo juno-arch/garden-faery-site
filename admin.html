@@ -7827,20 +7827,30 @@ async function renderTime() {
 
   html += '<div style="font-size:0.85rem;color:var(--gray-600);margin-bottom:12px;">' + escapeHtml(winLabel) + '</div>';
 
-  // Headline: take-home on BOTH bases side by side.
+  // Headline: gross -> net on BOTH bases side by side.
   //   Earned    = every visit worked this period (incl. not-yet-paid)
   //   Collected = payments that actually landed this period
+  const taxPctLabel = Math.round(taxPct * 100) + '%';
+  const grossNetCard = (title, bg, border, grossVal, netVal, breakdown) =>
+    '<div style="background:' + bg + ';border:1px solid ' + border + ';border-radius:12px;padding:14px;">' +
+      '<div style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.05em;">' + title + '</div>' +
+      '<div style="display:flex;gap:18px;margin-top:6px;align-items:baseline;">' +
+        '<div><div style="font-size:0.62rem;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.04em;">Gross</div>' +
+          '<div style="font-size:1.25rem;font-weight:600;color:var(--gray-700);">' + grossVal + '</div></div>' +
+        '<div style="font-size:1.1rem;color:var(--gray-400);align-self:center;">&rarr;</div>' +
+        '<div><div style="font-size:0.62rem;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.04em;">Net (take-home)</div>' +
+          '<div style="font-size:1.55rem;font-weight:700;color:var(--plum);">' + netVal + '</div></div>' +
+      '</div>' +
+      '<div style="font-size:0.66rem;color:var(--gray-600);margin-top:5px;">' + breakdown + '</div>' +
+    '</div>';
+
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;">' +
-    '<div style="background:linear-gradient(135deg,#f0f5e9,#fafdf5);border:1px solid var(--spring-sage);border-radius:12px;padding:14px;">' +
-      '<div style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.05em;">Take-home &middot; earned</div>' +
-      '<div style="font-size:1.6rem;font-weight:700;color:var(--plum);margin-top:2px;">' + fmt(takeHome) + '</div>' +
-      '<div style="font-size:0.68rem;color:var(--gray-600);margin-top:2px;">' + fmt(clientGross) + ' earned − ' + fmt(expenseTotal) + ' exp − ' + fmt(taxReserve) + ' tax</div>' +
-    '</div>' +
-    '<div style="background:linear-gradient(135deg,#f8f4e7,#fef9e6);border:1px solid var(--pollen-gold);border-radius:12px;padding:14px;">' +
-      '<div style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.05em;">Take-home &middot; collected</div>' +
-      '<div style="font-size:1.6rem;font-weight:700;color:var(--plum);margin-top:2px;">' + fmt(cashTakeHome) + '</div>' +
-      '<div style="font-size:0.68rem;color:var(--gray-600);margin-top:2px;">' + fmt(cashNet) + ' in' + (cashFees >= 0.5 ? ' (net of ' + fmt(cashFees) + ' fees)' : '') + ' − ' + fmt(expenseTotal) + ' exp − ' + fmt(cashTaxReserve) + ' tax</div>' +
-    '</div>' +
+    grossNetCard('Earned &middot; work done', 'linear-gradient(135deg,#f0f5e9,#fafdf5)', 'var(--spring-sage)',
+      fmt(clientGross), fmt(takeHome),
+      '&minus; ' + fmt(expenseTotal) + ' exp &minus; ' + fmt(taxReserve) + ' tax (' + taxPctLabel + ')') +
+    grossNetCard('Collected &middot; cash in', 'linear-gradient(135deg,#f8f4e7,#fef9e6)', 'var(--pollen-gold)',
+      fmt(cashGross), fmt(cashTakeHome),
+      (cashFees >= 0.5 ? '&minus; ' + fmt(cashFees) + ' fees ' : '') + '&minus; ' + fmt(expenseTotal) + ' exp &minus; ' + fmt(cashTaxReserve) + ' tax (' + taxPctLabel + ')') +
   '</div>';
   // True rate on both bases + a one-line explainer of the difference.
   html += '<div style="background:var(--white);border-radius:12px;padding:10px 14px;margin-bottom:12px;box-shadow:var(--shadow);font-size:0.78rem;color:var(--gray-700);line-height:1.5;">' +
