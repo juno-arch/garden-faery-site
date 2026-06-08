@@ -921,6 +921,7 @@ html[data-theme="dark"] .week-day.active { background: var(--sage-light); }
   <!-- Money group flyout (fixed-position so it isn't clipped by the .tabs scroller) -->
   <div id="money-menu" style="display:none;position:fixed;z-index:200;background:var(--white);border:1px solid var(--gray-200);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,0.14);padding:6px;min-width:160px;">
     <button class="tab money-item" data-tab="income" onclick="switchTab('income')">Income</button>
+    <button class="tab money-item" data-tab="reports" onclick="switchTab('reports')">Reports</button>
     <button class="tab money-item" data-tab="invoices" onclick="switchTab('invoices')">Invoices</button>
     <button class="tab money-item" data-tab="expenses" onclick="switchTab('expenses')">Expenses</button>
     <button class="tab money-item" data-tab="bank" onclick="switchTab('bank')">Bank</button>
@@ -964,6 +965,11 @@ html[data-theme="dark"] .week-day.active { background: var(--sage-light); }
   <!-- Income view (bookings-driven: gross / paid / outstanding by month, per-client) -->
   <div class="tab-panel" id="tab-income" style="display:none;">
     <div id="income-content"></div>
+</div>
+
+  <!-- Reports view — pull/export Income report + Profit & Loss for any period -->
+  <div class="tab-panel" id="tab-reports" style="display:none;">
+    <div id="reports-content"></div>
 </div>
 
   <!-- Time view — hours worked (client + admin/coding) with after-tax net + true $/hr -->
@@ -1940,7 +1946,7 @@ viewDate.setHours(0,0,0,0);
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
   // Reflect money sub-tabs on the grouped "Money" button + close its flyout.
-  const MONEY_TABS = ['income', 'bank', 'invoices', 'coupons', 'expenses', 'taxes'];
+  const MONEY_TABS = ['income', 'reports', 'bank', 'invoices', 'coupons', 'expenses', 'taxes'];
   const moneyBtn = document.getElementById('tab-money-group');
   if (moneyBtn) moneyBtn.classList.toggle('active', MONEY_TABS.indexOf(tab) !== -1);
   const moneyMenu = document.getElementById('money-menu');
@@ -1955,6 +1961,7 @@ function switchTab(tab) {
   if (tab === 'upcoming') renderUpcoming();
   if (tab === 'clients') renderClients();
   if (tab === 'income') renderIncome();
+  if (tab === 'reports') renderReports();
   if (tab === 'time') renderTime();
   if (tab === 'bank') renderBank();
   if (tab === 'invoices') renderInvoices();
@@ -9571,6 +9578,200 @@ function openSweepHistory() {
     return dt + '  ' + amt + rate + status;
   });
   alert('Recent sweeps:\n\n' + lines.join('\n') + '\n\n[confirmed] = matched a bank transfer\n[pending] = no matching bank row found yet');
+}
+
+// =============================================================
+// REPORTS TAB — one place to pull formatted, exportable financial
+// reports (Income report + Profit & Loss) for any period. Save as
+// PDF (browser print dialog) or download CSV. Consolidates the
+// money views into a single reporting hub.
+// =============================================================
+let _reportType = 'income';   // 'income' | 'pnl'
+let _reportFrom = '';
+let _reportTo = '';
+
+function _reportEnsureRange() {
+  if (_reportFrom && _reportTo) return;
+  const now = new Date();
+  _reportFrom = formatDate(new Date(now.getFullYear(), 0, 1));
+  _reportTo = formatDate(now);
+}
+function reportPresetRange(which) {
+  const now = new Date();
+  const sod = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const today = sod(now);
+  let from, to;
+  if (which === 'thisMonth') { from = new Date(now.getFullYear(), now.getMonth(), 1); to = new Date(now.getFullYear(), now.getMonth() + 1, 0); }
+  else if (which === 'lastMonth') { from = new Date(now.getFullYear(), now.getMonth() - 1, 1); to = new Date(now.getFullYear(), now.getMonth(), 0); }
+  else if (which === 'thisQuarter') { const q = Math.floor(now.getMonth() / 3); from = new Date(now.getFullYear(), q * 3, 1); to = new Date(now.getFullYear(), q * 3 + 3, 0); }
+  else if (which === 'ytd') { from = new Date(now.getFullYear(), 0, 1); to = today; }
+  else if (which === 'lastYear') { from = new Date(now.getFullYear() - 1, 0, 1); to = new Date(now.getFullYear() - 1, 11, 31); }
+  else return null;
+  if (to > today) to = today;
+  if (from > to) from = to;
+  return { from: formatDate(from), to: formatDate(to) };
+}
+function setReportPreset(which) { const r = reportPresetRange(which); if (r) { _reportFrom = r.from; _reportTo = r.to; renderReports(); } }
+function setReportRange() { const f = document.getElementById('report-from'), t = document.getElementById('report-to'); if (f && f.value) _reportFrom = f.value; if (t && t.value) _reportTo = t.value; renderReports(); }
+function setReportType(t) { _reportType = t; renderReports(); }
+
+function _reportMoney(n) { return '$' + (Math.round(n * 100) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function _reportNetOf(p) { return (p.netCents != null ? p.netCents : ((p.amountCents || 0) - (p.feeCents || 0))) / 100; }
+function _reportCap(s) { s = String(s || ''); return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function _reportData() {
+  _reportEnsureRange();
+  const from = _reportFrom, to = _reportTo;
+  const endD = new Date(to + 'T00:00:00'); endD.setDate(endD.getDate() + 1);
+  const endEx = formatDate(endD);
+  const payments = (typeof _paymentsCache !== 'undefined' && _paymentsCache ? _paymentsCache : []).filter(p => {
+    const d = (p.capturedAt || '').slice(0, 10);
+    return d >= from && d < endEx && (p.status === 'completed' || p.status === 'paid' || p.status === 'captured');
+  });
+  const expenses = (_cachedExpenses || []).filter(e => {
+    const d = (e.date || '').slice(0, 10);
+    return d >= from && d < endEx && e.onBiz;
+  });
+  return { payments, expenses, from, to };
+}
+
+const _REPORT_CSS =
+  "*{box-sizing:border-box}body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;color:#3a2233;font-size:12px;margin:0}" +
+  ".rpt-hdr{border-bottom:3px solid #d4c27a;padding-bottom:12px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px}" +
+  ".rpt-hdr h1{font-family:Georgia,serif;font-size:24px;color:#4a1942;margin:0}" +
+  ".rpt-sub{color:#7a5b73;font-size:12px;margin-top:2px}.rpt-meta{text-align:right;font-size:11px;color:#7a5b73;line-height:1.5}" +
+  ".rpt h2{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#4a1942;border-bottom:1px solid #e7dfe6;padding-bottom:5px;margin:20px 0 9px}" +
+  ".rpt table{width:100%;border-collapse:collapse}.rpt th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#7a5b73;padding:6px 8px;border-bottom:1.5px solid #d4c27a}" +
+  ".rpt td{padding:5px 8px;border-bottom:1px solid #efe9ee}.rpt .num{text-align:right;font-variant-numeric:tabular-nums}" +
+  ".rpt tr.total td{font-weight:700;color:#4a1942;border-top:2px solid #4a1942;border-bottom:none;background:#faf6fb}" +
+  ".rpt .cards{display:flex;gap:10px;margin:4px 0;flex-wrap:wrap}.rpt .card{flex:1;min-width:120px;border:1px solid #e7dfe6;border-radius:9px;padding:11px 13px;background:#fffdf8}" +
+  ".rpt .card .lab{font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:#7a5b73}.rpt .card .big{font-size:20px;font-weight:700;color:#4a1942;margin-top:2px}" +
+  ".rpt .mhead{background:#f3ecf2;font-weight:700;color:#4a1942}.rpt .foot{margin-top:20px;padding-top:10px;border-top:1px solid #e7dfe6;font-size:10px;color:#9a8896;line-height:1.5}";
+
+function _reportHeaderHtml(title) {
+  const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  return '<div class="rpt-hdr"><div><h1>Garden Faery</h1><div class="rpt-sub">' + escapeHtml(title) + '</div></div>' +
+    '<div class="rpt-meta">Feed Your Head Farm LLC<br>CA Entity No. 202465017604<br>Generated ' + today + '</div></div>';
+}
+
+function buildIncomeReportBody(d) {
+  const byMonth = {}, byMethod = {};
+  let g = 0, f = 0, net = 0;
+  const sorted = d.payments.slice().sort((a, b) => (a.capturedAt || '').localeCompare(b.capturedAt || ''));
+  sorted.forEach(p => {
+    const m = (p.capturedAt || '').slice(0, 7);
+    const gg = (p.amountCents || 0) / 100, ff = (p.feeCents || 0) / 100, nn = _reportNetOf(p);
+    g += gg; f += ff; net += nn;
+    (byMonth[m] = byMonth[m] || { n: 0, g: 0, f: 0, net: 0 }); byMonth[m].n++; byMonth[m].g += gg; byMonth[m].f += ff; byMonth[m].net += nn;
+    const meth = (p.paymentMethod || 'other'); (byMethod[meth] = byMethod[meth] || { n: 0, g: 0 }); byMethod[meth].n++; byMethod[meth].g += gg;
+  });
+  const monthName = (m) => { const a = m.split('-'); return new Date(a[0], a[1] - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }); };
+  let cards = '<div class="cards">' +
+    '<div class="card"><div class="lab">Gross received</div><div class="big">' + _reportMoney(g) + '</div></div>' +
+    '<div class="card"><div class="lab">Fees</div><div class="big">' + _reportMoney(f) + '</div></div>' +
+    '<div class="card"><div class="lab">Net income</div><div class="big">' + _reportMoney(net) + '</div></div>' +
+    '<div class="card"><div class="lab">Payments</div><div class="big">' + sorted.length + '</div></div></div>';
+  let mtbl = '<h2>Monthly summary</h2><table><thead><tr><th>Month</th><th class="num">Payments</th><th class="num">Gross</th><th class="num">Fees</th><th class="num">Net</th></tr></thead><tbody>';
+  Object.keys(byMonth).sort().forEach(m => { const v = byMonth[m]; mtbl += '<tr><td>' + monthName(m) + '</td><td class="num">' + v.n + '</td><td class="num">' + _reportMoney(v.g) + '</td><td class="num">' + _reportMoney(v.f) + '</td><td class="num">' + _reportMoney(v.net) + '</td></tr>'; });
+  mtbl += '<tr class="total"><td>Total</td><td class="num">' + sorted.length + '</td><td class="num">' + _reportMoney(g) + '</td><td class="num">' + _reportMoney(f) + '</td><td class="num">' + _reportMoney(net) + '</td></tr></tbody></table>';
+  let methtbl = '<h2>By payment method</h2><table><thead><tr><th>Method</th><th class="num">Payments</th><th class="num">Gross</th></tr></thead><tbody>';
+  Object.keys(byMethod).sort((a, b) => byMethod[b].g - byMethod[a].g).forEach(k => { methtbl += '<tr><td>' + escapeHtml(_reportCap(k)) + '</td><td class="num">' + byMethod[k].n + '</td><td class="num">' + _reportMoney(byMethod[k].g) + '</td></tr>'; });
+  methtbl += '</tbody></table>';
+  let det = '<h2>Transaction detail</h2><table><thead><tr><th>Date</th><th>Client</th><th>Method</th><th class="num">Amount</th></tr></thead><tbody>';
+  if (!sorted.length) det += '<tr><td colspan="4" style="text-align:center;color:#9a8896;padding:16px;">No payments in this period.</td></tr>';
+  sorted.forEach(p => { det += '<tr><td>' + (p.capturedAt || '').slice(0, 10) + '</td><td>' + escapeHtml(p.customerName || '(no name)') + '</td><td>' + escapeHtml(_reportCap(p.paymentMethod)) + '</td><td class="num">' + _reportMoney((p.amountCents || 0) / 100) + '</td></tr>'; });
+  det += '</tbody></table>';
+  return '<div class="rpt">' + cards + mtbl + methtbl + det + '<div class="foot">Cash basis &mdash; payments actually collected during the period, per Garden Faery records. Net of recorded processor fees. For bookkeeping use.</div></div>';
+}
+
+function buildPnLReportBody(d) {
+  let income = 0; d.payments.forEach(p => income += _reportNetOf(p));
+  let exp = 0; const byCat = {};
+  d.expenses.forEach(e => { const a = Number(e.amount) || 0; exp += a; const c = (e.category || 'uncategorized'); byCat[c] = (byCat[c] || 0) + a; });
+  const profit = income - exp;
+  const taxPct = getTaxReservePct(); const reserve = Math.max(0, profit) * taxPct;
+  let cards = '<div class="cards">' +
+    '<div class="card"><div class="lab">Income (collected)</div><div class="big">' + _reportMoney(income) + '</div></div>' +
+    '<div class="card"><div class="lab">Expenses</div><div class="big">' + _reportMoney(exp) + '</div></div>' +
+    '<div class="card"><div class="lab">Net profit</div><div class="big">' + _reportMoney(profit) + '</div></div>' +
+    '<div class="card"><div class="lab">Tax set-aside (' + Math.round(taxPct * 100) + '%)</div><div class="big">' + _reportMoney(reserve) + '</div></div></div>';
+  let pl = '<h2>Profit &amp; loss</h2><table><tbody>' +
+    '<tr><td>Income (payments collected)</td><td class="num">' + _reportMoney(income) + '</td></tr>' +
+    '<tr><td>Business expenses</td><td class="num">(' + _reportMoney(exp) + ')</td></tr>' +
+    '<tr class="total"><td>Net profit</td><td class="num">' + _reportMoney(profit) + '</td></tr></tbody></table>';
+  let cat = '<h2>Expenses by category</h2><table><thead><tr><th>Category</th><th class="num">Amount</th></tr></thead><tbody>';
+  const cats = Object.keys(byCat).sort((a, b) => byCat[b] - byCat[a]);
+  if (!cats.length) cat += '<tr><td colspan="2" style="text-align:center;color:#9a8896;padding:16px;">No business expenses in this period.</td></tr>';
+  cats.forEach(c => { cat += '<tr><td>' + escapeHtml(c.replace(/_/g, ' ')) + '</td><td class="num">' + _reportMoney(byCat[c]) + '</td></tr>'; });
+  cat += '<tr class="total"><td>Total expenses</td><td class="num">' + _reportMoney(exp) + '</td></tr></tbody></table>';
+  return '<div class="rpt">' + cards + pl + cat + '<div class="foot">Income is cash collected; expenses are business-flagged costs in the period. Net profit is before tax. Tax set-aside is a suggestion at your configured rate, not a filed figure. For bookkeeping use.</div></div>';
+}
+
+function _reportTitle() {
+  const name = _reportType === 'pnl' ? 'Profit & Loss' : 'Income Report';
+  return name + ' · ' + formatDisplayDate(_reportFrom) + ' – ' + formatDisplayDate(_reportTo);
+}
+
+async function renderReports() {
+  const el = document.getElementById('reports-content');
+  if (!el) return;
+  const needPay = (typeof _paymentsLoaded === 'undefined') || !_paymentsLoaded;
+  if (needPay || !_cachedExpenses) {
+    el.innerHTML = '<div class="empty-day"><p>Loading…</p></div>';
+    await Promise.all([
+      (typeof loadPayments === 'function' && needPay) ? loadPayments() : Promise.resolve(),
+      (typeof loadExpenses === 'function') ? loadExpenses() : Promise.resolve(),
+    ]);
+  }
+  _reportEnsureRange();
+  const d = _reportData();
+  const body = _reportType === 'pnl' ? buildPnLReportBody(d) : buildIncomeReportBody(d);
+  const typeBtn = (key, label) => '<button class="modal-btn ' + (_reportType === key ? 'primary' : 'secondary') + '" style="padding:7px 14px;font-size:0.82rem;" onclick="setReportType(\'' + key + '\')">' + label + '</button>';
+  const preBtn = (key, label) => { const r = reportPresetRange(key); const active = r && r.from === _reportFrom && r.to === _reportTo; return '<button class="modal-btn secondary" style="padding:5px 10px;font-size:0.76rem;' + (active ? 'background:var(--plum);color:#fff;border-color:var(--plum);' : '') + '" onclick="setReportPreset(\'' + key + '\')">' + label + '</button>'; };
+  let html = '<style>' + _REPORT_CSS + '</style>';
+  html += '<div style="background:var(--white);border-radius:12px;padding:14px 16px;margin-bottom:14px;box-shadow:var(--shadow);">';
+  html += '<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">' + typeBtn('income', 'Income report') + typeBtn('pnl', 'Profit &amp; Loss') + '</div>';
+  html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">' + preBtn('thisMonth', 'This month') + preBtn('lastMonth', 'Last month') + preBtn('thisQuarter', 'This quarter') + preBtn('ytd', 'Year to date') + preBtn('lastYear', 'Last year') + '</div>';
+  html += '<div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">' +
+    '<div><label style="font-size:0.68rem;color:var(--gray-600);display:block;margin-bottom:2px;">From</label><input type="date" id="report-from" value="' + _reportFrom + '" onchange="setReportRange()" style="padding:6px 8px;border:1px solid var(--gray-200);border-radius:6px;font-size:0.82rem;"></div>' +
+    '<div><label style="font-size:0.68rem;color:var(--gray-600);display:block;margin-bottom:2px;">To</label><input type="date" id="report-to" value="' + _reportTo + '" onchange="setReportRange()" style="padding:6px 8px;border:1px solid var(--gray-200);border-radius:6px;font-size:0.82rem;"></div>' +
+    '<button class="modal-btn primary" style="padding:7px 14px;font-size:0.82rem;margin-left:auto;" onclick="exportReportPDF()">Save as PDF</button>' +
+    '<button class="modal-btn secondary" style="padding:7px 14px;font-size:0.82rem;" onclick="exportReportCSV()">CSV</button>' +
+    '</div></div>';
+  html += '<div style="background:var(--white);border-radius:12px;padding:18px;box-shadow:var(--shadow);overflow-x:auto;">' + _reportHeaderHtml(_reportTitle()) + body + '</div>';
+  el.innerHTML = html;
+}
+
+function exportReportPDF() {
+  const d = _reportData();
+  const body = _reportType === 'pnl' ? buildPnLReportBody(d) : buildIncomeReportBody(d);
+  const win = window.open('', '_blank');
+  if (!win) { alert('Allow pop-ups to save as PDF, or use your browser Print menu (Save as PDF) on this page.'); return; }
+  win.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + escapeHtml(_reportTitle()) + '</title><style>@page{size:letter;margin:0.6in}' + _REPORT_CSS + '</style></head><body>' + _reportHeaderHtml(_reportTitle()) + body + '</body></html>');
+  win.document.close(); win.focus();
+  setTimeout(() => { try { win.print(); } catch (_) {} }, 450);
+}
+
+function exportReportCSV() {
+  const d = _reportData();
+  let csv, fname;
+  const esc = (s) => '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"';
+  if (_reportType === 'pnl') {
+    let income = 0; d.payments.forEach(p => income += _reportNetOf(p));
+    const byCat = {}; let exp = 0; d.expenses.forEach(e => { const a = Number(e.amount) || 0; exp += a; const c = e.category || 'uncategorized'; byCat[c] = (byCat[c] || 0) + a; });
+    csv = 'Profit and Loss,' + _reportFrom + ' to ' + _reportTo + '\n\nIncome (collected),' + income.toFixed(2) + '\nExpenses (total),' + exp.toFixed(2) + '\nNet profit,' + (income - exp).toFixed(2) + '\n\nExpense category,Amount\n';
+    Object.keys(byCat).sort((a, b) => byCat[b] - byCat[a]).forEach(c => { csv += esc(c) + ',' + byCat[c].toFixed(2) + '\n'; });
+    fname = 'profit-loss-' + _reportFrom + '_' + _reportTo + '.csv';
+  } else {
+    csv = 'Date,Client,Method,Gross,Fee,Net\n';
+    d.payments.slice().sort((a, b) => (a.capturedAt || '').localeCompare(b.capturedAt || '')).forEach(p => {
+      csv += [(p.capturedAt || '').slice(0, 10), esc(p.customerName || ''), esc(p.paymentMethod || ''), ((p.amountCents || 0) / 100).toFixed(2), ((p.feeCents || 0) / 100).toFixed(2), _reportNetOf(p).toFixed(2)].join(',') + '\n';
+    });
+    fname = 'income-' + _reportFrom + '_' + _reportTo + '.csv';
+  }
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fname; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
 async function renderIncome() {
