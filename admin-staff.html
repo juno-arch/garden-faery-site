@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Staff — Garden Faery</title>
+
+<link rel="apple-touch-icon" href="/icon-admin.png">
+<link rel="icon" type="image/png" href="/icon-admin.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="shared.css?v=2026-06-08">
+
+<style>
+  body { font-family: var(--font-body); background: var(--cream); color: var(--plum); min-height: 100vh; padding-bottom: 80px; }
+  h1, h2, h3 { font-family: var(--font-heading); font-weight: 500; color: var(--plum); }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 18px; }
+  .nh-header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 4px 0 18px; flex-wrap: wrap; }
+  .nh-title { font-family: var(--font-heading); font-size: 2rem; font-weight: 500; }
+  .nh-sub { font-size: 0.9rem; color: var(--gray-600); margin-top: 2px; }
+  .nh-tools { display: flex; gap: 8px; align-items: center; }
+  .btn { background: var(--plum); color: var(--white); border: none; border-radius: 8px; padding: 9px 14px; font-family: var(--font-body); font-weight: 600; font-size: 0.86rem; cursor: pointer; }
+  .btn-ghost { background: transparent; color: var(--plum); border: 1px solid var(--gray-200); padding: 9px 14px; border-radius: 8px; cursor: pointer; font-family: var(--font-body); font-size: 0.86rem; text-decoration: none; display: inline-block; }
+  .btn:hover { background: #45102f; }
+  .btn-ghost:hover { background: var(--gray-100); }
+  .btn-sm { padding: 5px 10px; font-size: 0.78rem; }
+  h2 { font-size: 1.2rem; margin: 22px 0 10px; }
+  .table-wrap { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); overflow-x: auto; margin-bottom: 16px; }
+  table.nh { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+  table.nh th, table.nh td { padding: 10px 12px; text-align: left; vertical-align: top; }
+  table.nh thead th { background: var(--gray-100); font-weight: 700; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-600); border-bottom: 1px solid var(--gray-200); }
+  table.nh tbody tr { border-top: 1px solid var(--gray-100); }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 0.72rem; font-weight: 600; }
+  .pill-claimed { background: var(--sage-light); color: #3f5a32; }
+  .pill-pending { background: var(--butter); color: var(--plum); }
+  .pill-expired { background: var(--red-light); color: var(--red); }
+  .pill-role { background: var(--cream); color: var(--plum); border: 1px solid var(--gray-200); }
+  .invite-link { font-family: monospace; font-size: 0.78rem; background: var(--white); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--gray-200); cursor: pointer; word-break: break-all; }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(90, 18, 48, 0.45); z-index: 200; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 30px 14px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-hover); max-width: 480px; width: 100%; padding: 22px; }
+  .modal h2 { margin: 0 0 14px; font-size: 1.2rem; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .row.full { grid-template-columns: 1fr; }
+  .modal label { display: block; font-size: 0.74rem; font-weight: 600; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+  .modal input, .modal select, .modal textarea {
+    width: 100%; background: var(--white); border: 1px solid var(--gray-200); border-radius: 8px;
+    padding: 9px 11px; font-family: var(--font-body); font-size: 0.9rem; color: var(--plum);
+  }
+  .modal-foot { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--gray-100); }
+
+  /* Login */
+  .login { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .login-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 30px; max-width: 360px; width: 100%; }
+  .login-card h1 { font-size: 1.6rem; margin-bottom: 4px; }
+  .login-card p { color: var(--gray-600); font-size: 0.86rem; margin-bottom: 18px; }
+  .login-card input { width: 100%; padding: 11px 13px; border: 1px solid var(--gray-200); border-radius: 8px; margin-bottom: 12px; font-size: 1rem; font-family: var(--font-body); }
+  .login-card .btn { width: 100%; padding: 12px; }
+  .login-error { background: var(--red-light); color: var(--red); padding: 10px; border-radius: 8px; font-size: 0.82rem; margin-bottom: 12px; display: none; }
+  .login-error.show { display: block; }
+
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--plum); color: var(--white); padding: 10px 18px; border-radius: 8px; font-size: 0.86rem; opacity: 0; transition: opacity 0.2s; z-index: 300; pointer-events: none; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div id="login-screen" class="login">
+  <div class="login-card">
+    <h1>Staff</h1>
+    <p>Manage Garden Faery team access.</p>
+    <div id="login-error" class="login-error"></div>
+    <input type="email" id="login-email" placeholder="Admin email" autocomplete="username">
+    <input type="password" id="login-pw" placeholder="Password" autocomplete="current-password">
+    <button class="btn" onclick="doLogin()">Sign in</button>
+  </div>
+</div>
+
+<div id="app" class="wrap" style="display:none">
+  <div class="nh-header">
+    <div>
+      <div class="nh-title">Staff & access</div>
+      <div class="nh-sub">Invite team members and manage who can use the planner.</div>
+    </div>
+    <div class="nh-tools">
+      <a href="admin-planner.html" class="btn-ghost">Planner</a>
+      <a href="admin-inventory.html" class="btn-ghost">Inventory</a>
+      <button class="btn-ghost" onclick="logout()">Sign out</button>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+    <h2 style="margin:0">Invites</h2>
+    <button class="btn" onclick="openInviteModal()">+ New invite</button>
+  </div>
+  <div class="table-wrap">
+    <table class="nh" id="invites-table">
+      <thead><tr><th>Email</th><th>Name</th><th>Role</th><th>Status</th><th>Created</th><th>Link</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <h2>Active staff accounts</h2>
+  <div class="table-wrap">
+    <table class="nh" id="staff-table">
+      <thead><tr><th>Email</th><th>Name</th><th>Role</th><th>Created</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="invite-modal">
+  <div class="modal">
+    <h2>Invite a staff member</h2>
+    <p style="font-size:0.82rem;color:var(--gray-600);margin-bottom:12px">Generates a unique link they can use to set up their account. Send it to them however you like (text, email, paper).</p>
+    <div class="row">
+      <div><label>Email</label><input type="email" id="iv-email" required></div>
+      <div><label>Display name</label><input type="text" id="iv-name"></div>
+    </div>
+    <div class="row">
+      <div><label>Role</label>
+        <select id="iv-role">
+          <option value="staff">Staff</option>
+          <option value="admin">Admin</option>
+          <option value="view_only">View only</option>
+        </select>
+      </div>
+      <div><label>Expires in</label>
+        <select id="iv-expires">
+          <option value="7">7 days</option>
+          <option value="14" selected>14 days</option>
+          <option value="30">30 days</option>
+          <option value="90">90 days</option>
+        </select>
+      </div>
+    </div>
+    <div class="row full"><div><label>Notes (internal)</label><textarea id="iv-notes"></textarea></div></div>
+    <div class="modal-foot">
+      <button class="btn-ghost" onclick="closeModal('invite-modal')">Cancel</button>
+      <button class="btn" onclick="createInvite()">Generate invite</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PB_URL = (() => {
+  const h = location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1' || h === '' || location.protocol === 'file:') return 'http://127.0.0.1:8091';
+  return 'https://bookings.gardenfaery.love';
+})();
+const PB_TOKEN_KEY = 'gf_pb_token';
+let PB_TOKEN = localStorage.getItem(PB_TOKEN_KEY) || '';
+
+const state = { invites: [], users: [] };
+
+function tokenValid(tok) {
+  if (!tok || tok.split('.').length !== 3) return false;
+  try {
+    const payload = JSON.parse(atob(tok.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return payload.exp && (payload.exp * 1000) > (Date.now() - 30000);
+  } catch (_) { return false; }
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-pw').value;
+  const errEl = document.getElementById('login-error');
+  errEl.classList.remove('show');
+  if (!email || !pw) return;
+  try {
+    const resp = await fetch(PB_URL + '/api/collections/_superusers/auth-with-password', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identity: email, password: pw }),
+    });
+    if (!resp.ok) throw new Error('Login failed');
+    const data = await resp.json();
+    PB_TOKEN = data.token; localStorage.setItem(PB_TOKEN_KEY, PB_TOKEN);
+    boot();
+  } catch (err) { errEl.textContent = 'Sign-in failed.'; errEl.classList.add('show'); }
+}
+function logout() {
+  PB_TOKEN = ''; localStorage.removeItem(PB_TOKEN_KEY);
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+async function pb(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (PB_TOKEN) opts.headers['Authorization'] = 'Bearer ' + PB_TOKEN;
+  if (body) opts.body = JSON.stringify(body);
+  const resp = await fetch(PB_URL + path, opts);
+  if (resp.status === 401) { logout(); throw new Error('Auth expired'); }
+  if (!resp.ok) { const t = await resp.text().catch(() => ''); throw new Error('PB ' + resp.status + ': ' + t); }
+  return resp.json();
+}
+
+async function boot() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  try {
+    const [inv, usr] = await Promise.all([
+      pb('GET', '/api/collections/staff_invites/records?perPage=200&sort=-created'),
+      pb('GET', '/api/collections/users/records?perPage=200&sort=-created'),
+    ]);
+    state.invites = inv.items || [];
+    state.users = usr.items || [];
+  } catch (err) { toast('Load failed: ' + err.message); return; }
+  renderAll();
+}
+
+function renderAll() {
+  // Invites table.
+  const ivTbody = document.querySelector('#invites-table tbody');
+  if (!state.invites.length) {
+    ivTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--gray-600)">No invites yet.</td></tr>';
+  } else {
+    ivTbody.innerHTML = state.invites.map(i => {
+      const now = new Date();
+      const expDate = i.expires ? new Date(i.expires) : null;
+      let statusPill;
+      if (i.claimed_at) statusPill = '<span class="pill pill-claimed">claimed</span>';
+      else if (expDate && expDate < now) statusPill = '<span class="pill pill-expired">expired</span>';
+      else statusPill = '<span class="pill pill-pending">pending</span>';
+      const url = (location.protocol === 'file:' ? 'http://localhost' : location.origin) + '/claim.html?token=' + i.token;
+      const linkCell = i.claimed_at
+        ? '<span style="color:var(--gray-600);font-size:0.78rem">used</span>'
+        : '<span class="invite-link" data-url="' + escapeHtml(url) + '">' + escapeHtml(url.slice(0, 50)) + '…</span>';
+      return `<tr>
+        <td>${escapeHtml(i.email)}</td>
+        <td>${escapeHtml(i.display_name || '—')}</td>
+        <td><span class="pill pill-role">${i.role || 'staff'}</span></td>
+        <td>${statusPill}</td>
+        <td>${(i.created||'').slice(0,10)}</td>
+        <td>${linkCell}</td>
+        <td><button class="btn-ghost btn-sm" onclick="deleteInvite('${i.id}')">Revoke</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Staff users table.
+  const stTbody = document.querySelector('#staff-table tbody');
+  if (!state.users.length) {
+    stTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--gray-600)">No staff accounts yet — send an invite link to start.</td></tr>';
+  } else {
+    stTbody.innerHTML = state.users.map(u => `<tr>
+      <td>${escapeHtml(u.email)}</td>
+      <td>${escapeHtml(u.display_name || '—')}</td>
+      <td><span class="pill pill-role">${u.role || 'staff'}</span></td>
+      <td>${(u.created||'').slice(0,10)}</td>
+    </tr>`).join('');
+  }
+}
+
+function openInviteModal() {
+  document.getElementById('iv-email').value = '';
+  document.getElementById('iv-name').value = '';
+  document.getElementById('iv-role').value = 'staff';
+  document.getElementById('iv-expires').value = '14';
+  document.getElementById('iv-notes').value = '';
+  document.getElementById('invite-modal').classList.add('open');
+  setTimeout(() => document.getElementById('iv-email').focus(), 50);
+}
+
+function genToken() {
+  const a = new Uint8Array(24);
+  crypto.getRandomValues(a);
+  return Array.from(a, b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function createInvite() {
+  const email = document.getElementById('iv-email').value.trim();
+  if (!email) { toast('Email required'); return; }
+  const days = parseInt(document.getElementById('iv-expires').value, 10);
+  const exp = new Date(); exp.setDate(exp.getDate() + days);
+  const body = {
+    token: genToken(),
+    email,
+    display_name: document.getElementById('iv-name').value.trim(),
+    role: document.getElementById('iv-role').value,
+    expires: exp.toISOString().slice(0, 10),
+    notes: document.getElementById('iv-notes').value.trim(),
+    invited_by: 'admin',
+    created: new Date().toISOString(),
+  };
+  try {
+    const r = await pb('POST', '/api/collections/staff_invites/records', body);
+    state.invites.unshift(r);
+    closeModal('invite-modal');
+    renderAll();
+    // Copy link automatically.
+    const url = (location.protocol === 'file:' ? 'http://localhost' : location.origin) + '/claim.html?token=' + r.token;
+    copyText(url);
+    toast('Invite created — link copied to clipboard');
+  } catch (err) { toast('Failed: ' + err.message); }
+}
+
+async function deleteInvite(id) {
+  if (!confirm('Revoke this invite? The link will stop working.')) return;
+  try {
+    await pb('DELETE', '/api/collections/staff_invites/records/' + id);
+    state.invites = state.invites.filter(i => i.id !== id);
+    renderAll();
+    toast('Revoked');
+  } catch (err) { toast('Delete failed: ' + err.message); }
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => toast('Copied')).catch(() => toast('Copy failed'));
+}
+
+// Delegate clicks on invite-link spans (rendered with data-url attribute).
+document.addEventListener('click', e => {
+  const el = e.target.closest && e.target.closest('.invite-link');
+  if (el && el.dataset.url) copyText(el.dataset.url);
+});
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2200);
+}
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+(function init() {
+  if (tokenValid(PB_TOKEN)) boot();
+  else document.getElementById('login-screen').style.display = 'flex';
+})();
+</script>
+</body>
+</html>

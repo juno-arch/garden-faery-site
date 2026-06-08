@@ -1,0 +1,3770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Planner — Garden Faery</title>
+
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+
+<link rel="apple-touch-icon" href="/icon-admin.png">
+<link rel="icon" type="image/png" href="/icon-admin.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="shared.css?v=2026-06-08">
+
+<!-- MapLibre GL JS -->
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css">
+<script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+
+<style>
+  html, body { height: 100%; margin: 0; }
+  body { font-family: var(--font-body); background: var(--cream); color: var(--plum); overflow: hidden; }
+  h1, h2, h3 { font-family: var(--font-heading); font-weight: 500; color: var(--plum); }
+  .full { position: fixed; inset: 0; display: flex; flex-direction: column; }
+
+  /* Top bar */
+  .topbar {
+    flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 18px; background: var(--white); border-bottom: 1px solid var(--gray-200);
+    z-index: 50;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .topbar-title { font-family: var(--font-heading); font-size: 1.3rem; font-weight: 500; }
+  .topbar-right { display: flex; gap: 8px; align-items: center; }
+  .ghost-btn { background: transparent; border: 1px solid var(--gray-200); border-radius: 8px; padding: 6px 12px; color: var(--plum); cursor: pointer; font-family: inherit; font-size: 0.85rem; }
+  .ghost-btn:hover { background: var(--gray-100); }
+  .btn { background: var(--plum); color: var(--white); border: none; border-radius: 8px; padding: 8px 14px; font-family: var(--font-body); font-weight: 600; font-size: 0.86rem; cursor: pointer; }
+  .btn:hover { background: #45102f; }
+  .btn-sm { padding: 5px 10px; font-size: 0.78rem; }
+  .crumbs { font-size: 0.85rem; color: var(--gray-600); }
+  .crumbs a { color: var(--plum); text-decoration: none; }
+  .crumbs a:hover { text-decoration: underline; }
+
+  /* Garden list view */
+  .list-view { flex: 1; overflow-y: auto; padding: 24px; background: var(--cream); }
+  .list-wrap { max-width: 1100px; margin: 0 auto; }
+  .list-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; }
+  .list-head h2 { font-size: 1.6rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .garden-card {
+    background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 16px; cursor: pointer; transition: transform .12s, box-shadow .12s;
+  }
+  .garden-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+  .garden-card h3 { font-size: 1.1rem; margin-bottom: 6px; }
+  .garden-card .addr { font-size: 0.82rem; color: var(--gray-600); margin-bottom: 10px; }
+  .garden-card .stat-row { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.78rem; color: var(--gray-600); }
+  .garden-card .stat-row strong { color: var(--plum); font-weight: 600; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 0.7rem; font-weight: 600; }
+  .pill-active { background: var(--sage-light); color: #3f5a32; }
+  .pill-archived { background: var(--gray-200); color: var(--gray-600); }
+  .pill-prospect { background: var(--butter); color: var(--plum); }
+  .empty-card {
+    background: var(--white); border: 2px dashed var(--gray-200); border-radius: var(--radius);
+    padding: 30px; text-align: center; color: var(--gray-600); cursor: pointer;
+  }
+  .empty-card:hover { border-color: var(--plum); color: var(--plum); }
+
+  /* Detail view (map) */
+  .detail-view { flex: 1; position: relative; min-height: 0; }
+  #map { position: absolute; inset: 0; }
+  .maplibregl-ctrl-attrib { font-size: 10px !important; }
+
+  /* Left toolbar */
+  .toolbar {
+    position: absolute; top: 12px; left: 12px; z-index: 30;
+    background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 6px; display: flex; flex-direction: column; gap: 4px;
+  }
+  .tool {
+    width: 40px; height: 40px; border: none; background: transparent; border-radius: 8px;
+    color: var(--plum); cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background .12s;
+  }
+  .tool:hover { background: var(--gray-100); }
+  .tool.active { background: var(--plum); color: var(--white); }
+  .tool svg { width: 22px; height: 22px; stroke-width: 1.8; }
+  .tool-divider { height: 1px; background: var(--gray-200); margin: 4px 2px; }
+
+  /* Plant catalog panel */
+  .plant-panel {
+    position: absolute; top: 12px; left: 70px; z-index: 30; width: 300px;
+    background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow);
+    max-height: calc(100vh - 24px); display: none; flex-direction: column;
+  }
+  .plant-panel.open { display: flex; }
+  .plant-panel-head { padding: 12px; border-bottom: 1px solid var(--gray-100); }
+  .plant-panel-head h3 { font-size: 1rem; margin-bottom: 8px; }
+  .plant-panel-head input { width: 100%; padding: 8px 10px; border: 1px solid var(--gray-200); border-radius: 6px; font-family: var(--font-body); font-size: 0.85rem; color: var(--plum); }
+  .plant-filters { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
+  .pf-chip { padding: 3px 9px; border-radius: 99px; font-size: 0.72rem; font-weight: 600; cursor: pointer; background: var(--cream); border: 1px solid var(--gray-200); color: var(--plum); }
+  .pf-chip.active { background: var(--plum); color: var(--white); border-color: var(--plum); }
+  .plant-list { overflow-y: auto; flex: 1; padding: 4px; }
+  .plant-row {
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px;
+    cursor: pointer; transition: background .12s;
+  }
+  .plant-row:hover { background: var(--gray-100); }
+  .plant-row.active { background: var(--plum); color: var(--white); }
+  .plant-row.active .pr-meta { color: rgba(255,255,255,0.8); }
+  .pr-swatch { width: 22px; height: 22px; border-radius: 50%; flex: 0 0 auto; border: 2px solid var(--white); box-shadow: 0 0 0 1px var(--gray-200); }
+  .pr-text { flex: 1; min-width: 0; }
+  .pr-name { font-weight: 600; font-size: 0.86rem; line-height: 1.2; }
+  .pr-meta { font-size: 0.72rem; color: var(--gray-600); margin-top: 2px; }
+  .pr-tags { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 3px; }
+  .pr-tag { font-size: 0.66rem; padding: 1px 6px; border-radius: 99px; background: var(--cream); color: var(--gray-600); border: 1px solid var(--gray-200); }
+
+  /* Planting drop modal */
+  .pd-modal {}
+
+  /* Right panel */
+  .right-panel {
+    position: absolute; top: 12px; right: 12px; z-index: 30; width: 320px;
+    background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 14px; max-height: calc(100vh - 24px); overflow-y: auto;
+  }
+  .right-panel h3 { font-size: 1rem; margin-bottom: 10px; }
+  .right-panel .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .right-panel .row.full { grid-template-columns: 1fr; }
+  .right-panel label { font-size: 0.7rem; font-weight: 600; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.4px; display: block; margin-bottom: 3px; }
+  .right-panel input, .right-panel select, .right-panel textarea {
+    width: 100%; padding: 7px 9px; border: 1px solid var(--gray-200); border-radius: 6px;
+    font-family: var(--font-body); font-size: 0.85rem; color: var(--plum); background: var(--white);
+  }
+  .right-panel textarea { min-height: 60px; resize: vertical; }
+  .right-panel .actions { display: flex; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--gray-100); justify-content: flex-end; }
+  .read-row { font-size: 0.82rem; color: var(--plum); margin-bottom: 6px; }
+  .read-row .lbl { color: var(--gray-600); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.4px; }
+
+  /* Bottom strip — bed templates */
+  .strip {
+    position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 30;
+    background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 8px 10px; display: flex; gap: 10px; align-items: center;
+    max-width: calc(100vw - 24px); overflow-x: auto;
+  }
+  .strip-label { font-size: 0.74rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; padding: 0 6px; }
+  .tpl {
+    flex: 0 0 auto; border: 1px solid var(--gray-200); background: var(--cream); border-radius: 8px;
+    padding: 6px 10px; cursor: pointer; font-size: 0.78rem; color: var(--plum); white-space: nowrap;
+    display: flex; align-items: center; gap: 6px; transition: background .12s, border-color .12s;
+  }
+  .tpl:hover { background: var(--gray-100); border-color: var(--plum); }
+  .tpl.active { background: var(--plum); color: var(--white); border-color: var(--plum); }
+  .tpl-swatch { width: 14px; height: 14px; border-radius: 3px; flex: 0 0 auto; }
+
+  /* Weather panel */
+  .weather-panel {
+    position: absolute; top: 12px; left: 70px; z-index: 30;
+    background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 10px 12px; display: none; max-width: 540px;
+  }
+  .weather-panel.open { display: block; }
+  .weather-today { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .weather-today .now-temp { font-family: var(--font-heading); font-size: 1.6rem; font-weight: 500; color: var(--plum); }
+  .weather-today .now-meta { font-size: 0.78rem; color: var(--gray-600); }
+  .weather-water-hint { font-size: 0.82rem; font-weight: 600; padding: 6px 10px; border-radius: 8px; margin-bottom: 8px; }
+  .weather-water-hint.skip { background: var(--sage-light); color: #3f5a32; }
+  .weather-water-hint.need { background: var(--butter); color: var(--plum); }
+  .weather-water-hint.urgent { background: var(--red-light); color: var(--red); }
+  .weather-strip { display: flex; gap: 4px; overflow-x: auto; }
+  .weather-day {
+    flex: 0 0 64px; text-align: center; padding: 6px 4px;
+    border: 1px solid var(--gray-200); border-radius: 8px; background: var(--cream);
+  }
+  .weather-day .wd-day { font-size: 0.66rem; color: var(--gray-600); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+  .weather-day .wd-high { font-family: var(--font-heading); font-size: 1.05rem; color: var(--plum); }
+  .weather-day .wd-low  { font-size: 0.72rem; color: var(--gray-600); }
+  .weather-day .wd-rain { font-size: 0.66rem; color: var(--moon); margin-top: 2px; }
+
+  /* Climate badge */
+  .climate-badge {
+    position: absolute; bottom: 12px; left: 12px; z-index: 30;
+    background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 8px 12px; font-size: 0.78rem; color: var(--plum); cursor: pointer; max-width: 240px;
+  }
+  .climate-badge:hover { background: var(--gray-100); }
+  .climate-badge .lbl { color: var(--gray-600); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  .climate-badge .val { font-weight: 600; }
+
+  /* Status hint banner */
+  .hint {
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 40;
+    background: var(--plum); color: var(--white); padding: 8px 14px; border-radius: 8px;
+    font-size: 0.85rem; box-shadow: var(--shadow-hover); opacity: 0; pointer-events: none;
+    transition: opacity .2s;
+  }
+  .hint.show { opacity: 1; }
+
+  /* Login */
+  .login { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--cream); z-index: 100; }
+  .login-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 30px; max-width: 360px; width: 90%; }
+  .login-card h1 { font-size: 1.6rem; margin-bottom: 4px; }
+  .login-card p { color: var(--gray-600); font-size: 0.86rem; margin-bottom: 18px; }
+  .login-card input { width: 100%; padding: 11px 13px; border: 1px solid var(--gray-200); border-radius: 8px; margin-bottom: 12px; font-size: 1rem; font-family: var(--font-body); }
+  .login-card .btn { width: 100%; padding: 12px; }
+  .login-error { background: var(--red-light); color: var(--red); padding: 10px; border-radius: 8px; font-size: 0.82rem; margin-bottom: 12px; display: none; }
+  .login-error.show { display: block; }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(90, 18, 48, 0.45); z-index: 200; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 30px 14px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-hover); max-width: 560px; width: 100%; padding: 22px; }
+  .modal h2 { margin-bottom: 14px; font-size: 1.3rem; }
+  .modal .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .modal .row.full { grid-template-columns: 1fr; }
+  .modal label { display: block; font-size: 0.72rem; font-weight: 600; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+  .modal input, .modal select, .modal textarea {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--gray-200); border-radius: 8px;
+    font-family: var(--font-body); font-size: 0.9rem; color: var(--plum);
+  }
+  .modal textarea { min-height: 70px; resize: vertical; }
+  .modal-foot { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--gray-100); }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--plum); color: var(--white); padding: 10px 18px; border-radius: 8px; box-shadow: var(--shadow-hover); font-size: 0.86rem; opacity: 0; transition: opacity 0.2s; z-index: 300; pointer-events: none; }
+  .toast.show { opacity: 1; }
+
+  /* ============ Visual polish ============ */
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+  @keyframes modalIn { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+  .modal-overlay { animation: fadeIn 0.16s ease-out; }
+  .modal-overlay .modal { animation: modalIn 0.18s ease-out; }
+  .toast.show { animation: slideUp 0.22s ease-out; }
+
+  /* Card hover lift — already on garden-card; polish for cleaner feel */
+  .garden-card { transition: transform .18s cubic-bezier(.2,.7,.3,1), box-shadow .18s ease; will-change: transform; }
+  .garden-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+
+  /* Button micro-interactions */
+  .btn, .ghost-btn, .btn-ghost, .logout-btn {
+    transition: background .12s ease, color .12s ease, border-color .12s ease, transform .08s ease;
+    will-change: transform;
+  }
+  .btn:active, .ghost-btn:active, .btn-ghost:active, .logout-btn:active { transform: translateY(1px); }
+
+  /* Tool button pop */
+  .tool { transition: background .12s ease, color .12s ease, transform .08s ease; }
+  .tool:active { transform: scale(0.93); }
+
+  /* Pill chip transitions */
+  .pf-chip, .qtx-chip, .tpl { transition: background .14s ease, color .14s ease, border-color .14s ease; }
+
+  /* Focus rings — accessible + premium */
+  .btn:focus-visible, .ghost-btn:focus-visible, .btn-ghost:focus-visible, .tool:focus-visible,
+  .filters select:focus-visible, .filters input:focus-visible,
+  .modal input:focus-visible, .modal select:focus-visible, .modal textarea:focus-visible {
+    outline: 2px solid var(--rose);
+    outline-offset: 2px;
+  }
+
+  /* Smooth panel slide-ins */
+  .right-panel, .plant-panel, .weather-panel { transition: opacity .18s ease, transform .18s ease; }
+  .right-panel { opacity: 1; }
+
+  /* Smooth tab content fade */
+  .tab-content { animation: fadeIn 0.2s ease-out; }
+
+  /* Reduced-motion respect */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+
+  @media (max-width: 700px) {
+    /* Topbar: tighter padding, hide non-essential text buttons. */
+    .topbar { padding: 8px 12px; flex-wrap: nowrap; gap: 4px; }
+    .topbar-title { font-size: 1.05rem; }
+    .crumbs { display: none; }
+    #topbar-journal, #topbar-calendar { padding: 5px 8px; font-size: 0.74rem; }
+
+    /* Toolbar: smaller buttons, still left side but tucked. */
+    .toolbar { top: 8px; left: 8px; padding: 4px; gap: 2px; }
+    .tool { width: 36px; height: 36px; }
+    .tool svg { width: 18px; height: 18px; }
+
+    /* Right panel becomes a bottom sheet that doesn't fight the strip. */
+    .right-panel {
+      top: auto !important; bottom: 0; left: 0; right: 0; width: 100%; max-width: 100%;
+      max-height: 60vh; border-radius: var(--radius) var(--radius) 0 0;
+      padding-bottom: 30px;
+    }
+
+    /* Plant catalog: also bottom sheet, side-by-side with toolbar disabled. */
+    .plant-panel {
+      top: auto; bottom: 0; left: 0; right: 0; width: 100%;
+      max-height: 70vh; border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    /* Bed templates strip: sticks above any open bottom panel. */
+    .strip {
+      left: 8px; right: 8px; bottom: 8px; transform: none;
+      padding: 6px 8px; gap: 6px;
+    }
+    .strip-label { display: none; }
+    .tpl { padding: 5px 8px; font-size: 0.72rem; }
+
+    /* Climate badge: compact, top-right of map area. */
+    .climate-badge { padding: 6px 8px; font-size: 0.7rem; max-width: 160px; bottom: auto; top: 60px; left: auto; right: 8px; }
+    .climate-badge .lbl { font-size: 0.58rem; }
+    .climate-badge .val { font-size: 0.78rem; }
+
+    /* Modals: full-screen, less padding. */
+    .modal-overlay { padding: 0; }
+    .modal { border-radius: 0; min-height: 100vh; padding: 16px; }
+    .modal h2 { font-size: 1.15rem; }
+    .modal .row { grid-template-columns: 1fr; }
+
+    /* Garden card grid: single column. */
+    .grid { grid-template-columns: 1fr; gap: 10px; }
+    .list-view { padding: 14px; }
+    .list-head h2 { font-size: 1.3rem; }
+
+    /* Make all buttons more tap-friendly. */
+    .btn, .ghost-btn { padding: 9px 14px; min-height: 36px; }
+    .btn-sm { min-height: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="login-screen" class="login">
+  <div class="login-card">
+    <h1>Planner</h1>
+    <p>Garden Faery garden planner.</p>
+    <div id="login-error" class="login-error"></div>
+    <input type="email" id="login-email" placeholder="Admin email" autocomplete="username">
+    <input type="password" id="login-pw" placeholder="Password" autocomplete="current-password">
+    <button class="btn" onclick="doLogin()">Sign in</button>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app" class="full" style="display:none">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title" id="topbar-title">Gardens</div>
+      <div class="crumbs" id="crumbs"></div>
+    </div>
+    <div class="topbar-right">
+      <button class="ghost-btn" id="topbar-journal" onclick="openJournal()" style="display:none">Journal</button>
+      <button class="ghost-btn" id="topbar-calendar" onclick="openSeasonCalendar()" style="display:none">Season calendar</button>
+      <button class="ghost-btn" id="topbar-print" onclick="openPrintPlan()" style="display:none">Print plan</button>
+      <a href="admin-inventory.html" class="ghost-btn" style="text-decoration:none">Inventory</a>
+      <a href="admin-expenses.html" class="ghost-btn" style="text-decoration:none">Expenses</a>
+      <a href="admin-staff.html" class="ghost-btn" style="text-decoration:none">Staff</a>
+      <button class="ghost-btn" onclick="logout()">Sign out</button>
+    </div>
+  </div>
+
+  <!-- LIST VIEW -->
+  <div id="list-view" class="list-view">
+    <div class="list-wrap">
+      <div class="list-head">
+        <h2>Your gardens</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="ghost-btn" onclick="openYieldAnalytics()">Yields</button>
+          <button class="ghost-btn" onclick="openYieldForecast()">Forecast</button>
+          <button class="ghost-btn" onclick="openCrossGardenSearch()">Find plant</button>
+          <button class="btn" onclick="openGardenModal()">Add garden</button>
+        </div>
+      </div>
+      <div id="reminders-strip" style="margin-bottom:18px"></div>
+      <div id="garden-grid" class="grid"></div>
+    </div>
+  </div>
+
+  <!-- DETAIL VIEW -->
+  <div id="detail-view" class="detail-view" style="display:none">
+    <div id="map"></div>
+
+    <!-- Toolbar -->
+    <div class="toolbar" id="toolbar">
+      <button class="tool active" data-tool="select" title="Select (V)" onclick="setTool('select')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 3l14 8-6 2-2 6-6-16z"/></svg>
+      </button>
+      <button class="tool" data-tool="polygon" title="Draw polygon — beds, patches, lawn" onclick="setTool('polygon')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="4,7 12,3 20,7 18,18 6,18"/></svg>
+      </button>
+      <button class="tool" data-tool="line" title="Draw line — rows, hedges, paths" onclick="setTool('line')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3,18 9,12 14,15 21,5"/></svg>
+      </button>
+      <button class="tool" data-tool="point" title="Drop pin — trees, shrubs, structures" onclick="setTool('point')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2C8 2 5 5 5 9c0 6 7 13 7 13s7-7 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+      </button>
+      <div class="tool-divider"></div>
+      <button class="tool" data-tool="weather" title="Weather" onclick="toggleWeatherPanel()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 18a4 4 0 0 0 .4-7.98 7 7 0 0 0-13.4 2.98A4 4 0 0 0 6 21h11"/><circle cx="12" cy="6" r="2"/></svg>
+      </button>
+      <div class="tool-divider"></div>
+      <button class="tool" data-tool="plants" title="Plant catalog" onclick="togglePlantPanel()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22c0-6 4-9 9-9-3 6-5 9-9 9z"/><path d="M12 22c0-6-4-9-9-9 3 6 5 9 9 9z"/><path d="M12 22V8"/><path d="M12 8c0-3 2-5 5-5-1 3-2 5-5 5z"/></svg>
+      </button>
+      <div class="tool-divider"></div>
+      <button class="tool" data-tool="delete" title="Delete selected" onclick="deleteSelected()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+      </button>
+    </div>
+
+    <!-- Weather panel -->
+    <div class="weather-panel" id="weather-panel">
+      <div class="weather-today" id="w-today">Loading weather…</div>
+      <div class="weather-water-hint" id="w-water" style="display:none"></div>
+      <div class="weather-strip" id="w-strip"></div>
+    </div>
+
+    <!-- Plant catalog panel -->
+    <div class="plant-panel" id="plant-panel">
+      <div class="plant-panel-head">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <h3 style="margin:0">Plants</h3>
+          <button class="ghost-btn btn-sm" style="padding:3px 10px;font-size:0.74rem" onclick="openQuickAddPlant()">+ New</button>
+        </div>
+        <input type="search" id="plant-search" placeholder="Search plants...">
+        <div class="plant-filters" id="plant-filters">
+          <span class="pf-chip active" data-pf="">All</span>
+          <span class="pf-chip" data-pf="edible">Edible</span>
+          <span class="pf-chip" data-pf="perennial">Perennial</span>
+          <span class="pf-chip" data-pf="annual">Annual</span>
+          <span class="pf-chip" data-pf="native">Native</span>
+          <span class="pf-chip" data-pf="rare">Rare</span>
+        </div>
+      </div>
+      <div class="plant-list" id="plant-list"></div>
+    </div>
+
+    <!-- Climate badge -->
+    <div class="climate-badge" id="climate-badge" onclick="openGardenSettings()">
+      <div><span class="lbl">Zone</span> <span class="val" id="cb-zone">—</span></div>
+      <div><span class="lbl">Last frost</span> <span class="val" id="cb-lastfrost">—</span></div>
+      <div><span class="lbl">First frost</span> <span class="val" id="cb-firstfrost">—</span></div>
+    </div>
+
+    <!-- Right panel: selected object editor -->
+    <div class="right-panel" id="right-panel" style="display:none">
+      <h3 id="rp-title">Garden object</h3>
+      <div class="row full">
+        <div><label>Name</label><input type="text" id="rp-name"></div>
+      </div>
+      <div class="row">
+        <div><label>Type</label>
+          <select id="rp-type">
+            <option value="raised_bed">Raised bed</option>
+            <option value="in_ground_bed">In-ground bed</option>
+            <option value="in_ground_row">In-ground row</option>
+            <option value="container">Container</option>
+            <option value="tree">Tree</option>
+            <option value="shrub">Shrub</option>
+            <option value="hedge">Hedge</option>
+            <option value="perennial_patch">Perennial patch</option>
+            <option value="lawn">Lawn</option>
+            <option value="path">Path</option>
+            <option value="structure">Structure</option>
+            <option value="water_feature">Water feature</option>
+            <option value="compost">Compost</option>
+          </select>
+        </div>
+        <div><label>Sun exposure</label>
+          <select id="rp-sun">
+            <option value="">—</option>
+            <option value="full_sun">Full sun</option>
+            <option value="part_sun">Part sun</option>
+            <option value="part_shade">Part shade</option>
+            <option value="full_shade">Full shade</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div><label>Irrigation</label>
+          <select id="rp-irrigation">
+            <option value="">—</option>
+            <option value="none">None</option>
+            <option value="hand">Hand-water</option>
+            <option value="drip">Drip</option>
+            <option value="soaker">Soaker</option>
+            <option value="sprinkler">Sprinkler</option>
+            <option value="flood">Flood</option>
+          </select>
+        </div>
+        <div><label>Depth (in)</label><input type="number" id="rp-depth" min="0"></div>
+      </div>
+      <div class="row full">
+        <div class="read-row"><div class="lbl">Approx area</div><div id="rp-area">—</div></div>
+      </div>
+      <div class="row full">
+        <div class="read-row"><div class="lbl">Planted</div><div id="rp-plantings">—</div></div>
+      </div>
+      <div class="row full">
+        <div class="read-row">
+          <div class="lbl" style="display:flex;align-items:center;justify-content:space-between">
+            <span>Recent care</span>
+            <button class="ghost-btn btn-sm" style="padding:2px 8px;font-size:0.7rem" onclick="openCareModal()">+ Log</button>
+          </div>
+          <div id="rp-care">—</div>
+        </div>
+      </div>
+      <div class="row full">
+        <div><label>Notes</label><textarea id="rp-notes"></textarea></div>
+      </div>
+      <div class="actions">
+        <button class="ghost-btn btn-sm" onclick="closeObjectPanel()">Close</button>
+        <button class="ghost-btn btn-sm" onclick="openSuggestions()">Suggest plants</button>
+        <button class="btn btn-sm" style="background:var(--red)" onclick="deleteSelected()">Delete</button>
+        <button class="btn btn-sm" onclick="saveSelectedObject()">Save</button>
+      </div>
+    </div>
+
+    <!-- Bed templates strip -->
+    <div class="strip" id="tpl-strip">
+      <div class="strip-label">Drop a bed</div>
+      <!-- Populated dynamically -->
+    </div>
+
+    <!-- Hint banner -->
+    <div class="hint" id="hint"></div>
+  </div>
+</div>
+
+<!-- Photo calibration modal -->
+<div class="modal-overlay" id="calib-modal">
+  <div class="modal" style="max-width:900px;width:100%">
+    <h2>Calibrate photo scale</h2>
+    <p style="font-size:0.86rem;color:var(--gray-600);margin-bottom:12px">
+      1. Pick a photo from above (drone, stepladder, second-story window). 2. Click on the two ends of a known-length object in the photo — a meter stick, fence panel, ruler. 3. Type the real distance. The app calibrates scale so beds drawn on the photo are at correct real-world size.
+    </p>
+    <input type="file" id="calib-file" accept="image/*" onchange="loadCalibrationImage(event)" style="margin-bottom:10px">
+    <div id="calib-canvas-wrap" style="position:relative;background:var(--cream);border:1px solid var(--gray-200);border-radius:8px;min-height:300px;overflow:auto;max-height:60vh">
+      <canvas id="calib-canvas" style="display:block;cursor:crosshair"></canvas>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <div><label>Real-world distance</label><input type="number" id="calib-distance" step="0.01" min="0" placeholder="1.0"></div>
+      <div><label>Units</label>
+        <select id="calib-units"><option value="m">meters</option><option value="ft">feet</option><option value="in">inches</option><option value="cm">centimeters</option></select>
+      </div>
+    </div>
+    <div id="calib-status" style="font-size:0.82rem;color:var(--gray-600);margin-top:8px"></div>
+    <div class="modal-foot">
+      <button class="ghost-btn" onclick="closeModal('calib-modal')">Cancel</button>
+      <button class="ghost-btn btn-sm" type="button" onclick="resetCalibrationPoints()">Reset points</button>
+      <button class="btn" onclick="confirmCalibration()">Use this scale</button>
+    </div>
+  </div>
+</div>
+
+<!-- Plant suggestions for a bed -->
+<div class="modal-overlay" id="suggest-modal">
+  <div class="modal" style="max-width:680px">
+    <h2 id="sg-title">Suggest plants</h2>
+    <div id="sg-summary" style="font-size:0.82rem;color:var(--gray-600);margin-bottom:12px"></div>
+    <div id="sg-list" style="max-height:60vh;overflow-y:auto"></div>
+    <div class="modal-foot">
+      <button class="ghost-btn" onclick="closeModal('suggest-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Yield forecast -->
+<div class="modal-overlay" id="forecast-modal">
+  <div class="modal" style="max-width:900px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <h2 style="margin-bottom:2px">Yield forecast</h2>
+        <div style="font-size:0.82rem;color:var(--gray-600)">Expected harvests based on what's currently planted</div>
+      </div>
+      <button class="ghost-btn" onclick="closeModal('forecast-modal')">Close</button>
+    </div>
+    <div id="fc-content"></div>
+  </div>
+</div>
+
+<!-- Yield analytics -->
+<div class="modal-overlay" id="yield-modal">
+  <div class="modal" style="max-width:900px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <h2 style="margin-bottom:2px">Yields</h2>
+        <div id="ya-sub" style="font-size:0.82rem;color:var(--gray-600)">Across all your gardens</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <select id="ya-year" onchange="renderYieldAnalytics()" style="padding:6px 10px;border:1px solid var(--gray-200);border-radius:6px;font-family:var(--font-body);font-size:0.85rem;color:var(--plum)"></select>
+        <button class="ghost-btn" onclick="closeModal('yield-modal')">Close</button>
+      </div>
+    </div>
+    <div id="ya-content"></div>
+  </div>
+</div>
+
+<!-- Cross-garden plant search -->
+<div class="modal-overlay" id="xsearch-modal">
+  <div class="modal" style="max-width:560px">
+    <h2>Find a plant across gardens</h2>
+    <p style="font-size:0.82rem;color:var(--gray-600);margin-bottom:12px">See every garden where a plant is currently planted.</p>
+    <div class="row full">
+      <div><label>Plant</label>
+        <input type="search" id="xs-search" placeholder="Type to filter..." oninput="renderXSearchOptions()">
+        <div id="xs-options" style="margin-top:6px;max-height:200px;overflow-y:auto;background:var(--cream);border-radius:6px"></div>
+      </div>
+    </div>
+    <div id="xs-results" style="margin-top:14px;max-height:50vh;overflow-y:auto"></div>
+    <div class="modal-foot">
+      <button class="ghost-btn" onclick="closeModal('xsearch-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Quick-add plant modal -->
+<div class="modal-overlay" id="quick-plant-modal">
+  <div class="modal" style="max-width:560px">
+    <h2 id="qp-title">Add plant to catalog</h2>
+    <p style="font-size:0.82rem;color:var(--gray-600);margin-bottom:12px">For a plant you're seeing on a client site that isn't in the catalog yet. Fill what you know — you can edit more later.</p>
+    <input type="hidden" id="qp-id">
+    <div class="row">
+      <div><label>Common name</label><input type="text" id="qp-name" required></div>
+      <div><label>Scientific (optional)</label><input type="text" id="qp-sci"></div>
+    </div>
+    <div class="row">
+      <div><label>Category</label>
+        <select id="qp-category">
+          <option value="">—</option>
+          <option value="perennial_veg">Perennial vegetable</option>
+          <option value="native_perennial">Native perennial</option>
+          <option value="native_shrub">Native shrub</option>
+          <option value="native_tree">Native tree</option>
+          <option value="rare_fruit">Rare fruit</option>
+          <option value="herb">Herb</option>
+          <option value="medicinal">Medicinal</option>
+          <option value="tuber">Tuber</option>
+          <option value="allium">Allium</option>
+          <option value="ornamental">Ornamental</option>
+          <option value="groundcover">Groundcover</option>
+        </select>
+      </div>
+      <div><label>Lifecycle</label>
+        <select id="qp-lifecycle">
+          <option value="">—</option>
+          <option value="annual">Annual</option>
+          <option value="biennial">Biennial</option>
+          <option value="perennial">Perennial</option>
+          <option value="tender_perennial">Tender perennial</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div><label>Sun</label>
+        <select id="qp-sun">
+          <option value="">—</option>
+          <option value="full_sun">Full sun</option>
+          <option value="part_sun">Part sun</option>
+          <option value="part_shade">Part shade</option>
+          <option value="full_shade">Full shade</option>
+        </select>
+      </div>
+      <div><label>Water</label>
+        <select id="qp-water">
+          <option value="">—</option>
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div><label>Plant spacing (inches)</label><input type="number" id="qp-spacing" min="0" step="0.5" placeholder="e.g. 12"></div>
+      <div><label>Days to maturity</label><input type="number" id="qp-dtm" min="0" placeholder="e.g. 60"></div>
+    </div>
+    <div class="row">
+      <div><label>Color (hex)</label><input type="color" id="qp-color" value="#9bbd85"></div>
+      <div>
+        <label>Tags</label>
+        <div class="check-row" style="display:flex;gap:10px">
+          <label style="text-transform:none;letter-spacing:0;font-weight:500;font-size:0.85rem"><input type="checkbox" id="qp-native"> CA native</label>
+          <label style="text-transform:none;letter-spacing:0;font-weight:500;font-size:0.85rem"><input type="checkbox" id="qp-food"> Edible</label>
+          <label style="text-transform:none;letter-spacing:0;font-weight:500;font-size:0.85rem"><input type="checkbox" id="qp-rare"> Rare</label>
+        </div>
+      </div>
+    </div>
+    <div class="row full"><div><label>Description (optional)</label><textarea id="qp-desc"></textarea></div></div>
+    <div class="modal-foot">
+      <button class="ghost-btn" onclick="closeModal('quick-plant-modal')">Cancel</button>
+      <button class="btn" id="qp-delete" style="display:none;background:var(--red)" onclick="deleteQuickPlant()">Delete</button>
+      <button class="btn" onclick="saveQuickPlant()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Journal / timeline modal -->
+<div class="modal-overlay" id="journal-modal">
+  <div class="modal" style="max-width:780px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div>
+        <h2 id="j-title" style="margin-bottom:2px">Garden journal</h2>
+        <div style="font-size:0.82rem;color:var(--gray-600)">Everything that's happened, newest first</div>
+      </div>
+      <button class="ghost-btn" onclick="closeModal('journal-modal')">Close</button>
+    </div>
+    <div class="plant-filters" id="j-filters" style="margin-bottom:12px">
+      <span class="pf-chip active" data-jf="all">All</span>
+      <span class="pf-chip" data-jf="plantings">Plantings</span>
+      <span class="pf-chip" data-jf="care">Care</span>
+      <span class="pf-chip" data-jf="harvests">Harvests</span>
+    </div>
+    <div id="j-list" style="max-height:60vh;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- Season calendar overlay -->
+<div class="modal-overlay" id="calendar-modal">
+  <div class="modal" style="max-width:1200px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <h2 id="cal-title" style="margin-bottom:2px">Season calendar</h2>
+        <div id="cal-sub" style="font-size:0.82rem;color:var(--gray-600)"></div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <select id="cal-filter" onchange="renderSeasonCalendar()" style="padding:6px 10px;border:1px solid var(--gray-200);border-radius:6px;font-family:var(--font-body);font-size:0.85rem;color:var(--plum)">
+          <option value="all">All plants</option>
+          <option value="annual">Annuals only</option>
+          <option value="perennial">Perennials only</option>
+          <option value="planted">Only what's planted here</option>
+        </select>
+        <button class="ghost-btn" onclick="closeModal('calendar-modal')">Close</button>
+      </div>
+    </div>
+    <div style="font-size:0.74rem;color:var(--gray-600);margin-bottom:8px;display:flex;gap:14px;flex-wrap:wrap">
+      <span><span style="display:inline-block;width:14px;height:8px;background:#d8d2c5;vertical-align:middle;margin-right:4px"></span>Indoor seedling</span>
+      <span><span style="display:inline-block;width:8px;height:8px;background:#6b8f5e;border-radius:50%;vertical-align:middle;margin-right:4px"></span>Direct sow</span>
+      <span><span style="display:inline-block;width:8px;height:8px;background:#c2557a;border-radius:50%;vertical-align:middle;margin-right:4px"></span>Transplant</span>
+      <span><span style="display:inline-block;width:14px;height:8px;background:#9bbd85;vertical-align:middle;margin-right:4px"></span>Harvest window</span>
+      <span><span style="display:inline-block;width:1px;height:14px;background:var(--gray-400);vertical-align:middle;margin-right:4px"></span>Today</span>
+    </div>
+    <div id="cal-grid" style="background:var(--white);border:1px solid var(--gray-200);border-radius:8px;overflow:hidden"></div>
+  </div>
+</div>
+
+<!-- Plant detail modal -->
+<div class="modal-overlay" id="plant-detail-modal">
+  <div class="modal" style="max-width:600px">
+    <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:12px">
+      <div id="pd-swatch" style="width:48px;height:48px;border-radius:50%;flex:0 0 auto;border:3px solid var(--white);box-shadow:0 0 0 1px var(--gray-200)"></div>
+      <div style="flex:1;min-width:0">
+        <h2 id="pd-name" style="margin-bottom:2px"></h2>
+        <div id="pd-sci" style="font-style:italic;color:var(--gray-600);font-size:0.9rem"></div>
+        <div id="pd-tags" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px"></div>
+      </div>
+    </div>
+    <div id="pd-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px"></div>
+    <div id="pd-desc" style="font-size:0.88rem;color:var(--plum);line-height:1.5;margin-bottom:10px"></div>
+    <div id="pd-climate" style="font-size:0.82rem;color:var(--gray-600);background:var(--cream);padding:10px;border-radius:8px;margin-bottom:10px"></div>
+    <div id="pd-timing" style="font-size:0.82rem;background:var(--sage-light);color:#3f5a32;padding:10px;border-radius:8px;margin-bottom:10px"></div>
+    <div class="modal-foot">
+      <button class="ghost-btn" onclick="closeModal('plant-detail-modal')">Close</button>
+      <button class="ghost-btn" onclick="editPlantFromDetail()">Edit</button>
+      <button class="btn" id="pd-plant-btn" onclick="usePlantFromDetail()">Plant in a bed</button>
+    </div>
+  </div>
+</div>
+
+<!-- Care event modal -->
+<div class="modal-overlay" id="care-modal">
+  <div class="modal">
+    <h2>Log care event</h2>
+    <input type="hidden" id="ce-id">
+    <input type="hidden" id="ce-object-id">
+    <input type="hidden" id="ce-planting-id">
+    <div class="row full">
+      <div>
+        <label>Quick select</label>
+        <div class="plant-filters">
+          <span class="pf-chip" data-cetype="water">Water</span>
+          <span class="pf-chip" data-cetype="fertilize">Fertilize</span>
+          <span class="pf-chip" data-cetype="prune">Prune</span>
+          <span class="pf-chip" data-cetype="weed">Weed</span>
+          <span class="pf-chip" data-cetype="mulch">Mulch</span>
+          <span class="pf-chip" data-cetype="treat_pest">Pest</span>
+          <span class="pf-chip" data-cetype="treat_disease">Disease</span>
+          <span class="pf-chip" data-cetype="observe">Observe</span>
+          <span class="pf-chip" data-cetype="photo">Photo</span>
+          <span class="pf-chip" data-cetype="thin">Thin</span>
+          <span class="pf-chip" data-cetype="soil_amend">Soil</span>
+          <span class="pf-chip" data-cetype="note">Note</span>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div><label>Date</label><input type="date" id="ce-date"></div>
+      <div><label>Event type</label>
+        <select id="ce-type">
+          <option value="water">Water</option>
+          <option value="fertilize">Fertilize</option>
+          <option value="prune">Prune</option>
+          <option value="weed">Weed</option>
+          <option value="mulch">Mulch</option>
+          <option value="treat_pest">Treat pest</option>
+          <option value="treat_disease">Treat disease</option>
+          <option value="observe">Observe</option>
+          <option value="photo">Photo</option>
+          <option value="soil_amend">Soil amend</option>
+          <option value="thin">Thin</option>
+          <option value="stake">Stake</option>
+          <option value="cover">Cover</option>
+          <option value="uncover">Uncover</option>
+          <option value="note">Note</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div><label>Product used</label><input type="text" id="ce-product" placeholder="e.g. fish emulsion, neem oil"></div>
+      <div><label>Quantity</label><input type="number" id="ce-qty" step="0.01" min="0"></div>
+    </div>
+    <div class="row">
+      <div><label>Units</label><input type="text" id="ce-units" placeholder="cups, oz, gal"></div>
+      <div></div>
+    </div>
+    <div class="row full"><div><label>Notes</label><textarea id="ce-notes"></textarea></div></div>
+    <div class="row full">
+      <div>
+        <label>Photos (upload from camera roll)</label>
+        <input type="file" id="ce-photo-files" accept="image/*" multiple style="font-family:var(--font-body);font-size:0.85rem;color:var(--plum)">
+        <div id="ce-existing-photos" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"></div>
+      </div>
+    </div>
+    <div class="row full"><div><label>Photo URLs (also accepts comma-separated URLs)</label><input type="text" id="ce-photos" placeholder="https://..."></div></div>
+    <div class="modal-foot">
+      <button class="ghost-btn" onclick="closeModal('care-modal')">Cancel</button>
+      <button class="btn" id="ce-delete" style="display:none; background:var(--red)" onclick="deleteCareEvent()">Delete</button>
+      <button class="btn" onclick="saveCareEvent()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Harvest modal -->
+<div class="modal-overlay" id="harvest-modal">
+  <div class="modal">
+    <h2>Log harvest</h2>
+    <input type="hidden" id="hv-id">
+    <input type="hidden" id="hv-planting-id">
+    <div class="row">
+      <div><label>Date</label><input type="date" id="hv-date"></div>
+      <div><label>Quantity</label><input type="number" id="hv-qty" step="0.01" min="0"></div>
+    </div>
+    <div class="row">
+      <div><label>Units</label>
+        <select id="hv-units">
+          <option value="lbs">lbs</option>
+          <option value="oz">oz</option>
+          <option value="kg">kg</option>
+          <option value="g">g</option>
+          <option value="each">each</option>
+          <option value="bunch">bunch</option>
+          <option value="pint">pint</option>
+          <option value="quart">quart</option>
+        </select>
+      </div>
+      <div></div>
+    </div>
+    <div class="row full"><div><label>Notes</label><textarea id="hv-notes"></textarea></div></div>
+    <div class="modal-foot">
+      <button class="ghost-btn" onclick="closeModal('harvest-modal')">Cancel</button>
+      <button class="btn" id="hv-delete" style="display:none; background:var(--red)" onclick="deleteHarvest()">Delete</button>
+      <button class="btn" onclick="saveHarvest()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/edit garden modal -->
+<div class="modal-overlay" id="garden-modal">
+  <div class="modal">
+    <h2 id="gm-title">Add garden</h2>
+    <input type="hidden" id="gm-id">
+    <div class="row full"><div><label>Name</label><input type="text" id="gm-name" required></div></div>
+    <div class="row">
+      <div><label>Owner name</label><input type="text" id="gm-owner"></div>
+      <div><label>Status</label>
+        <select id="gm-status"><option value="active">Active</option><option value="prospect">Prospect</option><option value="archived">Archived</option></select>
+      </div>
+    </div>
+    <div class="row full">
+      <div>
+        <label>Address (click Lookup to drop a pin)</label>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="gm-address" placeholder="123 Main St, City CA" style="flex:1">
+          <button class="ghost-btn btn-sm" type="button" onclick="geocodeAddress()">Lookup</button>
+        </div>
+        <div id="gm-geocode-status" style="font-size:0.74rem;color:var(--gray-600);margin-top:3px"></div>
+      </div>
+    </div>
+    <div class="row">
+      <div><label>USDA zone</label><input type="text" id="gm-usda" placeholder="9b"></div>
+      <div><label>Sunset zone</label><input type="text" id="gm-sunset" placeholder="17"></div>
+    </div>
+    <div class="row">
+      <div><label>Last frost (spring)</label><input type="date" id="gm-lastfrost"></div>
+      <div><label>First frost (fall)</label><input type="date" id="gm-firstfrost"></div>
+    </div>
+    <div class="row">
+      <div><label>Base layer</label>
+        <select id="gm-base" onchange="updateGardenBaseExtras()">
+          <option value="satellite">Satellite (Esri)</option>
+          <option value="blank">Blank canvas</option>
+          <option value="drone_ortho">Drone tiles URL</option>
+          <option value="photo_calibrated">Photo backdrop (meter-stick)</option>
+        </select>
+      </div>
+      <div><label>Units</label>
+        <select id="gm-units"><option value="imperial">Imperial (ft / in)</option><option value="metric">Metric (m / cm)</option></select>
+      </div>
+    </div>
+    <div class="row full" id="gm-drone-row" style="display:none">
+      <div>
+        <label>Drone tiles URL (XYZ template)</label>
+        <input type="text" id="gm-drone-url" placeholder="https://your-tile-server/{z}/{x}/{y}.png">
+        <div style="font-size:0.72rem;color:var(--gray-600);margin-top:3px">
+          Generate tiles with WebODM / QGIS / MapTiler from your drone photos, host them anywhere, paste the URL pattern here.
+        </div>
+      </div>
+    </div>
+    <div class="row full" id="gm-photo-row" style="display:none">
+      <div>
+        <label>Photo backdrop (single nadir photo + meter-stick scale)</label>
+        <input type="file" id="gm-photo-file" accept="image/*">
+        <button class="ghost-btn btn-sm" type="button" onclick="openCalibrationModal()" style="margin-top:6px">Calibrate scale</button>
+        <div id="gm-photo-status" style="font-size:0.72rem;color:var(--gray-600);margin-top:3px"></div>
+      </div>
+    </div>
+    <div class="row full"><div><label>Microclimate notes</label><textarea id="gm-micro" placeholder="South-facing slope, coastal fog, frost pocket in NE corner..."></textarea></div></div>
+    <div class="row full"><div><label>General notes</label><textarea id="gm-notes"></textarea></div></div>
+    <div class="row full">
+      <div style="background:var(--cream);padding:10px;border-radius:8px">
+        <label style="margin-bottom:6px;display:block">Client portal (read-only sharing)</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;text-transform:none;letter-spacing:0;font-weight:500;color:var(--plum)">
+          <input type="checkbox" id="gm-portal-enabled" onchange="togglePortal()"> Enable public read-only link
+        </label>
+        <div id="gm-portal-link" style="margin-top:6px;font-size:0.78rem;color:var(--gray-600);word-break:break-all;display:none"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="ghost-btn" onclick="closeModal('garden-modal')">Cancel</button>
+      <button class="btn" id="gm-delete" style="display:none; background:var(--red)" onclick="deleteGarden()">Delete</button>
+      <button class="btn" onclick="saveGarden()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// =============================================================
+// Garden Planner — Garden Faery
+// PocketBase backend (same instance as the rest of the admin pages).
+// Three drawing modes share one map: satellite, blank canvas, drone ortho.
+// Stored shapes are GeoJSON in PocketBase's `garden_objects.shape_geojson`.
+// =============================================================
+
+const PB_URL = (() => {
+  const h = location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1' || h === '' || location.protocol === 'file:') {
+    return 'http://127.0.0.1:8091';
+  }
+  return 'https://bookings.gardenfaery.love';
+})();
+
+const PB_TOKEN_KEY = 'gf_pb_token';
+let PB_TOKEN = localStorage.getItem(PB_TOKEN_KEY) || '';
+
+const state = {
+  gardens: [],
+  templates: [],
+  plants: [],
+  plantings: [],
+  careEvents: [],
+  harvests: [],
+  currentGarden: null,
+  objects: [],
+  selectedObjectId: null,
+  tool: 'select',
+  pendingTemplate: null,
+  pendingPlant: null,
+  plantFilter: '',
+  plantSearch: '',
+  drawingPoints: [],
+  map: null,
+};
+
+// ---------- Auth ----------
+function tokenValid(tok) {
+  if (!tok || tok.split('.').length !== 3) return false;
+  try {
+    const payload = JSON.parse(atob(tok.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return payload.exp && (payload.exp * 1000) > (Date.now() - 30000);
+  } catch (_) { return false; }
+}
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-pw').value;
+  const errEl = document.getElementById('login-error');
+  errEl.classList.remove('show');
+  if (!email || !pw) return;
+  // Try superuser first (admin), fall back to regular users (staff invited via /claim.html).
+  for (const endpoint of ['_superusers', 'users']) {
+    try {
+      const resp = await fetch(PB_URL + '/api/collections/' + endpoint + '/auth-with-password', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identity: email, password: pw }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        PB_TOKEN = data.token; localStorage.setItem(PB_TOKEN_KEY, PB_TOKEN);
+        boot();
+        return;
+      }
+    } catch (_) {}
+  }
+  errEl.textContent = 'Sign-in failed. Check email/password.';
+  errEl.classList.add('show');
+}
+function logout() {
+  PB_TOKEN = ''; localStorage.removeItem(PB_TOKEN_KEY);
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+// ---------- PB helpers ----------
+async function pb(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (PB_TOKEN) opts.headers['Authorization'] = 'Bearer ' + PB_TOKEN;
+  if (body) opts.body = JSON.stringify(body);
+  const resp = await fetch(PB_URL + path, opts);
+  if (resp.status === 401) { logout(); throw new Error('Auth expired'); }
+  if (!resp.ok) { const text = await resp.text().catch(() => ''); throw new Error('PB ' + resp.status + ': ' + text); }
+  return resp.json();
+}
+
+// ---------- Boot + routing ----------
+async function boot() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  try {
+    const [gardens, templates, plants, allObj, allPl] = await Promise.all([
+      pb('GET', '/api/collections/gardens/records?perPage=200&sort=-created'),
+      pb('GET', '/api/collections/bed_templates/records?perPage=200&sort=vendor,length_ft'),
+      pb('GET', '/api/collections/plants/records?perPage=500&filter=(in_planner_catalog=true)&sort=common_name'),
+      pb('GET', '/api/collections/garden_objects/records?perPage=2000&fields=id,garden_id'),
+      pb('GET', '/api/collections/plantings/records?perPage=2000&fields=garden_object_id'),
+    ]);
+    state.gardens = gardens.items || [];
+    state.templates = templates.items || [];
+    state.plants = plants.items || [];
+    // Pre-compute per-garden counts for the card view + persist raw lists for cross-garden search.
+    state._objectsByGarden = {};
+    state._plantingsByGarden = {};
+    state._objToGarden = {};       // object_id -> garden_id
+    state._allPlantings = allPl.items || [];   // [{plant_id, garden_object_id, quantity, ...}]
+    for (const o of (allObj.items || [])) {
+      state._objToGarden[o.id] = o.garden_id;
+      state._objectsByGarden[o.garden_id] = (state._objectsByGarden[o.garden_id] || 0) + 1;
+    }
+    for (const p of state._allPlantings) {
+      const gid = state._objToGarden[p.garden_object_id];
+      if (gid) state._plantingsByGarden[gid] = (state._plantingsByGarden[gid] || 0) + 1;
+    }
+  } catch (err) {
+    toast('Failed to load: ' + err.message);
+    return;
+  }
+  route();
+  window.addEventListener('hashchange', route);
+}
+
+function route() {
+  const h = location.hash || '#gardens';
+  if (h.startsWith('#garden/')) {
+    const id = h.slice('#garden/'.length);
+    showDetail(id);
+  } else {
+    showList();
+  }
+}
+
+// ---------- List view ----------
+function showList() {
+  document.getElementById('list-view').style.display = 'block';
+  document.getElementById('detail-view').style.display = 'none';
+  document.getElementById('topbar-title').textContent = 'Gardens';
+  document.getElementById('crumbs').innerHTML = '';
+  document.getElementById('topbar-calendar').style.display = 'none';
+  document.getElementById('topbar-journal').style.display = 'none';
+  document.getElementById('topbar-print').style.display = 'none';
+  renderGardenList();
+}
+
+function renderGardenList() {
+  const grid = document.getElementById('garden-grid');
+  if (!state.gardens.length) {
+    grid.innerHTML = `<div class="empty-card" onclick="openGardenModal()">
+      <h3>No gardens yet</h3><p>Add your first garden to start mapping.</p></div>`;
+    return;
+  }
+  renderReminders();
+  grid.innerHTML = state.gardens.map(g => {
+    const objCount = (state._objectsByGarden && state._objectsByGarden[g.id]) || 0;
+    const plCount = (state._plantingsByGarden && state._plantingsByGarden[g.id]) || 0;
+    return `<div class="garden-card" onclick="location.hash='#garden/${g.id}'">
+      <h3>${escapeHtml(g.name)}</h3>
+      <div class="addr">${escapeHtml(g.address || '')}</div>
+      <div class="stat-row">
+        <span><span class="pill pill-${g.status || 'active'}">${g.status || 'active'}</span></span>
+        <span><strong>Zone</strong> ${escapeHtml(g.usda_zone || '—')}</span>
+        <span><strong>${objCount}</strong> objects</span>
+        <span><strong>${plCount}</strong> plantings</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ---------- Detail view ----------
+// ---------- Print plan ----------
+function openPrintPlan() {
+  if (!state.currentGarden) return;
+  const g = state.currentGarden;
+  // Try to grab the current map canvas as an image. Requires preserveDrawingBuffer
+  // to have been set; if not (default), this will produce a blank image — we
+  // skip the map image in that case rather than failing.
+  let mapDataUrl = '';
+  try {
+    if (state.map && state.map.getCanvas) {
+      const c = state.map.getCanvas();
+      mapDataUrl = c.toDataURL('image/png');
+      // If the canvas is empty (no preserveDrawingBuffer), the data URL will be tiny.
+      if (mapDataUrl.length < 1000) mapDataUrl = '';
+    }
+  } catch (_) {}
+
+  // Build objects table.
+  const objRows = state.objects.map(o => {
+    const plantings = state.plantings.filter(pt => pt.garden_object_id === o.id);
+    const plList = plantings.map(pt => {
+      const plant = state.plants.find(p => p.id === pt.plant_id);
+      return (plant ? plant.common_name : 'unknown') + ' × ' + (pt.quantity || 0);
+    }).join(', ');
+    return `<tr>
+      <td>${escapeHtml(o.name || o.type.replace(/_/g, ' '))}</td>
+      <td>${(o.type || '').replace(/_/g, ' ')}</td>
+      <td>${o.area_sqft ? o.area_sqft.toFixed(1) + ' sq ft' : '—'}</td>
+      <td>${o.sun_exposure ? o.sun_exposure.replace(/_/g, ' ') : '—'}</td>
+      <td>${escapeHtml(plList || '—')}</td>
+    </tr>`;
+  }).join('');
+
+  // Recent care.
+  const careRows = state.careEvents.slice(0, 20).map(ce => {
+    const obj = state.objects.find(o => o.id === ce.garden_object_id);
+    return `<tr>
+      <td>${(ce.event_date || '').slice(0, 10)}</td>
+      <td>${(ce.event_type || '').replace(/_/g, ' ')}</td>
+      <td>${obj ? escapeHtml(obj.name || obj.type.replace(/_/g, ' ')) : '—'}</td>
+      <td>${escapeHtml(ce.product_used || '')}</td>
+      <td>${escapeHtml(ce.notes || '')}</td>
+    </tr>`;
+  }).join('');
+
+  // Build print HTML.
+  const html = `<!doctype html><html><head><meta charset="UTF-8">
+  <title>${escapeHtml(g.name)} — Garden Plan</title>
+  <style>
+    body { font-family: Georgia, serif; color: #2a2a2a; max-width: 8.5in; margin: 0.5in auto; line-height: 1.5; }
+    h1 { font-size: 24pt; margin-bottom: 4px; color: #5a1230; }
+    h2 { font-size: 14pt; color: #5a1230; margin-top: 24px; margin-bottom: 8px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+    .sub { color: #666; font-size: 10pt; margin-bottom: 16px; }
+    .meta { font-size: 10pt; color: #444; }
+    .meta dt { display: inline-block; font-weight: bold; min-width: 90px; }
+    .meta dd { display: inline; margin: 0; }
+    .meta-row { margin: 4px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 10pt; margin-top: 8px; }
+    th { text-align: left; background: #f5f5f5; padding: 6px 8px; border-bottom: 2px solid #ddd; font-weight: bold; }
+    td { padding: 6px 8px; border-bottom: 1px solid #eee; vertical-align: top; }
+    .map-img { width: 100%; max-height: 5in; object-fit: contain; margin: 8px 0; border: 1px solid #ddd; }
+    .footer { margin-top: 32px; font-size: 9pt; color: #999; text-align: center; border-top: 1px solid #eee; padding-top: 8px; }
+    @media print { @page { margin: 0.5in; } }
+  </style>
+  </head><body>
+    <h1>${escapeHtml(g.name)}</h1>
+    <div class="sub">${escapeHtml(g.address || '')}</div>
+
+    <h2>Climate profile</h2>
+    <div class="meta">
+      <div class="meta-row"><dt>USDA zone:</dt> <dd>${escapeHtml(g.usda_zone || '—')}</dd></div>
+      <div class="meta-row"><dt>Sunset zone:</dt> <dd>${escapeHtml(g.sunset_zone || '—')}</dd></div>
+      <div class="meta-row"><dt>Last frost:</dt> <dd>${(g.last_frost_date || '—').slice(0, 10)}</dd></div>
+      <div class="meta-row"><dt>First frost:</dt> <dd>${(g.first_frost_date || '—').slice(0, 10)}</dd></div>
+      ${g.microclimate_notes ? `<div class="meta-row"><dt>Microclimate:</dt> <dd>${escapeHtml(g.microclimate_notes)}</dd></div>` : ''}
+    </div>
+
+    ${mapDataUrl ? `<h2>Layout</h2><img class="map-img" src="${mapDataUrl}">` : ''}
+
+    <h2>Garden objects (${state.objects.length})</h2>
+    <table>
+      <thead><tr><th>Name</th><th>Type</th><th>Size</th><th>Sun</th><th>Plantings</th></tr></thead>
+      <tbody>${objRows || '<tr><td colspan="5" style="color:#888">No objects yet.</td></tr>'}</tbody>
+    </table>
+
+    <h2>Recent care log (${state.careEvents.length} total, showing latest 20)</h2>
+    <table>
+      <thead><tr><th>Date</th><th>Event</th><th>Where</th><th>Product</th><th>Notes</th></tr></thead>
+      <tbody>${careRows || '<tr><td colspan="5" style="color:#888">No care events yet.</td></tr>'}</tbody>
+    </table>
+
+    <div class="footer">Generated ${new Date().toLocaleDateString()} · Garden Faery Planner</div>
+    <script>setTimeout(() => window.print(), 500);<\/script>
+  </body></html>`;
+
+  const w = window.open('', '_blank', 'width=900,height=1100');
+  if (!w) { toast('Pop-up blocked — allow pop-ups to print.'); return; }
+  w.document.open(); w.document.write(html); w.document.close();
+}
+
+// ---------- Journal / timeline ----------
+function openJournal() {
+  if (!state.currentGarden) return;
+  document.getElementById('j-title').textContent = 'Journal — ' + state.currentGarden.name;
+  state._jFilter = 'all';
+  document.querySelectorAll('#j-filters .pf-chip').forEach(c => c.classList.toggle('active', c.dataset.jf === 'all'));
+  renderJournal();
+  document.getElementById('journal-modal').classList.add('open');
+}
+
+// Wire filter chips.
+document.getElementById('j-filters').addEventListener('click', e => {
+  if (!e.target.classList.contains('pf-chip')) return;
+  state._jFilter = e.target.dataset.jf;
+  document.querySelectorAll('#j-filters .pf-chip').forEach(c => c.classList.toggle('active', c.dataset.jf === state._jFilter));
+  renderJournal();
+});
+
+function renderJournal() {
+  const filter = state._jFilter || 'all';
+  // Merge events from all three sources.
+  const events = [];
+  if (filter === 'all' || filter === 'plantings') {
+    for (const pt of state.plantings) {
+      if (!pt.planted_date) continue;
+      const obj = state.objects.find(o => o.id === pt.garden_object_id);
+      const plant = state.plants.find(p => p.id === pt.plant_id);
+      events.push({
+        date: pt.planted_date.slice(0, 10),
+        kind: 'planting',
+        color: (plant && plant.color_hex) || '#5a7a5a',
+        title: `Planted ${plant ? plant.common_name : 'plant'} × ${pt.quantity || 0}`,
+        sub: obj ? (obj.name || obj.type.replace(/_/g, ' ')) : '',
+        notes: pt.notes,
+        id: pt.id,
+      });
+    }
+  }
+  if (filter === 'all' || filter === 'care') {
+    for (const ce of state.careEvents) {
+      const obj = state.objects.find(o => o.id === ce.garden_object_id);
+      events.push({
+        date: (ce.event_date || '').slice(0, 10),
+        kind: 'care',
+        color: '#c2557a',
+        title: (ce.event_type || '').replace(/_/g, ' ') + (ce.product_used ? ' · ' + ce.product_used : ''),
+        sub: obj ? (obj.name || obj.type.replace(/_/g, ' ')) : '(garden-level)',
+        notes: ce.notes,
+        photos: ce.photos,
+        photoBase: PB_URL + '/api/files/care_events/' + ce.id + '/',
+        id: ce.id,
+      });
+    }
+  }
+  if (filter === 'all' || filter === 'harvests') {
+    for (const hv of state.harvests) {
+      const planting = state.plantings.find(p => p.id === hv.planting_id);
+      const plant = planting ? state.plants.find(x => x.id === planting.plant_id) : null;
+      events.push({
+        date: (hv.harvest_date || '').slice(0, 10),
+        kind: 'harvest',
+        color: '#c9873a',
+        title: `Harvested ${hv.quantity || 0} ${hv.units || ''}${plant ? ' of ' + plant.common_name : ''}`,
+        sub: '',
+        notes: hv.notes,
+        id: hv.id,
+      });
+    }
+  }
+  events.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+  const el = document.getElementById('j-list');
+  if (!events.length) {
+    el.innerHTML = '<div style="padding:30px;text-align:center;color:var(--gray-600);font-size:0.9rem">No journal entries yet.</div>';
+    return;
+  }
+  // Group by month for visual chunking.
+  let html = '';
+  let lastMonth = '';
+  for (const ev of events) {
+    const month = ev.date.slice(0, 7);
+    if (month !== lastMonth) {
+      const d = new Date(ev.date);
+      const monthLabel = isNaN(d) ? month : d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+      html += `<div style="font-family:var(--font-heading);font-size:0.78rem;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.6px;padding:14px 0 6px;border-bottom:1px solid var(--gray-100);margin-bottom:6px">${escapeHtml(monthLabel)}</div>`;
+      lastMonth = month;
+    }
+    const photos = (ev.photos && ev.photos.length)
+      ? '<div style="display:flex;gap:4px;margin-top:6px">' + ev.photos.slice(0, 5).map(fn => `<img src="${ev.photoBase}${fn}?thumb=100x100" style="width:42px;height:42px;object-fit:cover;border-radius:4px;border:1px solid var(--gray-200);cursor:pointer" onclick="window.open('${ev.photoBase}${fn}','_blank')">`).join('') + '</div>'
+      : '';
+    html += `<div style="display:flex;gap:10px;padding:8px 4px;border-bottom:1px solid var(--gray-100)">
+      <div style="width:8px;height:8px;border-radius:50%;background:${ev.color};margin-top:6px;flex:0 0 auto"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:0.78rem;color:var(--gray-600)">${ev.date}${ev.sub ? ' · ' + escapeHtml(ev.sub) : ''}</div>
+        <div style="font-weight:600;font-size:0.92rem;color:var(--plum)">${escapeHtml(ev.title)}</div>
+        ${ev.notes ? `<div style="font-size:0.82rem;color:var(--plum);margin-top:2px">${escapeHtml(ev.notes)}</div>` : ''}
+        ${photos}
+      </div>
+    </div>`;
+  }
+  el.innerHTML = html;
+}
+
+// ---------- Season calendar ----------
+function openSeasonCalendar() {
+  if (!state.currentGarden) return;
+  const g = state.currentGarden;
+  document.getElementById('cal-title').textContent = 'Season calendar — ' + g.name;
+  document.getElementById('cal-sub').textContent = `Last frost ${g.last_frost_date ? g.last_frost_date.slice(0,10) : '—'} · First frost ${g.first_frost_date ? g.first_frost_date.slice(0,10) : '—'} · Zone ${g.usda_zone || '—'}`;
+  renderSeasonCalendar();
+  document.getElementById('calendar-modal').classList.add('open');
+}
+
+function renderSeasonCalendar() {
+  const g = state.currentGarden;
+  const filter = document.getElementById('cal-filter').value;
+  const plantedIds = new Set(state.plantings.map(p => p.plant_id));
+
+  let plants = state.plants.filter(p => {
+    if (!p.in_planner_catalog) return false;
+    if (filter === 'annual' && !(p.lifecycle === 'annual')) return false;
+    if (filter === 'perennial' && !(p.lifecycle === 'perennial' || p.lifecycle === 'tender_perennial')) return false;
+    if (filter === 'planted' && !plantedIds.has(p.id)) return false;
+    return true;
+  });
+  // Sort: planted first, then alpha.
+  plants.sort((a, b) => {
+    const ap = plantedIds.has(a.id) ? 0 : 1;
+    const bp = plantedIds.has(b.id) ? 0 : 1;
+    if (ap !== bp) return ap - bp;
+    return (a.common_name || '').localeCompare(b.common_name || '');
+  });
+
+  const lastFrost = g.last_frost_date ? new Date(g.last_frost_date) : null;
+  const firstFrost = g.first_frost_date ? new Date(g.first_frost_date) : null;
+  const year = lastFrost ? lastFrost.getFullYear() : new Date().getFullYear();
+  const yearStart = new Date(year, 0, 1).getTime();
+  const yearEnd = new Date(year + 1, 0, 1).getTime();
+  const yearMs = yearEnd - yearStart;
+  function pctOf(date) { return Math.max(0, Math.min(100, (date.getTime() - yearStart) / yearMs * 100)); }
+  function offsetDays(base, days) { const d = new Date(base); d.setDate(d.getDate() + days); return d; }
+
+  // Build header.
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let html = `<div style="display:grid;grid-template-columns:180px 1fr;border-bottom:1px solid var(--gray-200);background:var(--cream)">
+    <div style="padding:8px 12px;font-size:0.72rem;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.5px">Plant</div>
+    <div style="position:relative;height:32px">
+      ${monthNames.map((m, i) => `<div style="position:absolute;left:${i / 12 * 100}%;width:${100/12}%;padding:8px 0;text-align:center;font-size:0.72rem;font-weight:700;color:var(--gray-600);border-left:1px solid var(--gray-200)">${m}</div>`).join('')}
+    </div>
+  </div>`;
+
+  // Today line.
+  const today = new Date();
+  const todayPct = (today.getFullYear() === year) ? pctOf(today) : -1;
+
+  // Frost markers.
+  const lastFrostPct = lastFrost && lastFrost.getFullYear() === year ? pctOf(lastFrost) : -1;
+  const firstFrostPct = firstFrost && firstFrost.getFullYear() === year ? pctOf(firstFrost) : -1;
+
+  for (const p of plants) {
+    const bars = [];
+    if (lastFrost) {
+      // Indoor seedling bar.
+      if (p.seed_indoor_weeks_before_lastfrost && p.transplant_weeks_after_lastfrost !== null && p.transplant_weeks_after_lastfrost !== undefined) {
+        const start = offsetDays(lastFrost, -p.seed_indoor_weeks_before_lastfrost * 7);
+        const end = offsetDays(lastFrost, p.transplant_weeks_after_lastfrost * 7);
+        if (start.getFullYear() === year || end.getFullYear() === year) {
+          bars.push(`<div title="Indoor seedling: ${start.toISOString().slice(0,10)} → ${end.toISOString().slice(0,10)}" style="position:absolute;top:8px;height:8px;background:#d8d2c5;left:${pctOf(start)}%;width:${pctOf(end) - pctOf(start)}%;border-radius:2px"></div>`);
+        }
+      }
+      // Direct sow marker.
+      if (p.direct_sow_weeks_relative_to_lastfrost !== null && p.direct_sow_weeks_relative_to_lastfrost !== undefined && !p.seed_indoor_weeks_before_lastfrost) {
+        const ds = offsetDays(lastFrost, p.direct_sow_weeks_relative_to_lastfrost * 7);
+        if (ds.getFullYear() === year) {
+          bars.push(`<div title="Direct sow: ${ds.toISOString().slice(0,10)}" style="position:absolute;top:6px;left:calc(${pctOf(ds)}% - 5px);width:10px;height:10px;background:#6b8f5e;border-radius:50%;border:2px solid white;box-shadow:0 0 0 1px #6b8f5e"></div>`);
+        }
+      }
+      // Transplant marker.
+      if (p.transplant_weeks_after_lastfrost !== null && p.transplant_weeks_after_lastfrost !== undefined) {
+        const tp = offsetDays(lastFrost, p.transplant_weeks_after_lastfrost * 7);
+        if (tp.getFullYear() === year) {
+          bars.push(`<div title="Transplant: ${tp.toISOString().slice(0,10)}" style="position:absolute;top:6px;left:calc(${pctOf(tp)}% - 5px);width:10px;height:10px;background:#c2557a;border-radius:50%;border:2px solid white;box-shadow:0 0 0 1px #c2557a"></div>`);
+        }
+      }
+      // Harvest window.
+      if (p.days_to_maturity_min && p.days_to_maturity_max) {
+        const sowDate = p.seed_indoor_weeks_before_lastfrost
+          ? offsetDays(lastFrost, (p.transplant_weeks_after_lastfrost || 0) * 7)
+          : (p.direct_sow_weeks_relative_to_lastfrost !== null && p.direct_sow_weeks_relative_to_lastfrost !== undefined)
+            ? offsetDays(lastFrost, p.direct_sow_weeks_relative_to_lastfrost * 7)
+            : null;
+        if (sowDate) {
+          const hStart = offsetDays(sowDate, p.days_to_maturity_min);
+          const hEnd = offsetDays(sowDate, p.days_to_maturity_max);
+          if (hStart.getFullYear() === year || hEnd.getFullYear() === year) {
+            bars.push(`<div title="Harvest: ${hStart.toISOString().slice(0,10)} → ${hEnd.toISOString().slice(0,10)}" style="position:absolute;top:20px;height:8px;background:#9bbd85;left:${pctOf(hStart)}%;width:${pctOf(hEnd) - pctOf(hStart)}%;border-radius:2px"></div>`);
+          }
+        }
+      }
+      // Perennials — show full-year harvest band if no annual timing.
+      if ((p.lifecycle === 'perennial' || p.lifecycle === 'tender_perennial') && bars.length === 0) {
+        const hsStart = firstFrost ? offsetDays(firstFrost, -120) : new Date(year, 4, 1);
+        const hsEnd = firstFrost ? firstFrost : new Date(year, 9, 31);
+        bars.push(`<div title="Perennial harvest window" style="position:absolute;top:14px;height:8px;background:#9bbd85;opacity:0.6;left:${pctOf(hsStart)}%;width:${pctOf(hsEnd) - pctOf(hsStart)}%;border-radius:2px"></div>`);
+      }
+    }
+    const isPlanted = plantedIds.has(p.id);
+    html += `<div style="display:grid;grid-template-columns:180px 1fr;border-bottom:1px solid var(--gray-100);background:${isPlanted ? 'var(--sage-light)' : 'var(--white)'}">
+      <div style="padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:pointer" onclick="openPlantDetail('${p.id}')">
+        <span style="width:14px;height:14px;border-radius:50%;background:${p.color_hex || '#9bbd85'};border:1px solid var(--gray-200);flex:0 0 auto"></span>
+        <span style="font-size:0.85rem;color:var(--plum)">${escapeHtml(p.common_name || '')}</span>
+      </div>
+      <div style="position:relative;height:40px;border-left:1px solid var(--gray-200)">
+        ${monthNames.map((_, i) => `<div style="position:absolute;left:${i / 12 * 100}%;width:${100/12}%;height:100%;border-left:1px solid var(--gray-100);box-sizing:border-box"></div>`).join('')}
+        ${lastFrostPct >= 0 ? `<div title="Last frost ${lastFrost.toISOString().slice(0,10)}" style="position:absolute;left:${lastFrostPct}%;top:0;width:1px;height:100%;background:#c2557a;opacity:0.4"></div>` : ''}
+        ${firstFrostPct >= 0 ? `<div title="First frost ${firstFrost.toISOString().slice(0,10)}" style="position:absolute;left:${firstFrostPct}%;top:0;width:1px;height:100%;background:#c2557a;opacity:0.4"></div>` : ''}
+        ${todayPct >= 0 ? `<div title="Today" style="position:absolute;left:${todayPct}%;top:0;width:2px;height:100%;background:var(--plum)"></div>` : ''}
+        ${bars.join('')}
+      </div>
+    </div>`;
+  }
+
+  if (!plants.length) {
+    html += `<div style="padding:30px;text-align:center;color:var(--gray-600);font-size:0.9rem">No plants match this filter.</div>`;
+  }
+  document.getElementById('cal-grid').innerHTML = html;
+}
+
+async function showDetail(gardenId) {
+  const garden = state.gardens.find(g => g.id === gardenId);
+  if (!garden) { location.hash = '#gardens'; return; }
+  state.currentGarden = garden;
+  document.getElementById('list-view').style.display = 'none';
+  document.getElementById('detail-view').style.display = 'block';
+  document.getElementById('topbar-title').textContent = garden.name;
+  document.getElementById('crumbs').innerHTML = `<a href="#gardens">All gardens</a> · ${escapeHtml(garden.address || '')}`;
+  document.getElementById('topbar-calendar').style.display = '';
+  document.getElementById('topbar-journal').style.display = '';
+  document.getElementById('topbar-print').style.display = '';
+  renderClimateBadge();
+  renderTemplateStrip();
+  renderPlantList();
+  await loadObjects(gardenId);
+  await loadPlantings(gardenId);
+  await loadCareEvents(gardenId);
+  await loadHarvests();
+  initMap();
+}
+
+async function loadCareEvents(gardenId) {
+  try {
+    const resp = await pb('GET', `/api/collections/care_events/records?perPage=500&filter=(garden_id="${gardenId}")&sort=-event_date`);
+    state.careEvents = resp.items || [];
+  } catch (err) { state.careEvents = []; }
+}
+
+async function loadHarvests() {
+  try {
+    if (!state.plantings.length) { state.harvests = []; return; }
+    const ids = state.plantings.map(p => `planting_id="${p.id}"`).join('||');
+    const resp = await pb('GET', `/api/collections/harvests/records?perPage=500&filter=(${ids})&sort=-harvest_date`);
+    state.harvests = resp.items || [];
+  } catch (err) { state.harvests = []; }
+}
+
+function renderClimateBadge() {
+  const g = state.currentGarden;
+  document.getElementById('cb-zone').textContent = g.usda_zone ? (g.usda_zone + (g.sunset_zone ? ' / S' + g.sunset_zone : '')) : '—';
+  document.getElementById('cb-lastfrost').textContent = (g.last_frost_date || '—').slice(0, 10);
+  document.getElementById('cb-firstfrost').textContent = (g.first_frost_date || '—').slice(0, 10);
+}
+
+function renderTemplateStrip() {
+  const strip = document.getElementById('tpl-strip');
+  const items = state.templates.map(t => `
+    <div class="tpl" data-tpl="${t.id}" onclick="selectTemplate('${t.id}')">
+      <div class="tpl-swatch" style="background:${t.fill_color || '#9bbd85'}"></div>
+      ${escapeHtml(t.name)}
+    </div>`).join('');
+  strip.innerHTML = '<div class="strip-label">Drop a bed</div>' + items;
+}
+
+async function loadObjects(gardenId) {
+  try {
+    const resp = await pb('GET', `/api/collections/garden_objects/records?perPage=500&filter=(garden_id="${gardenId}")`);
+    state.objects = resp.items || [];
+  } catch (err) {
+    toast('Load objects failed: ' + err.message);
+    state.objects = [];
+  }
+}
+
+async function loadPlantings(gardenId) {
+  try {
+    // Fetch plantings for objects in this garden. We need to know which objects
+    // belong to this garden first; simplest approach: filter by object list.
+    if (!state.objects.length) { state.plantings = []; return; }
+    const ids = state.objects.map(o => `garden_object_id="${o.id}"`).join('||');
+    const resp = await pb('GET', `/api/collections/plantings/records?perPage=500&filter=(${ids})`);
+    state.plantings = (resp.items || []).filter(p => !p.removed_date);
+  } catch (err) {
+    state.plantings = [];
+  }
+}
+
+// ---------- Map ----------
+function initMap() {
+  const g = state.currentGarden;
+  // Tear down existing map if returning to a different garden.
+  if (state.map) { state.map.remove(); state.map = null; }
+
+  const center = (g.location_geojson && g.location_geojson.coordinates) || [-124.0750, 40.8430];
+  const zoom = g.default_zoom || 19;
+
+  // Build style based on base layer choice.
+  const photoUrl = (g.base_layer === 'photo_calibrated' && g.photo_backdrop) ? (PB_URL + '/api/files/gardens/' + g.id + '/' + g.photo_backdrop) : null;
+  const photoCalib = (typeof g.photo_calibration === 'string') ? JSON.parse(g.photo_calibration) : g.photo_calibration;
+  const style = buildMapStyle(g.base_layer || 'satellite', g.drone_tiles_url, photoUrl, photoCalib, center);
+
+  state.map = new maplibregl.Map({
+    container: 'map', style, center, zoom,
+    minZoom: 0, maxZoom: 24,
+    attributionControl: true,
+    preserveDrawingBuffer: true,  // so toDataURL() works for "Print plan"
+  });
+  state.map.addControl(new maplibregl.NavigationControl({ visualizePitch: false }), 'top-right');
+  state.map.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: g.units === 'metric' ? 'metric' : 'imperial' }), 'bottom-right');
+
+  state.map.on('load', () => {
+    addObjectLayers();
+    renderObjects();
+    renderPlantings();
+  });
+  state.map.on('click', onMapClick);
+  // Double-click finishes a polygon/line draft instead of zooming.
+  state.map.on('dblclick', e => {
+    if (state.tool === 'polygon' || state.tool === 'line') {
+      e.preventDefault();
+      finishDraft();
+    }
+  });
+  // Disable double-click zoom while drawing.
+  state.map.doubleClickZoom.disable();
+}
+
+function buildMapStyle(baseLayer, droneUrl, photoUrl, photoCalib, anchor) {
+  const sources = {};
+  const layers = [];
+  if (baseLayer === 'satellite') {
+    sources.satellite = {
+      type: 'raster',
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      attribution: 'Imagery © Esri, Maxar, Earthstar Geographics',
+    };
+    layers.push({ id: 'satellite', type: 'raster', source: 'satellite' });
+  } else if (baseLayer === 'drone_ortho' && droneUrl) {
+    sources.drone = { type: 'raster', tiles: [droneUrl], tileSize: 256 };
+    layers.push({ id: 'drone', type: 'raster', source: 'drone' });
+  } else if (baseLayer === 'photo_calibrated' && photoUrl && photoCalib && anchor) {
+    // Place the image centered on the garden's anchor with dimensions from calibration.
+    const lat = anchor[1];
+    const widthM = photoCalib.widthM || 10;
+    const heightM = photoCalib.heightM || 10;
+    const halfWdeg = (widthM / 2) / (111320 * Math.cos(lat * Math.PI / 180));
+    const halfHdeg = (heightM / 2) / 111320;
+    const lng = anchor[0];
+    // ImageSource needs the four corners in NW, NE, SE, SW order.
+    sources.photo = {
+      type: 'image',
+      url: photoUrl,
+      coordinates: [
+        [lng - halfWdeg, lat + halfHdeg],
+        [lng + halfWdeg, lat + halfHdeg],
+        [lng + halfWdeg, lat - halfHdeg],
+        [lng - halfWdeg, lat - halfHdeg],
+      ],
+    };
+    layers.push({ id: 'photo', type: 'raster', source: 'photo', paint: { 'raster-opacity': 1 } });
+  }
+  // For 'blank', no base layer — the cream body shows through.
+  return {
+    version: 8,
+    sources,
+    layers,
+    glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+  };
+}
+
+// Layers for drawn objects + draft drawing.
+function addObjectLayers() {
+  const map = state.map;
+  if (map.getSource('objects')) return;
+  map.addSource('objects', { type: 'geojson', promoteId: 'id', data: { type: 'FeatureCollection', features: [] } });
+  map.addLayer({
+    id: 'objects-fill', type: 'fill', source: 'objects',
+    filter: ['==', ['geometry-type'], 'Polygon'],
+    paint: {
+      'fill-color': ['coalesce', ['get', 'color'], '#9bbd85'],
+      'fill-opacity': ['case', ['boolean', ['feature-state', 'selected'], false], 0.7, 0.42],
+    },
+  });
+  map.addLayer({
+    id: 'objects-outline', type: 'line', source: 'objects',
+    filter: ['==', ['geometry-type'], 'Polygon'],
+    paint: {
+      'line-color': ['case', ['boolean', ['feature-state', 'selected'], false], '#5a1230', ['coalesce', ['get', 'color'], '#5a7a5a']],
+      'line-width': ['case', ['boolean', ['feature-state', 'selected'], false], 3, 1.6],
+    },
+  });
+  map.addLayer({
+    id: 'objects-line', type: 'line', source: 'objects',
+    filter: ['==', ['geometry-type'], 'LineString'],
+    paint: {
+      'line-color': ['case', ['boolean', ['feature-state', 'selected'], false], '#5a1230', '#6b8f5e'],
+      'line-width': ['case', ['boolean', ['feature-state', 'selected'], false], 5, 3],
+    },
+  });
+  map.addLayer({
+    id: 'objects-point', type: 'circle', source: 'objects',
+    filter: ['==', ['geometry-type'], 'Point'],
+    paint: {
+      'circle-radius': ['case', ['boolean', ['feature-state', 'selected'], false], 10, 7],
+      'circle-color': ['coalesce', ['get', 'color'], '#9bbd85'],
+      'circle-stroke-color': '#5a1230',
+      'circle-stroke-width': ['case', ['boolean', ['feature-state', 'selected'], false], 3, 1.5],
+    },
+  });
+
+  // Vertex handles for editing the selected polygon/line/point.
+  map.addSource('vertices', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  map.addLayer({
+    id: 'vertices-handle', type: 'circle', source: 'vertices',
+    paint: {
+      'circle-radius': 6,
+      'circle-color': '#ffffff',
+      'circle-stroke-color': '#5a1230',
+      'circle-stroke-width': 2,
+    },
+  });
+
+  // Plantings — circle layer for each plant in a bed.
+  map.addSource('plantings', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  map.addLayer({
+    id: 'plantings-circle', type: 'circle', source: 'plantings',
+    paint: {
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 17, 3, 20, 6, 22, 10],
+      'circle-color': ['get', 'color'],
+      'circle-stroke-color': '#ffffff',
+      'circle-stroke-width': 1.5,
+    },
+  });
+  map.addLayer({
+    id: 'plantings-label', type: 'symbol', source: 'plantings',
+    minzoom: 19,
+    layout: {
+      'text-field': ['get', 'label'],
+      'text-size': 10,
+      'text-allow-overlap': false,
+      'text-anchor': 'center',
+    },
+    paint: {
+      'text-color': '#ffffff',
+      'text-halo-color': '#5a1230',
+      'text-halo-width': 1.2,
+    },
+  });
+
+  // Draft (in-progress drawing) layers.
+  map.addSource('draft', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  map.addLayer({ id: 'draft-line', type: 'line', source: 'draft',
+    paint: { 'line-color': '#c2557a', 'line-width': 2, 'line-dasharray': [2, 1] } });
+  map.addLayer({ id: 'draft-fill', type: 'fill', source: 'draft',
+    filter: ['==', ['geometry-type'], 'Polygon'],
+    paint: { 'fill-color': '#c2557a', 'fill-opacity': 0.25 } });
+  map.addLayer({ id: 'draft-points', type: 'circle', source: 'draft',
+    filter: ['==', ['geometry-type'], 'Point'],
+    paint: { 'circle-radius': 5, 'circle-color': '#c2557a', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } });
+
+  // Click on an object → select it, OR drop pending plant into it.
+  ['objects-fill', 'objects-line', 'objects-point'].forEach(layerId => {
+    map.on('click', layerId, e => {
+      e.originalEvent._handled = true;
+      const f = e.features[0];
+      const obj = state.objects.find(o => o.id === f.properties.id);
+      if (!obj) return;
+      if (state.tool === 'plant' && state.pendingPlant) {
+        plantInObject(obj, state.pendingPlant);
+        return;
+      }
+      if (state.tool !== 'select') return;
+      selectObject(obj.id);
+    });
+    map.on('mouseenter', layerId, () => { if (state.tool === 'select') map.getCanvas().style.cursor = 'pointer'; });
+    map.on('mouseleave', layerId, () => { map.getCanvas().style.cursor = ''; });
+  });
+
+  // Click a planting circle → popup with plant info + harvest/remove.
+  map.on('click', 'plantings-circle', e => {
+    if (state.tool !== 'select') return;
+    e.originalEvent._handled = true;
+    const f = e.features[0];
+    const p = f.properties;
+    const date = (p.planted_date || '').slice(0, 10);
+    const html = `
+      <div style="font-family: var(--font-body); color: var(--plum); min-width: 180px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span style="width:14px;height:14px;border-radius:50%;background:${p.color};border:1px solid #ccc"></span>
+          <strong>${p.plant_name}</strong>
+        </div>
+        <div style="font-size:0.78rem;color:var(--gray-600);margin-bottom:8px">
+          ${p.quantity ? p.quantity + ' planted' : ''}${date ? ' · ' + date : ''}
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm" style="padding:4px 8px;font-size:0.74rem" onclick="openHarvestModal('${p.planting_id}'); document.querySelectorAll('.maplibregl-popup').forEach(p=>p.remove())">+ Harvest</button>
+          <button class="ghost-btn btn-sm" style="padding:4px 8px;font-size:0.74rem;background:transparent;border:1px solid var(--gray-200)" onclick="removePlanting('${p.planting_id}'); document.querySelectorAll('.maplibregl-popup').forEach(p=>p.remove())">Remove</button>
+        </div>
+      </div>
+    `;
+    new maplibregl.Popup({ closeOnClick: true, maxWidth: '300px' })
+      .setLngLat(e.lngLat)
+      .setHTML(html)
+      .addTo(state.map);
+  });
+  map.on('mouseenter', 'plantings-circle', () => { if (state.tool === 'select') map.getCanvas().style.cursor = 'pointer'; });
+  map.on('mouseleave', 'plantings-circle', () => { map.getCanvas().style.cursor = ''; });
+
+  // ============ Drag / vertex editing ============
+  // Drag a vertex handle to reshape the selected polygon/line/point.
+  // Drag inside the body of a selected polygon/line/point to move it.
+  let drag = null;
+
+  map.on('mousedown', 'vertices-handle', e => {
+    if (state.tool !== 'select') return;
+    e.preventDefault();
+    const f = e.features[0];
+    drag = {
+      type: 'vertex',
+      objectId: f.properties.object_id,
+      vertexIndex: f.properties.vertex_index,
+      ringIndex: f.properties.ring_index || 0,
+      startLngLat: e.lngLat,
+      lastLngLat: e.lngLat,
+    };
+    map.dragPan.disable();
+    map.getCanvas().style.cursor = 'grabbing';
+  });
+  map.on('mouseenter', 'vertices-handle', () => { map.getCanvas().style.cursor = 'grab'; });
+  map.on('mouseleave', 'vertices-handle', () => { if (!drag) map.getCanvas().style.cursor = ''; });
+
+  // Body-drag for selected objects. Listen on objects-fill / objects-line / objects-point.
+  ['objects-fill', 'objects-line', 'objects-point'].forEach(layerId => {
+    map.on('mousedown', layerId, e => {
+      if (state.tool !== 'select') return;
+      if (drag) return;
+      const f = e.features[0];
+      if (!f || f.properties.id !== state.selectedObjectId) return;  // only drag the selected
+      e.preventDefault();
+      drag = {
+        type: 'body',
+        objectId: f.properties.id,
+        startLngLat: e.lngLat,
+        lastLngLat: e.lngLat,
+      };
+      map.dragPan.disable();
+      map.getCanvas().style.cursor = 'grabbing';
+    });
+  });
+
+  map.on('mousemove', e => {
+    if (!drag) return;
+    const obj = state.objects.find(o => o.id === drag.objectId);
+    if (!obj) { drag = null; map.dragPan.enable(); return; }
+    if (drag.type === 'vertex') {
+      applyVertexMove(obj, drag, e.lngLat);
+    } else if (drag.type === 'body') {
+      applyBodyMove(obj, drag, e.lngLat);
+    }
+    drag.lastLngLat = e.lngLat;
+    renderObjects();
+    if (obj.id === state.selectedObjectId) renderVertices(obj);
+  });
+
+  map.on('mouseup', async () => {
+    if (!drag) return;
+    const objectId = drag.objectId;
+    drag = null;
+    map.dragPan.enable();
+    map.getCanvas().style.cursor = '';
+    const obj = state.objects.find(o => o.id === objectId);
+    if (!obj) return;
+    // Recompute area from new shape.
+    if (obj.shape_geojson && obj.shape_geojson.type === 'Polygon') {
+      obj.area_sqft = estimateAreaSqft(obj.shape_geojson);
+    }
+    try {
+      const r = await pb('PATCH', '/api/collections/garden_objects/records/' + objectId, {
+        shape_geojson: obj.shape_geojson,
+        area_sqft: obj.area_sqft || null,
+      });
+      const idx = state.objects.findIndex(o => o.id === objectId);
+      if (idx >= 0) state.objects[idx] = r;
+      // Update the panel's area display if open.
+      if (state.selectedObjectId === objectId) {
+        const area = r.area_sqft || estimateAreaSqft(r.shape_geojson);
+        document.getElementById('rp-area').textContent = area ? area.toFixed(1) + ' sq ft' : '—';
+      }
+    } catch (err) { toast('Save failed: ' + err.message); }
+  });
+}
+
+function applyVertexMove(obj, drag, lngLat) {
+  const geom = obj.shape_geojson;
+  if (!geom) return;
+  if (geom.type === 'Polygon') {
+    const ring = geom.coordinates[drag.ringIndex];
+    ring[drag.vertexIndex] = [lngLat.lng, lngLat.lat];
+    // Polygons are closed — if dragging first vertex, also update the last duplicate.
+    if (drag.vertexIndex === 0) ring[ring.length - 1] = [lngLat.lng, lngLat.lat];
+  } else if (geom.type === 'LineString') {
+    geom.coordinates[drag.vertexIndex] = [lngLat.lng, lngLat.lat];
+  } else if (geom.type === 'Point') {
+    geom.coordinates = [lngLat.lng, lngLat.lat];
+  }
+}
+
+function applyBodyMove(obj, drag, lngLat) {
+  const dLng = lngLat.lng - drag.lastLngLat.lng;
+  const dLat = lngLat.lat - drag.lastLngLat.lat;
+  const geom = obj.shape_geojson;
+  if (!geom) return;
+  function shiftCoord(c) { return [c[0] + dLng, c[1] + dLat]; }
+  if (geom.type === 'Polygon') {
+    geom.coordinates = geom.coordinates.map(ring => ring.map(shiftCoord));
+  } else if (geom.type === 'LineString') {
+    geom.coordinates = geom.coordinates.map(shiftCoord);
+  } else if (geom.type === 'Point') {
+    geom.coordinates = shiftCoord(geom.coordinates);
+  }
+}
+
+function renderVertices(obj) {
+  if (!state.map) return;
+  const src = state.map.getSource('vertices');
+  if (!src) return;
+  if (!obj) { src.setData({ type: 'FeatureCollection', features: [] }); return; }
+  const geom = obj.shape_geojson;
+  if (!geom) return;
+  const features = [];
+  if (geom.type === 'Polygon') {
+    geom.coordinates.forEach((ring, ringIdx) => {
+      // Skip the duplicate last vertex.
+      for (let i = 0; i < ring.length - 1; i++) {
+        features.push({
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: ring[i] },
+          properties: { object_id: obj.id, ring_index: ringIdx, vertex_index: i },
+        });
+      }
+    });
+  } else if (geom.type === 'LineString') {
+    geom.coordinates.forEach((c, i) => {
+      features.push({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: c },
+        properties: { object_id: obj.id, ring_index: 0, vertex_index: i },
+      });
+    });
+  } else if (geom.type === 'Point') {
+    features.push({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: geom.coordinates },
+      properties: { object_id: obj.id, ring_index: 0, vertex_index: 0 },
+    });
+  }
+  src.setData({ type: 'FeatureCollection', features });
+}
+
+function renderObjects() {
+  const features = state.objects.map(o => {
+    const g = typeof o.shape_geojson === 'string' ? JSON.parse(o.shape_geojson) : o.shape_geojson;
+    return {
+      type: 'Feature',
+      geometry: g,
+      properties: { id: o.id, name: o.name, type: o.type, color: o.fill_color || '#9bbd85' },
+    };
+  }).filter(f => f.geometry);
+  const src = state.map.getSource('objects');
+  if (src) src.setData({ type: 'FeatureCollection', features });
+}
+
+// ---------- Drawing ----------
+function setTool(name) {
+  state.tool = name;
+  document.querySelectorAll('.tool').forEach(b => b.classList.toggle('active', b.dataset.tool === name));
+  state.drawingPoints = [];
+  state.pendingTemplate = null;
+  document.querySelectorAll('.tpl').forEach(t => t.classList.remove('active'));
+  updateDraft();
+  if (name === 'select') {
+    hint('');
+  } else if (name === 'polygon') {
+    hint('Click to add points. Double-click or press Enter to finish. Esc to cancel.');
+  } else if (name === 'line') {
+    hint('Click to add points. Double-click or press Enter to finish. Esc to cancel.');
+  } else if (name === 'point') {
+    hint('Click on the map to drop a pin.');
+  }
+}
+
+function selectTemplate(tplId) {
+  state.pendingTemplate = state.templates.find(t => t.id === tplId);
+  document.querySelectorAll('.tpl').forEach(t => t.classList.toggle('active', t.dataset.tpl === tplId));
+  setTool('select');  // ensure not in drawing mode
+  state.tool = 'template';
+  hint(`Click on the map to drop a ${state.pendingTemplate.name}.`);
+}
+
+function onMapClick(e) {
+  // Template drop
+  if (state.tool === 'template' && state.pendingTemplate) {
+    const tpl = state.pendingTemplate;
+    const geom = templateToGeoJSON(tpl, e.lngLat);
+    createObject({
+      garden_id: state.currentGarden.id,
+      name: tpl.name,
+      type: 'raised_bed',
+      shape_geojson: geom,
+      template_id: tpl.id,
+      length_ft: tpl.length_ft,
+      width_ft: tpl.width_ft,
+      depth_in: tpl.depth_in,
+      area_sqft: tpl.length_ft * tpl.width_ft,
+      fill_color: tpl.fill_color || '#9bbd85',
+    });
+    state.pendingTemplate = null;
+    document.querySelectorAll('.tpl').forEach(t => t.classList.remove('active'));
+    setTool('select');
+    return;
+  }
+
+  if (e.originalEvent._handled) return;  // selection click handled by layer
+
+  if (state.tool === 'point') {
+    createObject({
+      garden_id: state.currentGarden.id,
+      name: 'New tree/marker',
+      type: 'tree',
+      shape_geojson: { type: 'Point', coordinates: [e.lngLat.lng, e.lngLat.lat] },
+      fill_color: '#c9873a',
+    });
+    setTool('select');
+    return;
+  }
+
+  if (state.tool === 'polygon' || state.tool === 'line') {
+    state.drawingPoints.push([e.lngLat.lng, e.lngLat.lat]);
+    updateDraft();
+  }
+
+  if (state.tool === 'select') {
+    // Empty-space click → deselect
+    closeObjectPanel();
+  }
+}
+
+function updateDraft() {
+  if (!state.map) return;
+  const src = state.map.getSource('draft');
+  if (!src) return;
+  const features = [];
+  const pts = state.drawingPoints;
+  if (pts.length) {
+    features.push({ type: 'Feature', geometry: { type: 'MultiPoint', coordinates: pts.slice() }, properties: {} });
+    if (state.tool === 'polygon' && pts.length >= 3) {
+      features.push({ type: 'Feature', geometry: { type: 'Polygon', coordinates: [[...pts, pts[0]]] }, properties: {} });
+    } else if (pts.length >= 2) {
+      features.push({ type: 'Feature', geometry: { type: 'LineString', coordinates: pts.slice() }, properties: {} });
+    }
+  }
+  src.setData({ type: 'FeatureCollection', features });
+}
+
+function finishDraft() {
+  const pts = state.drawingPoints;
+  if (state.tool === 'polygon' && pts.length >= 3) {
+    createObject({
+      garden_id: state.currentGarden.id,
+      name: 'New bed',
+      type: 'in_ground_bed',
+      shape_geojson: { type: 'Polygon', coordinates: [[...pts, pts[0]]] },
+      fill_color: '#9bbd85',
+    });
+  } else if (state.tool === 'line' && pts.length >= 2) {
+    createObject({
+      garden_id: state.currentGarden.id,
+      name: 'New row/path',
+      type: 'in_ground_row',
+      shape_geojson: { type: 'LineString', coordinates: pts.slice() },
+      fill_color: '#6b8f5e',
+    });
+  }
+  state.drawingPoints = [];
+  updateDraft();
+  setTool('select');
+}
+
+function cancelDraft() {
+  state.drawingPoints = [];
+  updateDraft();
+  setTool('select');
+}
+
+// Listen for finish + cancel keys + map double-click.
+document.addEventListener('keydown', e => {
+  if (state.currentGarden && document.getElementById('detail-view').style.display !== 'none') {
+    // Don't intercept while user is typing in a search/input.
+    const tag = (e.target && e.target.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    if (e.key === 'Enter') { finishDraft(); }
+    else if (e.key === 'Escape') {
+      if (state.pendingPlant) { state.pendingPlant = null; state.tool = 'select'; document.querySelectorAll('.plant-row').forEach(r => r.classList.remove('active')); hint(''); }
+      else cancelDraft();
+    }
+    else if (e.key === 'v') { setTool('select'); }
+    else if (e.key === 'p') { setTool('polygon'); }
+    else if (e.key === 'l') { setTool('line'); }
+    else if (e.key === 't') { setTool('point'); }
+  }
+});
+
+// ---------- Template → GeoJSON in real coords ----------
+// templates store normalized geometry in feet centered at (0,0).
+// We translate to the drop lat/lng, converting feet to degrees at this latitude.
+function templateToGeoJSON(tpl, lngLat) {
+  const normalized = typeof tpl.normalized_geojson === 'string' ? JSON.parse(tpl.normalized_geojson) : tpl.normalized_geojson;
+  if (!normalized) return null;
+  const lat = lngLat.lat, lng = lngLat.lng;
+  // 1 ft ≈ 0.3048 m. 1° latitude ≈ 111320 m. 1° longitude ≈ 111320 * cos(lat) m.
+  const ftToDegLat = 0.3048 / 111320;
+  const ftToDegLng = 0.3048 / (111320 * Math.cos(lat * Math.PI / 180));
+  function transform(coord) { return [lng + coord[0] * ftToDegLng, lat + coord[1] * ftToDegLat]; }
+  if (normalized.type === 'Polygon') {
+    return { type: 'Polygon', coordinates: normalized.coordinates.map(ring => ring.map(transform)) };
+  } else if (normalized.type === 'MultiPolygon') {
+    return { type: 'MultiPolygon', coordinates: normalized.coordinates.map(poly => poly.map(ring => ring.map(transform))) };
+  }
+  return null;
+}
+
+// ---------- Object CRUD ----------
+async function createObject(payload) {
+  const body = Object.assign({}, payload, {
+    shape_geojson: payload.shape_geojson,
+    created: new Date().toISOString(),
+  });
+  try {
+    const r = await pb('POST', '/api/collections/garden_objects/records', body);
+    state.objects.push(r);
+    renderObjects();
+    toast('Added');
+    selectObject(r.id);
+  } catch (err) { toast('Save failed: ' + err.message); }
+}
+
+function selectObject(id) {
+  // Clear previous selection, then mark this one — promoteId on the source
+  // makes feature-state lookups work by the object's PB id.
+  if (state.selectedObjectId) {
+    state.map.setFeatureState({ source: 'objects', id: state.selectedObjectId }, { selected: false });
+  }
+  state.selectedObjectId = id;
+  state.map.setFeatureState({ source: 'objects', id }, { selected: true });
+  const obj = state.objects.find(o => o.id === id);
+  if (!obj) return;
+  renderVertices(obj);
+  openObjectPanel(obj);
+}
+
+function openObjectPanel(obj) {
+  const p = document.getElementById('right-panel');
+  p.style.display = 'block';
+  document.getElementById('rp-title').textContent = obj.name || obj.type.replace(/_/g, ' ');
+  document.getElementById('rp-name').value = obj.name || '';
+  document.getElementById('rp-type').value = obj.type || 'raised_bed';
+  document.getElementById('rp-sun').value = obj.sun_exposure || '';
+  document.getElementById('rp-irrigation').value = obj.irrigation || '';
+  document.getElementById('rp-depth').value = obj.depth_in || '';
+  document.getElementById('rp-notes').value = obj.notes || '';
+  const area = obj.area_sqft || estimateAreaSqft(obj.shape_geojson);
+  document.getElementById('rp-area').textContent = area ? area.toFixed(1) + ' sq ft' : '—';
+  // List plantings in this object with harvest totals + harvest button.
+  const here = state.plantings.filter(pt => pt.garden_object_id === obj.id);
+  const el = document.getElementById('rp-plantings');
+  if (!here.length) {
+    el.innerHTML = '<span style="color:var(--gray-600)">No plantings yet — click a plant from the catalog to drop one in.</span>';
+  } else {
+    el.innerHTML = here.map(pt => {
+      const plant = state.plants.find(p => p.id === pt.plant_id);
+      const name = plant ? plant.common_name : '(unknown)';
+      const color = (plant && plant.color_hex) || '#9bbd85';
+      const date = (pt.planted_date || '').slice(0, 10);
+      // Sum harvests for this planting.
+      const harvests = state.harvests.filter(h => h.planting_id === pt.id);
+      const byUnit = {};
+      for (const h of harvests) {
+        if (!h.quantity) continue;
+        byUnit[h.units || 'each'] = (byUnit[h.units || 'each'] || 0) + Number(h.quantity);
+      }
+      const harvestStr = Object.entries(byUnit).map(([u, q]) => `${q.toFixed(1)} ${u}`).join(', ');
+      return `<div style="display:flex;align-items:center;gap:8px;margin:4px 0">
+        <span style="width:10px;height:10px;border-radius:50%;background:${color};border:1px solid var(--gray-200);flex:0 0 auto"></span>
+        <span style="flex:1">${escapeHtml(name)} <span style="color:var(--gray-600);font-size:0.78rem">× ${pt.quantity || 0}${date ? ' · ' + date : ''}${harvestStr ? ' · harvested ' + harvestStr : ''}</span></span>
+        <button class="ghost-btn btn-sm" style="padding:2px 6px;font-size:0.7rem" title="Log harvest" onclick="openHarvestModal('${pt.id}')">+ Harvest</button>
+        <button class="ghost-btn btn-sm" style="padding:2px 6px;font-size:0.7rem" onclick="removePlanting('${pt.id}')">Remove</button>
+      </div>`;
+    }).join('');
+  }
+  // Recent care events for this object.
+  const events = state.careEvents.filter(ce => ce.garden_object_id === obj.id).slice(0, 6);
+  const careEl = document.getElementById('rp-care');
+  if (!events.length) {
+    careEl.innerHTML = '<span style="color:var(--gray-600)">No care events yet — log fertilize/water/observe/etc.</span>';
+  } else {
+    careEl.innerHTML = events.map(ce => {
+      const date = (ce.event_date || '').slice(0, 10);
+      const type = (ce.event_type || '').replace(/_/g, ' ');
+      const prod = ce.product_used ? ` · ${escapeHtml(ce.product_used)}` : '';
+      const qty = ce.quantity ? ` (${ce.quantity}${ce.units ? ' ' + ce.units : ''})` : '';
+      const notes = ce.notes ? ` — ${escapeHtml(ce.notes.slice(0, 50))}${ce.notes.length > 50 ? '…' : ''}` : '';
+      const photoThumbs = (ce.photos && ce.photos.length)
+        ? '<div style="display:flex;gap:3px;margin-top:3px">' + ce.photos.slice(0, 4).map(fn =>
+            `<img src="${PB_URL}/api/files/care_events/${ce.id}/${fn}?thumb=100x100" style="width:34px;height:34px;object-fit:cover;border-radius:4px;border:1px solid var(--gray-200);cursor:pointer" onclick="window.open('${PB_URL}/api/files/care_events/${ce.id}/${fn}','_blank')">`
+          ).join('') + '</div>'
+        : '';
+      return `<div style="margin:5px 0;font-size:0.8rem;padding:4px 0;border-top:1px dashed var(--gray-100)">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="color:var(--gray-600);font-size:0.72rem;min-width:62px">${date}</span>
+          <span style="flex:1"><strong>${type}</strong>${prod}${qty}${notes}</span>
+          <button class="ghost-btn btn-sm" style="padding:1px 5px;font-size:0.68rem" onclick="openCareModal('${ce.id}')">Edit</button>
+        </div>
+        ${photoThumbs}
+      </div>`;
+    }).join('');
+  }
+}
+
+// ---------- Care events ----------
+function openCareModal(id) {
+  const ce = id ? state.careEvents.find(x => x.id === id) : null;
+  const objId = state.selectedObjectId || '';
+  document.getElementById('ce-id').value = ce ? ce.id : '';
+  document.getElementById('ce-object-id').value = ce?.garden_object_id || objId;
+  document.getElementById('ce-planting-id').value = ce?.planting_id || '';
+  document.getElementById('ce-date').value = (ce?.event_date || new Date().toISOString()).slice(0, 10);
+  document.getElementById('ce-type').value = ce?.event_type || 'water';
+  document.getElementById('ce-product').value = ce?.product_used || '';
+  document.getElementById('ce-qty').value = ce?.quantity ?? '';
+  document.getElementById('ce-units').value = ce?.units || '';
+  document.getElementById('ce-notes').value = ce?.notes || '';
+  document.getElementById('ce-photos').value = ce?.photo_urls || '';
+  document.getElementById('ce-photo-files').value = '';  // reset file picker
+  document.getElementById('ce-delete').style.display = ce ? '' : 'none';
+  // Show existing uploaded photo thumbnails.
+  const existingEl = document.getElementById('ce-existing-photos');
+  if (ce && ce.photos && ce.photos.length) {
+    existingEl.innerHTML = ce.photos.map(fn => {
+      const url = PB_URL + '/api/files/care_events/' + ce.id + '/' + fn + '?thumb=100x100';
+      return `<div style="position:relative">
+        <img src="${url}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--gray-200)">
+      </div>`;
+    }).join('');
+  } else {
+    existingEl.innerHTML = '';
+  }
+  document.querySelectorAll('#care-modal .pf-chip').forEach(c => c.classList.toggle('active', c.dataset.cetype === (ce?.event_type || 'water')));
+  document.getElementById('care-modal').classList.add('open');
+}
+
+async function saveCareEvent() {
+  const id = document.getElementById('ce-id').value;
+  if (!state.currentGarden) return;
+  const eventDate = document.getElementById('ce-date').value;
+  const eventType = document.getElementById('ce-type').value;
+  if (!eventDate || !eventType) { toast('Date + type required'); return; }
+  const files = document.getElementById('ce-photo-files').files;
+
+  // If we have file uploads, use multipart/form-data; otherwise plain JSON for speed.
+  try {
+    let r;
+    if (files && files.length) {
+      const fd = new FormData();
+      fd.append('garden_id', state.currentGarden.id);
+      const objId = document.getElementById('ce-object-id').value;
+      if (objId) fd.append('garden_object_id', objId);
+      const ptId = document.getElementById('ce-planting-id').value;
+      if (ptId) fd.append('planting_id', ptId);
+      fd.append('event_date', eventDate);
+      fd.append('event_type', eventType);
+      fd.append('product_used', document.getElementById('ce-product').value.trim());
+      const qty = parseFloat(document.getElementById('ce-qty').value);
+      if (!isNaN(qty)) fd.append('quantity', qty);
+      fd.append('units', document.getElementById('ce-units').value.trim());
+      fd.append('notes', document.getElementById('ce-notes').value.trim());
+      fd.append('photo_urls', document.getElementById('ce-photos').value.trim());
+      if (!id) fd.append('created', new Date().toISOString());
+      for (const f of files) fd.append('photos', f);
+      const url = id
+        ? (PB_URL + '/api/collections/care_events/records/' + id)
+        : (PB_URL + '/api/collections/care_events/records');
+      const resp = await fetch(url, {
+        method: id ? 'PATCH' : 'POST',
+        headers: PB_TOKEN ? { 'Authorization': 'Bearer ' + PB_TOKEN } : {},
+        body: fd,
+      });
+      if (!resp.ok) {
+        const text = await resp.text().catch(() => '');
+        throw new Error('PB ' + resp.status + ': ' + text);
+      }
+      r = await resp.json();
+    } else {
+      const body = {
+        garden_id: state.currentGarden.id,
+        garden_object_id: document.getElementById('ce-object-id').value || null,
+        planting_id: document.getElementById('ce-planting-id').value || null,
+        event_date: eventDate,
+        event_type: eventType,
+        product_used: document.getElementById('ce-product').value.trim(),
+        quantity: parseFloat(document.getElementById('ce-qty').value) || null,
+        units: document.getElementById('ce-units').value.trim(),
+        notes: document.getElementById('ce-notes').value.trim(),
+        photo_urls: document.getElementById('ce-photos').value.trim(),
+      };
+      if (!id) body.created = new Date().toISOString();
+      if (id) r = await pb('PATCH', '/api/collections/care_events/records/' + id, body);
+      else    r = await pb('POST',  '/api/collections/care_events/records', body);
+    }
+    const idx = state.careEvents.findIndex(x => x.id === r.id);
+    if (idx >= 0) state.careEvents[idx] = r; else state.careEvents.unshift(r);
+    closeModal('care-modal');
+    refreshObjectPanelCare();
+    toast('Logged');
+  } catch (err) { toast('Save failed: ' + err.message); }
+}
+
+async function deleteCareEvent() {
+  const id = document.getElementById('ce-id').value;
+  if (!id) return;
+  if (!confirm('Delete this care event?')) return;
+  try {
+    await pb('DELETE', '/api/collections/care_events/records/' + id);
+    state.careEvents = state.careEvents.filter(x => x.id !== id);
+    closeModal('care-modal');
+    refreshObjectPanelCare();
+    toast('Deleted');
+  } catch (err) { toast('Delete failed: ' + err.message); }
+}
+
+function refreshObjectPanelCare() {
+  if (!state.selectedObjectId) return;
+  const obj = state.objects.find(o => o.id === state.selectedObjectId);
+  if (obj) openObjectPanel(obj);
+}
+
+// Quick-select chip handler for care modal.
+document.querySelectorAll('#care-modal .pf-chip').forEach(c => {
+  c.addEventListener('click', () => {
+    document.querySelectorAll('#care-modal .pf-chip').forEach(x => x.classList.remove('active'));
+    c.classList.add('active');
+    document.getElementById('ce-type').value = c.dataset.cetype;
+  });
+});
+
+// ---------- Harvests ----------
+function openHarvestModal(plantingId, id) {
+  const hv = id ? state.harvests.find(x => x.id === id) : null;
+  document.getElementById('hv-id').value = hv ? hv.id : '';
+  document.getElementById('hv-planting-id').value = hv?.planting_id || plantingId || '';
+  document.getElementById('hv-date').value = (hv?.harvest_date || new Date().toISOString()).slice(0, 10);
+  document.getElementById('hv-qty').value = hv?.quantity ?? '';
+  document.getElementById('hv-units').value = hv?.units || 'lbs';
+  document.getElementById('hv-notes').value = hv?.notes || '';
+  document.getElementById('hv-delete').style.display = hv ? '' : 'none';
+  document.getElementById('harvest-modal').classList.add('open');
+}
+
+async function saveHarvest() {
+  const id = document.getElementById('hv-id').value;
+  const body = {
+    planting_id: document.getElementById('hv-planting-id').value,
+    garden_id: state.currentGarden ? state.currentGarden.id : '',
+    harvest_date: document.getElementById('hv-date').value,
+    quantity: parseFloat(document.getElementById('hv-qty').value) || 0,
+    units: document.getElementById('hv-units').value,
+    notes: document.getElementById('hv-notes').value.trim(),
+  };
+  if (!body.planting_id || !body.harvest_date) { toast('Planting + date required'); return; }
+  if (!id) body.created = new Date().toISOString();
+  try {
+    let r;
+    if (id) r = await pb('PATCH', '/api/collections/harvests/records/' + id, body);
+    else    r = await pb('POST',  '/api/collections/harvests/records', body);
+    const idx = state.harvests.findIndex(x => x.id === r.id);
+    if (idx >= 0) state.harvests[idx] = r; else state.harvests.unshift(r);
+    closeModal('harvest-modal');
+    refreshObjectPanelCare();  // re-renders plantings list with harvest totals
+    toast('Logged');
+  } catch (err) { toast('Save failed: ' + err.message); }
+}
+
+async function deleteHarvest() {
+  const id = document.getElementById('hv-id').value;
+  if (!id) return;
+  if (!confirm('Delete this harvest?')) return;
+  try {
+    await pb('DELETE', '/api/collections/harvests/records/' + id);
+    state.harvests = state.harvests.filter(x => x.id !== id);
+    closeModal('harvest-modal');
+    refreshObjectPanelCare();
+    toast('Deleted');
+  } catch (err) { toast('Delete failed: ' + err.message); }
+}
+
+async function removePlanting(plantingId) {
+  if (!confirm('Remove this planting?')) return;
+  try {
+    await pb('DELETE', '/api/collections/plantings/records/' + plantingId);
+    state.plantings = state.plantings.filter(p => p.id !== plantingId);
+    renderPlantings();
+    // Re-render the object panel if it's open.
+    if (state.selectedObjectId) {
+      const obj = state.objects.find(o => o.id === state.selectedObjectId);
+      if (obj) openObjectPanel(obj);
+    }
+    toast('Removed');
+  } catch (err) { toast('Remove failed: ' + err.message); }
+}
+
+function closeObjectPanel() {
+  document.getElementById('right-panel').style.display = 'none';
+  if (state.selectedObjectId && state.map) {
+    state.map.setFeatureState({ source: 'objects', id: state.selectedObjectId }, { selected: false });
+    renderVertices(null);
+  }
+  state.selectedObjectId = null;
+}
+
+async function saveSelectedObject() {
+  if (!state.selectedObjectId) return;
+  const body = {
+    name: document.getElementById('rp-name').value.trim(),
+    type: document.getElementById('rp-type').value,
+    sun_exposure: document.getElementById('rp-sun').value || null,
+    irrigation: document.getElementById('rp-irrigation').value || null,
+    depth_in: parseInt(document.getElementById('rp-depth').value, 10) || null,
+    notes: document.getElementById('rp-notes').value.trim(),
+  };
+  try {
+    const r = await pb('PATCH', '/api/collections/garden_objects/records/' + state.selectedObjectId, body);
+    const idx = state.objects.findIndex(o => o.id === state.selectedObjectId);
+    if (idx >= 0) state.objects[idx] = r;
+    renderObjects();
+    toast('Saved');
+  } catch (err) { toast('Save failed: ' + err.message); }
+}
+
+async function deleteSelected() {
+  if (!state.selectedObjectId) { toast('Select an object first'); return; }
+  if (!confirm('Delete this object?')) return;
+  try {
+    await pb('DELETE', '/api/collections/garden_objects/records/' + state.selectedObjectId);
+    state.objects = state.objects.filter(o => o.id !== state.selectedObjectId);
+    renderObjects();
+    closeObjectPanel();
+    toast('Deleted');
+  } catch (err) { toast('Delete failed: ' + err.message); }
+}
+
+// ---------- Plant catalog ----------
+function togglePlantPanel() {
+  const p = document.getElementById('plant-panel');
+  p.classList.toggle('open');
+  document.querySelectorAll('.tool[data-tool="plants"]').forEach(b => b.classList.toggle('active', p.classList.contains('open')));
+  if (p.classList.contains('open')) renderPlantList();
+}
+
+function renderPlantList() {
+  const search = (state.plantSearch || '').toLowerCase();
+  const f = state.plantFilter;
+  const rows = state.plants.filter(p => {
+    if (search) {
+      const hay = ((p.common_name||'') + ' ' + (p.scientific_name||'')).toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    if (f === 'edible') return p.food_perennial || ['perennial_veg','herb','tuber','allium','rare_fruit','rare_nut'].includes(p.category);
+    if (f === 'perennial') return p.lifecycle === 'perennial' || p.lifecycle === 'tender_perennial';
+    if (f === 'annual') return p.lifecycle === 'annual';
+    if (f === 'native') return !!p.ca_native;
+    if (f === 'rare') return !!p.collector_layer;
+    return true;
+  });
+  const el = document.getElementById('plant-list');
+  if (!rows.length) {
+    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--gray-600);font-size:0.85rem">No plants match.</div>';
+    return;
+  }
+  el.innerHTML = rows.map(p => {
+    const tags = [];
+    if (p.ca_native) tags.push('native');
+    if (p.food_perennial) tags.push('edible');
+    if (p.collector_layer) tags.push('rare');
+    if (p.frost_tender) tags.push('frost-tender');
+    const tagHtml = tags.map(t => `<span class="pr-tag">${t}</span>`).join('');
+    const dtm = (p.days_to_maturity_min && p.days_to_maturity_max) ? `${p.days_to_maturity_min}–${p.days_to_maturity_max}d` : '';
+    const sp = p.plant_spacing_cm ? Math.round(p.plant_spacing_cm / 2.54) + '"' : '';
+    const sun = (p.sun_requirement || '').replace(/_/g, ' ');
+    const meta = [dtm, sp, sun].filter(Boolean).join(' · ');
+    return `<div class="plant-row" data-plant="${p.id}" onclick="selectPlant('${p.id}')">
+      <div class="pr-swatch" style="background:${p.color_hex || '#9bbd85'}"></div>
+      <div class="pr-text">
+        <div class="pr-name">${escapeHtml(p.common_name || '')}</div>
+        <div class="pr-meta">${escapeHtml(meta)}</div>
+        ${tagHtml ? '<div class="pr-tags">' + tagHtml + '</div>' : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectPlant(plantId) {
+  // Single click → open detail modal. Detail modal has "Plant in a bed" button to enter drop mode.
+  // This avoids accidental plant-drop on first click.
+  openPlantDetail(plantId);
+}
+
+function openPlantDetail(plantId) {
+  const p = state.plants.find(x => x.id === plantId);
+  if (!p) return;
+  state._detailPlantId = plantId;
+  document.getElementById('pd-name').textContent = p.common_name || '';
+  document.getElementById('pd-sci').textContent = p.scientific_name ? p.scientific_name + (p.cultivar ? " '" + p.cultivar + "'" : '') : '';
+  document.getElementById('pd-swatch').style.background = p.color_hex || '#9bbd85';
+  // Tags
+  const tags = [];
+  if (p.ca_native) tags.push('CA native');
+  if (p.food_perennial) tags.push('edible');
+  if (p.collector_layer) tags.push('rare');
+  if (p.install_layer) tags.push('install staple');
+  if (p.frost_tender) tags.push('frost-tender');
+  if (p.lifecycle) tags.push(p.lifecycle.replace(/_/g, ' '));
+  if (p.invasive_risk && p.invasive_risk !== 'none') tags.push(p.invasive_risk + ' invasive');
+  document.getElementById('pd-tags').innerHTML = tags.map(t => `<span class="pr-tag">${escapeHtml(t)}</span>`).join('');
+  // Quick-grid spec table.
+  const cells = [];
+  function cell(lbl, val) { if (val !== undefined && val !== null && val !== '') cells.push(`<div><div style="font-size:0.66rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.5px">${lbl}</div><div style="font-weight:600;font-size:0.92rem">${val}</div></div>`); }
+  cell('Category', p.category ? p.category.replace(/_/g, ' ') : '');
+  cell('Family', p.family);
+  cell('Sun', p.sun_requirement ? p.sun_requirement.replace(/_/g, ' ') : '');
+  cell('Water', p.water_requirement);
+  if (p.usda_zone_min && p.usda_zone_max) cell('USDA zones', p.usda_zone_min + ' – ' + p.usda_zone_max);
+  if (p.days_to_maturity_min && p.days_to_maturity_max) cell('Days to maturity', p.days_to_maturity_min + ' – ' + p.days_to_maturity_max);
+  if (p.plant_spacing_cm) cell('Spacing', Math.round(p.plant_spacing_cm / 2.54) + '" / ' + p.plant_spacing_cm + 'cm');
+  if (p.plants_per_sqft) cell('Plants / sq ft', p.plants_per_sqft);
+  if (p.mature_height_cm) cell('Mature height', Math.round(p.mature_height_cm / 30.48 * 10) / 10 + ' ft');
+  if (p.mature_width_cm) cell('Mature width', Math.round(p.mature_width_cm / 30.48 * 10) / 10 + ' ft');
+  document.getElementById('pd-grid').innerHTML = cells.join('');
+  document.getElementById('pd-desc').textContent = p.description || '';
+  // Climate notes
+  let climate = '';
+  if (p.climate_notes) climate += p.climate_notes;
+  document.getElementById('pd-climate').textContent = climate;
+  document.getElementById('pd-climate').style.display = climate ? '' : 'none';
+  // Timing relative to current garden's last frost.
+  let timing = '';
+  if (state.currentGarden && state.currentGarden.last_frost_date) {
+    const lf = new Date(state.currentGarden.last_frost_date);
+    function offsetDate(weeks) { const d = new Date(lf); d.setDate(d.getDate() + Math.round(weeks * 7)); return d.toISOString().slice(0, 10); }
+    const bits = [];
+    if (p.seed_indoor_weeks_before_lastfrost) bits.push(`Sow indoors: ${offsetDate(-p.seed_indoor_weeks_before_lastfrost)}`);
+    if (p.transplant_weeks_after_lastfrost !== null && p.transplant_weeks_after_lastfrost !== undefined) bits.push(`Transplant: ${offsetDate(p.transplant_weeks_after_lastfrost)}`);
+    if (p.direct_sow_weeks_relative_to_lastfrost !== null && p.direct_sow_weeks_relative_to_lastfrost !== undefined) bits.push(`Direct sow: ${offsetDate(p.direct_sow_weeks_relative_to_lastfrost)}`);
+    if (bits.length) timing = `For this garden (last frost ${state.currentGarden.last_frost_date.slice(0, 10)}): ` + bits.join(' · ');
+  }
+  document.getElementById('pd-timing').textContent = timing;
+  document.getElementById('pd-timing').style.display = timing ? '' : 'none';
+  document.getElementById('plant-detail-modal').classList.add('open');
+}
+
+function usePlantFromDetail() {
+  const plantId = state._detailPlantId;
+  closeModal('plant-detail-modal');
+  if (!plantId) return;
+  state.pendingPlant = state.plants.find(p => p.id === plantId);
+  if (!state.pendingPlant) return;
+  document.querySelectorAll('.plant-row').forEach(r => r.classList.toggle('active', r.dataset.plant === plantId));
+  state.tool = 'plant';
+  hint(`Click on a bed to plant ${state.pendingPlant.common_name}.`);
+}
+
+document.getElementById('plant-search').addEventListener('input', e => {
+  state.plantSearch = e.target.value;
+  renderPlantList();
+});
+document.getElementById('plant-filters').addEventListener('click', e => {
+  if (!e.target.classList.contains('pf-chip')) return;
+  state.plantFilter = e.target.dataset.pf;
+  document.querySelectorAll('.pf-chip').forEach(c => c.classList.toggle('active', c.dataset.pf === state.plantFilter));
+  renderPlantList();
+});
+
+// ---------- Weather (Open-Meteo, no key, no SDK) ----------
+function toggleWeatherPanel() {
+  const p = document.getElementById('weather-panel');
+  p.classList.toggle('open');
+  document.querySelectorAll('.tool[data-tool="weather"]').forEach(b => b.classList.toggle('active', p.classList.contains('open')));
+  if (p.classList.contains('open')) loadWeather();
+}
+
+async function loadWeather() {
+  const g = state.currentGarden;
+  if (!g || !g.location_geojson || !g.location_geojson.coordinates) {
+    document.getElementById('w-today').textContent = 'No location pin set — add an address to this garden first.';
+    return;
+  }
+  // Cache to avoid hammering the API on every panel-open.
+  const cacheKey = 'wx_' + g.id;
+  const cached = sessionStorage.getItem(cacheKey);
+  if (cached) {
+    try {
+      const { ts, data } = JSON.parse(cached);
+      if (Date.now() - ts < 30 * 60 * 1000) { renderWeather(data); return; }  // 30min cache
+    } catch (_) {}
+  }
+  const [lng, lat] = g.location_geojson.coordinates;
+  const url = 'https://api.open-meteo.com/v1/forecast'
+    + '?latitude=' + lat + '&longitude=' + lng
+    + '&current=temperature_2m,precipitation,wind_speed_10m,weather_code'
+    + '&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,weather_code'
+    + '&forecast_days=7'
+    + '&temperature_unit=' + (g.units === 'metric' ? 'celsius' : 'fahrenheit')
+    + '&precipitation_unit=' + (g.units === 'metric' ? 'mm' : 'inch')
+    + '&wind_speed_unit=' + (g.units === 'metric' ? 'kmh' : 'mph')
+    + '&timezone=auto';
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('Weather API ' + resp.status);
+    const data = await resp.json();
+    sessionStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), data }));
+    renderWeather(data);
+  } catch (err) {
+    document.getElementById('w-today').textContent = 'Could not load weather: ' + err.message;
+  }
+}
+
+function weatherCodeToText(c) {
+  const m = { 0: 'Clear', 1: 'Mostly clear', 2: 'Partly cloudy', 3: 'Overcast',
+    45: 'Foggy', 48: 'Foggy',
+    51: 'Light drizzle', 53: 'Drizzle', 55: 'Heavy drizzle',
+    61: 'Light rain', 63: 'Rain', 65: 'Heavy rain',
+    71: 'Light snow', 73: 'Snow', 75: 'Heavy snow',
+    80: 'Showers', 81: 'Heavy showers', 82: 'Violent showers',
+    95: 'Thunderstorm', 96: 'Thunderstorm + hail', 99: 'Severe thunderstorm' };
+  return m[c] || 'Unknown';
+}
+
+function renderWeather(data) {
+  const g = state.currentGarden;
+  const tempUnit = g.units === 'metric' ? '°C' : '°F';
+  const rainUnit = g.units === 'metric' ? 'mm' : 'in';
+  const windUnit = g.units === 'metric' ? ' km/h' : ' mph';
+  const c = data.current || {};
+  const code = weatherCodeToText(c.weather_code);
+  document.getElementById('w-today').innerHTML = `
+    <div style="flex:1">
+      <div class="now-temp">${Math.round(c.temperature_2m)}${tempUnit}</div>
+      <div class="now-meta">${code} · Wind ${Math.round(c.wind_speed_10m)}${windUnit}${c.precipitation > 0 ? ' · ' + c.precipitation + rainUnit + ' rain now' : ''}</div>
+    </div>`;
+  // Water-needed hint: sum next 3 days' precipitation.
+  const next3Rain = (data.daily.precipitation_sum || []).slice(0, 3).reduce((a, b) => a + b, 0);
+  const threshold = g.units === 'metric' ? 10 : 0.4;  // 10mm or 0.4in
+  const w = document.getElementById('w-water');
+  w.style.display = 'block';
+  if (next3Rain >= threshold * 2) {
+    w.className = 'weather-water-hint skip';
+    w.textContent = `${next3Rain.toFixed(1)}${rainUnit} rain expected in next 3 days — skip watering.`;
+  } else if (next3Rain >= threshold) {
+    w.className = 'weather-water-hint need';
+    w.textContent = `${next3Rain.toFixed(1)}${rainUnit} rain in next 3 days — light watering only where needed.`;
+  } else {
+    w.className = 'weather-water-hint urgent';
+    w.textContent = `Only ${next3Rain.toFixed(1)}${rainUnit} rain in next 3 days — plan to water.`;
+  }
+  // 7-day strip.
+  const strip = document.getElementById('w-strip');
+  const days = data.daily.time || [];
+  strip.innerHTML = days.map((d, i) => {
+    const date = new Date(d);
+    const dayLabel = date.toLocaleDateString('en-US', { weekday: 'short' });
+    const hi = Math.round(data.daily.temperature_2m_max[i]);
+    const lo = Math.round(data.daily.temperature_2m_min[i]);
+    const rain = data.daily.precipitation_sum[i];
+    return `<div class="weather-day">
+      <div class="wd-day">${dayLabel}</div>
+      <div class="wd-high">${hi}°</div>
+      <div class="wd-low">${lo}°</div>
+      ${rain > 0 ? `<div class="wd-rain">${rain.toFixed(1)}${rainUnit}</div>` : '<div class="wd-rain">—</div>'}
+    </div>`;
+  }).join('');
+}
+
+// ---------- Plant suggestions for a bed ----------
+function openSuggestions() {
+  if (!state.selectedObjectId) { toast('Select a bed first'); return; }
+  const obj = state.objects.find(o => o.id === state.selectedObjectId);
+  if (!obj) return;
+  const g = state.currentGarden;
+  document.getElementById('sg-title').textContent = 'Suggest plants for ' + (obj.name || obj.type.replace(/_/g, ' '));
+  // Summary line.
+  const sunStr = obj.sun_exposure ? obj.sun_exposure.replace(/_/g, ' ') : 'sun not set';
+  const zoneStr = g.usda_zone || 'zone not set';
+  const frostStr = g.last_frost_date ? `last frost ${g.last_frost_date.slice(0, 10)}` : 'frost not set';
+  document.getElementById('sg-summary').textContent = `Filtering by ${sunStr} · ${zoneStr} · ${frostStr} · today's date`;
+
+  // Scoring.
+  const today = new Date();
+  const lastFrost = g.last_frost_date ? new Date(g.last_frost_date) : null;
+  const usdaNum = parseFloat((g.usda_zone || '').replace(/[ab]/i, ''));
+  const sun = obj.sun_exposure || '';
+  const SUN_RANK = { full_sun: 4, part_sun: 3, part_shade: 2, full_shade: 1 };
+  const bedSunRank = SUN_RANK[sun] || 0;
+  const existingPlantings = state.plantings.filter(pt => pt.garden_object_id === obj.id);
+  const existingPlantIds = new Set(existingPlantings.map(p => p.plant_id));
+
+  const scored = state.plants.filter(p => p.in_planner_catalog && !existingPlantIds.has(p.id)).map(p => {
+    let score = 0;
+    const reasons = [];
+    // Sun match.
+    const plantSunRank = SUN_RANK[p.sun_requirement] || 0;
+    if (bedSunRank && plantSunRank) {
+      const diff = Math.abs(bedSunRank - plantSunRank);
+      if (diff === 0) { score += 3; reasons.push('sun match'); }
+      else if (diff === 1) { score += 1; }
+      else if (diff >= 2) { score -= 2; reasons.push('sun mismatch'); }
+    }
+    // Zone match.
+    if (usdaNum && p.usda_zone_min && p.usda_zone_max) {
+      if (usdaNum >= p.usda_zone_min && usdaNum <= p.usda_zone_max) {
+        score += 2;
+      } else {
+        return null;  // filter out
+      }
+    }
+    // Season window for annuals.
+    if (lastFrost && p.lifecycle === 'annual') {
+      let inWindow = false;
+      function offsetDays(weeks) { const d = new Date(lastFrost); d.setDate(d.getDate() + Math.round(weeks * 7)); return d; }
+      const candidates = [];
+      if (p.seed_indoor_weeks_before_lastfrost) candidates.push({ name: 'sow indoor', d: offsetDays(-p.seed_indoor_weeks_before_lastfrost) });
+      if (p.transplant_weeks_after_lastfrost !== null && p.transplant_weeks_after_lastfrost !== undefined) candidates.push({ name: 'transplant', d: offsetDays(p.transplant_weeks_after_lastfrost) });
+      if (p.direct_sow_weeks_relative_to_lastfrost !== null && p.direct_sow_weeks_relative_to_lastfrost !== undefined) candidates.push({ name: 'direct sow', d: offsetDays(p.direct_sow_weeks_relative_to_lastfrost) });
+      for (const c of candidates) {
+        const daysAway = Math.abs((c.d - today) / 86400000);
+        if (daysAway <= 14) { inWindow = true; score += 4; reasons.push(`${c.name} window now`); break; }
+      }
+      if (!inWindow && candidates.length) { score -= 1; reasons.push('out of window'); }
+    } else if (p.lifecycle === 'perennial' || p.lifecycle === 'tender_perennial') {
+      score += 1;
+      reasons.push('perennial');
+    }
+    // Companion bonus / antagonist penalty.
+    const myComp = parseIds(p.companion_plant_ids);
+    const myAnt  = parseIds(p.antagonist_plant_ids);
+    for (const otherId of existingPlantIds) {
+      const other = state.plants.find(x => x.id === otherId);
+      if (!other) continue;
+      if (myComp.includes(otherId) || parseIds(other.companion_plant_ids).includes(p.id)) { score += 2; reasons.push('companion to ' + other.common_name); }
+      if (myAnt.includes(otherId)  || parseIds(other.antagonist_plant_ids).includes(p.id)) { score -= 5; reasons.push('antagonist of ' + other.common_name); }
+    }
+    return { plant: p, score, reasons };
+  }).filter(Boolean);
+
+  scored.sort((a, b) => b.score - a.score);
+  const top = scored.slice(0, 15);
+
+  const el = document.getElementById('sg-list');
+  if (!top.length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray-600)">No plants match the constraints — try setting sun exposure on this bed, or zone on the garden.</div>';
+    return;
+  }
+  el.innerHTML = top.map(({ plant, score, reasons }) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px;border-bottom:1px solid var(--gray-100)">
+      <div style="width:14px;height:14px;border-radius:50%;background:${plant.color_hex || '#9bbd85'};border:1px solid var(--gray-200);flex:0 0 auto"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:0.9rem;color:var(--plum)">${escapeHtml(plant.common_name)}</div>
+        <div style="font-size:0.72rem;color:var(--gray-600)">${escapeHtml(reasons.join(' · ') || 'good fit')}</div>
+      </div>
+      <div style="font-size:0.78rem;color:var(--gray-600);min-width:30px;text-align:right">${score}</div>
+      <button class="btn btn-sm" onclick="suggestPlantToBed('${plant.id}', '${state.selectedObjectId}')">Plant</button>
+    </div>
+  `).join('');
+  document.getElementById('suggest-modal').classList.add('open');
+}
+
+async function suggestPlantToBed(plantId, objId) {
+  const plant = state.plants.find(p => p.id === plantId);
+  const obj = state.objects.find(o => o.id === objId);
+  if (!plant || !obj) return;
+  closeModal('suggest-modal');
+  await plantInObject(obj, plant);
+}
+
+// ---------- Yield forecast ----------
+async function openYieldForecast() {
+  document.getElementById('fc-content').innerHTML = '<div style="padding:30px;text-align:center;color:var(--gray-600)">Calculating…</div>';
+  document.getElementById('forecast-modal').classList.add('open');
+  // We need all plantings cross-garden (state._allPlantings is just {plant_id, garden_object_id}; we need full records with dates).
+  try {
+    const resp = await pb('GET', '/api/collections/plantings/records?perPage=5000&filter=(status!="harvested"%26%26status!="removed"%26%26status!="died")&sort=planted_date');
+    const plantings = resp.items || [];
+    renderForecast(plantings);
+  } catch (err) {
+    document.getElementById('fc-content').innerHTML = '<div style="padding:20px;color:var(--red)">Forecast failed: ' + err.message + '</div>';
+  }
+}
+
+function renderForecast(plantings) {
+  const today = new Date();
+  const month = today.getMonth();
+  const year = today.getFullYear();
+
+  // For each planting, compute expected harvest date + quantity.
+  const upcoming = [];  // {plant, garden, date, qty, units}
+  for (const pt of plantings) {
+    const plant = state.plants.find(p => p.id === pt.plant_id);
+    if (!plant || !plant.expected_yield_per_plant) continue;
+    const gardenId = state._objToGarden[pt.garden_object_id];
+    const garden = state.gardens.find(g => g.id === gardenId);
+    if (!garden) continue;
+    // Expected harvest date: planted_date + DTM (max for upper bound).
+    let harvestDate;
+    if (pt.planted_date && plant.days_to_maturity_max) {
+      harvestDate = new Date(pt.planted_date);
+      harvestDate.setDate(harvestDate.getDate() + plant.days_to_maturity_max);
+    } else if (plant.lifecycle === 'perennial' || plant.lifecycle === 'tender_perennial') {
+      // Perennials produce in their natural season — assume mid-summer here for forecast simplicity.
+      harvestDate = new Date(year, 7, 15);  // Aug 15
+    } else {
+      continue;
+    }
+    if (harvestDate < today) {
+      // Already past expected — overdue, but include in "any day now" bucket.
+      harvestDate = today;
+    }
+    const qty = (pt.quantity || 0) * plant.expected_yield_per_plant;
+    if (qty <= 0) continue;
+    upcoming.push({
+      plant, garden,
+      date: harvestDate,
+      qty,
+      units: plant.expected_yield_units || 'lbs',
+    });
+  }
+
+  if (!upcoming.length) {
+    document.getElementById('fc-content').innerHTML = `<div style="padding:30px;text-align:center;color:var(--gray-600)">No forecastable plantings — make sure plants have expected_yield_per_plant set and plantings have a planted_date.</div>`;
+    return;
+  }
+
+  // Aggregate.
+  // By month (next 12 months from current).
+  const monthBuckets = [];
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(year, month + i, 1);
+    monthBuckets.push({ label: d.toLocaleString('en-US', { month: 'short', year: '2-digit' }), key: d.toISOString().slice(0, 7), byUnits: {} });
+  }
+  for (const u of upcoming) {
+    const k = u.date.toISOString().slice(0, 7);
+    const bucket = monthBuckets.find(b => b.key === k) || monthBuckets[0];
+    bucket.byUnits[u.units] = (bucket.byUnits[u.units] || 0) + u.qty;
+  }
+
+  // By plant (sum across all months).
+  const byPlant = {};
+  for (const u of upcoming) {
+    const key = u.plant.id;
+    if (!byPlant[key]) byPlant[key] = { plant: u.plant, byUnits: {} };
+    byPlant[key].byUnits[u.units] = (byPlant[key].byUnits[u.units] || 0) + u.qty;
+  }
+  const plantRows = Object.values(byPlant).sort((a, b) => {
+    const aTotal = Object.values(a.byUnits).reduce((s, v) => s + v, 0);
+    const bTotal = Object.values(b.byUnits).reduce((s, v) => s + v, 0);
+    return bTotal - aTotal;
+  }).slice(0, 15);
+
+  // By garden.
+  const byGarden = {};
+  for (const u of upcoming) {
+    const key = u.garden.id;
+    if (!byGarden[key]) byGarden[key] = { garden: u.garden, byUnits: {} };
+    byGarden[key].byUnits[u.units] = (byGarden[key].byUnits[u.units] || 0) + u.qty;
+  }
+  const gardenRows = Object.values(byGarden).sort((a, b) => {
+    const aTotal = Object.values(a.byUnits).reduce((s, v) => s + v, 0);
+    const bTotal = Object.values(b.byUnits).reduce((s, v) => s + v, 0);
+    return bTotal - aTotal;
+  });
+
+  // Total summary.
+  const totalByUnits = {};
+  for (const u of upcoming) {
+    totalByUnits[u.units] = (totalByUnits[u.units] || 0) + u.qty;
+  }
+  const totalStr = Object.entries(totalByUnits).map(([u, v]) => `${v.toFixed(1)} ${u}`).join(' + ');
+
+  function formatUnits(byUnits) {
+    return Object.entries(byUnits).map(([u, v]) => `${v.toFixed(1)} ${u}`).join(', ');
+  }
+
+  // Month chart.
+  const maxLbs = Math.max(...monthBuckets.map(b => b.byUnits.lbs || 0), 0.001);
+  const monthBars = monthBuckets.map(b => {
+    const lbs = b.byUnits.lbs || 0;
+    const h = Math.max(2, (lbs / maxLbs) * 100);
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:36px">
+      <div style="font-size:0.7rem;color:var(--gray-600)">${lbs > 0 ? lbs.toFixed(0) : ''}</div>
+      <div style="width:80%;background:var(--butter);height:${h}px;border-radius:4px 4px 0 0"></div>
+      <div style="font-size:0.66rem;color:var(--gray-600)">${b.label}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('fc-content').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:18px">
+      <div style="background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)">
+        <div style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.6px">Total expected</div>
+        <div style="font-family:var(--font-heading);font-size:1.3rem;font-weight:500;color:var(--plum)">${totalStr}</div>
+      </div>
+      <div style="background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)">
+        <div style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.6px">Active plantings</div>
+        <div style="font-family:var(--font-heading);font-size:1.8rem;font-weight:500;color:var(--plum)">${upcoming.length}</div>
+      </div>
+      <div style="background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)">
+        <div style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.6px">Plant varieties</div>
+        <div style="font-family:var(--font-heading);font-size:1.8rem;font-weight:500;color:var(--plum)">${plantRows.length}</div>
+      </div>
+    </div>
+
+    <h3 style="margin:14px 0 8px">Expected by month (lbs)</h3>
+    <div style="display:flex;gap:4px;align-items:flex-end;height:140px;background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);overflow-x:auto">${monthBars}</div>
+
+    <h3 style="margin:18px 0 8px">By plant (top 15)</h3>
+    <div style="background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)">
+      ${plantRows.map(({ plant, byUnits }) => `<div style="display:flex;align-items:center;gap:8px;margin:5px 0">
+        <span style="width:12px;height:12px;border-radius:50%;background:${plant.color_hex || '#9bbd85'};border:1px solid var(--gray-200);flex:0 0 auto"></span>
+        <span style="flex:1;font-size:0.86rem;color:var(--plum)">${escapeHtml(plant.common_name)}</span>
+        <span style="font-size:0.86rem;color:var(--plum);font-weight:600">${formatUnits(byUnits)}</span>
+      </div>`).join('')}
+    </div>
+
+    <h3 style="margin:18px 0 8px">By garden</h3>
+    <div style="background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)">
+      ${gardenRows.map(({ garden, byUnits }) => `<div style="display:flex;align-items:center;gap:8px;margin:5px 0;cursor:pointer" onclick="location.hash='#garden/${garden.id}';closeModal('forecast-modal')">
+        <span style="flex:1;font-size:0.86rem;color:var(--plum)">${escapeHtml(garden.name)}</span>
+        <span style="font-size:0.86rem;color:var(--plum);font-weight:600">${formatUnits(byUnits)}</span>
+      </div>`).join('')}
+    </div>
+
+    <div style="margin-top:14px;font-size:0.74rem;color:var(--gray-600);text-align:center;line-height:1.5">
+      Forecast uses average yields per plant — your actual numbers will drift from these as you log harvests.<br>
+      Tune individual plants via Edit in the plant detail modal.
+    </div>
+  `;
+}
+
+// ---------- Yield analytics ----------
+const YIELD_TO_LBS = { lbs: 1, oz: 1/16, kg: 2.20462, g: 0.00220462, pint: 0.5, quart: 1 };  // approx for "produce-ish"
+
+async function openYieldAnalytics() {
+  // Fetch all harvests + all plantings across all gardens.
+  try {
+    document.getElementById('ya-content').innerHTML = '<div style="padding:30px;text-align:center;color:var(--gray-600)">Loading…</div>';
+    document.getElementById('yield-modal').classList.add('open');
+    const [hv, pl] = await Promise.all([
+      pb('GET', '/api/collections/harvests/records?perPage=5000&sort=-harvest_date'),
+      pb('GET', '/api/collections/plantings/records?perPage=5000&fields=id,plant_id,garden_object_id'),
+    ]);
+    state._allHarvests = hv.items || [];
+    state._allPlantingsFull = pl.items || [];
+    // Build year dropdown.
+    const years = new Set();
+    for (const h of state._allHarvests) {
+      const y = (h.harvest_date || '').slice(0, 4);
+      if (y) years.add(y);
+    }
+    const currentYear = new Date().getFullYear().toString();
+    years.add(currentYear);
+    const yearList = Array.from(years).sort().reverse();
+    document.getElementById('ya-year').innerHTML = yearList.map(y => `<option value="${y}">${y}</option>`).join('');
+    document.getElementById('ya-year').value = currentYear;
+    renderYieldAnalytics();
+  } catch (err) {
+    document.getElementById('ya-content').innerHTML = '<div style="padding:20px;color:var(--red)">Load failed: ' + err.message + '</div>';
+  }
+}
+
+function renderYieldAnalytics() {
+  const year = document.getElementById('ya-year').value;
+  const harvests = (state._allHarvests || []).filter(h => (h.harvest_date || '').startsWith(year));
+  if (!harvests.length) {
+    document.getElementById('ya-content').innerHTML = `<div style="padding:30px;text-align:center;color:var(--gray-600)">No harvests recorded in ${year}.</div>`;
+    return;
+  }
+
+  // Build plantings index: planting_id -> {plant_id, garden_object_id, garden_id}
+  const ptIdx = {};
+  for (const pt of (state._allPlantingsFull || [])) {
+    ptIdx[pt.id] = { plant_id: pt.plant_id, garden_object_id: pt.garden_object_id, garden_id: state._objToGarden[pt.garden_object_id] };
+  }
+
+  // Aggregate.
+  const byPlantLbs = {};       // plant_id -> total lbs
+  const byPlantCount = {};     // plant_id -> total each/bunch
+  const byGardenLbs = {};
+  const byMonthLbs = Array(12).fill(0);
+  for (const h of harvests) {
+    const pt = ptIdx[h.planting_id];
+    if (!pt) continue;
+    const qty = Number(h.quantity) || 0;
+    const u = h.units || '';
+    const lbs = YIELD_TO_LBS[u] ? qty * YIELD_TO_LBS[u] : 0;
+    if (lbs > 0) {
+      byPlantLbs[pt.plant_id] = (byPlantLbs[pt.plant_id] || 0) + lbs;
+      if (pt.garden_id) byGardenLbs[pt.garden_id] = (byGardenLbs[pt.garden_id] || 0) + lbs;
+      const m = parseInt((h.harvest_date || '').slice(5, 7), 10) - 1;
+      if (m >= 0 && m < 12) byMonthLbs[m] += lbs;
+    } else if (u === 'each' || u === 'bunch') {
+      byPlantCount[pt.plant_id] = (byPlantCount[pt.plant_id] || 0) + qty;
+    }
+  }
+
+  // Top 10 plants by weight.
+  const plantRows = Object.entries(byPlantLbs).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  const gardenRows = Object.entries(byGardenLbs).sort((a, b) => b[1] - a[1]);
+  const plantCountRows = Object.entries(byPlantCount).sort((a, b) => b[1] - a[1]).slice(0, 6);
+
+  // Total summary.
+  const totalLbs = Object.values(byPlantLbs).reduce((a, b) => a + b, 0);
+  const totalCount = Object.values(byPlantCount).reduce((a, b) => a + b, 0);
+
+  // Render.
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const maxMonth = Math.max(...byMonthLbs, 0.001);
+  const monthMaxHeight = 100;
+  const monthBars = byMonthLbs.map((v, i) => {
+    const h = Math.max(2, (v / maxMonth) * monthMaxHeight);
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div style="font-size:0.7rem;color:var(--gray-600)">${v > 0 ? v.toFixed(1) : ''}</div>
+      <div style="width:80%;background:var(--spring-sage);height:${h}px;border-radius:4px 4px 0 0;min-height:2px"></div>
+      <div style="font-size:0.7rem;color:var(--gray-600)">${months[i]}</div>
+    </div>`;
+  }).join('');
+
+  const maxPlant = plantRows.length ? plantRows[0][1] : 0.001;
+  const plantBars = plantRows.map(([pid, v]) => {
+    const plant = state.plants.find(p => p.id === pid);
+    const name = plant ? plant.common_name : '(unknown)';
+    const color = (plant && plant.color_hex) || '#9bbd85';
+    const pct = (v / maxPlant) * 100;
+    return `<div style="display:flex;align-items:center;gap:8px;margin:5px 0">
+      <span style="font-size:0.82rem;color:var(--plum);min-width:120px;text-align:right">${escapeHtml(name)}</span>
+      <div style="flex:1;height:18px;background:var(--gray-100);border-radius:4px;position:relative">
+        <div style="height:100%;width:${pct}%;background:${color};border-radius:4px"></div>
+      </div>
+      <span style="font-size:0.82rem;color:var(--plum);min-width:60px">${v.toFixed(1)} lbs</span>
+    </div>`;
+  }).join('');
+
+  const maxGarden = gardenRows.length ? gardenRows[0][1] : 0.001;
+  const gardenBars = gardenRows.map(([gid, v]) => {
+    const g = state.gardens.find(x => x.id === gid);
+    const name = g ? g.name : '(unknown)';
+    const pct = (v / maxGarden) * 100;
+    return `<div style="display:flex;align-items:center;gap:8px;margin:5px 0">
+      <span style="font-size:0.82rem;color:var(--plum);min-width:160px;text-align:right">${escapeHtml(name)}</span>
+      <div style="flex:1;height:18px;background:var(--gray-100);border-radius:4px;position:relative">
+        <div style="height:100%;width:${pct}%;background:var(--coral);border-radius:4px"></div>
+      </div>
+      <span style="font-size:0.82rem;color:var(--plum);min-width:60px">${v.toFixed(1)} lbs</span>
+    </div>`;
+  }).join('');
+
+  const countRows = plantCountRows.map(([pid, v]) => {
+    const plant = state.plants.find(p => p.id === pid);
+    const name = plant ? plant.common_name : '(unknown)';
+    return `<div style="display:inline-block;margin:3px;padding:6px 10px;background:var(--cream);border-radius:8px;font-size:0.82rem;color:var(--plum)"><strong>${v.toFixed(0)}</strong> ${escapeHtml(name)}</div>`;
+  }).join('');
+
+  document.getElementById('ya-content').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:18px">
+      <div style="background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)">
+        <div style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.6px">Total weight</div>
+        <div style="font-family:var(--font-heading);font-size:1.8rem;font-weight:500;color:var(--plum)">${totalLbs.toFixed(1)} lbs</div>
+      </div>
+      <div style="background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)">
+        <div style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.6px">By count</div>
+        <div style="font-family:var(--font-heading);font-size:1.8rem;font-weight:500;color:var(--plum)">${totalCount.toFixed(0)}</div>
+      </div>
+      <div style="background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)">
+        <div style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.6px">Harvests logged</div>
+        <div style="font-family:var(--font-heading);font-size:1.8rem;font-weight:500;color:var(--plum)">${harvests.length}</div>
+      </div>
+    </div>
+
+    <h3 style="margin:14px 0 8px">By month (${year})</h3>
+    <div style="display:flex;gap:4px;align-items:flex-end;height:140px;background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)">${monthBars}</div>
+
+    <h3 style="margin:18px 0 8px">Top plants by weight</h3>
+    <div style="background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)">${plantBars || '<div style="color:var(--gray-600);font-size:0.86rem">No weighed harvests in ' + year + '.</div>'}</div>
+
+    ${countRows ? `<h3 style="margin:18px 0 8px">By count (each / bunch)</h3>
+    <div style="background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)">${countRows}</div>` : ''}
+
+    <h3 style="margin:18px 0 8px">By garden</h3>
+    <div style="background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)">${gardenBars || '<div style="color:var(--gray-600);font-size:0.86rem">No weighed harvests.</div>'}</div>
+  `;
+}
+
+// ---------- This-week reminders dashboard ----------
+function renderReminders() {
+  const today = new Date();
+  const todayMs = today.getTime();
+  const reminders = [];
+
+  for (const pt of (state._allPlantings || [])) {
+    const plant = state.plants.find(p => p.id === pt.plant_id);
+    if (!plant) continue;
+    const gid = state._objToGarden[pt.garden_object_id];
+    const garden = state.gardens.find(g => g.id === gid);
+    if (!garden) continue;
+
+    // Harvest readiness.
+    if (pt.planted_date && plant.days_to_maturity_min && pt.status !== 'harvested' && pt.status !== 'removed' && pt.status !== 'died') {
+      const planted = new Date(pt.planted_date);
+      const ready = new Date(planted); ready.setDate(ready.getDate() + plant.days_to_maturity_min);
+      const daysAway = Math.round((ready - today) / 86400000);
+      if (daysAway < -7) continue;  // way overdue, suppress
+      if (daysAway <= 14) {
+        const status = daysAway <= 0 ? 'ready to harvest' : `harvest in ~${daysAway}d`;
+        reminders.push({
+          urgency: daysAway <= 0 ? 0 : daysAway + 100,
+          color: daysAway <= 0 ? '#c9873a' : '#9bbd85',
+          icon: 'harvest',
+          garden,
+          text: `${plant.common_name} ${status}`,
+        });
+      }
+    }
+  }
+
+  // Sow-window reminders per garden.
+  for (const g of state.gardens) {
+    if (!g.last_frost_date) continue;
+    const lf = new Date(g.last_frost_date);
+    for (const p of state.plants) {
+      if (!p.in_planner_catalog || p.lifecycle !== 'annual') continue;
+      const windows = [];
+      if (p.seed_indoor_weeks_before_lastfrost) {
+        const d = new Date(lf); d.setDate(d.getDate() - p.seed_indoor_weeks_before_lastfrost * 7);
+        windows.push({ kind: 'sow indoor', d });
+      }
+      if (p.direct_sow_weeks_relative_to_lastfrost !== null && p.direct_sow_weeks_relative_to_lastfrost !== undefined) {
+        const d = new Date(lf); d.setDate(d.getDate() + p.direct_sow_weeks_relative_to_lastfrost * 7);
+        windows.push({ kind: 'direct sow', d });
+      }
+      if (p.transplant_weeks_after_lastfrost !== null && p.transplant_weeks_after_lastfrost !== undefined && !p.seed_indoor_weeks_before_lastfrost) {
+        const d = new Date(lf); d.setDate(d.getDate() + p.transplant_weeks_after_lastfrost * 7);
+        windows.push({ kind: 'transplant', d });
+      }
+      for (const w of windows) {
+        const daysAway = Math.round((w.d - today) / 86400000);
+        if (daysAway >= -7 && daysAway <= 14) {
+          reminders.push({
+            urgency: Math.abs(daysAway) + 200,
+            color: '#c2557a',
+            icon: 'sow',
+            garden: g,
+            text: `${w.kind} ${p.common_name} (${daysAway === 0 ? 'today' : daysAway > 0 ? `in ${daysAway}d` : `${-daysAway}d ago`})`,
+          });
+        }
+      }
+    }
+  }
+
+  reminders.sort((a, b) => a.urgency - b.urgency);
+  const top = reminders.slice(0, 12);
+  const el = document.getElementById('reminders-strip');
+  if (!top.length) {
+    el.innerHTML = '';
+    return;
+  }
+  el.innerHTML = `<div style="background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 18px">
+    <div style="font-family:var(--font-heading);font-size:1.05rem;color:var(--plum);margin-bottom:10px;font-weight:500">This week</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      ${top.map(r => `<div style="display:flex;align-items:center;gap:10px;font-size:0.86rem;color:var(--plum);cursor:pointer" onclick="location.hash='#garden/${r.garden.id}'">
+        <span style="width:8px;height:8px;border-radius:50%;background:${r.color};flex:0 0 auto"></span>
+        <span style="color:var(--gray-600);font-size:0.78rem;min-width:120px">${escapeHtml(r.garden.name)}</span>
+        <span>${escapeHtml(r.text)}</span>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ---------- Cross-garden plant search ----------
+function openCrossGardenSearch() {
+  document.getElementById('xs-search').value = '';
+  document.getElementById('xs-results').innerHTML = '<div style="color:var(--gray-600);font-size:0.86rem;text-align:center;padding:14px">Pick a plant to see where it\'s planted.</div>';
+  renderXSearchOptions();
+  document.getElementById('xsearch-modal').classList.add('open');
+  setTimeout(() => document.getElementById('xs-search').focus(), 50);
+}
+
+function renderXSearchOptions() {
+  const q = document.getElementById('xs-search').value.toLowerCase();
+  const rows = state.plants.filter(p => {
+    if (!q) return true;
+    const hay = ((p.common_name || '') + ' ' + (p.scientific_name || '')).toLowerCase();
+    return hay.includes(q);
+  }).slice(0, 30);
+  document.getElementById('xs-options').innerHTML = rows.map(p =>
+    `<div style="padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:0.86rem;color:var(--plum)" onmouseover="this.style.background='var(--gray-100)'" onmouseout="this.style.background=''" onclick="runCrossGardenSearch('${p.id}')">
+      <span style="width:12px;height:12px;border-radius:50%;background:${p.color_hex || '#9bbd85'};border:1px solid var(--gray-200);flex:0 0 auto"></span>
+      <span>${escapeHtml(p.common_name)}</span>
+    </div>`).join('') || '<div style="padding:10px;color:var(--gray-600);font-size:0.82rem">No matches.</div>';
+}
+
+function runCrossGardenSearch(plantId) {
+  const plant = state.plants.find(p => p.id === plantId);
+  if (!plant) return;
+  // Find every planting of this plant across all gardens.
+  const matches = (state._allPlantings || []).filter(pt => pt.plant_id === plantId);
+  // Group by garden.
+  const byGarden = {};
+  for (const pt of matches) {
+    const gid = state._objToGarden[pt.garden_object_id];
+    if (!gid) continue;
+    byGarden[gid] = byGarden[gid] || { plantings: [], totalQty: 0 };
+    byGarden[gid].plantings.push(pt);
+    byGarden[gid].totalQty += pt.quantity || 0;
+  }
+  const el = document.getElementById('xs-results');
+  const gardenIds = Object.keys(byGarden);
+  if (!gardenIds.length) {
+    el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--gray-600)"><strong>${escapeHtml(plant.common_name)}</strong> is not currently planted in any garden.</div>`;
+    return;
+  }
+  el.innerHTML = `<div style="font-size:0.86rem;color:var(--gray-600);margin-bottom:8px"><strong>${escapeHtml(plant.common_name)}</strong> is planted in <strong>${gardenIds.length}</strong> garden${gardenIds.length === 1 ? '' : 's'}:</div>` +
+    gardenIds.map(gid => {
+      const g = state.gardens.find(x => x.id === gid);
+      const info = byGarden[gid];
+      return `<div style="padding:10px;border:1px solid var(--gray-200);border-radius:8px;margin-bottom:6px;cursor:pointer" onclick="location.hash='#garden/${gid}'; closeModal('xsearch-modal')">
+        <div style="font-weight:600;color:var(--plum)">${escapeHtml(g ? g.name : '(unknown)')}</div>
+        <div style="font-size:0.78rem;color:var(--gray-600);margin-top:2px">${g && g.address ? escapeHtml(g.address) + ' · ' : ''}${info.plantings.length} planting${info.plantings.length === 1 ? '' : 's'} · ${info.totalQty} total plants</div>
+      </div>`;
+    }).join('');
+}
+
+// ---------- Quick-add / edit plant ----------
+function openQuickAddPlant(plantId) {
+  const p = plantId ? state.plants.find(x => x.id === plantId) : null;
+  document.getElementById('qp-title').textContent = p ? 'Edit plant' : 'Add plant to catalog';
+  document.getElementById('qp-id').value = p ? p.id : '';
+  document.getElementById('qp-name').value = p?.common_name || '';
+  document.getElementById('qp-sci').value = p?.scientific_name || '';
+  document.getElementById('qp-category').value = p?.category || '';
+  document.getElementById('qp-lifecycle').value = p?.lifecycle || '';
+  document.getElementById('qp-sun').value = p?.sun_requirement || '';
+  document.getElementById('qp-water').value = p?.water_requirement || '';
+  document.getElementById('qp-spacing').value = p?.plant_spacing_cm ? Math.round(p.plant_spacing_cm / 2.54 * 10) / 10 : '';
+  document.getElementById('qp-dtm').value = p?.days_to_maturity_min ?? '';
+  document.getElementById('qp-color').value = p?.color_hex || '#9bbd85';
+  document.getElementById('qp-native').checked = !!p?.ca_native;
+  document.getElementById('qp-food').checked = !!p?.food_perennial;
+  document.getElementById('qp-rare').checked = !!p?.collector_layer;
+  document.getElementById('qp-desc').value = p?.description || '';
+  document.getElementById('qp-delete').style.display = p ? '' : 'none';
+  document.getElementById('quick-plant-modal').classList.add('open');
+  setTimeout(() => document.getElementById('qp-name').focus(), 50);
+}
+
+function editPlantFromDetail() {
+  const plantId = state._detailPlantId;
+  closeModal('plant-detail-modal');
+  if (plantId) openQuickAddPlant(plantId);
+}
+
+async function saveQuickPlant() {
+  const id = document.getElementById('qp-id').value;
+  const name = document.getElementById('qp-name').value.trim();
+  if (!name) { toast('Common name required'); return; }
+  const spacingIn = parseFloat(document.getElementById('qp-spacing').value);
+  const dtm = parseInt(document.getElementById('qp-dtm').value, 10);
+  const body = {
+    common_name: name,
+    scientific_name: document.getElementById('qp-sci').value.trim(),
+    category: document.getElementById('qp-category').value || null,
+    lifecycle: document.getElementById('qp-lifecycle').value || null,
+    sun_requirement: document.getElementById('qp-sun').value || null,
+    water_requirement: document.getElementById('qp-water').value || null,
+    plant_spacing_cm: isNaN(spacingIn) ? null : spacingIn * 2.54,
+    days_to_maturity_min: isNaN(dtm) ? null : dtm,
+    days_to_maturity_max: isNaN(dtm) ? null : dtm,
+    color_hex: document.getElementById('qp-color').value,
+    ca_native: document.getElementById('qp-native').checked,
+    food_perennial: document.getElementById('qp-food').checked,
+    collector_layer: document.getElementById('qp-rare').checked,
+    in_planner_catalog: true,
+    description: document.getElementById('qp-desc').value.trim(),
+  };
+  if (!id) {
+    body.status = 'wishlist';
+    body.priority = 'wishlist';
+    body.invasive_risk = 'none';
+    body.created = new Date().toISOString();
+  }
+  try {
+    let r;
+    if (id) r = await pb('PATCH', '/api/collections/plants/records/' + id, body);
+    else    r = await pb('POST',  '/api/collections/plants/records', body);
+    const idx = state.plants.findIndex(p => p.id === r.id);
+    if (idx >= 0) state.plants[idx] = r; else state.plants.push(r);
+    renderPlantList();
+    closeModal('quick-plant-modal');
+    toast(id ? 'Saved' : 'Plant added');
+    if (!id) openPlantDetail(r.id);
+  } catch (err) { toast('Save failed: ' + err.message); }
+}
+
+async function deleteQuickPlant() {
+  const id = document.getElementById('qp-id').value;
+  if (!id) return;
+  // Check if any plantings reference this plant.
+  const inUse = state.plantings.some(pt => pt.plant_id === id);
+  const msg = inUse
+    ? 'This plant is referenced by existing plantings. Removing it from the catalog will leave those plantings with a missing reference. Continue?'
+    : 'Remove this plant from the catalog?';
+  if (!confirm(msg)) return;
+  try {
+    await pb('DELETE', '/api/collections/plants/records/' + id);
+    state.plants = state.plants.filter(p => p.id !== id);
+    renderPlantList();
+    closeModal('quick-plant-modal');
+    toast('Removed');
+  } catch (err) { toast('Delete failed: ' + err.message); }
+}
+
+// ---------- Plant-to-bed flow ----------
+async function plantInObject(obj, plant) {
+  // Companion-planting check: see if any existing plantings in this bed are
+  // antagonists of the new plant, or vice versa.
+  const existing = state.plantings.filter(pt => pt.garden_object_id === obj.id);
+  if (existing.length) {
+    const newAntagonists = parseIds(plant.antagonist_plant_ids);
+    const newCompanions = parseIds(plant.companion_plant_ids);
+    const conflicts = [], friends = [];
+    for (const pt of existing) {
+      const other = state.plants.find(x => x.id === pt.plant_id);
+      if (!other) continue;
+      const otherAntag = parseIds(other.antagonist_plant_ids);
+      const otherComp = parseIds(other.companion_plant_ids);
+      if (newAntagonists.includes(other.id) || otherAntag.includes(plant.id)) conflicts.push(other.common_name);
+      else if (newCompanions.includes(other.id) || otherComp.includes(plant.id)) friends.push(other.common_name);
+    }
+    if (conflicts.length) {
+      const ok = confirm(`⚠ ${plant.common_name} is not a good neighbor for: ${conflicts.join(', ')}.\n\nPlant anyway?`);
+      if (!ok) return;
+    } else if (friends.length) {
+      toast(`Good companions: ${friends.join(', ')}`);
+    }
+  }
+  // Auto-compute a grid of plant positions inside the polygon.
+  const geom = typeof obj.shape_geojson === 'string' ? JSON.parse(obj.shape_geojson) : obj.shape_geojson;
+  if (!geom || geom.type !== 'Polygon') {
+    toast('Plant onto a polygon-shaped bed.');
+    return;
+  }
+  const spacingCm = plant.plant_spacing_cm || 30;
+  const positions = gridPointsInPolygon(geom, spacingCm);
+  if (!positions.length) {
+    toast('Bed too small for spacing — try a closer plant.');
+    return;
+  }
+  const body = {
+    garden_object_id: obj.id,
+    plant_id: plant.id,
+    planted_date: new Date().toISOString().slice(0, 10),
+    quantity: positions.length,
+    status: 'planned',
+    positions_geojson: { type: 'MultiPoint', coordinates: positions },
+    created: new Date().toISOString(),
+  };
+  try {
+    const r = await pb('POST', '/api/collections/plantings/records', body);
+    state.plantings.push(r);
+    renderPlantings();
+    toast(`Planted ${positions.length} ${plant.common_name}`);
+  } catch (err) { toast('Plant failed: ' + err.message); }
+  // Clear pending plant selection.
+  state.pendingPlant = null;
+  state.tool = 'select';
+  document.querySelectorAll('.plant-row').forEach(r => r.classList.remove('active'));
+  hint('');
+}
+
+// Generate a grid of [lng,lat] points inside the polygon at spacingCm spacing.
+function gridPointsInPolygon(polygon, spacingCm) {
+  const ring = polygon.coordinates[0];
+  if (!ring || ring.length < 4) return [];
+  // Bounding box.
+  let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
+  for (const [lng, lat] of ring) {
+    if (lng < minLng) minLng = lng;
+    if (lat < minLat) minLat = lat;
+    if (lng > maxLng) maxLng = lng;
+    if (lat > maxLat) maxLat = lat;
+  }
+  const centroidLat = (minLat + maxLat) / 2;
+  // Convert cm spacing to degrees.
+  const spacingM = spacingCm / 100;
+  const stepLat = spacingM / 111320;
+  const stepLng = spacingM / (111320 * Math.cos(centroidLat * Math.PI / 180));
+  // Start half-step in from the bounding box corner so plants don't sit on the edge.
+  const points = [];
+  for (let lat = minLat + stepLat / 2; lat <= maxLat; lat += stepLat) {
+    for (let lng = minLng + stepLng / 2; lng <= maxLng; lng += stepLng) {
+      if (pointInPolygon([lng, lat], ring)) points.push([lng, lat]);
+    }
+  }
+  return points;
+}
+
+// Ray-cast point-in-polygon.
+function pointInPolygon(pt, ring) {
+  const x = pt[0], y = pt[1];
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    const intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi + 1e-12) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+// Render plantings as a circle layer on the map.
+function renderPlantings() {
+  if (!state.map || !state.map.isStyleLoaded()) return;
+  // Flatten MultiPoint positions into a feature per point.
+  const features = [];
+  for (const pt of state.plantings) {
+    const plant = state.plants.find(p => p.id === pt.plant_id);
+    const color = (plant && plant.color_hex) || '#5a7a5a';
+    const plantName = (plant && plant.common_name) || 'Unknown';
+    const label = plantName.slice(0, 1);
+    const geom = typeof pt.positions_geojson === 'string' ? JSON.parse(pt.positions_geojson) : pt.positions_geojson;
+    if (!geom) continue;
+    if (geom.type === 'MultiPoint') {
+      for (const c of geom.coordinates) {
+        features.push({ type: 'Feature', geometry: { type: 'Point', coordinates: c }, properties: { color, label, plant_name: plantName, planting_id: pt.id, planted_date: pt.planted_date || '', quantity: pt.quantity || 0 } });
+      }
+    } else if (geom.type === 'Point') {
+      features.push({ type: 'Feature', geometry: { type: 'Point', coordinates: geom.coordinates }, properties: { color, label, plant_name: plantName, planting_id: pt.id, planted_date: pt.planted_date || '', quantity: pt.quantity || 0 } });
+    }
+  }
+  const src = state.map.getSource('plantings');
+  if (src) src.setData({ type: 'FeatureCollection', features });
+}
+
+// Rough area for a Polygon in WGS84 (square feet). Uses spherical excess approximation.
+function estimateAreaSqft(geom) {
+  if (!geom || geom.type !== 'Polygon' || !geom.coordinates || !geom.coordinates[0]) return 0;
+  const ring = geom.coordinates[0];
+  // Convert to local meters using equirectangular around centroid latitude.
+  const lat0 = ring.reduce((a, c) => a + c[1], 0) / ring.length;
+  const mPerDegLat = 111320;
+  const mPerDegLng = 111320 * Math.cos(lat0 * Math.PI / 180);
+  let area = 0;
+  for (let i = 0; i < ring.length - 1; i++) {
+    const x1 = ring[i][0] * mPerDegLng, y1 = ring[i][1] * mPerDegLat;
+    const x2 = ring[i + 1][0] * mPerDegLng, y2 = ring[i + 1][1] * mPerDegLat;
+    area += (x1 * y2 - x2 * y1);
+  }
+  area = Math.abs(area / 2);  // m²
+  return area * 10.7639;       // sq ft
+}
+
+// ---------- Garden CRUD ----------
+// ---------- Client portal token + link ----------
+function genToken() {
+  // 32 hex chars, opaque.
+  const a = new Uint8Array(16);
+  crypto.getRandomValues(a);
+  return Array.from(a, b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function togglePortal() {
+  const enabled = document.getElementById('gm-portal-enabled').checked;
+  if (enabled && !state._portalToken) state._portalToken = genToken();
+  renderPortalLink();
+}
+
+function renderPortalLink() {
+  const el = document.getElementById('gm-portal-link');
+  const enabled = document.getElementById('gm-portal-enabled').checked;
+  if (enabled && state._portalToken) {
+    const base = (location.protocol === 'file:' ? 'http://localhost' : location.origin);
+    const url = base + '/garden-portal.html?token=' + state._portalToken;
+    el.innerHTML = `<div style="margin-bottom:4px"><strong>Share link:</strong></div>
+      <div style="background:var(--white);padding:6px;border-radius:4px;font-family:monospace;font-size:0.74rem;cursor:pointer" onclick="copyToClipboard('${url}')" title="Click to copy">${escapeHtml(url)}</div>
+      <div style="margin-top:4px;font-size:0.72rem">Anyone with this link can view (not edit) this garden. Disable to revoke.</div>`;
+    el.style.display = 'block';
+  } else {
+    el.innerHTML = '';
+    el.style.display = 'none';
+  }
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => toast('Link copied')).catch(() => toast('Copy failed'));
+}
+
+// Toggle drone/photo extra fields based on base_layer selection.
+function updateGardenBaseExtras() {
+  const v = document.getElementById('gm-base').value;
+  document.getElementById('gm-drone-row').style.display = v === 'drone_ortho' ? '' : 'none';
+  document.getElementById('gm-photo-row').style.display = v === 'photo_calibrated' ? '' : 'none';
+}
+
+// ---------- Photo calibration ----------
+const calib = { img: null, pts: [], pxPerMeter: null, imgWidthM: null, imgHeightM: null };
+
+function openCalibrationModal() {
+  calib.pts = [];
+  calib.pxPerMeter = null;
+  document.getElementById('calib-status').textContent = '';
+  document.getElementById('calib-distance').value = '';
+  // If a photo was selected in the garden modal, copy it in.
+  const file = document.getElementById('gm-photo-file').files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = e => loadCalibFromDataUrl(e.target.result);
+    reader.readAsDataURL(file);
+  } else {
+    document.getElementById('calib-canvas').width = 0;
+    document.getElementById('calib-canvas').height = 0;
+  }
+  document.getElementById('calib-modal').classList.add('open');
+}
+
+function loadCalibrationImage(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => loadCalibFromDataUrl(e.target.result);
+  reader.readAsDataURL(file);
+}
+
+function loadCalibFromDataUrl(url) {
+  const img = new Image();
+  img.onload = () => {
+    calib.img = img;
+    const canvas = document.getElementById('calib-canvas');
+    // Cap displayed dimensions; remember scaleDown to map clicks back to pixels.
+    const maxW = 820, maxH = 540;
+    const scale = Math.min(1, maxW / img.naturalWidth, maxH / img.naturalHeight);
+    canvas.width = Math.round(img.naturalWidth * scale);
+    canvas.height = Math.round(img.naturalHeight * scale);
+    calib.displayScale = scale;
+    drawCalibCanvas();
+  };
+  img.src = url;
+}
+
+function drawCalibCanvas() {
+  const canvas = document.getElementById('calib-canvas');
+  const ctx = canvas.getContext('2d');
+  if (!calib.img) { ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
+  ctx.drawImage(calib.img, 0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = '#c2557a'; ctx.lineWidth = 2;
+  ctx.fillStyle = '#c2557a';
+  for (const p of calib.pts) {
+    ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.fill();
+  }
+  if (calib.pts.length === 2) {
+    ctx.beginPath();
+    ctx.moveTo(calib.pts[0].x, calib.pts[0].y);
+    ctx.lineTo(calib.pts[1].x, calib.pts[1].y);
+    ctx.stroke();
+  }
+}
+
+document.getElementById('calib-canvas').addEventListener('click', e => {
+  if (!calib.img) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  if (calib.pts.length >= 2) calib.pts = [];
+  calib.pts.push({ x, y });
+  drawCalibCanvas();
+  if (calib.pts.length === 2) {
+    const pxDist = Math.hypot(calib.pts[1].x - calib.pts[0].x, calib.pts[1].y - calib.pts[0].y);
+    document.getElementById('calib-status').textContent = `Pixel distance: ${pxDist.toFixed(1)} px. Enter the real-world distance below.`;
+  } else {
+    document.getElementById('calib-status').textContent = `Click the other end of your reference object.`;
+  }
+});
+
+function resetCalibrationPoints() {
+  calib.pts = [];
+  drawCalibCanvas();
+  document.getElementById('calib-status').textContent = '';
+}
+
+function confirmCalibration() {
+  if (!calib.img || calib.pts.length !== 2) { toast('Click two points on the photo first.'); return; }
+  const dist = parseFloat(document.getElementById('calib-distance').value);
+  if (!dist || dist <= 0) { toast('Enter the real distance.'); return; }
+  const units = document.getElementById('calib-units').value;
+  // Convert to meters.
+  const toM = { m: 1, ft: 0.3048, in: 0.0254, cm: 0.01 };
+  const distM = dist * toM[units];
+  // Pixel distance in DISPLAYED canvas coords. Convert to original-image pixels via displayScale.
+  const pxDisplay = Math.hypot(calib.pts[1].x - calib.pts[0].x, calib.pts[1].y - calib.pts[0].y);
+  const pxOriginal = pxDisplay / calib.displayScale;
+  const pxPerMeter = pxOriginal / distM;
+  calib.pxPerMeter = pxPerMeter;
+  calib.imgWidthM = calib.img.naturalWidth / pxPerMeter;
+  calib.imgHeightM = calib.img.naturalHeight / pxPerMeter;
+  document.getElementById('calib-status').innerHTML = `<strong>Calibrated:</strong> ${pxPerMeter.toFixed(1)} px/m → image is ${calib.imgWidthM.toFixed(1)}m × ${calib.imgHeightM.toFixed(1)}m (${(calib.imgWidthM * 3.28084).toFixed(1)}ft × ${(calib.imgHeightM * 3.28084).toFixed(1)}ft).`;
+  document.getElementById('gm-photo-status').innerHTML = `Photo calibrated: image is <strong>${calib.imgWidthM.toFixed(1)}m × ${calib.imgHeightM.toFixed(1)}m</strong>.`;
+  // Park the calibration result on state so saveGarden can pick it up.
+  state._pendingPhotoCalibration = {
+    pxPerMeter,
+    widthM: calib.imgWidthM,
+    heightM: calib.imgHeightM,
+    naturalWidth: calib.img.naturalWidth,
+    naturalHeight: calib.img.naturalHeight,
+    rotationDeg: 0,
+  };
+  closeModal('calib-modal');
+}
+
+// Geocode an address via Nominatim (free OSM service, no key needed). Coastal-CA-friendly.
+async function geocodeAddress() {
+  const addr = document.getElementById('gm-address').value.trim();
+  const statusEl = document.getElementById('gm-geocode-status');
+  if (!addr) { statusEl.textContent = 'Type an address first.'; return; }
+  statusEl.textContent = 'Looking up…';
+  try {
+    const url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(addr) + '&format=json&limit=1';
+    const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    const data = await resp.json();
+    if (!data || !data.length) { statusEl.textContent = 'No match found — you can still save and adjust the map later.'; return; }
+    const lat = parseFloat(data[0].lat), lng = parseFloat(data[0].lon);
+    state._geocodedLocation = { type: 'Point', coordinates: [lng, lat] };
+    statusEl.innerHTML = `Found: <strong>${escapeHtml(data[0].display_name.slice(0, 80))}</strong>`;
+  } catch (err) { statusEl.textContent = 'Lookup failed: ' + err.message; }
+}
+
+// Defaults for last/first frost by USDA zone (Pacific coastal bias).
+const FROST_DEFAULTS = {
+  '5':  ['05-20', '09-15'], '5a': ['05-20', '09-15'], '5b': ['05-15', '09-20'],
+  '6':  ['05-10', '09-30'], '6a': ['05-10', '09-25'], '6b': ['05-01', '10-05'],
+  '7':  ['04-25', '10-15'], '7a': ['04-25', '10-10'], '7b': ['04-15', '10-20'],
+  '8':  ['04-01', '10-30'], '8a': ['04-10', '10-30'], '8b': ['03-25', '11-15'],
+  '9':  ['03-15', '11-25'], '9a': ['03-20', '11-20'], '9b': ['03-10', '11-30'],
+  '10': ['02-15', '12-15'], '10a':['02-20', '12-15'], '10b':['01-30', '12-30'],
+  '11': ['01-15', '12-31'],
+};
+function applyFrostDefaults() {
+  const z = document.getElementById('gm-usda').value.trim().toLowerCase();
+  const def = FROST_DEFAULTS[z];
+  if (!def) return;
+  const year = new Date().getFullYear();
+  const lf = document.getElementById('gm-lastfrost');
+  const ff = document.getElementById('gm-firstfrost');
+  if (!lf.value) lf.value = year + '-' + def[0];
+  if (!ff.value) ff.value = year + '-' + def[1];
+}
+
+function openGardenModal(id) {
+  const m = document.getElementById('garden-modal');
+  const g = id ? state.gardens.find(x => x.id === id) : null;
+  document.getElementById('gm-title').textContent = g ? 'Edit garden' : 'Add garden';
+  document.getElementById('gm-id').value = g ? g.id : '';
+  document.getElementById('gm-name').value = g?.name || '';
+  document.getElementById('gm-owner').value = g?.owner_name || '';
+  document.getElementById('gm-status').value = g?.status || 'active';
+  document.getElementById('gm-address').value = g?.address || '';
+  document.getElementById('gm-usda').value = g?.usda_zone || '';
+  document.getElementById('gm-sunset').value = g?.sunset_zone || '';
+  document.getElementById('gm-lastfrost').value = g?.last_frost_date ? g.last_frost_date.slice(0, 10) : '';
+  document.getElementById('gm-firstfrost').value = g?.first_frost_date ? g.first_frost_date.slice(0, 10) : '';
+  document.getElementById('gm-base').value = g?.base_layer || 'satellite';
+  document.getElementById('gm-units').value = g?.units || 'imperial';
+  document.getElementById('gm-micro').value = g?.microclimate_notes || '';
+  document.getElementById('gm-notes').value = g?.notes || '';
+  document.getElementById('gm-drone-url').value = g?.drone_tiles_url || '';
+  document.getElementById('gm-portal-enabled').checked = !!g?.portal_enabled;
+  state._portalToken = g?.portal_token || '';
+  renderPortalLink();
+  document.getElementById('gm-photo-file').value = '';
+  document.getElementById('gm-photo-status').textContent = g?.photo_backdrop
+    ? `Existing photo: ${g.photo_backdrop}. Re-upload to replace.`
+    : '';
+  document.getElementById('gm-delete').style.display = g ? '' : 'none';
+  document.getElementById('gm-geocode-status').textContent = '';
+  state._geocodedLocation = null;
+  state._pendingPhotoCalibration = null;
+  // Auto-fill frost dates when zone changes.
+  document.getElementById('gm-usda').oninput = applyFrostDefaults;
+  updateGardenBaseExtras();
+  m.classList.add('open');
+}
+
+function openGardenSettings() {
+  if (state.currentGarden) openGardenModal(state.currentGarden.id);
+}
+
+async function saveGarden() {
+  const id = document.getElementById('gm-id').value;
+  const body = {
+    name: document.getElementById('gm-name').value.trim(),
+    owner_name: document.getElementById('gm-owner').value.trim(),
+    status: document.getElementById('gm-status').value,
+    address: document.getElementById('gm-address').value.trim(),
+    usda_zone: document.getElementById('gm-usda').value.trim(),
+    sunset_zone: document.getElementById('gm-sunset').value.trim(),
+    last_frost_date: document.getElementById('gm-lastfrost').value || null,
+    first_frost_date: document.getElementById('gm-firstfrost').value || null,
+    base_layer: document.getElementById('gm-base').value,
+    units: document.getElementById('gm-units').value,
+    microclimate_notes: document.getElementById('gm-micro').value.trim(),
+    notes: document.getElementById('gm-notes').value.trim(),
+  };
+  if (!body.name) { toast('Name required'); return; }
+  if (!id) body.created = new Date().toISOString();
+  // Include geocoded pin if user looked one up.
+  if (state._geocodedLocation) body.location_geojson = state._geocodedLocation;
+  // Drone tiles URL.
+  body.drone_tiles_url = document.getElementById('gm-drone-url').value.trim();
+  // Photo calibration.
+  if (state._pendingPhotoCalibration) body.photo_calibration = state._pendingPhotoCalibration;
+  // Portal sharing.
+  body.portal_enabled = document.getElementById('gm-portal-enabled').checked;
+  body.portal_token = state._portalToken || '';
+
+  const photoFile = document.getElementById('gm-photo-file').files[0];
+
+  try {
+    let r;
+    if (photoFile) {
+      // Multipart upload for the photo backdrop.
+      const fd = new FormData();
+      for (const k in body) {
+        if (body[k] === null || body[k] === undefined) continue;
+        if (typeof body[k] === 'object') fd.append(k, JSON.stringify(body[k]));
+        else fd.append(k, body[k]);
+      }
+      fd.append('photo_backdrop', photoFile);
+      const url = id ? (PB_URL + '/api/collections/gardens/records/' + id) : (PB_URL + '/api/collections/gardens/records');
+      const resp = await fetch(url, {
+        method: id ? 'PATCH' : 'POST',
+        headers: PB_TOKEN ? { 'Authorization': 'Bearer ' + PB_TOKEN } : {},
+        body: fd,
+      });
+      if (!resp.ok) { const t = await resp.text().catch(() => ''); throw new Error('PB ' + resp.status + ': ' + t); }
+      r = await resp.json();
+    } else {
+      if (id) r = await pb('PATCH', '/api/collections/gardens/records/' + id, body);
+      else    r = await pb('POST',  '/api/collections/gardens/records', body);
+    }
+    const idx = state.gardens.findIndex(g => g.id === r.id);
+    if (idx >= 0) state.gardens[idx] = r; else state.gardens.unshift(r);
+    if (state.currentGarden && state.currentGarden.id === r.id) {
+      state.currentGarden = r;
+      renderClimateBadge();
+    }
+    closeModal('garden-modal');
+    if (!id) location.hash = '#garden/' + r.id;
+    else renderGardenList();
+    toast('Saved');
+  } catch (err) { toast('Save failed: ' + err.message); }
+}
+
+async function deleteGarden() {
+  const id = document.getElementById('gm-id').value;
+  if (!id) return;
+  if (!confirm('Delete this garden and all objects/plantings inside it?')) return;
+  try {
+    await pb('DELETE', '/api/collections/gardens/records/' + id);
+    state.gardens = state.gardens.filter(g => g.id !== id);
+    closeModal('garden-modal');
+    location.hash = '#gardens';
+    toast('Deleted');
+  } catch (err) { toast('Delete failed: ' + err.message); }
+}
+
+// ---------- Utilities ----------
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2000);
+}
+function hint(msg) {
+  const h = document.getElementById('hint');
+  if (!msg) { h.classList.remove('show'); return; }
+  h.textContent = msg; h.classList.add('show');
+}
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function parseIds(s) { return String(s || '').split(',').map(x => x.trim()).filter(Boolean); }
+
+// Double-click on map finishes draft drawing.
+window.addEventListener('load', () => {
+  // Slight delay so map exists if we route directly into detail view.
+});
+
+// ---------- Boot ----------
+(function init() {
+  if (tokenValid(PB_TOKEN)) {
+    boot();
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+  }
+})();
+</script>
+</body>
+</html>

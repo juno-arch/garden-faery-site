@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Garden — Garden Faery</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="shared.css?v=2026-06-08">
+
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css">
+<script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+
+<style>
+  html, body { height: 100%; margin: 0; }
+  body { font-family: var(--font-body); background: var(--cream); color: var(--plum); overflow: hidden; }
+  h1, h2, h3 { font-family: var(--font-heading); font-weight: 500; }
+  .full { position: fixed; inset: 0; display: flex; flex-direction: column; }
+  .topbar { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--white); border-bottom: 1px solid var(--gray-200); }
+  .topbar-left h1 { font-size: 1.3rem; }
+  .topbar-left .sub { font-size: 0.82rem; color: var(--gray-600); margin-top: 2px; }
+  .topbar-right { font-size: 0.82rem; color: var(--gray-600); }
+  .topbar-right a { color: var(--plum); text-decoration: none; font-weight: 600; }
+  .map-wrap { flex: 1; position: relative; min-height: 0; }
+  #map { position: absolute; inset: 0; }
+  .info-panel {
+    position: absolute; bottom: 12px; left: 12px; right: 12px; max-width: 360px;
+    background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 14px; max-height: 50vh; overflow-y: auto;
+  }
+  .info-panel h3 { font-size: 1rem; margin-bottom: 6px; }
+  .info-panel .climate { font-size: 0.82rem; color: var(--gray-600); margin-bottom: 8px; }
+  .info-panel .stat-row { display: flex; gap: 12px; font-size: 0.78rem; color: var(--gray-600); margin-bottom: 8px; }
+  .info-panel .stat-row strong { color: var(--plum); font-weight: 600; }
+  .obj-card { background: var(--cream); border-radius: 8px; padding: 8px 10px; margin: 6px 0; }
+  .obj-card .obj-name { font-weight: 600; font-size: 0.86rem; }
+  .obj-card .obj-meta { font-size: 0.74rem; color: var(--gray-600); margin-top: 2px; }
+  .plantings-list { font-size: 0.78rem; color: var(--plum); margin-top: 4px; }
+  .plantings-list span { display: inline-block; padding: 1px 7px; border-radius: 99px; background: var(--white); border: 1px solid var(--gray-200); margin-right: 3px; margin-top: 3px; }
+  .care-list { font-size: 0.74rem; color: var(--gray-600); margin-top: 8px; }
+  .care-row { padding: 3px 0; border-top: 1px dashed var(--gray-100); }
+  .err { padding: 30px; text-align: center; color: var(--gray-600); }
+  .err h2 { font-size: 1.4rem; margin-bottom: 8px; color: var(--plum); }
+</style>
+</head>
+<body>
+
+<div id="loading" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--cream);font-size:1rem;color:var(--gray-600)">Loading your garden…</div>
+
+<div id="err" style="display:none" class="err">
+  <h2>Garden not found</h2>
+  <p>This share link may have expired or been disabled. Please contact Garden Faery for a new link.</p>
+</div>
+
+<div id="app" class="full" style="display:none">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 id="g-name">Garden</h1>
+      <div class="sub" id="g-addr"></div>
+    </div>
+    <div class="topbar-right">
+      Tended by <a href="https://gardenfaery.love" target="_blank">Garden Faery</a>
+    </div>
+  </div>
+  <div class="map-wrap">
+    <div id="map"></div>
+    <div class="info-panel" id="info-panel">
+      <h3 id="i-name"></h3>
+      <div class="climate" id="i-climate"></div>
+      <div class="stat-row" id="i-stats"></div>
+      <div id="i-objects"></div>
+      <div class="care-list" id="i-care"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PB_URL = (() => {
+  const h = location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1' || h === '' || location.protocol === 'file:') {
+    return 'http://127.0.0.1:8091';
+  }
+  return 'https://bookings.gardenfaery.love';
+})();
+
+const token = new URLSearchParams(location.search).get('token');
+
+async function boot() {
+  if (!token) return showError();
+  try {
+    const resp = await fetch(PB_URL + '/api/portal/garden/' + encodeURIComponent(token));
+    if (!resp.ok) return showError();
+    const data = await resp.json();
+    render(data);
+  } catch (err) {
+    showError();
+  }
+}
+
+function showError() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('err').style.display = 'block';
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function render(data) {
+  const g = data.garden;
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('g-name').textContent = g.name;
+  document.getElementById('g-addr').textContent = g.address || '';
+  document.getElementById('i-name').textContent = g.name;
+  document.getElementById('i-climate').textContent =
+    `Zone ${g.usda_zone || '—'}${g.sunset_zone ? ' / Sunset ' + g.sunset_zone : ''} · Last frost ${(g.last_frost_date || '—').slice(0,10)} · First frost ${(g.first_frost_date || '—').slice(0,10)}`;
+  document.getElementById('i-stats').innerHTML =
+    `<span><strong>${data.objects.length}</strong> objects</span>` +
+    `<span><strong>${data.plantings.length}</strong> plantings</span>` +
+    `<span><strong>${data.careEvents.length}</strong> care events</span>`;
+
+  // Objects list with plantings inside.
+  const objsHtml = data.objects.map(o => {
+    const here = data.plantings.filter(pt => pt.garden_object_id === o.id);
+    const plList = here.map(pt => {
+      const plant = data.plants.find(p => p.id === pt.plant_id);
+      const name = plant ? plant.common_name : 'unknown';
+      return `<span>${escapeHtml(name)} × ${pt.quantity || 0}</span>`;
+    }).join('');
+    return `<div class="obj-card">
+      <div class="obj-name">${escapeHtml(o.name || o.type.replace(/_/g, ' '))}</div>
+      <div class="obj-meta">${o.type.replace(/_/g, ' ')}${o.area_sqft ? ' · ' + o.area_sqft.toFixed(1) + ' sq ft' : ''}${o.sun_exposure ? ' · ' + o.sun_exposure.replace(/_/g, ' ') : ''}</div>
+      ${plList ? '<div class="plantings-list">' + plList + '</div>' : ''}
+    </div>`;
+  }).join('');
+  document.getElementById('i-objects').innerHTML = objsHtml || '<div style="color:var(--gray-600);font-size:0.85rem">No objects mapped yet.</div>';
+
+  // Recent care events.
+  const careHtml = data.careEvents.slice(0, 8).map(ce => {
+    const date = (ce.event_date || '').slice(0, 10);
+    const type = (ce.event_type || '').replace(/_/g, ' ');
+    const obj = data.objects.find(o => o.id === ce.garden_object_id);
+    const objName = obj ? obj.name || obj.type.replace(/_/g, ' ') : '';
+    return `<div class="care-row"><strong>${date}</strong> · ${type}${objName ? ' · ' + escapeHtml(objName) : ''}${ce.product_used ? ' · ' + escapeHtml(ce.product_used) : ''}${ce.notes ? ' — ' + escapeHtml(ce.notes.slice(0, 80)) : ''}</div>`;
+  }).join('');
+  if (careHtml) {
+    document.getElementById('i-care').innerHTML = '<h3 style="margin-top:10px;font-size:0.86rem">Recent care</h3>' + careHtml;
+  }
+
+  // Map.
+  const center = (g.location_geojson && g.location_geojson.coordinates) || [-124.0750, 40.8430];
+  const zoom = g.default_zoom || 19;
+  const style = buildStyle(g, center);
+  const map = new maplibregl.Map({ container: 'map', style, center, zoom, attributionControl: true });
+  map.addControl(new maplibregl.NavigationControl({ visualizePitch: false }), 'top-right');
+  map.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: g.units === 'metric' ? 'metric' : 'imperial' }), 'bottom-right');
+  map.on('load', () => {
+    // Object polygons / lines / points.
+    map.addSource('objects', { type: 'geojson', data: { type: 'FeatureCollection', features:
+      data.objects.map(o => ({ type: 'Feature', geometry: typeof o.shape_geojson === 'string' ? JSON.parse(o.shape_geojson) : o.shape_geojson, properties: { id: o.id, name: o.name || '', color: o.fill_color || '#9bbd85' } })).filter(f => f.geometry)
+    }});
+    map.addLayer({ id: 'obj-fill', type: 'fill', source: 'objects', filter: ['==', ['geometry-type'], 'Polygon'], paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.42 } });
+    map.addLayer({ id: 'obj-out',  type: 'line', source: 'objects', filter: ['==', ['geometry-type'], 'Polygon'], paint: { 'line-color': ['get', 'color'], 'line-width': 1.6 } });
+    map.addLayer({ id: 'obj-line', type: 'line', source: 'objects', filter: ['==', ['geometry-type'], 'LineString'], paint: { 'line-color': '#6b8f5e', 'line-width': 3 } });
+    map.addLayer({ id: 'obj-pt',   type: 'circle', source: 'objects', filter: ['==', ['geometry-type'], 'Point'], paint: { 'circle-radius': 7, 'circle-color': ['get', 'color'], 'circle-stroke-color': '#5a1230', 'circle-stroke-width': 1.5 } });
+
+    // Plantings.
+    const features = [];
+    for (const pt of data.plantings) {
+      const plant = data.plants.find(p => p.id === pt.plant_id);
+      const color = (plant && plant.color_hex) || '#5a7a5a';
+      const label = (plant && plant.common_name || '?').slice(0, 1);
+      const geom = typeof pt.positions_geojson === 'string' ? JSON.parse(pt.positions_geojson) : pt.positions_geojson;
+      if (!geom) continue;
+      if (geom.type === 'MultiPoint') for (const c of geom.coordinates) features.push({ type: 'Feature', geometry: { type: 'Point', coordinates: c }, properties: { color, label } });
+      else if (geom.type === 'Point') features.push({ type: 'Feature', geometry: geom, properties: { color, label } });
+    }
+    map.addSource('plantings', { type: 'geojson', data: { type: 'FeatureCollection', features } });
+    map.addLayer({ id: 'pl-c', type: 'circle', source: 'plantings', paint: {
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 17, 3, 20, 6, 22, 10],
+      'circle-color': ['get', 'color'],
+      'circle-stroke-color': '#ffffff', 'circle-stroke-width': 1.5,
+    }});
+    map.addLayer({ id: 'pl-l', type: 'symbol', source: 'plantings', minzoom: 19,
+      layout: { 'text-field': ['get', 'label'], 'text-size': 10, 'text-anchor': 'center' },
+      paint: { 'text-color': '#ffffff', 'text-halo-color': '#5a1230', 'text-halo-width': 1.2 },
+    });
+  });
+}
+
+function buildStyle(g, center) {
+  const sources = {};
+  const layers = [];
+  if (g.base_layer === 'satellite' || !g.base_layer) {
+    sources.satellite = {
+      type: 'raster',
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      attribution: 'Imagery © Esri',
+    };
+    layers.push({ id: 'satellite', type: 'raster', source: 'satellite' });
+  } else if (g.base_layer === 'drone_ortho' && g.drone_tiles_url) {
+    sources.drone = { type: 'raster', tiles: [g.drone_tiles_url], tileSize: 256 };
+    layers.push({ id: 'drone', type: 'raster', source: 'drone' });
+  } else if (g.base_layer === 'photo_calibrated' && g.photo_backdrop) {
+    const calib = (typeof g.photo_calibration === 'string') ? JSON.parse(g.photo_calibration) : g.photo_calibration;
+    if (calib) {
+      const lat = center[1], lng = center[0];
+      const halfWdeg = (calib.widthM / 2) / (111320 * Math.cos(lat * Math.PI / 180));
+      const halfHdeg = (calib.heightM / 2) / 111320;
+      sources.photo = {
+        type: 'image',
+        url: PB_URL + '/api/files/gardens/' + g.id + '/' + g.photo_backdrop,
+        coordinates: [
+          [lng - halfWdeg, lat + halfHdeg],
+          [lng + halfWdeg, lat + halfHdeg],
+          [lng + halfWdeg, lat - halfHdeg],
+          [lng - halfWdeg, lat - halfHdeg],
+        ],
+      };
+      layers.push({ id: 'photo', type: 'raster', source: 'photo' });
+    }
+  }
+  return { version: 8, sources, layers, glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf' };
+}
+
+boot();
+</script>
+</body>
+</html>

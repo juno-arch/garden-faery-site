@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Set up your account — Garden Faery</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="shared.css?v=2026-06-08">
+
+<style>
+  body { font-family: var(--font-body); background: var(--cream); color: var(--plum); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  h1, h2 { font-family: var(--font-heading); font-weight: 500; color: var(--plum); }
+  .card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 30px; max-width: 420px; width: 100%; }
+  .card h1 { font-size: 1.6rem; margin-bottom: 4px; }
+  .card .sub { color: var(--gray-600); font-size: 0.86rem; margin-bottom: 18px; }
+  .field { margin-bottom: 12px; }
+  label { display: block; font-size: 0.74rem; font-weight: 600; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  input { width: 100%; padding: 11px 13px; border: 1px solid var(--gray-200); border-radius: 8px; font-size: 1rem; font-family: var(--font-body); color: var(--plum); }
+  .btn { background: var(--plum); color: var(--white); border: none; border-radius: 8px; padding: 12px; width: 100%; font-family: var(--font-body); font-weight: 600; font-size: 0.95rem; cursor: pointer; margin-top: 4px; }
+  .btn:hover { background: #45102f; }
+  .err { background: var(--red-light); color: var(--red); padding: 10px; border-radius: 8px; font-size: 0.82rem; margin-bottom: 12px; }
+  .ok { background: var(--sage-light); color: #3f5a32; padding: 14px; border-radius: 8px; font-size: 0.92rem; margin-bottom: 12px; }
+  .role-pill { display: inline-block; background: var(--cream); color: var(--plum); border: 1px solid var(--gray-200); padding: 2px 10px; border-radius: 99px; font-size: 0.78rem; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="card" id="card">
+  <div id="loading">Loading your invite…</div>
+</div>
+
+<script>
+const PB_URL = (() => {
+  const h = location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1' || h === '' || location.protocol === 'file:') return 'http://127.0.0.1:8091';
+  return 'https://bookings.gardenfaery.love';
+})();
+
+const token = new URLSearchParams(location.search).get('token');
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function boot() {
+  if (!token) { showError('No invite token in this link.'); return; }
+  try {
+    const resp = await fetch(PB_URL + '/api/staff/invite/' + encodeURIComponent(token));
+    if (!resp.ok) {
+      const data = await resp.json().catch(() => ({}));
+      showError(humanError(data.error || 'invite_not_found'));
+      return;
+    }
+    const inv = await resp.json();
+    if (inv.already_claimed) { showError('This invite has already been used. If that wasn\'t you, contact Garden Faery.'); return; }
+    if (inv.expires && new Date(inv.expires) < new Date()) { showError('This invite has expired. Ask for a new link.'); return; }
+    showForm(inv);
+  } catch (err) {
+    showError('Could not reach the server. Try again in a moment.');
+  }
+}
+
+function humanError(code) {
+  const m = {
+    invite_not_found: 'This invite link isn\'t valid.',
+    invalid_token: 'This invite link isn\'t valid.',
+    already_claimed: 'This invite has already been used.',
+    expired: 'This invite has expired.',
+    password_too_short: 'Password needs to be at least 8 characters.',
+    password_mismatch: 'Passwords don\'t match.',
+  };
+  return m[code] || 'Something went wrong.';
+}
+
+function showError(msg) {
+  document.getElementById('card').innerHTML = `
+    <h1>Garden Faery</h1>
+    <div class="sub">Staff account setup</div>
+    <div class="err">${escapeHtml(msg)}</div>
+  `;
+}
+
+function showForm(inv) {
+  document.getElementById('card').innerHTML = `
+    <h1>Welcome to Garden Faery</h1>
+    <div class="sub">Set a password to activate your account.</div>
+    <div style="margin-bottom:16px;padding:10px 12px;background:var(--cream);border-radius:8px;font-size:0.86rem">
+      Invited to <strong>${escapeHtml(inv.email)}</strong> as a <span class="role-pill">${escapeHtml(inv.role || 'staff')}</span>
+    </div>
+    <div id="err-box"></div>
+    <div class="field">
+      <label>Your name</label>
+      <input type="text" id="f-name" value="${escapeHtml(inv.display_name || '')}" placeholder="How should we address you?">
+    </div>
+    <div class="field">
+      <label>Password (8+ characters)</label>
+      <input type="password" id="f-pw" autocomplete="new-password">
+    </div>
+    <div class="field">
+      <label>Confirm password</label>
+      <input type="password" id="f-pw2" autocomplete="new-password">
+    </div>
+    <button class="btn" onclick="submitClaim()">Create my account</button>
+  `;
+}
+
+async function submitClaim() {
+  const pw = document.getElementById('f-pw').value;
+  const pw2 = document.getElementById('f-pw2').value;
+  const name = document.getElementById('f-name').value.trim();
+  const err = document.getElementById('err-box');
+  err.innerHTML = '';
+  if (!pw || pw.length < 8) { err.innerHTML = '<div class="err">Password needs to be at least 8 characters.</div>'; return; }
+  if (pw !== pw2) { err.innerHTML = '<div class="err">Passwords don\'t match.</div>'; return; }
+  try {
+    const resp = await fetch(PB_URL + '/api/staff/claim', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, password: pw, passwordConfirm: pw2, display_name: name }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) { err.innerHTML = '<div class="err">' + escapeHtml(humanError(data.error)) + '</div>'; return; }
+    document.getElementById('card').innerHTML = `
+      <h1>You're in</h1>
+      <div class="ok">Account created for <strong>${escapeHtml(data.email)}</strong>. You can now sign in to the planner.</div>
+      <a href="/admin-planner.html" class="btn" style="text-decoration:none;text-align:center;display:block">Open the planner →</a>
+    `;
+  } catch (e) {
+    err.innerHTML = '<div class="err">Could not reach the server. Try again in a moment.</div>';
+  }
+}
+
+boot();
+</script>
+</body>
+</html>

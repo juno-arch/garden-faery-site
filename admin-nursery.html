@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Nursery — Garden Faery</title>
+
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
+<link rel="apple-touch-icon" href="/icon-admin.png">
+<link rel="icon" type="image/png" href="/icon-admin.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="shared.css?v=2026-06-08">
+
+<style>
+  body { font-family: var(--font-body); background: var(--cream); color: var(--plum); min-height: 100vh; padding-bottom: 80px; }
+  h1, h2, h3 { font-family: var(--font-heading); font-weight: 500; color: var(--plum); }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 18px; }
+
+  /* Header */
+  .nh-header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 4px 0 18px; flex-wrap: wrap; }
+  .nh-title { font-family: var(--font-heading); font-size: 2rem; font-weight: 500; }
+  .nh-sub { font-size: 0.9rem; color: var(--gray-600); margin-top: 2px; }
+  .nh-tools { display: flex; gap: 8px; align-items: center; }
+  .logout-btn { background: transparent; border: 1px solid var(--gray-200); border-radius: 8px; padding: 6px 12px; color: var(--plum); cursor: pointer; font-family: inherit; font-size: 0.85rem; }
+  .logout-btn:hover { background: var(--gray-100); }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; background: var(--gray-100); border-radius: 10px; padding: 4px; margin-bottom: 18px; overflow-x: auto; }
+  .tab { flex: 0 0 auto; padding: 10px 16px; border: none; border-radius: 8px; background: none; font-family: var(--font-body); font-weight: 600; font-size: 0.88rem; color: var(--gray-600); cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+  .tab.active { background: var(--white); color: var(--plum); box-shadow: var(--shadow); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Summary strip */
+  .strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .strip .card { background: var(--white); border-radius: var(--radius); padding: 12px 14px; box-shadow: var(--shadow); }
+  .strip .label { font-size: 0.72rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.6px; }
+  .strip .val { font-family: var(--font-heading); font-size: 1.6rem; font-weight: 500; margin-top: 2px; }
+
+  /* Filter row */
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
+  .filters select, .filters input[type=search] {
+    background: var(--white); border: 1px solid var(--gray-200); border-radius: 8px;
+    padding: 8px 10px; font-family: var(--font-body); font-size: 0.85rem; color: var(--plum);
+  }
+  .filters input[type=search] { min-width: 220px; }
+  .filters .spacer { flex: 1; }
+
+  /* Buttons */
+  .btn { background: var(--plum); color: var(--white); border: none; border-radius: 8px; padding: 9px 14px; font-family: var(--font-body); font-weight: 600; font-size: 0.86rem; cursor: pointer; }
+  .btn:hover { background: #45102f; }
+  .btn-ghost { background: transparent; color: var(--plum); border: 1px solid var(--gray-200); }
+  .btn-ghost:hover { background: var(--gray-100); }
+  .btn-sm { padding: 6px 10px; font-size: 0.78rem; }
+
+  /* Table */
+  .table-wrap { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); overflow-x: auto; }
+  table.nh { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+  table.nh th, table.nh td { padding: 10px 12px; text-align: left; vertical-align: top; }
+  table.nh thead th { background: var(--gray-100); font-weight: 700; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-600); border-bottom: 1px solid var(--gray-200); position: sticky; top: 0; }
+  table.nh tbody tr { border-top: 1px solid var(--gray-100); }
+  table.nh tbody tr:hover { background: var(--gray-100); }
+  table.nh .sci { color: var(--gray-600); font-style: italic; font-size: 0.78rem; }
+
+  /* Pills */
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 0.72rem; font-weight: 600; line-height: 1.4; white-space: nowrap; }
+  .pill-priority-first_10  { background: var(--wine); color: var(--white); }
+  .pill-priority-next_tier { background: var(--peach); color: var(--plum); }
+  .pill-priority-wishlist  { background: var(--gray-100); color: var(--gray-600); }
+  .pill-priority-dropped   { background: var(--gray-200); color: var(--gray-600); text-decoration: line-through; }
+  .pill-status-wishlist     { background: var(--gray-100); color: var(--gray-600); }
+  .pill-status-sourced      { background: var(--butter); color: var(--plum); }
+  .pill-status-growing      { background: var(--sage-light); color: #3f5a32; }
+  .pill-status-mature_stock { background: var(--spring-sage); color: var(--white); }
+  .pill-status-dropped      { background: var(--gray-200); color: var(--gray-600); text-decoration: line-through; }
+  .pill-native { background: var(--spring-sage); color: var(--white); }
+  .pill-food   { background: var(--butter); color: var(--plum); }
+  .pill-collector { background: var(--rose); color: var(--white); }
+  .pill-install   { background: var(--coral); color: var(--white); }
+  .pill-prop { background: var(--cream); border: 1px solid var(--gray-200); color: var(--plum); }
+  .pill-row { display: flex; gap: 4px; flex-wrap: wrap; }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(90, 18, 48, 0.45); z-index: 200; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 30px 14px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-hover); max-width: 720px; width: 100%; padding: 22px; }
+  .modal h2 { margin-bottom: 14px; }
+  .modal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .modal-row.full { grid-template-columns: 1fr; }
+  .modal label { display: block; font-size: 0.74rem; font-weight: 600; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+  .modal input[type=text], .modal input[type=number], .modal input[type=date], .modal select, .modal textarea {
+    width: 100%; background: var(--white); border: 1px solid var(--gray-200); border-radius: 8px;
+    padding: 9px 11px; font-family: var(--font-body); font-size: 0.9rem; color: var(--plum);
+  }
+  .modal textarea { min-height: 70px; resize: vertical; }
+  .check-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 4px; }
+  .check-row label { display: inline-flex; align-items: center; gap: 5px; text-transform: none; font-size: 0.85rem; letter-spacing: 0; font-weight: 500; color: var(--plum); margin-bottom: 0; }
+  .modal-foot { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--gray-100); }
+
+  /* Multi-select for prop methods */
+  .multi { display: flex; flex-wrap: wrap; gap: 6px; }
+  .multi label { padding: 5px 10px; background: var(--cream); border: 1px solid var(--gray-200); border-radius: 99px; cursor: pointer; font-size: 0.78rem; text-transform: none; letter-spacing: 0; font-weight: 500; }
+  .multi input { display: none; }
+  .multi input:checked + span { color: var(--white); }
+  .multi label:has(input:checked) { background: var(--plum); border-color: var(--plum); color: var(--white); }
+
+  /* Login */
+  .login { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .login-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 30px; max-width: 360px; width: 100%; }
+  .login-card h1 { font-size: 1.6rem; margin-bottom: 4px; }
+  .login-card p { color: var(--gray-600); font-size: 0.86rem; margin-bottom: 18px; }
+  .login-card input { width: 100%; padding: 11px 13px; border: 1px solid var(--gray-200); border-radius: 8px; margin-bottom: 12px; font-size: 1rem; font-family: var(--font-body); }
+  .login-card .btn { width: 100%; padding: 12px; }
+  .login-error { background: var(--red-light); color: var(--red); padding: 10px; border-radius: 8px; font-size: 0.82rem; margin-bottom: 12px; display: none; }
+  .login-error.show { display: block; }
+
+  /* Empty state */
+  .empty { text-align: center; padding: 40px 20px; color: var(--gray-600); }
+  .empty h3 { font-family: var(--font-heading); color: var(--plum); margin-bottom: 8px; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--plum); color: var(--white); padding: 10px 18px; border-radius: 8px; box-shadow: var(--shadow-hover); font-size: 0.86rem; opacity: 0; transition: opacity 0.2s; z-index: 300; }
+  .toast.show { opacity: 1; }
+
+  @media (max-width: 600px) {
+    table.nh th:nth-child(3), table.nh td:nth-child(3),
+    table.nh th:nth-child(4), table.nh td:nth-child(4) { display: none; }
+    .modal-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Login screen -->
+<div id="login-screen" class="login">
+  <div class="login-card">
+    <h1>Nursery</h1>
+    <p>Garden Faery propagation tracker.</p>
+    <div id="login-error" class="login-error"></div>
+    <input type="email" id="login-email" placeholder="Admin email" autocomplete="username">
+    <input type="password" id="login-pw" placeholder="Password" autocomplete="current-password">
+    <button class="btn" onclick="doLogin()">Sign in</button>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app" class="wrap" style="display:none">
+  <div class="nh-header">
+    <div>
+      <div class="nh-title">Nursery</div>
+      <div class="nh-sub">Garden Faery propagation tracker</div>
+    </div>
+    <div class="nh-tools">
+      <button class="logout-btn" onclick="logout()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="strip" id="summary-strip"></div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="plants">Plants</button>
+    <button class="tab" data-tab="sources">Sources</button>
+    <button class="tab" data-tab="props">Propagation log</button>
+    <button class="tab" data-tab="inventory">Inventory</button>
+  </div>
+
+  <!-- PLANTS -->
+  <div id="tab-plants" class="tab-content active">
+    <div class="filters">
+      <input type="search" id="filter-search" placeholder="Search common or scientific name...">
+      <select id="filter-priority"><option value="">All priorities</option><option value="first_10">First 10</option><option value="next_tier">Next tier</option><option value="wishlist">Wishlist</option><option value="dropped">Dropped</option></select>
+      <select id="filter-status"><option value="">All statuses</option><option value="wishlist">Wishlist</option><option value="sourced">Sourced</option><option value="growing">Growing</option><option value="mature_stock">Mature stock</option><option value="dropped">Dropped</option></select>
+      <select id="filter-layer"><option value="">Both layers</option><option value="collector">Collector only</option><option value="install">Install only</option><option value="native">CA native</option><option value="food">Food perennial</option></select>
+      <div class="spacer"></div>
+      <button class="btn" onclick="openPlantModal()">Add plant</button>
+    </div>
+    <div class="table-wrap">
+      <table class="nh" id="plants-table">
+        <thead><tr>
+          <th>Plant</th><th>Category</th><th>Prop methods</th><th>Tags</th>
+          <th>Priority</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SOURCES -->
+  <div id="tab-sources" class="tab-content">
+    <div class="filters">
+      <select id="filter-region"><option value="">All regions</option><option value="local_humboldt">Local (Humboldt)</option><option value="regional_ca">Regional CA</option><option value="pnw_mail">PNW mail order</option><option value="online_seed">Online seed</option><option value="east_coast_mail">East Coast mail</option></select>
+      <div class="spacer"></div>
+      <button class="btn" onclick="openSourceModal()">Add source</button>
+    </div>
+    <div class="table-wrap">
+      <table class="nh" id="sources-table">
+        <thead><tr>
+          <th>Source</th><th>Location</th><th>Region</th><th>Specialty</th><th>Notes</th><th></th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PROPAGATION -->
+  <div id="tab-props" class="tab-content">
+    <div class="filters">
+      <select id="filter-prop-plant"><option value="">All plants</option></select>
+      <select id="filter-prop-type"><option value="">All event types</option></select>
+      <div class="spacer"></div>
+      <button class="btn" onclick="openPropModal()">Log event</button>
+    </div>
+    <div class="table-wrap">
+      <table class="nh" id="props-table">
+        <thead><tr>
+          <th>Date</th><th>Plant</th><th>Event</th><th>Qty started</th><th>Success</th><th>Notes</th><th></th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- INVENTORY -->
+  <div id="tab-inventory" class="tab-content">
+    <div class="filters">
+      <select id="filter-inv-plant"><option value="">All plants</option></select>
+      <div class="spacer"></div>
+      <button class="btn" onclick="openInvModal()">Snapshot</button>
+    </div>
+    <div class="table-wrap">
+      <table class="nh" id="inv-table">
+        <thead><tr>
+          <th>Date</th><th>Plant</th><th>Mothers</th><th>Liners</th><th>Gallons</th><th>Larger</th><th>Sold</th><th>Installed</th><th></th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Plant modal -->
+<div class="modal-overlay" id="plant-modal">
+  <div class="modal">
+    <h2 id="plant-modal-title">Add plant</h2>
+    <input type="hidden" id="pl-id">
+    <div class="modal-row">
+      <div><label>Common name</label><input type="text" id="pl-common" required></div>
+      <div><label>Scientific name</label><input type="text" id="pl-sci"></div>
+    </div>
+    <div class="modal-row">
+      <div><label>Cultivar</label><input type="text" id="pl-cultivar"></div>
+      <div><label>Family</label><input type="text" id="pl-family"></div>
+    </div>
+    <div class="modal-row">
+      <div><label>Category</label>
+        <select id="pl-category">
+          <option value="">—</option><option value="perennial_veg">Perennial vegetable</option>
+          <option value="native_perennial">Native perennial</option><option value="native_shrub">Native shrub</option>
+          <option value="native_tree">Native tree</option><option value="rare_fruit">Rare fruit</option>
+          <option value="rare_nut">Rare nut</option><option value="herb">Herb</option>
+          <option value="medicinal">Medicinal</option><option value="tuber">Tuber</option>
+          <option value="allium">Allium</option><option value="ornamental">Ornamental</option>
+          <option value="groundcover">Groundcover</option>
+        </select>
+      </div>
+      <div><label>Propagation difficulty</label>
+        <select id="pl-difficulty"><option value="">—</option><option value="easy">Easy</option><option value="moderate">Moderate</option><option value="hard">Hard</option></select>
+      </div>
+    </div>
+    <div class="modal-row full">
+      <div><label>Propagation methods</label>
+        <div class="multi" id="pl-prop-multi">
+          <label><input type="checkbox" value="seed"><span>seed</span></label>
+          <label><input type="checkbox" value="seed_cold_strat"><span>seed (cold strat)</span></label>
+          <label><input type="checkbox" value="cutting_softwood"><span>cutting (softwood)</span></label>
+          <label><input type="checkbox" value="cutting_hardwood"><span>cutting (hardwood)</span></label>
+          <label><input type="checkbox" value="cutting_root"><span>cutting (root)</span></label>
+          <label><input type="checkbox" value="division"><span>division</span></label>
+          <label><input type="checkbox" value="runner"><span>runner</span></label>
+          <label><input type="checkbox" value="bulbil"><span>bulbil</span></label>
+          <label><input type="checkbox" value="tuber"><span>tuber</span></label>
+          <label><input type="checkbox" value="root_thong"><span>root thong</span></label>
+          <label><input type="checkbox" value="layering"><span>layering</span></label>
+          <label><input type="checkbox" value="grafting"><span>grafting</span></label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-row">
+      <div><label>Years to sellable</label><input type="number" id="pl-years" min="0" step="1"></div>
+      <div><label>Target retail (cents)</label><input type="number" id="pl-price" min="0" step="100"></div>
+    </div>
+    <div class="modal-row">
+      <div><label>Invasive risk</label>
+        <select id="pl-invasive"><option value="none">None</option><option value="low">Low</option><option value="moderate">Moderate</option><option value="high">High</option></select>
+      </div>
+      <div><label>Priority</label>
+        <select id="pl-priority"><option value="wishlist">Wishlist</option><option value="first_10">First 10</option><option value="next_tier">Next tier</option><option value="dropped">Dropped</option></select>
+      </div>
+    </div>
+    <div class="modal-row">
+      <div><label>Status</label>
+        <select id="pl-status"><option value="wishlist">Wishlist</option><option value="sourced">Sourced</option><option value="growing">Growing</option><option value="mature_stock">Mature stock</option><option value="dropped">Dropped</option></select>
+      </div>
+      <div>
+        <label>Tags</label>
+        <div class="check-row">
+          <label><input type="checkbox" id="pl-native"> CA native</label>
+          <label><input type="checkbox" id="pl-food"> Food perennial</label>
+          <label><input type="checkbox" id="pl-collector"> Collector layer</label>
+          <label><input type="checkbox" id="pl-install"> Install layer</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-row full"><div><label>Climate notes</label><input type="text" id="pl-climate"></div></div>
+    <div class="modal-row full"><div><label>Timing notes</label><input type="text" id="pl-timing"></div></div>
+    <div class="modal-row full"><div><label>Description</label><textarea id="pl-desc"></textarea></div></div>
+    <div class="modal-row full"><div><label>Internal notes</label><textarea id="pl-internal"></textarea></div></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('plant-modal')">Cancel</button>
+      <button class="btn" id="pl-delete" style="display:none; background:var(--red)" onclick="deletePlant()">Delete</button>
+      <button class="btn" onclick="savePlant()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Source modal -->
+<div class="modal-overlay" id="source-modal">
+  <div class="modal">
+    <h2 id="source-modal-title">Add source</h2>
+    <input type="hidden" id="src-id">
+    <div class="modal-row">
+      <div><label>Name</label><input type="text" id="src-name" required></div>
+      <div><label>Location</label><input type="text" id="src-loc"></div>
+    </div>
+    <div class="modal-row">
+      <div><label>URL</label><input type="text" id="src-url"></div>
+      <div><label>Region</label>
+        <select id="src-region">
+          <option value="">—</option><option value="local_humboldt">Local Humboldt</option>
+          <option value="regional_ca">Regional CA</option><option value="pnw_mail">PNW mail</option>
+          <option value="online_seed">Online seed</option><option value="east_coast_mail">East Coast mail</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-row full">
+      <div><label>Specialty</label>
+        <div class="multi" id="src-specialty-multi">
+          <label><input type="checkbox" value="native"><span>native</span></label>
+          <label><input type="checkbox" value="rare_collector"><span>rare collector</span></label>
+          <label><input type="checkbox" value="rare_fruit"><span>rare fruit</span></label>
+          <label><input type="checkbox" value="perennial_veg_seed"><span>perennial veg seed</span></label>
+          <label><input type="checkbox" value="general"><span>general</span></label>
+          <label><input type="checkbox" value="medicinal"><span>medicinal</span></label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-row">
+      <div><label>Ships to CA</label><div class="check-row"><label><input type="checkbox" id="src-ships"> Yes</label></div></div>
+      <div><label>Last ordered</label><input type="date" id="src-last"></div>
+    </div>
+    <div class="modal-row full"><div><label>Notes</label><textarea id="src-notes"></textarea></div></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('source-modal')">Cancel</button>
+      <button class="btn" id="src-delete" style="display:none; background:var(--red)" onclick="deleteSource()">Delete</button>
+      <button class="btn" onclick="saveSource()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Propagation event modal -->
+<div class="modal-overlay" id="prop-modal">
+  <div class="modal">
+    <h2 id="prop-modal-title">Log propagation event</h2>
+    <input type="hidden" id="pe-id">
+    <div class="modal-row">
+      <div><label>Plant</label><select id="pe-plant"></select></div>
+      <div><label>Date</label><input type="date" id="pe-date"></div>
+    </div>
+    <div class="modal-row">
+      <div><label>Event type</label>
+        <select id="pe-type">
+          <option value="sown">Sown (seed)</option><option value="stratified">Stratified</option>
+          <option value="cuttings_taken">Cuttings taken</option><option value="divided">Divided</option>
+          <option value="runners_pinned">Runners pinned</option><option value="bulbils_planted">Bulbils planted</option>
+          <option value="tubers_planted">Tubers planted</option><option value="layered">Layered</option>
+          <option value="grafted">Grafted</option><option value="transplanted">Transplanted</option>
+          <option value="potted_up">Potted up</option><option value="sold">Sold</option>
+          <option value="installed">Installed</option><option value="lost">Lost</option>
+        </select>
+      </div>
+      <div><label>Quantity started</label><input type="number" id="pe-qty" min="0"></div>
+    </div>
+    <div class="modal-row">
+      <div><label>Success count</label><input type="number" id="pe-success" min="0"></div>
+      <div><label>Substrate</label><input type="text" id="pe-sub" placeholder="e.g. perlite/peat 50/50"></div>
+    </div>
+    <div class="modal-row full"><div><label>Location</label><input type="text" id="pe-loc" placeholder="e.g. greenhouse bench A"></div></div>
+    <div class="modal-row full"><div><label>Notes</label><textarea id="pe-notes"></textarea></div></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('prop-modal')">Cancel</button>
+      <button class="btn" id="pe-delete" style="display:none; background:var(--red)" onclick="deleteProp()">Delete</button>
+      <button class="btn" onclick="saveProp()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Inventory snapshot modal -->
+<div class="modal-overlay" id="inv-modal">
+  <div class="modal">
+    <h2 id="inv-modal-title">Inventory snapshot</h2>
+    <input type="hidden" id="is-id">
+    <div class="modal-row">
+      <div><label>Plant</label><select id="is-plant"></select></div>
+      <div><label>Date</label><input type="date" id="is-date"></div>
+    </div>
+    <div class="modal-row">
+      <div><label>Mother plants</label><input type="number" id="is-mothers" min="0"></div>
+      <div><label>Liners</label><input type="number" id="is-liners" min="0"></div>
+    </div>
+    <div class="modal-row">
+      <div><label>Gallon pots</label><input type="number" id="is-gallons" min="0"></div>
+      <div><label>Larger pots</label><input type="number" id="is-larger" min="0"></div>
+    </div>
+    <div class="modal-row">
+      <div><label>Sold this period</label><input type="number" id="is-sold" min="0"></div>
+      <div><label>Installed this period</label><input type="number" id="is-installed" min="0"></div>
+    </div>
+    <div class="modal-row full"><div><label>Notes</label><textarea id="is-notes"></textarea></div></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('inv-modal')">Cancel</button>
+      <button class="btn" id="is-delete" style="display:none; background:var(--red)" onclick="deleteInv()">Delete</button>
+      <button class="btn" onclick="saveInv()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// Nursery admin — Garden Faery PocketBase module
+// Auth via shared gf_pb_token (same superuser session as the
+// main admin page).
+// ============================================================
+
+// Auto-detect PB_URL: localhost dev → local PB; production → bookings host.
+const PB_URL = (() => {
+  const h = location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1' || h === '' || location.protocol === 'file:') {
+    return 'http://127.0.0.1:8091';
+  }
+  return 'https://bookings.gardenfaery.love';
+})();
+
+const PB_TOKEN_KEY = 'gf_pb_token';
+let PB_TOKEN = localStorage.getItem(PB_TOKEN_KEY) || '';
+
+// In-memory caches.
+const state = {
+  plants: [],
+  sources: [],
+  links: [],
+  props: [],
+  inv: [],
+};
+
+// ---------- Auth ----------
+function tokenValid(tok) {
+  if (!tok || tok.split('.').length !== 3) return false;
+  try {
+    const payload = JSON.parse(atob(tok.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return payload.exp && (payload.exp * 1000) > (Date.now() - 30000);
+  } catch (_) { return false; }
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-pw').value;
+  const errEl = document.getElementById('login-error');
+  errEl.classList.remove('show');
+  if (!email || !pw) return;
+  try {
+    const resp = await fetch(PB_URL + '/api/collections/_superusers/auth-with-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identity: email, password: pw }),
+    });
+    if (!resp.ok) throw new Error('Login failed');
+    const data = await resp.json();
+    PB_TOKEN = data.token;
+    localStorage.setItem(PB_TOKEN_KEY, PB_TOKEN);
+    showApp();
+  } catch (err) {
+    errEl.textContent = 'Sign-in failed. Check email/password.';
+    errEl.classList.add('show');
+  }
+}
+
+function logout() {
+  PB_TOKEN = '';
+  localStorage.removeItem(PB_TOKEN_KEY);
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadAll();
+}
+
+// ---------- PB fetch helper ----------
+async function pb(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (PB_TOKEN) opts.headers['Authorization'] = 'Bearer ' + PB_TOKEN;
+  if (body) opts.body = JSON.stringify(body);
+  const resp = await fetch(PB_URL + path, opts);
+  if (resp.status === 401) { logout(); throw new Error('Auth expired'); }
+  if (!resp.ok) {
+    const text = await resp.text().catch(() => '');
+    throw new Error('PB ' + resp.status + ': ' + text);
+  }
+  return resp.json();
+}
+
+// ---------- Data load ----------
+async function loadAll() {
+  try {
+    const [plants, sources, links, props, inv] = await Promise.all([
+      pb('GET', '/api/collections/plants/records?perPage=500&sort=priority,common_name'),
+      pb('GET', '/api/collections/plant_sources/records?perPage=500&sort=region,name'),
+      pb('GET', '/api/collections/plant_source_links/records?perPage=500'),
+      pb('GET', '/api/collections/propagation_events/records?perPage=500&sort=-event_date'),
+      pb('GET', '/api/collections/inventory_snapshots/records?perPage=500&sort=-snapshot_date'),
+    ]);
+    state.plants  = plants.items  || [];
+    state.sources = sources.items || [];
+    state.links   = links.items   || [];
+    state.props   = props.items   || [];
+    state.inv     = inv.items     || [];
+    renderAll();
+  } catch (err) {
+    toast('Load failed: ' + err.message);
+  }
+}
+
+function renderAll() {
+  renderSummary();
+  renderPlants();
+  renderSources();
+  renderProps();
+  renderInventory();
+  populatePlantDropdowns();
+  populatePropTypeFilter();
+}
+
+// ---------- Summary ----------
+function renderSummary() {
+  const total = state.plants.length;
+  const first10 = state.plants.filter(p => p.priority === 'first_10').length;
+  const growing = state.plants.filter(p => p.status === 'growing' || p.status === 'mature_stock').length;
+  const sources = state.sources.length;
+  const events = state.props.length;
+
+  const el = document.getElementById('summary-strip');
+  el.innerHTML = [
+    ['Plants tracked', total],
+    ['First 10', first10],
+    ['In propagation', growing],
+    ['Sources', sources],
+    ['Prop events', events],
+  ].map(([l, v]) => `<div class="card"><div class="label">${l}</div><div class="val">${v}</div></div>`).join('');
+}
+
+// ---------- Plants tab ----------
+function renderPlants() {
+  const q = (document.getElementById('filter-search').value || '').toLowerCase();
+  const fPrio = document.getElementById('filter-priority').value;
+  const fStat = document.getElementById('filter-status').value;
+  const fLayer = document.getElementById('filter-layer').value;
+
+  const rows = state.plants.filter(p => {
+    if (fPrio && p.priority !== fPrio) return false;
+    if (fStat && p.status !== fStat) return false;
+    if (fLayer === 'collector' && !p.collector_layer) return false;
+    if (fLayer === 'install' && !p.install_layer) return false;
+    if (fLayer === 'native' && !p.ca_native) return false;
+    if (fLayer === 'food' && !p.food_perennial) return false;
+    if (q) {
+      const hay = ((p.common_name||'') + ' ' + (p.scientific_name||'') + ' ' + (p.cultivar||'')).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  const tbody = document.querySelector('#plants-table tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><h3>No plants match</h3><p>Try clearing filters or adding a plant.</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(p => {
+    const propPills = (p.propagation_methods || []).map(m => `<span class="pill pill-prop">${m.replace(/_/g, ' ')}</span>`).join(' ');
+    const tags = [
+      p.ca_native ? '<span class="pill pill-native">native</span>' : '',
+      p.food_perennial ? '<span class="pill pill-food">food</span>' : '',
+      p.collector_layer ? '<span class="pill pill-collector">collector</span>' : '',
+      p.install_layer ? '<span class="pill pill-install">install</span>' : '',
+    ].filter(Boolean).join(' ');
+    return `<tr onclick="openPlantModal('${p.id}')">
+      <td><strong>${escapeHtml(p.common_name||'')}</strong>${p.scientific_name ? '<div class="sci">' + escapeHtml(p.scientific_name) + (p.cultivar ? " '" + escapeHtml(p.cultivar) + "'" : '') + '</div>' : ''}</td>
+      <td>${(p.category||'').replace(/_/g,' ')}</td>
+      <td><div class="pill-row">${propPills}</div></td>
+      <td><div class="pill-row">${tags}</div></td>
+      <td><span class="pill pill-priority-${p.priority||'wishlist'}">${(p.priority||'wishlist').replace(/_/g,' ')}</span></td>
+      <td><span class="pill pill-status-${p.status||'wishlist'}">${(p.status||'wishlist').replace(/_/g,' ')}</span></td>
+      <td><button class="btn btn-sm btn-ghost" onclick="event.stopPropagation(); openPlantModal('${p.id}')">Edit</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openPlantModal(id) {
+  const m = document.getElementById('plant-modal');
+  const p = id ? state.plants.find(x => x.id === id) : null;
+  document.getElementById('plant-modal-title').textContent = p ? 'Edit plant' : 'Add plant';
+  document.getElementById('pl-id').value = p ? p.id : '';
+  document.getElementById('pl-common').value = p?.common_name || '';
+  document.getElementById('pl-sci').value = p?.scientific_name || '';
+  document.getElementById('pl-cultivar').value = p?.cultivar || '';
+  document.getElementById('pl-family').value = p?.family || '';
+  document.getElementById('pl-category').value = p?.category || '';
+  document.getElementById('pl-difficulty').value = p?.propagation_difficulty || '';
+  document.getElementById('pl-years').value = p?.years_to_sellable || '';
+  document.getElementById('pl-price').value = p?.target_retail_cents || '';
+  document.getElementById('pl-invasive').value = p?.invasive_risk || 'none';
+  document.getElementById('pl-priority').value = p?.priority || 'wishlist';
+  document.getElementById('pl-status').value = p?.status || 'wishlist';
+  document.getElementById('pl-native').checked = !!p?.ca_native;
+  document.getElementById('pl-food').checked = !!p?.food_perennial;
+  document.getElementById('pl-collector').checked = !!p?.collector_layer;
+  document.getElementById('pl-install').checked = !!p?.install_layer;
+  document.getElementById('pl-climate').value = p?.climate_notes || '';
+  document.getElementById('pl-timing').value = p?.timing_notes || '';
+  document.getElementById('pl-desc').value = p?.description || '';
+  document.getElementById('pl-internal').value = p?.internal_notes || '';
+  // Prop methods
+  const set = new Set(p?.propagation_methods || []);
+  document.querySelectorAll('#pl-prop-multi input').forEach(cb => { cb.checked = set.has(cb.value); });
+  document.getElementById('pl-delete').style.display = p ? '' : 'none';
+  m.classList.add('open');
+}
+
+async function savePlant() {
+  const id = document.getElementById('pl-id').value;
+  const body = {
+    common_name: document.getElementById('pl-common').value.trim(),
+    scientific_name: document.getElementById('pl-sci').value.trim(),
+    cultivar: document.getElementById('pl-cultivar').value.trim(),
+    family: document.getElementById('pl-family').value.trim(),
+    category: document.getElementById('pl-category').value,
+    propagation_methods: Array.from(document.querySelectorAll('#pl-prop-multi input:checked')).map(cb => cb.value),
+    propagation_difficulty: document.getElementById('pl-difficulty').value,
+    years_to_sellable: parseInt(document.getElementById('pl-years').value, 10) || null,
+    target_retail_cents: parseInt(document.getElementById('pl-price').value, 10) || null,
+    invasive_risk: document.getElementById('pl-invasive').value || 'none',
+    priority: document.getElementById('pl-priority').value || 'wishlist',
+    status: document.getElementById('pl-status').value || 'wishlist',
+    ca_native: document.getElementById('pl-native').checked,
+    food_perennial: document.getElementById('pl-food').checked,
+    collector_layer: document.getElementById('pl-collector').checked,
+    install_layer: document.getElementById('pl-install').checked,
+    climate_notes: document.getElementById('pl-climate').value.trim(),
+    timing_notes: document.getElementById('pl-timing').value.trim(),
+    description: document.getElementById('pl-desc').value.trim(),
+    internal_notes: document.getElementById('pl-internal').value.trim(),
+  };
+  if (!body.common_name) { toast('Common name required'); return; }
+  if (!id) body.created = new Date().toISOString();
+  try {
+    if (id) await pb('PATCH', '/api/collections/plants/records/' + id, body);
+    else    await pb('POST',  '/api/collections/plants/records', body);
+    closeModal('plant-modal');
+    await loadAll();
+    toast('Saved');
+  } catch (err) { toast('Save failed: ' + err.message); }
+}
+
+async function deletePlant() {
+  const id = document.getElementById('pl-id').value;
+  if (!id) return;
+  if (!confirm('Delete this plant? Linked sources, prop events, and snapshots remain but lose the plant name link.')) return;
+  try {
+    await pb('DELETE', '/api/collections/plants/records/' + id);
+    closeModal('plant-modal');
+    await loadAll();
+    toast('Deleted');
+  } catch (err) { toast('Delete failed: ' + err.message); }
+}
+
+// ---------- Sources tab ----------
+function renderSources() {
+  const fReg = document.getElementById('filter-region').value;
+  const rows = state.sources.filter(s => !fReg || s.region === fReg);
+  const tbody = document.querySelector('#sources-table tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><h3>No sources</h3><p>Add a vendor to start building the source map.</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(s => {
+    const spec = (s.specialty || []).map(x => `<span class="pill pill-prop">${x.replace(/_/g, ' ')}</span>`).join(' ');
+    const urlHtml = s.url ? `<a href="${escapeAttr(s.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">link</a>` : '';
+    return `<tr onclick="openSourceModal('${s.id}')">
+      <td><strong>${escapeHtml(s.name||'')}</strong> ${urlHtml ? '· ' + urlHtml : ''}</td>
+      <td>${escapeHtml(s.location||'')}</td>
+      <td>${(s.region||'').replace(/_/g,' ')}</td>
+      <td><div class="pill-row">${spec}</div></td>
+      <td>${escapeHtml((s.notes||'').slice(0, 120))}</td>
+      <td><button class="btn btn-sm btn-ghost" onclick="event.stopPropagation(); openSourceModal('${s.id}')">Edit</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openSourceModal(id) {
+  const m = document.getElementById('source-modal');
+  const s = id ? state.sources.find(x => x.id === id) : null;
+  document.getElementById('source-modal-title').textContent = s ? 'Edit source' : 'Add source';
+  document.getElementById('src-id').value = s ? s.id : '';
+  document.getElementById('src-name').value = s?.name || '';
+  document.getElementById('src-loc').value = s?.location || '';
+  document.getElementById('src-url').value = s?.url || '';
+  document.getElementById('src-region').value = s?.region || '';
+  document.getElementById('src-ships').checked = !!s?.ships_to_ca;
+  document.getElementById('src-last').value = s?.last_ordered ? s.last_ordered.slice(0,10) : '';
+  document.getElementById('src-notes').value = s?.notes || '';
+  const set = new Set(s?.specialty || []);
+  document.querySelectorAll('#src-specialty-multi input').forEach(cb => { cb.checked = set.has(cb.value); });
+  document.getElementById('src-delete').style.display = s ? '' : 'none';
+  m.classList.add('open');
+}
+
+async function saveSource() {
+  const id = document.getElementById('src-id').value;
+  const body = {
+    name: document.getElementById('src-name').value.trim(),
+    location: document.getElementById('src-loc').value.trim(),
+    url: document.getElementById('src-url').value.trim(),
+    region: document.getElementById('src-region').value,
+    specialty: Array.from(document.querySelectorAll('#src-specialty-multi input:checked')).map(cb => cb.value),
+    ships_to_ca: document.getElementById('src-ships').checked,
+    last_ordered: document.getElementById('src-last').value || null,
+    notes: document.getElementById('src-notes').value.trim(),
+  };
+  if (!body.name) { toast('Name required'); return; }
+  if (!id) body.created = new Date().toISOString();
+  try {
+    if (id) await pb('PATCH', '/api/collections/plant_sources/records/' + id, body);
+    else    await pb('POST',  '/api/collections/plant_sources/records', body);
+    closeModal('source-modal');
+    await loadAll();
+    toast('Saved');
+  } catch (err) { toast('Save failed: ' + err.message); }
+}
+
+async function deleteSource() {
+  const id = document.getElementById('src-id').value;
+  if (!id) return;
+  if (!confirm('Delete this source?')) return;
+  try {
+    await pb('DELETE', '/api/collections/plant_sources/records/' + id);
+    closeModal('source-modal');
+    await loadAll();
+    toast('Deleted');
+  } catch (err) { toast('Delete failed: ' + err.message); }
+}
+
+// ---------- Propagation tab ----------
+function renderProps() {
+  const fp = document.getElementById('filter-prop-plant').value;
+  const ft = document.getElementById('filter-prop-type').value;
+  const rows = state.props.filter(e => (!fp || e.plant_id === fp) && (!ft || e.event_type === ft));
+  const tbody = document.querySelector('#props-table tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><h3>No propagation events yet</h3><p>Log your first sow, cutting, or division.</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(e => {
+    const plant = state.plants.find(p => p.id === e.plant_id);
+    return `<tr onclick="openPropModal('${e.id}')">
+      <td>${(e.event_date||'').slice(0,10)}</td>
+      <td>${plant ? escapeHtml(plant.common_name) : '<em>(deleted)</em>'}</td>
+      <td>${(e.event_type||'').replace(/_/g,' ')}</td>
+      <td>${e.quantity_started ?? ''}</td>
+      <td>${e.success_count ?? ''}</td>
+      <td>${escapeHtml((e.notes||'').slice(0,80))}</td>
+      <td><button class="btn btn-sm btn-ghost" onclick="event.stopPropagation(); openPropModal('${e.id}')">Edit</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openPropModal(id) {
+  const m = document.getElementById('prop-modal');
+  const e = id ? state.props.find(x => x.id === id) : null;
+  document.getElementById('prop-modal-title').textContent = e ? 'Edit propagation event' : 'Log propagation event';
+  document.getElementById('pe-id').value = e ? e.id : '';
+  // Populate plant dropdown
+  const sel = document.getElementById('pe-plant');
+  sel.innerHTML = state.plants.map(p => `<option value="${p.id}">${escapeHtml(p.common_name)}</option>`).join('');
+  document.getElementById('pe-plant').value = e?.plant_id || (state.plants[0]?.id || '');
+  document.getElementById('pe-date').value = (e?.event_date || new Date().toISOString()).slice(0,10);
+  document.getElementById('pe-type').value = e?.event_type || 'sown';
+  document.getElementById('pe-qty').value = e?.quantity_started ?? '';
+  document.getElementById('pe-success').value = e?.success_count ?? '';
+  document.getElementById('pe-sub').value = e?.substrate || '';
+  document.getElementById('pe-loc').value = e?.location || '';
+  document.getElementById('pe-notes').value = e?.notes || '';
+  document.getElementById('pe-delete').style.display = e ? '' : 'none';
+  m.classList.add('open');
+}
+
+async function saveProp() {
+  const id = document.getElementById('pe-id').value;
+  const body = {
+    plant_id: document.getElementById('pe-plant').value,
+    event_date: document.getElementById('pe-date').value,
+    event_type: document.getElementById('pe-type').value,
+    quantity_started: parseInt(document.getElementById('pe-qty').value, 10) || null,
+    success_count: parseInt(document.getElementById('pe-success').value, 10) || null,
+    substrate: document.getElementById('pe-sub').value.trim(),
+    location: document.getElementById('pe-loc').value.trim(),
+    notes: document.getElementById('pe-notes').value.trim(),
+  };
+  if (!body.plant_id || !body.event_date) { toast('Plant + date required'); return; }
+  if (!id) body.created = new Date().toISOString();
+  try {
+    if (id) await pb('PATCH', '/api/collections/propagation_events/records/' + id, body);
+    else    await pb('POST',  '/api/collections/propagation_events/records', body);
+    closeModal('prop-modal');
+    await loadAll();
+    toast('Saved');
+  } catch (err) { toast('Save failed: ' + err.message); }
+}
+
+async function deleteProp() {
+  const id = document.getElementById('pe-id').value;
+  if (!id) return;
+  if (!confirm('Delete this event?')) return;
+  try {
+    await pb('DELETE', '/api/collections/propagation_events/records/' + id);
+    closeModal('prop-modal');
+    await loadAll();
+    toast('Deleted');
+  } catch (err) { toast('Delete failed: ' + err.message); }
+}
+
+// ---------- Inventory tab ----------
+function renderInventory() {
+  const fp = document.getElementById('filter-inv-plant').value;
+  const rows = state.inv.filter(s => !fp || s.plant_id === fp);
+  const tbody = document.querySelector('#inv-table tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="9"><div class="empty"><h3>No snapshots yet</h3><p>Capture your first stock count to start the timeline.</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(s => {
+    const plant = state.plants.find(p => p.id === s.plant_id);
+    return `<tr onclick="openInvModal('${s.id}')">
+      <td>${(s.snapshot_date||'').slice(0,10)}</td>
+      <td>${plant ? escapeHtml(plant.common_name) : '<em>(deleted)</em>'}</td>
+      <td>${s.mother_plants ?? ''}</td>
+      <td>${s.liners ?? ''}</td>
+      <td>${s.gallon_pots ?? ''}</td>
+      <td>${s.larger_pots ?? ''}</td>
+      <td>${s.sold_this_period ?? ''}</td>
+      <td>${s.installed_this_period ?? ''}</td>
+      <td><button class="btn btn-sm btn-ghost" onclick="event.stopPropagation(); openInvModal('${s.id}')">Edit</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openInvModal(id) {
+  const m = document.getElementById('inv-modal');
+  const s = id ? state.inv.find(x => x.id === id) : null;
+  document.getElementById('inv-modal-title').textContent = s ? 'Edit snapshot' : 'New snapshot';
+  document.getElementById('is-id').value = s ? s.id : '';
+  const sel = document.getElementById('is-plant');
+  sel.innerHTML = state.plants.map(p => `<option value="${p.id}">${escapeHtml(p.common_name)}</option>`).join('');
+  document.getElementById('is-plant').value = s?.plant_id || (state.plants[0]?.id || '');
+  document.getElementById('is-date').value = (s?.snapshot_date || new Date().toISOString()).slice(0,10);
+  document.getElementById('is-mothers').value = s?.mother_plants ?? '';
+  document.getElementById('is-liners').value = s?.liners ?? '';
+  document.getElementById('is-gallons').value = s?.gallon_pots ?? '';
+  document.getElementById('is-larger').value = s?.larger_pots ?? '';
+  document.getElementById('is-sold').value = s?.sold_this_period ?? '';
+  document.getElementById('is-installed').value = s?.installed_this_period ?? '';
+  document.getElementById('is-notes').value = s?.notes || '';
+  document.getElementById('is-delete').style.display = s ? '' : 'none';
+  m.classList.add('open');
+}
+
+async function saveInv() {
+  const id = document.getElementById('is-id').value;
+  const body = {
+    plant_id: document.getElementById('is-plant').value,
+    snapshot_date: document.getElementById('is-date').value,
+    mother_plants: parseInt(document.getElementById('is-mothers').value, 10) || 0,
+    liners: parseInt(document.getElementById('is-liners').value, 10) || 0,
+    gallon_pots: parseInt(document.getElementById('is-gallons').value, 10) || 0,
+    larger_pots: parseInt(document.getElementById('is-larger').value, 10) || 0,
+    sold_this_period: parseInt(document.getElementById('is-sold').value, 10) || 0,
+    installed_this_period: parseInt(document.getElementById('is-installed').value, 10) || 0,
+    notes: document.getElementById('is-notes').value.trim(),
+  };
+  if (!body.plant_id || !body.snapshot_date) { toast('Plant + date required'); return; }
+  if (!id) body.created = new Date().toISOString();
+  try {
+    if (id) await pb('PATCH', '/api/collections/inventory_snapshots/records/' + id, body);
+    else    await pb('POST',  '/api/collections/inventory_snapshots/records', body);
+    closeModal('inv-modal');
+    await loadAll();
+    toast('Saved');
+  } catch (err) { toast('Save failed: ' + err.message); }
+}
+
+async function deleteInv() {
+  const id = document.getElementById('is-id').value;
+  if (!id) return;
+  if (!confirm('Delete this snapshot?')) return;
+  try {
+    await pb('DELETE', '/api/collections/inventory_snapshots/records/' + id);
+    closeModal('inv-modal');
+    await loadAll();
+    toast('Deleted');
+  } catch (err) { toast('Delete failed: ' + err.message); }
+}
+
+// ---------- Shared ----------
+function populatePlantDropdowns() {
+  const html = '<option value="">All plants</option>' + state.plants.map(p => `<option value="${p.id}">${escapeHtml(p.common_name)}</option>`).join('');
+  document.getElementById('filter-prop-plant').innerHTML = html;
+  document.getElementById('filter-inv-plant').innerHTML = html;
+}
+
+function populatePropTypeFilter() {
+  const types = ['sown','stratified','cuttings_taken','divided','runners_pinned','bulbils_planted','tubers_planted','layered','grafted','transplanted','potted_up','sold','installed','lost'];
+  document.getElementById('filter-prop-type').innerHTML = '<option value="">All event types</option>' + types.map(t => `<option value="${t}">${t.replace(/_/g,' ')}</option>`).join('');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._h);
+  t._h = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function escapeAttr(s) { return escapeHtml(s); }
+
+// ---------- Tabs ----------
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// Filter listeners
+['filter-search','filter-priority','filter-status','filter-layer'].forEach(id => {
+  document.getElementById(id).addEventListener('input', renderPlants);
+});
+document.getElementById('filter-region').addEventListener('change', renderSources);
+document.getElementById('filter-prop-plant').addEventListener('change', renderProps);
+document.getElementById('filter-prop-type').addEventListener('change', renderProps);
+document.getElementById('filter-inv-plant').addEventListener('change', renderInventory);
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+// Boot
+(function boot() {
+  if (tokenValid(PB_TOKEN)) {
+    showApp();
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+  }
+})();
+</script>
+</body>
+</html>

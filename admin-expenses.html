@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Expenses — Garden Faery</title>
+
+<link rel="apple-touch-icon" href="/icon-admin.png">
+<link rel="icon" type="image/png" href="/icon-admin.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="shared.css?v=2026-06-08">
+
+<style>
+  body { font-family: var(--font-body); background: var(--cream); color: var(--plum); min-height: 100vh; padding-bottom: 80px; }
+  h1, h2, h3 { font-family: var(--font-heading); font-weight: 500; color: var(--plum); }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 18px; }
+  .nh-header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 4px 0 18px; flex-wrap: wrap; }
+  .nh-title { font-family: var(--font-heading); font-size: 2rem; font-weight: 500; }
+  .nh-sub { font-size: 0.9rem; color: var(--gray-600); margin-top: 2px; }
+  .nh-tools { display: flex; gap: 8px; align-items: center; }
+  .strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .strip .card { background: var(--white); border-radius: var(--radius); padding: 12px 14px; box-shadow: var(--shadow); }
+  .strip .label { font-size: 0.72rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.6px; }
+  .strip .val { font-family: var(--font-heading); font-size: 1.6rem; font-weight: 500; margin-top: 2px; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
+  .filters select, .filters input[type=search], .filters input[type=date] {
+    background: var(--white); border: 1px solid var(--gray-200); border-radius: 8px;
+    padding: 8px 10px; font-family: var(--font-body); font-size: 0.85rem; color: var(--plum);
+  }
+  .filters input[type=search] { min-width: 200px; }
+  .filters .spacer { flex: 1; }
+  .btn { background: var(--plum); color: var(--white); border: none; border-radius: 8px; padding: 9px 14px; font-family: var(--font-body); font-weight: 600; font-size: 0.86rem; cursor: pointer; }
+  .btn-ghost { background: transparent; color: var(--plum); border: 1px solid var(--gray-200); padding: 9px 14px; border-radius: 8px; cursor: pointer; font-family: var(--font-body); font-size: 0.86rem; text-decoration: none; display: inline-block; }
+  .btn:hover { background: #45102f; }
+  .btn-sm { padding: 5px 10px; font-size: 0.78rem; }
+  .table-wrap { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); overflow-x: auto; }
+  table.nh { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+  table.nh th, table.nh td { padding: 10px 12px; text-align: left; vertical-align: top; }
+  table.nh thead th { background: var(--gray-100); font-weight: 700; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-600); border-bottom: 1px solid var(--gray-200); }
+  table.nh tbody tr { border-top: 1px solid var(--gray-100); cursor: pointer; }
+  table.nh tbody tr:hover { background: var(--gray-100); }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 0.72rem; font-weight: 600; }
+  .pill-cat { background: var(--cream); color: var(--plum); border: 1px solid var(--gray-200); }
+  .pill-billable { background: var(--butter); color: var(--plum); }
+  .pill-billed { background: var(--sage-light); color: #3f5a32; }
+  .pill-pending { background: var(--peach); color: var(--plum); }
+  .pill-tax { background: var(--coral); color: var(--white); }
+
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(90, 18, 48, 0.45); z-index: 200; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 30px 14px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-hover); max-width: 620px; width: 100%; padding: 22px; }
+  .modal h2 { margin-bottom: 14px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .row.full { grid-template-columns: 1fr; }
+  .modal label { display: block; font-size: 0.74rem; font-weight: 600; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+  .modal input[type=text], .modal input[type=number], .modal input[type=date], .modal select, .modal textarea {
+    width: 100%; background: var(--white); border: 1px solid var(--gray-200); border-radius: 8px;
+    padding: 9px 11px; font-family: var(--font-body); font-size: 0.9rem; color: var(--plum);
+  }
+  .modal textarea { min-height: 60px; resize: vertical; }
+  .check-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 4px; }
+  .check-row label { display: inline-flex; align-items: center; gap: 5px; text-transform: none; font-size: 0.85rem; letter-spacing: 0; font-weight: 500; color: var(--plum); margin-bottom: 0; }
+  .modal-foot { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--gray-100); }
+
+  .login { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .login-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 30px; max-width: 360px; width: 100%; }
+  .login-card h1 { font-size: 1.6rem; margin-bottom: 4px; }
+  .login-card p { color: var(--gray-600); font-size: 0.86rem; margin-bottom: 18px; }
+  .login-card input { width: 100%; padding: 11px 13px; border: 1px solid var(--gray-200); border-radius: 8px; margin-bottom: 12px; font-size: 1rem; font-family: var(--font-body); }
+  .login-card .btn { width: 100%; padding: 12px; }
+  .login-error { background: var(--red-light); color: var(--red); padding: 10px; border-radius: 8px; font-size: 0.82rem; margin-bottom: 12px; display: none; }
+  .login-error.show { display: block; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--plum); color: var(--white); padding: 10px 18px; border-radius: 8px; font-size: 0.86rem; opacity: 0; transition: opacity 0.2s; z-index: 300; pointer-events: none; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div id="login-screen" class="login">
+  <div class="login-card">
+    <h1>Expenses</h1>
+    <p>Garden Faery business ledger.</p>
+    <div id="login-error" class="login-error"></div>
+    <input type="email" id="login-email" placeholder="Email" autocomplete="username">
+    <input type="password" id="login-pw" placeholder="Password" autocomplete="current-password">
+    <button class="btn" onclick="doLogin()">Sign in</button>
+  </div>
+</div>
+
+<div id="app" class="wrap" style="display:none">
+  <div class="nh-header">
+    <div>
+      <div class="nh-title">Expenses</div>
+      <div class="nh-sub">Track everything that isn't inventory.</div>
+    </div>
+    <div class="nh-tools">
+      <a href="admin-planner.html" class="btn-ghost">Planner</a>
+      <a href="admin-inventory.html" class="btn-ghost">Inventory</a>
+      <button class="btn-ghost" onclick="logout()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="strip" id="summary-strip"></div>
+
+  <div class="filters">
+    <input type="search" id="filter-search" placeholder="Search vendor / description...">
+    <select id="filter-cat">
+      <option value="">All categories</option>
+    </select>
+    <select id="filter-garden">
+      <option value="">All gardens</option>
+    </select>
+    <select id="filter-period">
+      <option value="ytd" selected>Year to date</option>
+      <option value="mtd">Month to date</option>
+      <option value="last30">Last 30 days</option>
+      <option value="last90">Last 90 days</option>
+      <option value="all">All time</option>
+    </select>
+    <select id="filter-billed">
+      <option value="">All billed status</option>
+      <option value="pending">Pending billable</option>
+      <option value="billed">Billed</option>
+      <option value="paid">Paid</option>
+      <option value="not_billable">Not billable</option>
+    </select>
+    <div class="spacer"></div>
+    <button class="btn" onclick="openExpenseModal()">+ Expense</button>
+  </div>
+
+  <div class="table-wrap">
+    <table class="nh" id="expenses-table">
+      <thead><tr>
+        <th>Date</th><th>Description</th><th>Category</th><th>Vendor</th>
+        <th>Garden</th><th>Amount</th><th>Billable</th><th></th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="expense-modal">
+  <div class="modal">
+    <h2 id="em-title">Add expense</h2>
+    <input type="hidden" id="em-id">
+    <div class="row">
+      <div><label>Date</label><input type="date" id="em-date" required></div>
+      <div><label>Amount ($)</label><input type="number" id="em-amount" step="0.01" min="0" required></div>
+    </div>
+    <div class="row full"><div><label>Description</label><input type="text" id="em-desc" placeholder="e.g. fish emulsion, mileage to Kenzie's"></div></div>
+    <div class="row">
+      <div><label>Category</label><select id="em-cat"></select></div>
+      <div><label>Vendor / payee</label><input type="text" id="em-vendor"></div>
+    </div>
+    <div class="row">
+      <div><label>Payment method</label>
+        <select id="em-pay">
+          <option value="">—</option>
+          <option value="cash">Cash</option>
+          <option value="check">Check</option>
+          <option value="debit">Debit</option>
+          <option value="credit">Credit</option>
+          <option value="venmo">Venmo</option>
+          <option value="paypal">PayPal</option>
+          <option value="square">Square</option>
+          <option value="stripe">Stripe</option>
+          <option value="transfer">Bank transfer</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div><label>Garden (if for a specific client)</label>
+        <select id="em-garden"><option value="">—</option></select>
+      </div>
+    </div>
+    <div class="row">
+      <div><label>Tags</label>
+        <div class="check-row">
+          <label><input type="checkbox" id="em-billable"> Billable to client</label>
+          <label><input type="checkbox" id="em-tax"> Tax deductible</label>
+        </div>
+      </div>
+      <div><label>Billing status</label>
+        <select id="em-billed">
+          <option value="not_billable">Not billable</option>
+          <option value="pending">Pending bill</option>
+          <option value="billed">Billed</option>
+          <option value="paid">Paid by client</option>
+          <option value="written_off">Written off</option>
+        </select>
+      </div>
+    </div>
+    <div class="row full"><div><label>Notes</label><textarea id="em-notes"></textarea></div></div>
+    <div class="row full">
+      <div>
+        <label>Receipts (photos or PDFs)</label>
+        <input type="file" id="em-receipts" accept="image/*,application/pdf" multiple>
+        <div id="em-existing" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" onclick="closeModal('expense-modal')">Cancel</button>
+      <button class="btn" id="em-delete" style="display:none;background:var(--red)" onclick="deleteExpense()">Delete</button>
+      <button class="btn" onclick="saveExpense()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PB_URL = (() => {
+  const h = location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1' || h === '' || location.protocol === 'file:') return 'http://127.0.0.1:8091';
+  return 'https://bookings.gardenfaery.love';
+})();
+const PB_TOKEN_KEY = 'gf_pb_token';
+let PB_TOKEN = localStorage.getItem(PB_TOKEN_KEY) || '';
+
+const CATEGORIES = [
+  'supplies', 'plants_seeds', 'fuel_mileage', 'labor', 'subcontractor',
+  'equipment', 'tools', 'professional_services', 'insurance', 'licenses_permits',
+  'utilities', 'rent', 'phone_internet', 'software_subscriptions', 'marketing',
+  'office_supplies', 'meals_entertainment', 'travel', 'training_education',
+  'repairs_maintenance', 'misc',
+];
+
+const state = { expenses: [], gardens: [] };
+
+function tokenValid(tok) {
+  if (!tok || tok.split('.').length !== 3) return false;
+  try {
+    const payload = JSON.parse(atob(tok.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return payload.exp && (payload.exp * 1000) > (Date.now() - 30000);
+  } catch (_) { return false; }
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-pw').value;
+  const errEl = document.getElementById('login-error');
+  errEl.classList.remove('show');
+  if (!email || !pw) return;
+  for (const endpoint of ['_superusers', 'users']) {
+    try {
+      const resp = await fetch(PB_URL + '/api/collections/' + endpoint + '/auth-with-password', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identity: email, password: pw }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        PB_TOKEN = data.token; localStorage.setItem(PB_TOKEN_KEY, PB_TOKEN);
+        boot(); return;
+      }
+    } catch (_) {}
+  }
+  errEl.textContent = 'Sign-in failed.'; errEl.classList.add('show');
+}
+function logout() {
+  PB_TOKEN = ''; localStorage.removeItem(PB_TOKEN_KEY);
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+async function pb(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (PB_TOKEN) opts.headers['Authorization'] = 'Bearer ' + PB_TOKEN;
+  if (body) opts.body = JSON.stringify(body);
+  const resp = await fetch(PB_URL + path, opts);
+  if (resp.status === 401) { logout(); throw new Error('Auth expired'); }
+  if (!resp.ok) { const t = await resp.text().catch(() => ''); throw new Error('PB ' + resp.status + ': ' + t); }
+  return resp.json();
+}
+
+async function boot() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  try {
+    const [ex, gd] = await Promise.all([
+      pb('GET', '/api/collections/expenses/records?perPage=2000&sort=-expense_date'),
+      pb('GET', '/api/collections/gardens/records?perPage=200&sort=name'),
+    ]);
+    state.expenses = ex.items || [];
+    state.gardens = gd.items || [];
+  } catch (err) { toast('Load failed: ' + err.message); return; }
+  // Populate category dropdowns.
+  const catOpts = CATEGORIES.map(c => `<option value="${c}">${c.replace(/_/g, ' ')}</option>`).join('');
+  document.getElementById('filter-cat').innerHTML = '<option value="">All categories</option>' + catOpts;
+  document.getElementById('em-cat').innerHTML = catOpts;
+  // Populate garden dropdowns.
+  const gardenOpts = state.gardens.map(g => `<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('');
+  document.getElementById('filter-garden').innerHTML = '<option value="">All gardens</option>' + gardenOpts;
+  document.getElementById('em-garden').innerHTML = '<option value="">—</option>' + gardenOpts;
+  renderAll();
+}
+
+function filteredExpenses() {
+  const q = (document.getElementById('filter-search').value || '').toLowerCase();
+  const fCat = document.getElementById('filter-cat').value;
+  const fGarden = document.getElementById('filter-garden').value;
+  const fPeriod = document.getElementById('filter-period').value;
+  const fBilled = document.getElementById('filter-billed').value;
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
+  const yearStart = now.getFullYear() + '-01-01';
+  const monthStart = todayStr.slice(0, 7) + '-01';
+  const minus = (days) => { const d = new Date(now); d.setDate(d.getDate() - days); return d.toISOString().slice(0, 10); };
+  return state.expenses.filter(e => {
+    if (fCat && e.category !== fCat) return false;
+    if (fGarden && e.garden_id !== fGarden) return false;
+    if (fBilled && e.billed_status !== fBilled) return false;
+    const d = (e.expense_date || '').slice(0, 10);
+    if (fPeriod === 'ytd' && d < yearStart) return false;
+    if (fPeriod === 'mtd' && d < monthStart) return false;
+    if (fPeriod === 'last30' && d < minus(30)) return false;
+    if (fPeriod === 'last90' && d < minus(90)) return false;
+    if (q) {
+      const hay = ((e.description||'') + ' ' + (e.vendor||'') + ' ' + (e.notes||'') + ' ' + (e.category||'')).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function renderAll() {
+  const rows = filteredExpenses();
+  // Summary cards.
+  const total = rows.reduce((a, e) => a + (e.amount_cents || 0), 0);
+  const taxDed = rows.filter(e => e.tax_deductible).reduce((a, e) => a + (e.amount_cents || 0), 0);
+  const billable = rows.filter(e => e.billable && e.billed_status === 'pending').reduce((a, e) => a + (e.amount_cents || 0), 0);
+  const billedPaid = rows.filter(e => e.billed_status === 'paid').reduce((a, e) => a + (e.amount_cents || 0), 0);
+  // By-category breakdown — top 5.
+  const byCat = {};
+  for (const e of rows) byCat[e.category] = (byCat[e.category] || 0) + (e.amount_cents || 0);
+  const topCats = Object.entries(byCat).sort((a, b) => b[1] - a[1]).slice(0, 4);
+  document.getElementById('summary-strip').innerHTML = `
+    <div class="card"><div class="label">Total in period</div><div class="val">$${(total/100).toFixed(2)}</div></div>
+    <div class="card"><div class="label">Tax deductible</div><div class="val">$${(taxDed/100).toFixed(2)}</div></div>
+    <div class="card"><div class="label">Pending bill to clients</div><div class="val">$${(billable/100).toFixed(2)}</div></div>
+    <div class="card"><div class="label">Recouped (billed paid)</div><div class="val">$${(billedPaid/100).toFixed(2)}</div></div>
+    ${topCats.map(([cat, v]) => `<div class="card"><div class="label">${cat.replace(/_/g,' ')}</div><div class="val">$${(v/100).toFixed(2)}</div></div>`).join('')}
+  `;
+  // Table.
+  const tbody = document.querySelector('#expenses-table tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--gray-600)">No expenses match.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(e => {
+    const garden = state.gardens.find(g => g.id === e.garden_id);
+    const billPill = e.billable
+      ? (e.billed_status === 'paid' ? '<span class="pill pill-billed">paid</span>'
+        : e.billed_status === 'billed' ? '<span class="pill pill-billed">billed</span>'
+        : '<span class="pill pill-pending">pending</span>')
+      : '';
+    const taxPill = e.tax_deductible ? ' <span class="pill pill-tax">tax</span>' : '';
+    return `<tr onclick="openExpenseModal('${e.id}')">
+      <td>${(e.expense_date||'').slice(0,10)}</td>
+      <td>${escapeHtml(e.description||'')}</td>
+      <td><span class="pill pill-cat">${(e.category||'').replace(/_/g,' ')}</span></td>
+      <td>${escapeHtml(e.vendor||'—')}</td>
+      <td>${garden ? escapeHtml(garden.name) : '<span style="color:var(--gray-600)">—</span>'}</td>
+      <td class="num">$${((e.amount_cents||0)/100).toFixed(2)}</td>
+      <td>${billPill}${taxPill}</td>
+      <td><button class="btn-ghost btn-sm" onclick="event.stopPropagation(); openExpenseModal('${e.id}')">Edit</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openExpenseModal(id) {
+  const e = id ? state.expenses.find(x => x.id === id) : null;
+  document.getElementById('em-title').textContent = e ? 'Edit expense' : 'Add expense';
+  document.getElementById('em-id').value = e ? e.id : '';
+  document.getElementById('em-date').value = e ? (e.expense_date||'').slice(0,10) : new Date().toISOString().slice(0,10);
+  document.getElementById('em-amount').value = e ? ((e.amount_cents||0)/100).toFixed(2) : '';
+  document.getElementById('em-desc').value = e?.description || '';
+  document.getElementById('em-cat').value = e?.category || 'supplies';
+  document.getElementById('em-vendor').value = e?.vendor || '';
+  document.getElementById('em-pay').value = e?.payment_method || '';
+  document.getElementById('em-garden').value = e?.garden_id || '';
+  document.getElementById('em-billable').checked = !!e?.billable;
+  document.getElementById('em-tax').checked = !!e?.tax_deductible;
+  document.getElementById('em-billed').value = e?.billed_status || (e?.billable ? 'pending' : 'not_billable');
+  document.getElementById('em-notes').value = e?.notes || '';
+  document.getElementById('em-receipts').value = '';
+  document.getElementById('em-delete').style.display = e ? '' : 'none';
+  const existingEl = document.getElementById('em-existing');
+  if (e && e.receipts && e.receipts.length) {
+    existingEl.innerHTML = e.receipts.map(fn => {
+      const url = PB_URL + '/api/files/expenses/' + e.id + '/' + fn;
+      const isPdf = fn.toLowerCase().endsWith('.pdf');
+      return isPdf
+        ? `<a href="${url}" target="_blank" style="display:inline-block;padding:8px 12px;background:var(--cream);border-radius:6px;text-decoration:none;color:var(--plum);font-size:0.78rem">${escapeHtml(fn.slice(0, 30))}</a>`
+        : `<img src="${url}?thumb=100x100" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--gray-200)">`;
+    }).join('');
+  } else existingEl.innerHTML = '';
+  document.getElementById('expense-modal').classList.add('open');
+}
+
+async function saveExpense() {
+  const id = document.getElementById('em-id').value;
+  const desc = document.getElementById('em-desc').value.trim();
+  const amount = parseFloat(document.getElementById('em-amount').value);
+  const date = document.getElementById('em-date').value;
+  if (!desc || !date || isNaN(amount) || amount <= 0) { toast('Date, description, amount required'); return; }
+  const files = document.getElementById('em-receipts').files;
+  try {
+    let r;
+    const body = {
+      expense_date: date,
+      description: desc,
+      category: document.getElementById('em-cat').value,
+      vendor: document.getElementById('em-vendor').value.trim(),
+      amount_cents: Math.round(amount * 100),
+      payment_method: document.getElementById('em-pay').value || null,
+      garden_id: document.getElementById('em-garden').value || null,
+      billable: document.getElementById('em-billable').checked,
+      tax_deductible: document.getElementById('em-tax').checked,
+      billed_status: document.getElementById('em-billed').value,
+      notes: document.getElementById('em-notes').value.trim(),
+    };
+    if (!id) body.created = new Date().toISOString();
+    if (files && files.length) {
+      const fd = new FormData();
+      for (const k in body) {
+        if (body[k] === null || body[k] === undefined) continue;
+        fd.append(k, body[k]);
+      }
+      for (const f of files) fd.append('receipts', f);
+      const url = id ? (PB_URL + '/api/collections/expenses/records/' + id) : (PB_URL + '/api/collections/expenses/records');
+      const resp = await fetch(url, {
+        method: id ? 'PATCH' : 'POST',
+        headers: PB_TOKEN ? { 'Authorization': 'Bearer ' + PB_TOKEN } : {},
+        body: fd,
+      });
+      if (!resp.ok) { const t = await resp.text().catch(() => ''); throw new Error('PB ' + resp.status + ': ' + t); }
+      r = await resp.json();
+    } else {
+      if (id) r = await pb('PATCH', '/api/collections/expenses/records/' + id, body);
+      else    r = await pb('POST',  '/api/collections/expenses/records', body);
+    }
+    const idx = state.expenses.findIndex(x => x.id === r.id);
+    if (idx >= 0) state.expenses[idx] = r; else state.expenses.unshift(r);
+    closeModal('expense-modal');
+    renderAll();
+    toast('Saved');
+  } catch (err) { toast('Save failed: ' + err.message); }
+}
+
+async function deleteExpense() {
+  const id = document.getElementById('em-id').value;
+  if (!id) return;
+  if (!confirm('Delete this expense?')) return;
+  try {
+    await pb('DELETE', '/api/collections/expenses/records/' + id);
+    state.expenses = state.expenses.filter(x => x.id !== id);
+    closeModal('expense-modal');
+    renderAll();
+    toast('Deleted');
+  } catch (err) { toast('Delete failed: ' + err.message); }
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2000);
+}
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+['filter-search', 'filter-cat', 'filter-garden', 'filter-period', 'filter-billed'].forEach(id => {
+  document.getElementById(id).addEventListener('input', renderAll);
+  document.getElementById(id).addEventListener('change', renderAll);
+});
+
+(function init() {
+  if (tokenValid(PB_TOKEN)) boot();
+  else document.getElementById('login-screen').style.display = 'flex';
+})();
+</script>
+</body>
+</html>
