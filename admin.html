@@ -5037,7 +5037,7 @@ function readyToBillCardHtml(compact) {
         '<div style="font-weight:600;font-size:0.9rem;color:var(--plum);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(c.clientName) + '</div>' +
         '<div style="font-size:0.72rem;color:var(--gray-600);">' + c.visits.length + ' visit' + (c.visits.length === 1 ? '' : 's') + ' &middot; ' + money(c.total) + '</div>' +
       '</div>' +
-      '<button class="modal-btn primary" style="padding:6px 12px;font-size:0.78rem;white-space:nowrap;" onclick="draftInvoiceForClientIdx(' + idx + ')">Draft invoice</button>' +
+      '<button class="modal-btn primary" style="flex:0 0 auto;padding:7px 14px;font-size:0.78rem;border-radius:8px;white-space:nowrap;" onclick="draftInvoiceForClientIdx(' + idx + ')">Draft invoice</button>' +
       '<button title="Stop reminding me about these" style="background:transparent;border:none;color:var(--gray-500);cursor:pointer;font-size:1.15rem;line-height:1;padding:2px 5px;" onclick="dismissBillingIdx(' + idx + ')">&times;</button>' +
     '</div>';
   }).join('');
