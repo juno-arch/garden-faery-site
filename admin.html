@@ -2092,26 +2092,45 @@ function expectedPriceForBooking(b) {
 // blurb is stable across re-renders within a day, and rotates daily. Mix of
 // puns, dad-jokes, riddles (answer hidden until tap), and tiny challenges.
 const EMPTY_DAY_BLURBS = [
+  // Puns
   { kind: 'pun',    text: 'A free day. Thyme to do whatever you want with it.' },
   { kind: 'pun',    text: 'No clients on the calendar — you really mint to take this one off.' },
   { kind: 'pun',    text: 'Quiet day. Even the soil is loamy and slow.' },
   { kind: 'pun',    text: 'Lettuce romaine calm — the schedule is empty for a reason.' },
   { kind: 'pun',    text: 'No visits today. Beet you didn\'t see that coming.' },
   { kind: 'pun',    text: 'A clear day. Don\'t leaf this opportunity unplanted.' },
-  { kind: 'pun',    text: 'No bookings. Compost yourself.' },
+  { kind: 'pun',    text: 'No bookings. Go ahead and turn over a new leaf — preferably a couch cushion.' },
+  { kind: 'pun',    text: 'Empty calendar? Take it as a sage sign to rest.' },
+  { kind: 'pun',    text: 'Nothing booked. Just be-leaf in a slow day.' },
+  { kind: 'pun',    text: 'Schedule\'s bare. Kale yeah, a day off.' },
+  { kind: 'pun',    text: 'Free day — and that\'s not a-parsley a waste of time.' },
+  { kind: 'pun',    text: 'No appointments. You\'ve planted the seeds; let today lie fallow.' },
+  { kind: 'pun',    text: 'Soil mates take days off too. This one\'s yours.' },
+  { kind: 'pun',    text: 'Empty roster. Weed appreciate it if you took a break.' },
+  { kind: 'pun',    text: 'You\'ve grown so much you\'ve earned some shade. Go find some.' },
+  { kind: 'pun',    text: 'Today\'s forecast: partly sunny, high chance of doing nothing. Rooting for you.' },
+  { kind: 'pun',    text: 'No work today, and frankly that\'s un-be-leaf-able timing.' },
+  // Jokes
   { kind: 'joke',   text: 'Why did the gardener plant a lightbulb? She wanted to grow a power plant.' },
   { kind: 'joke',   text: 'What did the big flower say to the little flower? Hi, bud!' },
   { kind: 'joke',   text: 'How do you know if a plant is good at math? It has square roots.' },
   { kind: 'joke',   text: 'What\'s a tree\'s favorite drink? Root beer.' },
-  { kind: 'joke',   text: 'Why don\'t plants ever get embarrassed? They use lots of blush-leaf.' },
+  { kind: 'joke',   text: 'What do you call a grumpy gardener? A snap-dragon.' },
+  { kind: 'joke',   text: 'What did one autumn leaf say to another? I\'m falling for you.' },
+  { kind: 'joke',   text: 'How do trees get online? They just log in.' },
+  { kind: 'joke',   text: 'What kind of flower grows on your face? Tulips — two lips.' },
+  { kind: 'joke',   text: 'Why was the cucumber stressed out? It was in a pickle.' },
+  { kind: 'joke',   text: 'What\'s a gardener\'s favorite music? Anything with a good beet.' },
+  { kind: 'joke',   text: 'Why are gardeners so good with money? They always know how to turnip a deal.' },
+  { kind: 'joke',   text: 'Why did the bee get married? It finally found its honey.' },
+  { kind: 'joke',   text: 'What do you call a stolen yam? A hot potato.' },
+  { kind: 'joke',   text: 'Why did the tomato blush? It saw the salad dressing.' },
+  { kind: 'joke',   text: 'What did the soil say to the rain? If you keep this up, my name is mud.' },
+  // Riddles (tap to reveal)
   { kind: 'riddle', text: 'Riddle: I have many leaves but I\'m not a tree. I get cracked open but I don\'t crack a smile.', answer: 'A book.' },
   { kind: 'riddle', text: 'Riddle: I rise without seeds, fall without wings, and wake the garden by morning.', answer: 'Dew.' },
   { kind: 'riddle', text: 'Riddle: The more of me there is, the less you see. What am I?', answer: 'Darkness.' },
   { kind: 'riddle', text: 'Riddle: I\'m planted in winter and harvested in spring, yet I\'m not a seed at all. What am I?', answer: 'A bulb.' },
-  { kind: 'task',   text: 'Free day mission: name three perennials you haven\'t planted yet but want to.' },
-  { kind: 'task',   text: 'Free day mission: text one client who hasn\'t booked in a while just to say hi.' },
-  { kind: 'task',   text: 'Free day mission: walk outside, find one weed, pull it. That\'s the whole task.' },
-  { kind: 'task',   text: 'Free day mission: drink a glass of water before you scroll again.' },
 ];
 
 // Returns { html, isHtml } so the riddle variant can render a tap-to-reveal
