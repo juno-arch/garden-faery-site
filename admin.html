@@ -146,6 +146,10 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
 /* Hide horizontal scrollbar visually while keeping scroll behavior. */
 .tabs::-webkit-scrollbar { height: 4px; }
 .tabs::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 2px; }
+/* Money group flyout items: full-width, left-aligned menu rows. */
+#money-menu .money-item { display: block; width: 100%; text-align: left; padding: 9px 12px; }
+#money-menu .money-item + .money-item { margin-top: 2px; }
+#money-menu .money-item:hover { background: var(--gray-100); }
 
 /* ============ Dark mode ============ */
 /* Scoped to <html data-theme="dark">; toggled in JS, persisted to localStorage.
@@ -581,8 +585,11 @@ html[data-theme="dark"] .week-day.active { background: var(--sage-light); }
   margin-top: 16px;
 }
 .modal-btn {
-  flex: 1;
-  padding: 12px;
+  /* Size to content by default so inline action buttons (in cards/widgets)
+     don't balloon to full width. Modal footers restore flex:1 below so their
+     buttons still split the row evenly. */
+  flex: 0 0 auto;
+  padding: 12px 18px;
   border-radius: 10px;
   border: none;
   font-family: 'Inter', 'Nunito', -apple-system, sans-serif;
@@ -590,6 +597,8 @@ html[data-theme="dark"] .week-day.active { background: var(--sage-light); }
   font-size: 0.95rem;
   cursor: pointer;
 }
+/* Inside a modal, buttons split the footer row evenly as before. */
+.modal-overlay .modal-btn { flex: 1; }
 .modal-btn.primary { background: var(--petal-pink); color: var(--white); }
 .modal-btn.secondary { background: var(--gray-100); color: var(--plum); }
 .obo-chip {
@@ -888,17 +897,21 @@ html[data-theme="dark"] .week-day.active { background: var(--sage-light); }
     <button class="tab active" data-tab="dashboard" aria-label="Dashboard" onclick="switchTab('dashboard')"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg></button>
     <button class="tab" data-tab="month" onclick="switchTab('month')">Calendar</button>
     <button class="tab" data-tab="clients" onclick="switchTab('clients')">Clients</button>
-    <button class="tab" data-tab="income" onclick="switchTab('income')">Income</button>
     <button class="tab" data-tab="time" onclick="switchTab('time')">Time</button>
-    <button class="tab" data-tab="bank" onclick="switchTab('bank')">Bank</button>
-    <button class="tab" data-tab="invoices" onclick="switchTab('invoices')">Invoices</button>
-    <button class="tab" data-tab="coupons" onclick="switchTab('coupons')">Coupons</button>
-    <button class="tab" data-tab="expenses" onclick="switchTab('expenses')">Expenses</button>
-    <button class="tab" data-tab="taxes" onclick="switchTab('taxes')">Taxes</button>
+    <button class="tab" id="tab-money-group" onclick="toggleMoneyMenu(event)">Money &#9662;</button>
     <button class="tab" data-tab="compliance" onclick="switchTab('compliance')">Compliance</button>
     <button class="tab" data-tab="reviews" onclick="switchTab('reviews')">Reviews</button>
     <button class="tab" data-tab="emails" onclick="switchTab('emails')">Emails</button>
     <button class="tab" data-tab="settings" aria-label="Settings" onclick="switchTab('settings')"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+  </div>
+  <!-- Money group flyout (fixed-position so it isn't clipped by the .tabs scroller) -->
+  <div id="money-menu" style="display:none;position:fixed;z-index:200;background:var(--white);border:1px solid var(--gray-200);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,0.14);padding:6px;min-width:160px;">
+    <button class="tab money-item" data-tab="income" onclick="switchTab('income')">Income</button>
+    <button class="tab money-item" data-tab="invoices" onclick="switchTab('invoices')">Invoices</button>
+    <button class="tab money-item" data-tab="expenses" onclick="switchTab('expenses')">Expenses</button>
+    <button class="tab money-item" data-tab="bank" onclick="switchTab('bank')">Bank</button>
+    <button class="tab money-item" data-tab="taxes" onclick="switchTab('taxes')">Taxes</button>
+    <button class="tab money-item" data-tab="coupons" onclick="switchTab('coupons')">Coupons</button>
   </div>
 
   <!-- Dashboard view -->
@@ -1912,6 +1925,12 @@ viewDate.setHours(0,0,0,0);
 // --- Tab switching ---
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  // Reflect money sub-tabs on the grouped "Money" button + close its flyout.
+  const MONEY_TABS = ['income', 'bank', 'invoices', 'coupons', 'expenses', 'taxes'];
+  const moneyBtn = document.getElementById('tab-money-group');
+  if (moneyBtn) moneyBtn.classList.toggle('active', MONEY_TABS.indexOf(tab) !== -1);
+  const moneyMenu = document.getElementById('money-menu');
+  if (moneyMenu) moneyMenu.style.display = 'none';
   document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
   const panel = document.getElementById('tab-' + tab);
   if (panel) panel.style.display = 'block';
@@ -1936,12 +1955,40 @@ function switchTab(tab) {
   // After switching, scroll the active tab into view horizontally only
   // (manual: scrollIntoView with block:nearest can still bubble to the
   // document scroller on tall pages and yank the page up/down).
-  const active = document.querySelector('.tab.active');
+  // Only scroll bar-level tabs into view (money sub-tabs live in the flyout).
+  const active = document.querySelector('.tabs > .tab.active');
   const tabs = document.querySelector('.tabs');
   if (active && tabs) {
     const target = active.offsetLeft - (tabs.clientWidth - active.offsetWidth) / 2;
     tabs.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
   }
+}
+
+// Open/close the grouped "Money" flyout. Fixed-position so the .tabs
+// horizontal scroller doesn't clip it; closes on outside click / scroll.
+function toggleMoneyMenu(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById('money-menu');
+  const btn = document.getElementById('tab-money-group');
+  if (!menu || !btn) return;
+  if (menu.style.display === 'block') { menu.style.display = 'none'; return; }
+  const r = btn.getBoundingClientRect();
+  menu.style.top = (r.bottom + 4) + 'px';
+  menu.style.left = Math.max(8, Math.min(r.left, window.innerWidth - 176)) + 'px';
+  menu.style.display = 'block';
+  setTimeout(() => {
+    const close = (ev) => {
+      if (!menu.contains(ev.target) && ev.target !== btn) {
+        menu.style.display = 'none';
+        document.removeEventListener('click', close);
+      }
+    };
+    document.addEventListener('click', close);
+    window.addEventListener('scroll', function onScroll() {
+      menu.style.display = 'none';
+      window.removeEventListener('scroll', onScroll);
+    }, { passive: true });
+  }, 0);
 }
 
 // ----- Dark mode -----
