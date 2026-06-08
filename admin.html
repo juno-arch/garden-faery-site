@@ -5415,12 +5415,14 @@ function renderComplianceShell() {
       tabBtnHtml('list', 'List', tab) +
       tabBtnHtml('calendar', 'Calendar', tab) +
       tabBtnHtml('todos', 'Todos', tab) +
+      tabBtnHtml('filed', 'Filed', tab) +
     '</div>' +
     '<div id="compliance-subtab"></div>';
   el.innerHTML = html;
 
   if (tab === 'list') renderComplianceList();
   else if (tab === 'calendar') renderComplianceCalendar();
+  else if (tab === 'filed') renderComplianceFiled();
   else renderComplianceTodos();
 
   function tabBtnHtml(key, label, current) {
@@ -5497,7 +5499,7 @@ function renderComplianceList() {
 
     sorted.forEach(item => {
       const st = complianceStatus(item);
-      const dueStr = item.nextDue ? new Date(item.nextDue + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '?';
+      const dueStr = item.nextDue ? new Date(String(item.nextDue).slice(0, 10) + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '?';
       html += '<div class="booking-card" style="border-left-color:' + (st.key === 'overdue' ? 'var(--red)' : (st.key === 'due_soon' ? 'var(--pollen-gold)' : 'var(--spring-sage)')) + ';">' +
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">' +
           '<div style="min-width:0;flex:1;">' +
@@ -5528,6 +5530,48 @@ function renderComplianceList() {
 }
 
 function escapeAttrSafe(s) { return String(s || '').replace(/"/g, '&quot;'); }
+
+// ----- FILED history sub-tab: permanent ledger of what was sent in -----
+async function renderComplianceFiled() {
+  const host = document.getElementById('compliance-subtab');
+  if (!host) return;
+  host.innerHTML = '<div class="empty-day"><p>Loading history&hellip;</p></div>';
+  let rows = [];
+  try {
+    const data = await DB._pb('GET', 'compliance_filings/records?perPage=500&sort=-filed_date');
+    rows = data.items || [];
+  } catch (err) {
+    host.innerHTML = '<div class="empty-day"><p>Could not load filing history.</p></div>';
+    return;
+  }
+  if (!rows.length) {
+    host.innerHTML = '<div class="empty-day"><p>No filings recorded yet. When you mark a compliance item filed, it logs here as a permanent record you can show a lender.</p></div>';
+    return;
+  }
+  const fmtDate = (s) => {
+    const d = String(s || '').slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(d)
+      ? new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      : (s || '?');
+  };
+  const total = rows.reduce((s, r) => s + (Number(r.amount) || 0), 0);
+  let html = '<div style="font-size:0.82rem;color:var(--gray-600);margin-bottom:10px;">A permanent record of every compliance filing &mdash; what was sent in, when, and the amount. ' +
+    rows.length + ' filing' + (rows.length === 1 ? '' : 's') + (total > 0 ? ' &middot; $' + Math.round(total).toLocaleString() + ' total' : '') + '.</div>';
+  rows.forEach(r => {
+    html += '<div class="booking-card" style="border-left-color:var(--spring-sage);">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">' +
+        '<div style="min-width:0;flex:1;">' +
+          '<h3 style="margin-bottom:4px;font-size:0.95rem;">' + escapeHtml(r.item_name || 'Filing') + '</h3>' +
+          '<div style="font-size:0.78rem;color:var(--gray-600);display:flex;gap:6px;align-items:center;flex-wrap:wrap;">' +
+            entityPill(r.entity) + '<span>Filed ' + escapeHtml(fmtDate(r.filed_date)) + (r.reference ? ' &middot; ref ' + escapeHtml(r.reference) : '') + '</span>' +
+          '</div>' +
+        '</div>' +
+        (Number(r.amount) ? '<div style="font-weight:600;white-space:nowrap;">$' + Math.round(Number(r.amount)).toLocaleString() + '</div>' : '') +
+      '</div>' +
+    '</div>';
+  });
+  host.innerHTML = html;
+}
 
 // ----- CALENDAR sub-tab -----
 function renderComplianceCalendar() {
