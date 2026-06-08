@@ -106,23 +106,23 @@
       color: var(--gray-600);
     }
     .footer a { color: var(--plum); }
-  </style>
+</style>
 </head>
 <body>
   <div class="card">
     <div class="logo-wrap">
       <img src="garden-faery-logo.svg" alt="Garden Faery" onerror="this.style.display='none'">
-    </div>
+</div>
 
     <div id="loading-state">
       <h1>Looking up your visit...</h1>
-    </div>
+</div>
 
     <div id="error-state" class="hidden">
       <h1>Hmm, something's off</h1>
       <p class="lede" id="error-message">This reschedule link looks invalid or expired.</p>
       <p class="footer">Just <a href="mailto:taya@gardenfaery.love">email Taya</a> and we'll sort it.</p>
-    </div>
+</div>
 
     <div id="form-state" class="hidden">
       <h1>Where faeries go in the rain</h1>
@@ -131,7 +131,7 @@
       <div class="booking-info">
         <div class="label">Currently scheduled</div>
         <div class="value struck" id="current-info">--</div>
-      </div>
+</div>
 
       <div id="form-error" class="msg error hidden"></div>
 
@@ -144,7 +144,7 @@
       <button id="submit-btn" onclick="submitReschedule()">Reschedule my visit</button>
 
       <p class="footer">Or just <a href="mailto:taya@gardenfaery.love">email Taya</a> if you'd rather chat about it.</p>
-    </div>
+</div>
 
     <div id="success-state" class="hidden">
       <h1>All set</h1>
@@ -153,11 +153,11 @@
       <div class="booking-info">
         <div class="label">New visit</div>
         <div class="value" id="success-info">--</div>
-      </div>
+</div>
 
-      <p class="footer">See you in the garden 🌿</p>
-    </div>
-  </div>
+      <p class="footer">See you in the garden</p>
+</div>
+</div>
 
   <script>
     const PB_URL = 'https://bookings.gardenfaery.love';
@@ -271,6 +271,6 @@
     }
 
     loadBooking();
-  </script>
+</script>
 </body>
 </html>

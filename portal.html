@@ -401,7 +401,7 @@ body {
   <a href="index.html" class="nav-logo"><img src="garden-faery-logo.svg" alt="" class="nav-logo-img" aria-hidden="true" decoding="async">Garden Faery</a>
   <button class="hamburger" onclick="var m=document.querySelector('.nav-links');m.classList.toggle('open');this.setAttribute('aria-expanded',m.classList.contains('open'))" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">
     <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-  </button>
+</button>
   <div class="nav-links">
     <a href="index.html">Home</a>
     <a href="about.html">About</a>
@@ -414,11 +414,11 @@ body {
         <a href="food-guide.html">Succession Planting</a>
         <a href="seed-kit.html">Succession Planting Seed Kit</a>
         <a href="estimator.html">Bed Builder</a>
-      </div>
-    </div>
+</div>
+</div>
     <a href="book.html">Book</a>
     <a href="portal.html" class="active">Sign in</a>
-  </div>
+</div>
 </nav>
 
 <main class="portal-wrap">
@@ -432,12 +432,12 @@ body {
       <input type="email" id="email" autocomplete="email" inputmode="email" placeholder="you@example.com">
       <button class="btn-portal-primary" id="btn-send-code" onclick="sendCode()">Send me a code</button>
       <div id="email-error" class="error-banner" style="display:none;"></div>
-    </div>
+</div>
     <div class="portal-card">
       <h2>First time here?</h2>
       <p style="color:var(--gray-600);font-size:0.92rem;">If you've never booked with Garden Faery before, start with <a href="book.html" style="color:var(--plum);">booking your first visit</a>.</p>
-    </div>
-  </section>
+</div>
+</section>
 
   <!-- ===== LOGIN STEP 2: code ===== -->
   <section id="step-code" class="step" style="display:none;">
@@ -450,55 +450,55 @@ body {
       <div id="code-error" class="error-banner" style="display:none;"></div>
       <div style="margin-top:14px;text-align:center;">
         <button class="btn-portal-link" onclick="resetToEmail()">Wrong email? Start over</button>
-      </div>
-    </div>
-  </section>
+</div>
+</div>
+</section>
 
   <!-- ===== AUTHED: portal ===== -->
   <section id="step-portal" class="step" style="display:none;">
     <div id="payment-success-banner" class="success-banner" style="display:none;">
       ✓ Payment received — thank you! Your visit has been marked paid.
-    </div>
+</div>
 
     <div class="portal-toolbar">
       <div>
         <h1 class="portal-h1" style="margin-bottom:2px;">Welcome, <span id="hello-name">there</span></h1>
         <div class="portal-sub" style="margin:0;font-size:0.85rem;"><span id="hello-email"></span></div>
-      </div>
+</div>
       <button class="btn-portal-secondary" onclick="signOut()">Sign out</button>
-    </div>
+</div>
 
     <div class="portal-tabs">
       <button class="portal-tab active" data-tab="visits" onclick="switchPortalTab('visits')">My Visits</button>
       <button class="portal-tab" data-tab="pay" onclick="switchPortalTab('pay')">Pay</button>
       <button class="portal-tab" data-tab="book" onclick="switchPortalTab('book')">Book</button>
       <button class="portal-tab" data-tab="account" onclick="switchPortalTab('account')">Account</button>
-    </div>
+</div>
 
     <div id="pane-visits" class="portal-pane active">
       <div style="background:#fef9e6;border:1px solid #d4c27a;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:0.82rem;color:#4a1942;line-height:1.45;">
         <strong>New:</strong> on the pay page you can choose <strong>Bank account (ACH)</strong> instead of card. It saves Garden Faery about 3% in processing fees and goes to the same place. Your payment method is securely saved for next time either way.
-      </div>
+</div>
       <div class="portal-card">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <h2>Upcoming</h2>
           <button class="btn-portal-secondary" onclick="exportIcs()" title="Download an .ics file you can import into Apple/Google/Outlook calendar">Add to calendar</button>
-        </div>
+</div>
         <div id="upcoming-list"></div>
-      </div>
+</div>
       <div class="portal-card">
         <h2>Past</h2>
         <div id="past-list"></div>
-      </div>
-    </div>
+</div>
+</div>
 
     <div id="pane-pay" class="portal-pane">
       <div class="portal-card">
         <h2>Outstanding</h2>
         <p style="color:var(--gray-600);font-size:0.88rem;margin-bottom:14px;">Visits you haven't paid for yet. Tap Pay to checkout via Square.</p>
         <div id="outstanding-list"></div>
-      </div>
-    </div>
+</div>
+</div>
 
     <div id="pane-book" class="portal-pane">
       <div class="portal-card">
@@ -508,7 +508,7 @@ body {
         <label>Pick a date</label>
         <div id="bk-date-chips" class="bk-date-chips">
           <div class="bk-date-loading">Loading available dates...</div>
-        </div>
+</div>
         <input type="hidden" id="bk-date">
         <p id="bk-no-dates" style="display:none;font-size:0.85rem;color:var(--gray-600);margin-top:8px;">No available Wed/Thu/Fri in the next 8 weeks. Message Taya if you need to book further out.</p>
 
@@ -521,47 +521,47 @@ body {
           <button type="button" class="bk-freq-card selected" data-freq="once" onclick="selectBkFreq('once')">One-time</button>
           <button type="button" class="bk-freq-card" data-freq="weekly" onclick="selectBkFreq('weekly')">Weekly</button>
           <button type="button" class="bk-freq-card" data-freq="biweekly" onclick="selectBkFreq('biweekly')">Biweekly</button>
-        </div>
+</div>
         <p style="font-size:0.78rem;color:var(--gray-600);margin-top:4px;">Recurring visits repeat on the same weekday as your first date.</p>
 
         <div id="bk-recurring-detail" style="display:none;margin-top:10px;padding:12px;background:var(--gray-100);border-radius:8px;">
           <label for="bk-count">Number of visits</label>
           <input type="number" id="bk-count" min="2" max="52" value="8" oninput="updateBkFreq()">
           <p id="bk-recurring-preview" style="font-size:0.8rem;color:var(--plum);margin-top:6px;font-style:italic;"></p>
-        </div>
+</div>
 
         <label for="bk-notes" style="margin-top:14px;">Garden notes (optional)</label>
         <textarea id="bk-notes" rows="3" placeholder="Any specifics for the visit?"></textarea>
 
         <p style="font-size:0.72rem;color:var(--gray-600);line-height:1.5;margin-top:14px;">
           By providing your phone number and submitting this booking, you agree to receive recurring SMS messages from Garden Faery, including booking confirmations, day-before reminders, weather-related reschedule notices, one-time portal login codes, and booking cancellation confirmations. Message frequency varies (typically 1 to 5 messages per month per active client). Message and data rates may apply. Your mobile phone number and SMS opt-in status will never be shared with third parties or affiliates for marketing or promotional purposes. Reply STOP to opt out at any time. Reply HELP for assistance. See our <a href="privacy.html" style="color:var(--plum);">Privacy Policy</a> and <a href="terms.html" style="color:var(--plum);">Terms</a>.
-        </p>
+</p>
         <button class="btn-portal-primary" id="bk-submit" onclick="submitBook()">Book this visit</button>
         <div id="bk-error" class="error-banner" style="display:none;"></div>
         <div id="bk-success" class="success-banner" style="display:none;margin-top:12px;">Booked. See your upcoming visits in the My Visits tab.</div>
-      </div>
-    </div>
+</div>
+</div>
 
     <div id="pane-account" class="portal-pane">
       <div class="portal-card">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <h2>Your info</h2>
           <button class="btn-portal-secondary" onclick="openEditProfile()">Edit</button>
-        </div>
+</div>
         <p style="color:var(--gray-600);font-size:0.85rem;margin:6px 0 14px;">Edits apply to all your future and past visits.</p>
         <div id="account-info"></div>
-      </div>
+</div>
 
       <div class="portal-card">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <h2>Saved cards</h2>
           <button class="btn-portal-secondary" onclick="openAddCard()">Add card</button>
-        </div>
+</div>
         <p style="color:var(--gray-600);font-size:0.85rem;margin:6px 0 14px;">Save a card so you can one-tap pay outstanding visits. Card data is held securely by Square; nothing sensitive is stored on this site.</p>
         <div id="cards-list"></div>
-      </div>
-    </div>
-  </section>
+</div>
+</div>
+</section>
 
 </main>
 
@@ -575,15 +575,15 @@ body {
       <button type="button" class="tip-opt" data-pct="15" onclick="selectTip(15)">15%</button>
       <button type="button" class="tip-opt" data-pct="20" onclick="selectTip(20)">20%</button>
       <button type="button" class="tip-opt" data-pct="25" onclick="selectTip(25)">25%</button>
-    </div>
+</div>
     <label for="tip-custom">Custom tip ($)</label>
     <input type="number" id="tip-custom" min="0" step="0.50" placeholder="0.00" oninput="onCustomTipInput()">
     <div id="tip-total-preview" style="margin-top:14px;padding:10px 12px;background:var(--cream);border-radius:8px;font-size:0.95rem;color:var(--plum);"></div>
     <div class="modal-actions">
       <button class="cancel-btn" onclick="closeTipModal()">Cancel</button>
       <button class="save-btn" id="tip-continue" onclick="continueWithTip()">Continue to payment</button>
-    </div>
-  </div>
+</div>
+</div>
 </div>
 
 <!-- Add card modal -->
@@ -597,8 +597,8 @@ body {
     <div class="modal-actions">
       <button class="cancel-btn" onclick="closeAddCard()">Cancel</button>
       <button class="save-btn" id="ac-submit" onclick="submitAddCard()">Save card</button>
-    </div>
-  </div>
+</div>
+</div>
 </div>
 
 <!-- Edit profile modal -->
@@ -616,8 +616,8 @@ body {
     <div class="modal-actions">
       <button class="cancel-btn" onclick="closeEditProfile()">Cancel</button>
       <button class="save-btn" id="ep-submit" onclick="submitEditProfile()">Save</button>
-    </div>
-  </div>
+</div>
+</div>
 </div>
 
 <!-- Reschedule modal -->
@@ -634,8 +634,8 @@ body {
     <div class="modal-actions">
       <button class="cancel-btn" onclick="closeReschedule()">Cancel</button>
       <button class="save-btn" id="rs-submit" onclick="submitReschedule()">Save changes</button>
-    </div>
-  </div>
+</div>
+</div>
 </div>
 
 <script>
@@ -843,8 +843,8 @@ function renderVisits() {
   const renderList = (host, items, kind) => {
     if (!items.length) {
       host.innerHTML = kind === 'upcoming'
-        ? '<div class="empty-pane"><div class="emoji">🌱</div>Nothing booked yet.</div>'
-        : '<div class="empty-pane"><div class="emoji">📒</div>No past visits on file.</div>';
+        ? '<div class="empty-pane"><div class="emoji"></div>Nothing booked yet.</div>'
+        : '<div class="empty-pane"><div class="emoji"></div>No past visits on file.</div>';
       return;
     }
     host.innerHTML = items.map(b => bookingRowHtml(b, kind)).join('');
@@ -856,7 +856,7 @@ function renderVisits() {
 function renderOutstanding() {
   const host = document.getElementById('outstanding-list');
   if (!_data.outstanding.length) {
-    host.innerHTML = '<div class="empty-pane"><div class="emoji">🌿</div>You\'re all paid up. Thank you!</div>';
+    host.innerHTML = '<div class="empty-pane"><div class="emoji"></div>You\'re all paid up. Thank you!</div>';
     return;
   }
   let total = 0;

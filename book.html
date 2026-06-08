@@ -883,13 +883,13 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
   <div class="header">
     <video autoplay muted loop playsinline poster="hero-sprouts.jpg" preload="none" aria-label="Tiny wheatgrass sprouts">
       <source src="hero-sprouts.mp4" type="video/mp4">
-    </video>
+</video>
     <div class="hero-overlay">
       <h1>Book a Visit</h1>
       <p>Pick a service, choose your day, and you're all set.</p>
       <p style="margin-top:6px;font-size:0.95em;opacity:0.92;">I can fly as far as Arcata, Bayside, McKinleyville, and Eureka.</p>
-    </div>
-  </div>
+</div>
+</div>
   <a href="/" class="site-home">&larr; Garden Faery</a>
 
   <div class="steps">
@@ -897,7 +897,7 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
     <div class="step-dot" data-step="1"></div>
     <div class="step-dot" data-step="2"></div>
     <div class="step-dot" data-step="3"></div>
-  </div>
+</div>
 
   <!-- Step 1: Choose event type -->
   <div class="step-panel active" id="step-0">
@@ -910,9 +910,9 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
           <div class="event-info">
             <h3>Morning Garden Care</h3>
             <p>9am-2pm, $150/day. Mon, Wed, Thu, Fri.</p>
-          </div>
-        </button>
-      </div>
+</div>
+</button>
+</div>
       <!-- Afternoon Garden Care removed from public booking 2026-04-25.
            Afternoon slots are reserved for grandfathered regulars (Kenzie).
            Config block below is kept (days [] disables it) so the slug
@@ -924,9 +924,9 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
           <div class="event-info">
             <h3>Afternoon Garden Care</h3>
             <p>2:30pm to 4:30pm, 2 hours. $30/hr. Mon, Wed, Thu, Fri.</p>
-          </div>
-        </button>
-      </div>
+</div>
+</button>
+</div>
       -->
 
       <!-- Consultation PAUSED as of April 12, 2026. Uncomment to re-enable.
@@ -935,10 +935,10 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
         <div class="event-info">
           <h3>Free Garden Consultation</h3>
           <p>30 minutes. Wed through Fri at 5pm. Let's talk about your garden!</p>
-        </div>
-      </button>
+</div>
+</button>
       -->
-    </div>
+</div>
 
     <!-- Recurring booking flow removed 2026-04-25. Each booking is now
          standalone (or part of a one-time multi-date selection). Regulars
@@ -948,20 +948,20 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
       <button type="button" id="bt-once" style="display:none;"></button>
       <button type="button" id="bt-multiple" style="display:none;"></button>
       <button type="button" id="bt-recurring" style="display:none;"></button>
-    </div>
+</div>
     <div id="recurring-setup" style="display:none;">
       <select id="recur-frequency" style="display:none;"><option value="weekly">Weekly</option></select>
       <input type="date" id="recur-start" style="display:none;">
       <input type="date" id="recur-end" style="display:none;">
-    </div>
+</div>
     <div id="step-0-continue" style="display:none;">
       <button id="btn-step0-continue"></button>
-    </div>
+</div>
 
     <div class="manage-link">
       <a onclick="showManage()">Need to reschedule or cancel?</a>
-    </div>
-  </div>
+</div>
+</div>
 
   <!-- Manage booking panel -->
   <div class="manage-panel" id="manage-panel">
@@ -971,14 +971,14 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
       <div class="form-group">
         <label for="manage-phone">Phone number</label>
         <input type="tel" id="manage-phone" placeholder="(707) 555-1234">
-      </div>
+</div>
       <button class="btn btn-primary" onclick="lookupBookings()">Find My Bookings</button>
-    </div>
+</div>
     <div id="manage-results"></div>
     <div style="margin-top: 12px;">
       <button class="btn btn-back" onclick="hideManage()">&#8592; Back to booking</button>
-    </div>
-  </div>
+</div>
+</div>
 
   <!-- Step 2: Pick a date and time -->
   <div class="step-panel" id="step-1">
@@ -987,72 +987,72 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
         <button class="cal-nav" id="cal-prev">&#8592;</button>
         <h2 id="cal-month-label"></h2>
         <button class="cal-nav" id="cal-next">&#8594;</button>
-      </div>
+</div>
       <div class="cal-grid" id="cal-grid"></div>
       <div id="time-slot-area"></div>
-    </div>
+</div>
     <div class="btn-row">
       <button class="btn btn-back" onclick="goStep(0)">&#8592; Back</button>
       <button class="btn btn-primary" id="btn-to-form" disabled onclick="goStep(2)">Continue</button>
-    </div>
-  </div>
+</div>
+</div>
 
   <!-- Step 3: Your details -->
   <div class="step-panel" id="step-2">
     <div class="card">
       <div id="booking-summary"></div>
-    </div>
+</div>
     <div class="card">
       <div class="form-group">
         <label for="f-first-name">First name <span class="required">*</span></label>
         <input type="text" id="f-first-name" name="first-name" placeholder="Jane" autocomplete="given-name" autocapitalize="words" required>
-      </div>
+</div>
       <div class="form-group">
         <label for="f-last-name">Last name <span class="required">*</span></label>
         <input type="text" id="f-last-name" name="last-name" placeholder="Doe" autocomplete="family-name" autocapitalize="words" required>
-      </div>
+</div>
       <div class="form-group">
         <label for="f-email">Email <span class="required">*</span></label>
         <input type="email" id="f-email" name="email" placeholder="you@email.com" autocomplete="email" required>
-      </div>
+</div>
       <div class="form-group">
         <label for="f-phone">Phone <span class="required">*</span></label>
         <input type="tel" id="f-phone" name="phone" placeholder="(707) 555-1234" autocomplete="tel" required>
-      </div>
+</div>
       <div class="form-group address-field">
         <label for="f-address">Street address <span class="required">*</span></label>
         <input type="text" id="f-address" name="address-line1" placeholder="123 Main St" autocomplete="address-line1" aria-autocomplete="list" aria-controls="f-address-suggestions" autocapitalize="words" spellcheck="false">
         <div class="address-suggestions" id="f-address-suggestions" role="listbox" hidden></div>
-      </div>
+</div>
       <div class="form-group">
         <label for="f-address2">Apt / Unit <span style="color:var(--gray-600);font-weight:400;font-size:0.85em;">(optional)</span></label>
         <input type="text" id="f-address2" name="address-line2" placeholder="Apt 2" autocomplete="address-line2" autocapitalize="words">
-      </div>
+</div>
       <div class="form-group" style="display:flex;gap:10px;flex-wrap:wrap;">
         <div style="flex:1 1 160px;">
           <label for="f-city">City <span class="required">*</span></label>
           <input type="text" id="f-city" name="city" placeholder="Arcata" autocomplete="address-level2" autocapitalize="words">
           <div style="font-size:0.82em;color:var(--gray-600);margin-top:4px;line-height:1.4;">I can fly as far as Arcata, Bayside, McKinleyville, and Eureka.</div>
-        </div>
+</div>
         <div style="width:120px;">
           <label for="f-zip">ZIP <span class="required">*</span></label>
           <input type="text" id="f-zip" name="postal-code" placeholder="95521" autocomplete="postal-code" inputmode="numeric" pattern="\d{5}(-\d{4})?" maxlength="10">
-        </div>
-      </div>
+</div>
+</div>
       <input type="hidden" id="f-state" name="state" value="CA" autocomplete="address-level1">
       <div class="form-group">
         <label for="f-notes">Garden notes</label>
         <textarea id="f-notes" placeholder="Anything I should know? Dogs, gate codes, what you'd like help with..."></textarea>
-      </div>
+</div>
       <div class="form-group" style="background: var(--cream); padding: 12px 14px; border-radius: 8px; margin-top: 4px;">
         <label for="f-auto-reschedule" style="display: block; cursor: pointer; font-weight: 600; margin-bottom: 4px; line-height: 1.3;">
           <input type="checkbox" id="f-auto-reschedule" style="margin-right: 8px; vertical-align: -1px;">
-          🌧️ Auto-reschedule if it rains
-        </label>
+          Auto-reschedule if it rains
+</label>
         <div style="font-size: 0.85em; color: var(--gray-600); padding-left: 26px; line-height: 1.4;">
           I'll quietly move your visit to the next sunny slot and email you the new time. (Faery's choice for the soggy days.)
-        </div>
-      </div>
+</div>
+</div>
 
       <div class="form-group">
         <label for="f-source">How did you find me?</label>
@@ -1064,8 +1064,8 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
           <option value="instagram">Instagram</option>
           <option value="returning">I've been a client before</option>
           <option value="other">Other</option>
-        </select>
-      </div>
+</select>
+</div>
 
       <!-- SMS reminders: visible operational opt-in. Default CHECKED so the
            reminder flow keeps working unless someone deliberately opts out.
@@ -1076,8 +1076,8 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
           <input type="checkbox" id="f-sms-reminders" checked style="margin-right: 8px; vertical-align: -1px;">
           Text me reminders about my visits
           <span style="display: block; padding-left: 24px; font-size: 0.85em; color: var(--gray-600); margin-top: 2px;">Booking confirmation, day-before reminder, weather changes, cancellation notices. Reply STOP anytime.</span>
-        </label>
-      </div>
+</label>
+</div>
 
       <!-- Email newsletter opt-in. Unchecked by default (opt-in is opt-in).
            No promo SMS option — Garden Faery doesn't send marketing texts.
@@ -1088,17 +1088,17 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
           <input type="checkbox" id="f-mkt-email" style="margin-right: 8px; vertical-align: -1px;">
           Email me seasonal garden tips (optional)
           <span style="display: block; padding-left: 24px; font-size: 0.85em; color: var(--gray-600); margin-top: 2px;">A few times a year, never spammy. No promo texts — we don't do those.</span>
-        </label>
-      </div>
-    </div>
+</label>
+</div>
+</div>
     <p style="font-size: 0.78rem; color: var(--gray-600); line-height: 1.5; margin: 14px 2px 0;">
       By providing your phone number and submitting this form, you agree to receive recurring SMS messages from Garden Faery, including booking confirmations, day-before reminders, weather-related reschedule notices, one-time portal login codes, and booking cancellation confirmations. Message frequency varies (typically 1 to 5 messages per month per active client). Message and data rates may apply. Your mobile phone number and SMS opt-in status will never be shared with third parties or affiliates for marketing or promotional purposes. Reply STOP to opt out at any time. Reply HELP for assistance. See our <a href="privacy.html" style="color: var(--plum); text-decoration: underline;">Privacy Policy</a> and <a href="terms.html" style="color: var(--plum); text-decoration: underline;">Terms</a>.
-    </p>
+</p>
     <div class="btn-row">
       <button class="btn btn-back" onclick="goStep(1)">&#8592; Back</button>
       <button class="btn btn-primary" id="btn-book" onclick="submitBooking()">Book My Visit</button>
-    </div>
-  </div>
+</div>
+</div>
 
   <!-- Step 4: Confirmation -->
   <div class="step-panel" id="step-3">
@@ -1111,17 +1111,17 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
         <button class="btn btn-primary" id="btn-add-cal" onclick="showCalendarPicker()" style="margin-top: 16px; max-width: 260px; margin-left: auto; margin-right: auto;">Add to Calendar</button>
         <p style="font-size: 0.85rem; color: var(--gray-400); margin-top: 12px;">
           Taya will reach out if anything comes up. See you in the garden!
-        </p>
-      </div>
-    </div>
-  </div>
+</p>
+</div>
+</div>
+</div>
 
   <!-- Faery divider -->
   <div class="faery-divider" aria-hidden="true">
     <div class="faery-divider-line"></div>
     <img src="garden-faery-logo.png" alt="" width="72" height="72" loading="lazy" decoding="async">
     <div class="faery-divider-line"></div>
-  </div>
+</div>
 
   <!-- Contact plug -->
   <div class="contact-plug">
@@ -1129,8 +1129,8 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
     <p>Not quite ready to book? Send a quick note and I'll get back to you soon.</p>
     <div class="contact-plug-actions">
       <a href="contact.html" class="contact-plug-btn">Send a Message</a>
-    </div>
-  </div>
+</div>
+</div>
 </div>
 
 <script>
@@ -1722,7 +1722,7 @@ function renderCalendar() {
     // Mark heavy-rain days from the cached forecast
     const isRainy = !isPast && getRainyDates().has(dateStr);
     const rainMark = isRainy
-      ? '<span class="rain-mark" aria-hidden="true" title="Heavy rain in the forecast">🌧️</span>'
+      ? '<span class="rain-mark" aria-hidden="true" title="Heavy rain in the forecast"></span>'
       : '';
 
     if (available) {
@@ -2369,7 +2369,7 @@ function renderRescheduleCalendar(id) {
 
     const isRainy = !isPast && getRainyDates().has(dateStr);
     const rainMark = isRainy
-      ? '<span class="rain-mark" aria-hidden="true" title="Heavy rain in the forecast">🌧️</span>'
+      ? '<span class="rain-mark" aria-hidden="true" title="Heavy rain in the forecast"></span>'
       : '';
 
     if (available) {
@@ -2584,7 +2584,7 @@ function showCalendarPicker() {
       <button type="button" class="btn btn-primary" style="width:100%;margin-bottom:10px;" onclick="_openOutlookCal();_closeCalPicker()"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:8px;"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>Outlook</button>
       <button type="button" class="btn" style="width:100%;background:transparent;color:#888;" onclick="_downloadICSFile();_closeCalPicker()">Download .ics file</button>
       <button type="button" class="btn" style="width:100%;margin-top:8px;background:transparent;color:#888;" onclick="_closeCalPicker()">Cancel</button>
-    </div>`;
+</div>`;
   overlay.addEventListener('click', (e) => { if (e.target === overlay) _closeCalPicker(); });
   document.body.appendChild(overlay);
 }
@@ -2886,21 +2886,21 @@ document.addEventListener('DOMContentLoaded', () => {
   <div class="footer-contact">
     <a href="mailto:taya@gardenfaery.love">taya@gardenfaery.love</a>
     <span style="opacity: 0.8;">Arcata, CA</span>
-  </div>
+</div>
   <div class="footer-link-row">
     <a href="index.html">Home</a>
     <a href="services.html">Services</a>
     <a href="contact.html">Contact</a>
-  </div>
+</div>
   <div class="social-links">
     <a href="https://www.facebook.com/profile.php?id=61578540137419" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
     <a href="https://www.instagram.com/gardenfaery__/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
     <a href="https://nextdoor.com/profile/01fPxwm9JL8Y2BKt9/" target="_blank" rel="noopener" aria-label="Nextdoor"><svg viewBox="0 0 24 24"><path d="M12 2L2 10h3v10h5v-6h4v6h5V10h3L12 2z"/></svg></a>
-  </div>
+</div>
   <div class="footer-legal">
     <a href="privacy.html">Privacy</a>
     <a href="terms.html">Terms</a>
-  </div>
+</div>
 </footer>
 
 </body>

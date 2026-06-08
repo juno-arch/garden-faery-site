@@ -201,8 +201,8 @@ button.secondary {
       <input type="email" id="email" autocomplete="email" inputmode="email" placeholder="your@email.com">
       <button class="primary" id="btn-send-code" onclick="sendCode()">Send my code</button>
       <div id="email-error" class="error" style="display:none;"></div>
-    </div>
-  </div>
+</div>
+</div>
 
   <!-- === STEP 2: enter code === -->
   <div id="step-code" class="step" style="display:none;">
@@ -215,9 +215,9 @@ button.secondary {
       <div id="code-error" class="error" style="display:none;"></div>
       <div class="hint">
         <button class="hint" onclick="resetToEmail()">Wrong email? Start over</button>
-      </div>
-    </div>
-  </div>
+</div>
+</div>
+</div>
 
   <!-- === STEP 3: outstanding list === -->
   <div id="step-list" class="step" style="display:none;">
@@ -225,17 +225,17 @@ button.secondary {
     <p class="sub" id="list-sub">Here's what's outstanding. Tap Pay on any visit to checkout via Square.</p>
     <div class="card" id="list-card">
       <div id="list-items"></div>
-    </div>
+</div>
     <div class="hint">
       <button class="hint" onclick="resetToEmail()">Sign out</button>
-    </div>
-  </div>
+</div>
+</div>
 
   <!-- === STEP 4: redirecting to Square === -->
   <div id="step-redirect" class="step" style="display:none;text-align:center;padding:40px 0;">
     <h1>Opening Square checkout…</h1>
     <p class="sub">If nothing happens in a few seconds, <a href="#" id="manual-link">tap here</a>.</p>
-  </div>
+</div>
 
 </div>
 
@@ -336,7 +336,7 @@ function renderList(items) {
   if (items.length === 0) {
     heading.textContent = "You're all paid up";
     sub.textContent = "No outstanding visits. Thank you!";
-    host.innerHTML = '<div class="empty"><div class="emoji">🌿</div><div>Nothing to pay — enjoy your day.</div></div>';
+    host.innerHTML = '<div class="empty"><div class="emoji"></div><div>Nothing to pay — enjoy your day.</div></div>';
     return;
   }
 

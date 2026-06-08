@@ -631,10 +631,10 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
     <div class="pin-wrap">
       <input type="password" id="login-pin" placeholder="PIN" maxlength="20" autocomplete="off">
       <button type="button" class="pin-toggle" id="pin-toggle" aria-label="Show PIN" onclick="togglePinVisibility()"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button>
-    </div>
+</div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Open Dashboard</button>
     <div class="login-error" id="login-error">Wrong PIN. Try again.</div>
-  </div>
+</div>
 </div>
 
 <!-- Main app (hidden until login) -->
@@ -643,7 +643,7 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
   <div class="top-bar">
     <h1>My Bookings</h1>
     <button class="today-btn" onclick="goToday()">Today</button>
-  </div>
+</div>
 
   <!-- Tomorrow's schedule banner -->
   <div class="tomorrow-banner" id="tomorrow-banner" style="display:none;"></div>
@@ -663,22 +663,22 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
     <button class="tab" data-tab="taxes" onclick="switchTab('taxes')">Taxes</button>
     <button class="tab" data-tab="emails" onclick="switchTab('emails')">Emails</button>
     <button class="tab" data-tab="settings" aria-label="Settings" onclick="switchTab('settings')"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="3"/></svg></button>
-  </div>
+</div>
 
   <!-- Dashboard view -->
   <div class="tab-panel active" id="tab-dashboard">
     <div id="dashboard-content"></div>
-  </div>
+</div>
 
   <!-- Day view -->
   <div class="tab-panel" id="tab-day" style="display:none;">
     <div id="day-content"></div>
-  </div>
+</div>
 
   <!-- Month view -->
   <div class="tab-panel" id="tab-month" style="display:none;">
     <div id="month-content"></div>
-  </div>
+</div>
 
   <!-- Upcoming view -->
   <div class="tab-panel" id="tab-upcoming" style="display:none;">
@@ -686,42 +686,42 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <h3 style="margin:0;display:flex;align-items:center;gap:8px;"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>Moon-day conflicts</h3>
         <button class="action-btn" onclick="syncMoonConflicts()" style="font-size:0.8rem;">Refresh</button>
-      </div>
+</div>
       <p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:10px;">Bookings that land on moon-block days. Auto-cancel within 7 days. Tap Keep to override.</p>
       <div id="moon-conflicts-list"></div>
-    </div>
+</div>
     <div id="upcoming-content"></div>
-  </div>
+</div>
 
   <!-- Clients view -->
   <div class="tab-panel" id="tab-clients" style="display:none;">
     <div id="clients-content"></div>
-  </div>
+</div>
 
   <!-- Income view -->
   <div class="tab-panel" id="tab-income" style="display:none;">
     <div id="income-content"></div>
-  </div>
+</div>
 
   <!-- Expenses view -->
   <div class="tab-panel" id="tab-expenses" style="display:none;">
     <div id="expenses-content"></div>
-  </div>
+</div>
 
   <!-- Taxes view -->
   <div class="tab-panel" id="tab-taxes" style="display:none;">
     <div id="taxes-content"></div>
-  </div>
+</div>
 
   <!-- Emails & SMS view -->
   <div class="tab-panel" id="tab-emails" style="display:none;">
     <div id="emails-content"></div>
-  </div>
+</div>
 
   <!-- Settings view -->
   <div class="tab-panel" id="tab-settings" style="display:none;">
     <div id="settings-content"></div>
-  </div>
+</div>
 </div>
 
 <!-- Receipt lightbox (click a thumbnail to open) -->
@@ -737,22 +737,22 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
     <div style="margin-bottom:10px;">
       <button class="modal-btn secondary" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="document.getElementById('exp-photo').click()">
         <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>Scan a receipt
-      </button>
+</button>
       <input type="file" id="exp-photo" accept="image/*,application/pdf" style="display:none;" onchange="scanReceipt(this)">
       <div id="exp-scan-status" style="font-size:0.8rem;color:var(--gray-600);margin-top:4px;"></div>
-    </div>
+</div>
     <div class="form-group">
       <label>Date</label>
       <input type="date" id="exp-date">
-    </div>
+</div>
     <div class="form-group">
       <label>Amount ($)</label>
       <input type="number" id="exp-amount" step="0.01" min="0" placeholder="0.00">
-    </div>
+</div>
     <div class="form-group">
       <label>Vendor</label>
       <input type="text" id="exp-vendor" placeholder="Home Depot, Bloom Nursery, etc.">
-    </div>
+</div>
     <div class="form-group">
       <label>Category</label>
       <select id="exp-category">
@@ -768,15 +768,15 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
         <option value="software">Software</option>
         <option value="professional_services">Professional Services</option>
         <option value="other">Other</option>
-      </select>
-    </div>
+</select>
+</div>
     <div class="form-group">
       <label>Card / payment</label>
       <select id="exp-card" onchange="onExpCardChange()">
         <option value="">-</option>
         <optgroup label="Business">
           <option value="coast_central_biz">Coast Central (business)</option>
-        </optgroup>
+</optgroup>
         <optgroup label="Personal">
           <option value="coast_central_personal">Coast Central (personal)</option>
           <option value="columbia">Columbia Bank</option>
@@ -785,29 +785,29 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
           <option value="skyla_credit">Skyla credit</option>
           <option value="bofa_debit">Bank of America debit</option>
           <option value="bofa_credit">Bank of America credit</option>
-        </optgroup>
+</optgroup>
         <optgroup label="Other">
           <option value="cash">Cash</option>
           <option value="venmo">Venmo</option>
           <option value="other">Other</option>
-        </optgroup>
-      </select>
-    </div>
+</optgroup>
+</select>
+</div>
     <div class="form-group">
       <label>
         <input type="checkbox" id="exp-biz" style="margin-right:6px;"> On business account
-      </label>
-    </div>
+</label>
+</div>
     <div class="form-group">
       <label>Notes</label>
       <input type="text" id="exp-notes" placeholder="Optional">
-    </div>
+</div>
     <div id="exp-line-items" style="font-size:0.8rem;color:var(--gray-600);margin-bottom:10px;"></div>
     <div class="modal-actions">
       <button class="modal-btn secondary" onclick="closeExpenseModal()">Cancel</button>
       <button class="modal-btn primary" onclick="saveExpense()">Save</button>
-    </div>
-  </div>
+</div>
+</div>
 </div>
 
 <!-- Payment modal -->
@@ -818,12 +818,12 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
     <div class="form-group">
       <label>Price ($)</label>
       <input type="number" id="pay-price" step="1" min="0" placeholder="0">
-    </div>
+</div>
     <div class="form-group">
       <label>
         <input type="checkbox" id="pay-paid" style="margin-right:6px;"> Paid
-      </label>
-    </div>
+</label>
+</div>
     <div class="form-group">
       <label>Payment method</label>
       <select id="pay-method">
@@ -834,24 +834,24 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
         <option value="venmo">Venmo</option>
         <option value="zelle">Zelle</option>
         <option value="other">Other</option>
-      </select>
-    </div>
+</select>
+</div>
     <div class="form-group">
       <label>Paid on</label>
       <input type="date" id="pay-date">
-    </div>
+</div>
     <div class="form-group">
       <label>Notes</label>
       <input type="text" id="pay-notes" placeholder="Optional">
-    </div>
+</div>
     <div class="modal-actions" style="justify-content:space-between;">
       <button type="button" onclick="deleteCurrentBooking()" style="background:none;border:none;color:var(--red);font-family:Nunito,sans-serif;font-size:0.85rem;font-weight:600;padding:8px 4px;cursor:pointer;text-decoration:underline;">Delete booking</button>
       <div style="display:flex;gap:8px;">
         <button class="modal-btn secondary" onclick="closeModal('modal-payment')">Cancel</button>
         <button class="modal-btn primary" onclick="savePayment()">Save</button>
-      </div>
-    </div>
-  </div>
+</div>
+</div>
+</div>
 </div>
 
 <!-- Block time modal -->
@@ -861,30 +861,30 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
     <div class="form-group">
       <label>Date</label>
       <input type="date" id="block-date">
-    </div>
+</div>
     <div class="form-group">
       <label>What</label>
       <select id="block-type">
         <option value="all">Whole day off</option>
         <option value="morning">Work hours (9am to 2pm)</option>
         <option value="custom">Custom time</option>
-      </select>
-    </div>
+</select>
+</div>
     <div class="form-group" id="block-custom-times" style="display:none;">
       <label>Start</label>
       <input type="time" id="block-start" value="09:00">
       <label style="margin-top:8px;">End</label>
       <input type="time" id="block-end" value="14:00">
-    </div>
+</div>
     <div class="form-group">
       <label>Reason (optional)</label>
       <input type="text" id="block-reason" placeholder="Dentist, day off, etc.">
-    </div>
+</div>
     <div class="modal-actions">
       <button class="modal-btn secondary" onclick="closeModal('modal-block')">Cancel</button>
       <button class="modal-btn primary" onclick="saveBlock()">Block It</button>
-    </div>
-  </div>
+</div>
+</div>
 </div>
 
 <!-- Book on behalf modal -->
@@ -895,14 +895,14 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
       <label>Service</label>
       <select id="obo-event" onchange="renderObOAvailability()">
         <option value="morning">Morning Garden Care (9am to 2pm)</option>
-      </select>
-    </div>
+</select>
+</div>
     <div class="form-group">
       <label>Your availability <span style="color:var(--gray-600,#666);font-weight:400;font-size:0.85em;">(click a slot to add it; pick as many as you need)</span></label>
       <div id="obo-availability" style="max-height:300px;overflow-y:auto;border:1px solid var(--gray-300,#ddd);border-radius:8px;padding:6px;background:var(--gray-50,#fafafa);"></div>
       <div id="obo-dates-chips" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;"></div>
       <input type="hidden" id="obo-date">
-    </div>
+</div>
     <!-- Recurring removed: pick the specific dates above. Stubs kept hidden
          so any legacy reference to obo-recurring/obo-weeks doesn't throw. -->
     <select id="obo-recurring" style="display:none;"><option value="none">none</option></select>
@@ -912,37 +912,37 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
       <label>Existing client (or type below for new)</label>
       <select id="obo-existing" onchange="onPickExistingClient()">
         <option value="">— new client —</option>
-      </select>
-    </div>
+</select>
+</div>
     <div class="form-group">
       <label>First name <span style="color:var(--red);">*</span></label>
       <input type="text" id="obo-first-name" placeholder="Jane" required>
-    </div>
+</div>
     <div class="form-group">
       <label>Last name <span style="color:var(--red);">*</span></label>
       <input type="text" id="obo-last-name" placeholder="Doe" required>
-    </div>
+</div>
     <div class="form-group">
       <label>Email</label>
       <input type="email" id="obo-email" placeholder="client@email.com">
-    </div>
+</div>
     <div class="form-group">
       <label>Phone</label>
       <input type="tel" id="obo-phone" placeholder="(707) 555-1234">
-    </div>
+</div>
     <div class="form-group">
       <label>Address</label>
       <input type="text" id="obo-address" placeholder="Client address">
-    </div>
+</div>
     <div class="form-group">
       <label>Notes</label>
       <input type="text" id="obo-notes" placeholder="Optional garden notes">
-    </div>
+</div>
     <div class="modal-actions">
       <button class="modal-btn secondary" onclick="closeModal('modal-book')">Cancel</button>
       <button class="modal-btn primary" onclick="saveOBO()">Book It</button>
-    </div>
-  </div>
+</div>
+</div>
 </div>
 
 <!-- Reschedule modal -->
@@ -953,18 +953,18 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
     <div class="form-group">
       <label>New date</label>
       <input type="date" id="reschedule-date">
-    </div>
+</div>
     <div class="form-group">
       <label>New time slot</label>
       <select id="reschedule-slot">
         <option value="morning">Morning (9:00am)</option>
-      </select>
-    </div>
+</select>
+</div>
     <div class="modal-actions">
       <button class="modal-btn secondary" onclick="closeModal('modal-reschedule')">Cancel</button>
       <button class="modal-btn primary" onclick="confirmReschedule()">Reschedule</button>
-    </div>
-  </div>
+</div>
+</div>
 </div>
 
 <!-- Bottom bar -->
@@ -1154,12 +1154,12 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
       { id: id(), template_id: 'booking-confirmed', kind: 'email', label: 'Booking confirmation', sort_order: 10,
         trigger_description: 'Sent when a client books a visit (or you book on their behalf).',
         subject: 'Your Garden Faery visit is confirmed for {date}',
-        body: "Hi {firstName},\n\nThanks for booking with Garden Faery! Here are your details:\n\nService: {eventName}\nDate: {date}\nTime: {time}\n{addressLine}\n{firstVisitBlock}\n\nNeed to reschedule? https://gardenfaery.love/book.html\n\n🌿 Garden Faery",
+        body: "Hi {firstName},\n\nThanks for booking with Garden Faery! Here are your details:\n\nService: {eventName}\nDate: {date}\nTime: {time}\n{addressLine}\n{firstVisitBlock}\n\nNeed to reschedule? https://gardenfaery.love/book.html\n\nGarden Faery",
         created: offISO(-60), updated: offISO(-60), collectionName: 'email_templates' },
       { id: id(), template_id: 'rescheduled', kind: 'email', label: 'Visit rescheduled', sort_order: 20,
         trigger_description: "Sent when a visit's date or time changes.",
         subject: 'Your Garden Faery visit moved to {newDate}',
-        body: "Hi {firstName},\n\nYour {eventName} is now scheduled for:\n{newDate} at {newTime}\n\n(was {oldDate} at {oldTime})\n\nSee you then! 🌿\nTaya, Garden Faery",
+        body: "Hi {firstName},\n\nYour {eventName} is now scheduled for:\n{newDate} at {newTime}\n\n(was {oldDate} at {oldTime})\n\nSee you then!\nTaya, Garden Faery",
         created: offISO(-60), updated: offISO(-60), collectionName: 'email_templates' },
       { id: id(), template_id: 'admin-cancel', kind: 'email', label: 'Admin-cancel notice', sort_order: 30,
         trigger_description: 'Sent when you cancel a visit (non-moon reason).',
@@ -1168,13 +1168,13 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
         created: offISO(-60), updated: offISO(-60), collectionName: 'email_templates' },
       { id: id(), template_id: 'moon-cancel', kind: 'email', label: 'Moon-day reschedule', sort_order: 40,
         trigger_description: "Sent when a visit falls on a moon day you're resting.",
-        subject: 'Rescheduling your Garden Faery visit on {date} 🌙',
-        body: "Hi {firstName},\n\nI'm resting this week for my moon days and need to reschedule our visit on {date}.\n\nPlease pick a new time: https://gardenfaery.love/book.html\n\nThank you for your understanding 🌿\n\nTaya, Garden Faery",
+        subject: 'Rescheduling your Garden Faery visit on {date}',
+        body: "Hi {firstName},\n\nI'm resting this week for my moon days and need to reschedule our visit on {date}.\n\nPlease pick a new time: https://gardenfaery.love/book.html\n\nThank you for your understanding\n\nTaya, Garden Faery",
         created: offISO(-60), updated: offISO(-60), collectionName: 'email_templates' },
       { id: id(), template_id: 'reminder', kind: 'email', label: 'Day-before reminder', sort_order: 50,
         trigger_description: 'Sent automatically the day before a visit (PocketBase cron).',
         subject: 'Reminder: your Garden Faery visit tomorrow ({date})',
-        body: "Hi {firstName},\n\nJust a reminder: your {eventName} is tomorrow ({date}) at {time}.\n{addressLine}\nSee you in the garden! 🌿\nTaya",
+        body: "Hi {firstName},\n\nJust a reminder: your {eventName} is tomorrow ({date}) at {time}.\n{addressLine}\nSee you in the garden!\nTaya",
         created: offISO(-60), updated: offISO(-60), collectionName: 'email_templates' },
       { id: id(), template_id: 'rescheduled-sms', kind: 'sms', label: 'Reschedule SMS', sort_order: 60,
         trigger_description: 'SMS alongside the reschedule email.',
@@ -1184,7 +1184,7 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
       { id: id(), template_id: 'moon-cancel-sms', kind: 'sms', label: 'Moon-day SMS', sort_order: 70,
         trigger_description: "Sent alongside the moon-day email if SMS is enabled.",
         subject: '',
-        body: "Garden Faery: I'm resting for my moon days and need to move our {date} visit. Please pick a new time: https://gardenfaery.love/book.html. Taya 🌙",
+        body: "Garden Faery: I'm resting for my moon days and need to move our {date} visit. Please pick a new time: https://gardenfaery.love/book.html. Taya",
         created: offISO(-60), updated: offISO(-60), collectionName: 'email_templates' },
     ];
 
@@ -1707,32 +1707,32 @@ async function renderDashboard() {
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
         <h3 style="margin:0;font-size:1rem;">${year} Year-to-Date</h3>
         <span style="font-size:0.75rem;color:var(--gray-600);">as of ${today}</span>
-      </div>
+</div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;">
         <div>
           <div style="font-size:0.7rem;color:var(--gray-600);">Gross</div>
           <div style="font-size:1.15rem;font-weight:700;color:#6b8f52;">${fmt(ytdGross)}</div>
           <div style="font-size:0.68rem;color:var(--gray-400);">${fmt(ytdPaid)} paid</div>
-        </div>
+</div>
         <div>
           <div style="font-size:0.7rem;color:var(--gray-600);">Biz Expenses</div>
           <div style="font-size:1.15rem;font-weight:700;color:var(--red);">${fmt(ytdExpensesBiz)}</div>
           <div style="font-size:0.68rem;color:var(--gray-400);">deductible</div>
-        </div>
+</div>
         <div>
           <div style="font-size:0.7rem;color:var(--gray-600);">Net</div>
           <div style="font-size:1.15rem;font-weight:700;color:${netColor};">${fmt(ytdNet)}</div>
           <div style="font-size:0.68rem;color:var(--gray-400);">gross − biz</div>
-        </div>
+</div>
         <div>
           <div style="font-size:0.7rem;color:var(--gray-600);">Tax Reserve</div>
           <div style="font-size:1.15rem;font-weight:700;color:#c2557a;">${fmt(ytdTaxReserve)}</div>
           <div style="font-size:0.68rem;color:var(--gray-400);">
             <input type="number" min="10" max="50" step="1" value="${Math.round(taxPct*100)}" onchange="setTaxReservePct(this.value/100)" style="width:36px;padding:1px 2px;font-size:0.68rem;border:1px solid var(--gray-200);border-radius:4px;">% of net
-          </div>
-        </div>
-      </div>
-    </div>
+</div>
+</div>
+</div>
+</div>
   `;
 
   // 2. 12-month revenue chart
@@ -1741,7 +1741,7 @@ async function renderDashboard() {
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
         <h3 style="margin:0;font-size:1rem;">Last 12 Months</h3>
         <span style="font-size:0.75rem;color:var(--gray-600);"><span style="display:inline-block;width:10px;height:10px;background:#6b8f52;border-radius:2px;vertical-align:middle;margin-right:4px;"></span>paid <span style="display:inline-block;width:10px;height:10px;background:#e8b828;border-radius:2px;vertical-align:middle;margin-right:4px;margin-left:10px;"></span>unpaid</span>
-      </div>
+</div>
       <div style="display:flex;align-items:stretch;gap:6px;height:140px;padding:0 4px;border-bottom:1px solid var(--gray-200);">
   `;
   monthBuckets.forEach(m => {
@@ -1753,8 +1753,8 @@ async function renderDashboard() {
           <div title="${m.label} ${m.year}: ${fmt(m.paid)} paid + ${fmt(m.outstanding)} unpaid = ${fmt(m.total)}" style="width:100%;height:${totalPct}%;min-height:${m.total>0?'2px':'0'};display:flex;flex-direction:column;justify-content:flex-end;border-radius:3px 3px 0 0;overflow:hidden;">
             <div style="background:#e8b828;height:${outstandPct}%;min-height:${m.outstanding>0?'2px':'0'};"></div>
             <div style="background:#6b8f52;height:${paidPct}%;min-height:${m.paid>0?'2px':'0'};"></div>
-          </div>
-        </div>
+</div>
+</div>
     `;
   });
   html += `</div><div style="display:flex;gap:6px;padding:4px 4px 0;">`;
@@ -1773,14 +1773,14 @@ async function renderDashboard() {
             ${overdueTotal > 0
               ? `${overdueCount} past visit${overdueCount===1?'':'s'} across ${overdueClients} client${overdueClients===1?'':'s'}`
               : 'No overdue balances — nice work.'}
-          </div>
-        </div>
+</div>
+</div>
         <div>
           <div style="font-size:1.4rem;font-weight:700;color:${overdueTotal>0?'#c2557a':'#6b8f52'};text-align:right;">${fmt(overdueTotal)}</div>
           ${overdueTotal > 0 ? '<button class="modal-btn secondary" style="padding:4px 10px;font-size:0.8rem;margin-top:4px;" onclick="switchTab(\'income\')">See list →</button>' : ''}
-        </div>
-      </div>
-    </div>
+</div>
+</div>
+</div>
   `;
 
   // 4. Next 30 days projection
@@ -1791,11 +1791,11 @@ async function renderDashboard() {
           <h3 style="margin:0 0 2px;font-size:1rem;">Next 30 days</h3>
           <div style="font-size:0.8rem;color:var(--gray-600);">
             ${next30Count} booking${next30Count===1?'':'s'} scheduled ${next30Count>0?'· expected revenue':''}
-          </div>
-        </div>
+</div>
+</div>
         <div style="font-size:1.4rem;font-weight:700;color:#6b8f52;text-align:right;">${fmt(next30Projected)}</div>
-      </div>
-    </div>
+</div>
+</div>
   `;
 
   // 6-7. Service mix pie + Expense donut (side-by-side on wider screens)
@@ -1851,7 +1851,7 @@ async function renderDashboard() {
         <span style="width:10px;height:10px;border-radius:2px;background:${s.color};flex-shrink:0;"></span>
         <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.label}</span>
         <span style="color:var(--gray-600);font-variant-numeric:tabular-nums;">${valuePrefix}${Math.round(s.v).toLocaleString()} · ${s.pct.toFixed(0)}%</span>
-      </div>
+</div>
     `).join('');
   };
 
@@ -1862,18 +1862,18 @@ async function renderDashboard() {
         <div style="display:flex;gap:14px;align-items:center;">
           <div style="width:100px;height:100px;border-radius:50%;flex-shrink:0;background:${buildConic(svcSlices)};"></div>
           <div style="flex:1;min-width:0;">${renderSlicesLegend(svcSlices)}</div>
-        </div>
-      </div>
+</div>
+</div>
       <div style="background:var(--white);border-radius:12px;padding:14px;box-shadow:var(--shadow);">
         <h3 style="margin:0 0 10px;font-size:1rem;">Expense categories ${year}</h3>
         <div style="display:flex;gap:14px;align-items:center;">
           <div style="width:100px;height:100px;border-radius:50%;flex-shrink:0;background:${buildConic(expSlices)};position:relative;">
             <div style="position:absolute;inset:22px;background:var(--white);border-radius:50%;"></div>
-          </div>
+</div>
           <div style="flex:1;min-width:0;">${renderSlicesLegend(expSlices)}</div>
-        </div>
-      </div>
-    </div>
+</div>
+</div>
+</div>
   `;
 
   // 8. Net profit trend line (last 12 months)
@@ -1899,17 +1899,17 @@ async function renderDashboard() {
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
         <h3 style="margin:0;font-size:1rem;">Net profit trend</h3>
         <span style="font-size:0.72rem;color:var(--gray-600);">month-over-month (biz expenses subtracted)</span>
-      </div>
+</div>
       <svg viewBox="0 0 ${chartW} ${chartH}" preserveAspectRatio="none" style="width:100%;height:${chartH}px;display:block;">
         <line x1="${padX}" y1="${zeroY}" x2="${chartW - padX}" y2="${zeroY}" stroke="var(--gray-200)" stroke-width="1" stroke-dasharray="3 3"/>
         <path d="${areaPath}" fill="rgba(107,143,82,0.12)" stroke="none"/>
         <polyline points="${pointsStr}" fill="none" stroke="#6b8f52" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
         ${monthNet.map((m,i) => `<circle cx="${xAt(i)}" cy="${yAt(m.net)}" r="3" fill="${m.net>=0?'#6b8f52':'#c9553a'}"><title>${m.label} ${m.year}: ${fmt(m.net)} net</title></circle>`).join('')}
-      </svg>
+</svg>
       <div style="display:flex;padding:4px ${padX}px 0;">
         ${monthNet.map(m => `<div style="flex:1;text-align:center;font-size:0.65rem;color:var(--gray-600);">${m.label}</div>`).join('')}
-      </div>
-    </div>
+</div>
+</div>
   `;
 
   // 5. Top 5 clients YTD
@@ -1927,13 +1927,13 @@ async function renderDashboard() {
             <div style="font-weight:600;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
             <div style="height:4px;background:var(--gray-100);border-radius:2px;margin-top:4px;overflow:hidden;">
               <div style="width:${pct}%;height:100%;background:#c2557a;"></div>
-            </div>
-          </div>
+</div>
+</div>
           <div style="text-align:right;flex-shrink:0;">
             <div style="font-weight:700;font-size:0.95rem;">${fmt(c.gross)}</div>
             <div style="font-size:0.7rem;color:var(--gray-600);">${c.visits} visit${c.visits===1?'':'s'}</div>
-          </div>
-        </div>
+</div>
+</div>
       `;
     });
     html += `</div>`;
@@ -1941,7 +1941,7 @@ async function renderDashboard() {
     html += `
       <div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);text-align:center;color:var(--gray-600);font-size:0.9rem;">
         No client revenue yet this year.
-      </div>
+</div>
     `;
   }
 
@@ -2077,14 +2077,14 @@ async function renderTaxes() {
         <select onchange="setTaxYear(this.value)" style="padding:6px 8px;border-radius:8px;border:1px solid var(--gray-200);font-size:0.9rem;">${yearOpts}</select>
         <span style="flex:1;"></span>
         <button class="modal-btn primary" style="padding:6px 14px;font-size:0.85rem;display:inline-flex;align-items:center;gap:6px;" onclick="exportAccountantCsv()"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>Accountant CSV</button>
-      </div>
+</div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;border-top:1px solid var(--gray-100);padding-top:10px;">
         <div><div style="font-size:0.7rem;color:var(--gray-600);">Gross Income</div><div style="font-size:1.05rem;font-weight:700;color:#6b8f52;">${fmt(yearGross)}</div><div style="font-size:0.65rem;color:var(--gray-400);">SchC Line 1</div></div>
         <div><div style="font-size:0.7rem;color:var(--gray-600);">Biz Expenses</div><div style="font-size:1.05rem;font-weight:700;color:var(--red);">${fmt(yearExpensesTotal)}</div><div style="font-size:0.65rem;color:var(--gray-400);">SchC Line 28</div></div>
         <div><div style="font-size:0.7rem;color:var(--gray-600);">Net Profit</div><div style="font-size:1.05rem;font-weight:700;color:${yearNet>=0?'#6b8f52':'var(--red)'};">${fmt(yearNet)}</div><div style="font-size:0.65rem;color:var(--gray-400);">SchC Line 31</div></div>
         <div><div style="font-size:0.7rem;color:var(--gray-600);">Est. Tax Reserve</div><div style="font-size:1.05rem;font-weight:700;color:#c2557a;">${fmt(Math.max(0, yearNet) * taxPct)}</div><div style="font-size:0.65rem;color:var(--gray-400);">${Math.round(taxPct*100)}% of net</div></div>
-      </div>
-    </div>
+</div>
+</div>
   `;
 
   // Quarterly tracker
@@ -2093,7 +2093,7 @@ async function renderTaxes() {
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
         <h3 style="margin:0;font-size:1rem;">Quarterly estimated tax — ${year}</h3>
         <span style="font-size:0.72rem;color:var(--gray-600);">IRS Form 1040-ES periods</span>
-      </div>
+</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;">
   `;
   const PHASE_STYLES = {
@@ -2114,14 +2114,14 @@ async function renderTaxes() {
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
           <strong style="font-size:0.95rem;">${q.label}</strong>
           <span style="font-size:0.65rem;color:${statusColor};font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">${status}</span>
-        </div>
+</div>
         <div style="font-size:0.7rem;color:var(--gray-600);margin-bottom:6px;">${startMo}–${endMo} · ${q.visits} visit${q.visits===1?'':'s'}</div>
         <div style="display:flex;justify-content:space-between;font-size:0.78rem;"><span style="color:var(--gray-600);">Gross</span><span style="font-weight:600;">${fmt(q.gross)}</span></div>
         <div style="display:flex;justify-content:space-between;font-size:0.78rem;"><span style="color:var(--gray-600);">Expenses</span><span style="font-weight:600;">${fmt(q.exp)}</span></div>
         <div style="display:flex;justify-content:space-between;font-size:0.78rem;border-top:1px solid rgba(0,0,0,0.06);padding-top:3px;margin-top:3px;"><span style="color:var(--gray-600);">Net</span><span style="font-weight:700;">${fmt(q.net)}</span></div>
         <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-top:4px;padding-top:4px;border-top:1px solid rgba(0,0,0,0.06);"><span style="color:var(--gray-600);">Est. tax due</span><span style="font-weight:700;color:#c2557a;">${fmt(q.estTax)}</span></div>
         <div style="font-size:0.65rem;color:var(--gray-400);text-align:right;margin-top:3px;">by ${q.due}</div>
-      </div>
+</div>
     `;
   });
   html += `</div></div>`;
@@ -2132,7 +2132,7 @@ async function renderTaxes() {
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
         <h3 style="margin:0;font-size:1rem;">Schedule C summary — ${year}</h3>
         <span style="font-size:0.72rem;color:var(--gray-600);">maps to IRS Form 1040 Schedule C, Part II</span>
-      </div>
+</div>
   `;
   if (scheduleCLines.length === 0) {
     html += `<div style="color:var(--gray-600);font-size:0.85rem;">No business expenses logged for ${year} yet.</div>`;
@@ -2143,24 +2143,24 @@ async function renderTaxes() {
           <div>
             <div style="font-weight:600;font-size:0.88rem;">${l.name}</div>
             <div style="font-size:0.72rem;color:var(--gray-600);">${l.count} receipt${l.count===1?'':'s'}</div>
-          </div>
+</div>
           <div style="font-weight:700;font-variant-numeric:tabular-nums;">${fmt(l.total)}</div>
-        </div>
+</div>
       `;
     });
     html += `
       <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 2px;margin-top:4px;border-top:2px solid var(--plum);">
         <div style="font-weight:700;">Total — Line 28</div>
         <div style="font-weight:700;font-size:1.05rem;">${fmt(totalExpenses)}</div>
-      </div>
+</div>
     `;
   }
   html += `
       <p style="font-size:0.72rem;color:var(--gray-600);margin-top:10px;line-height:1.5;">
         Category mapping is a starting point — ask your CPA if a specific receipt belongs somewhere else.
         Equipment purchases over $2,500 typically move from Line 22 to Line 13 (Depreciation).
-      </p>
-    </div>
+</p>
+</div>
   `;
 
   // Calculator note
@@ -2170,7 +2170,7 @@ async function renderTaxes() {
       net profit × ${Math.round(taxPct*100)}% (your setting on the <svg xmlns="http://www.w3.org/2000/svg" width="0.9em" height="0.9em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px;"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg> Dashboard).
       For a Humboldt-based sole proprietor, 25-30% typically covers self-employment tax (~15.3%) plus federal
       and California income tax at moderate income levels. Talk to your CPA for your exact rate.
-    </div>
+</div>
   `;
 
   el.innerHTML = html;
@@ -2396,7 +2396,7 @@ const EMAIL_TEMPLATES = [
       "Ever wonder where faeries go in the rain? Inside, mostly. So I’ve quietly moved your soggy visit to the next dry one I had open:\n\n" +
       '  {eventName}: {oldDate} → {newDate} at {newTime}\n\n' +
       "If that doesn’t work, just reply and we’ll find another spot.\n\n" +
-      'Taya, Garden Faery 🌿'
+      'Taya, Garden Faery'
   },
   {
     id: 'weekly-health-report',
@@ -2631,21 +2631,21 @@ function renderSettings() {
       <h3 style="margin-bottom:10px;">Receipt scanner</h3>
       <p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:12px;">
         Paste your Anthropic API key here. It saves on this device only - never sent to the server, never committed anywhere.
-      </p>
+</p>
       <div class="form-group">
         <label>Anthropic API key</label>
         <input type="password" id="setting-api-key" placeholder="${masked}" autocomplete="off">
-      </div>
+</div>
       <div style="display:flex;gap:8px;">
         <button class="modal-btn primary" onclick="saveApiKey()">Save</button>
         ${key ? '<button class="modal-btn secondary" onclick="clearApiKey()">Remove</button>' : ''}
-      </div>
+</div>
       <div id="setting-status" style="font-size:0.85rem;margin-top:8px;"></div>
       <p style="font-size:0.75rem;color:var(--gray-400);margin-top:16px;line-height:1.4;">
         Currently: ${masked}<br>
         Scanning a receipt uses Claude's vision API (~$0.01/scan). Set a monthly cap in your Anthropic console.
-      </p>
-    </div>
+</p>
+</div>
   `;
 }
 function saveApiKey() {
@@ -2723,14 +2723,14 @@ async function renderExpenses() {
         <select onchange="expenseViewMonth=this.value;renderExpenses()" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--gray-200);">${monthOpts}</select>
         <button class="modal-btn primary" style="padding:8px 12px;" onclick="openExpenseModal()">+ Add</button>
         <button class="modal-btn secondary" style="padding:8px 12px;" onclick="exportExpenseCsv()">CSV</button>
-      </div>
+</div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;">
         <div><div style="font-size:0.7rem;color:var(--gray-600);">Income</div><div style="font-size:1.05rem;font-weight:700;">$${gross.toFixed(0)}</div></div>
         <div><div style="font-size:0.7rem;color:var(--gray-600);">Expenses</div><div style="font-size:1.05rem;font-weight:700;color:var(--red);">$${total.toFixed(0)}</div></div>
         <div><div style="font-size:0.7rem;color:var(--gray-600);">Net</div><div style="font-size:1.05rem;font-weight:700;color:${net>=0?'#6b8f52':'var(--red)'};">$${net.toFixed(0)}</div></div>
         <div><div style="font-size:0.7rem;color:var(--gray-600);">Biz / Personal</div><div style="font-size:0.85rem;font-weight:700;">$${bizTotal.toFixed(0)} / $${personalTotal.toFixed(0)}</div></div>
-      </div>
-    </div>
+</div>
+</div>
   `;
 
   html += '<div style="background:var(--white);border-radius:12px;padding:12px;box-shadow:var(--shadow);"><h3 style="margin-bottom:8px;font-size:1rem;">Expenses this month</h3>';
@@ -2759,12 +2759,12 @@ async function renderExpenses() {
           <div style="flex:1;min-width:0;">
             <div style="font-weight:600;">${e.date} · ${e.vendor || 'Unknown vendor'}${mixedTag}</div>
             <div style="font-size:0.8rem;color:var(--gray-600);">${e.category||'-'} ${cardLabel?'· '+cardLabel:''} ${bizTag}</div>
-          </div>
+</div>
           <div style="display:flex;gap:8px;align-items:center;">
             <div style="font-weight:700;">$${e.amount.toFixed(2)}</div>
             <button class="modal-btn secondary" style="padding:4px 10px;font-size:0.8rem;" onclick="openExpenseModal('${e.id}')">Edit</button>
-          </div>
-        </div>`;
+</div>
+</div>`;
     });
   }
   html += '</div>';
@@ -3686,13 +3686,13 @@ function renderIncome() {
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
         <select onchange="incomeViewMonth=this.value;rerenderIncome()" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--gray-200);">${monthOpts}</select>
         <button class="modal-btn secondary" style="padding:8px 12px;" onclick="exportIncomeCsv()">CSV</button>
-      </div>
+</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
         <div><div style="font-size:0.75rem;color:var(--gray-600);">Gross</div><div style="font-size:1.3rem;font-weight:700;">$${gross.toFixed(0)}</div></div>
         <div><div style="font-size:0.75rem;color:var(--gray-600);">Paid</div><div style="font-size:1.3rem;font-weight:700;color:var(--spring-sage,#6b8f52);">$${paid.toFixed(0)}</div></div>
         <div><div style="font-size:0.75rem;color:var(--gray-600);">Outstanding</div><div style="font-size:1.3rem;font-weight:700;color:${outstanding>0?'var(--red)':'var(--gray-400)'};">$${outstanding.toFixed(0)}</div></div>
-      </div>
-    </div>
+</div>
+</div>
   `;
 
   // ----- Bookings card with filter bar -----
