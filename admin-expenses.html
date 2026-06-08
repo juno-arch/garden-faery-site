@@ -280,7 +280,7 @@ async function boot() {
   document.getElementById('app').style.display = 'block';
   try {
     const [ex, gd] = await Promise.all([
-      pb('GET', '/api/collections/expenses/records?perPage=2000&sort=-expense_date'),
+      pb('GET', '/api/collections/gf_expenses/records?perPage=2000&sort=-expense_date'),
       pb('GET', '/api/collections/gardens/records?perPage=200&sort=name'),
     ]);
     state.expenses = ex.items || [];
@@ -390,7 +390,7 @@ function openExpenseModal(id) {
   const existingEl = document.getElementById('em-existing');
   if (e && e.receipts && e.receipts.length) {
     existingEl.innerHTML = e.receipts.map(fn => {
-      const url = PB_URL + '/api/files/expenses/' + e.id + '/' + fn;
+      const url = PB_URL + '/api/files/gf_expenses/' + e.id + '/' + fn;
       const isPdf = fn.toLowerCase().endsWith('.pdf');
       return isPdf
         ? `<a href="${url}" target="_blank" style="display:inline-block;padding:8px 12px;background:var(--cream);border-radius:6px;text-decoration:none;color:var(--plum);font-size:0.78rem">${escapeHtml(fn.slice(0, 30))}</a>`
@@ -430,7 +430,7 @@ async function saveExpense() {
         fd.append(k, body[k]);
       }
       for (const f of files) fd.append('receipts', f);
-      const url = id ? (PB_URL + '/api/collections/expenses/records/' + id) : (PB_URL + '/api/collections/expenses/records');
+      const url = id ? (PB_URL + '/api/collections/gf_expenses/records/' + id) : (PB_URL + '/api/collections/gf_expenses/records');
       const resp = await fetch(url, {
         method: id ? 'PATCH' : 'POST',
         headers: PB_TOKEN ? { 'Authorization': 'Bearer ' + PB_TOKEN } : {},
@@ -439,8 +439,8 @@ async function saveExpense() {
       if (!resp.ok) { const t = await resp.text().catch(() => ''); throw new Error('PB ' + resp.status + ': ' + t); }
       r = await resp.json();
     } else {
-      if (id) r = await pb('PATCH', '/api/collections/expenses/records/' + id, body);
-      else    r = await pb('POST',  '/api/collections/expenses/records', body);
+      if (id) r = await pb('PATCH', '/api/collections/gf_expenses/records/' + id, body);
+      else    r = await pb('POST',  '/api/collections/gf_expenses/records', body);
     }
     const idx = state.expenses.findIndex(x => x.id === r.id);
     if (idx >= 0) state.expenses[idx] = r; else state.expenses.unshift(r);
@@ -455,7 +455,7 @@ async function deleteExpense() {
   if (!id) return;
   if (!confirm('Delete this expense?')) return;
   try {
-    await pb('DELETE', '/api/collections/expenses/records/' + id);
+    await pb('DELETE', '/api/collections/gf_expenses/records/' + id);
     state.expenses = state.expenses.filter(x => x.id !== id);
     closeModal('expense-modal');
     renderAll();
