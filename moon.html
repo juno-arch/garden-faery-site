@@ -1207,10 +1207,11 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
   <!-- Export -->
   <div class="card" data-section="settings">
     <h3><span data-icon="pages"></span>Export</h3>
-    <div style="font-size:0.82rem;color:var(--moon-dim);margin-bottom:12px;">Print a summary for your care provider, or back up your full data.</div>
+    <div style="font-size:0.82rem;color:var(--moon-dim);margin-bottom:12px;">Print a summary for your care provider, save a spreadsheet you can open in Numbers/Excel, or back up your full data.</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
       <button class="btn" onclick="openReport()" style="flex:1;min-width:140px;"><span data-icon="printer"></span>&nbsp;Print report</button>
-      <button class="btn secondary" onclick="downloadJSON()" style="flex:1;min-width:140px;"><span data-icon="download"></span>&nbsp;Download data</button>
+      <button class="btn secondary" onclick="downloadCSV()" style="flex:1;min-width:140px;"><span data-icon="pages"></span>&nbsp;Spreadsheet (CSV)</button>
+      <button class="btn secondary" onclick="downloadJSON()" style="flex:1;min-width:140px;"><span data-icon="download"></span>&nbsp;Full backup (JSON)</button>
     </div>
   </div>
 
@@ -2374,6 +2375,83 @@ function openReport() {
   win.document.write(html);
   win.document.close();
 }
+// CSV escaping — wrap any cell that contains a comma / quote / newline in
+// double quotes, double up any inner quotes per RFC 4180.
+function csvCell(v) {
+  if (v == null) return '';
+  const s = String(v);
+  if (/[,"\r\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+function downloadCSV() {
+  // Build the union of every date that's either inside a logged period or
+  // has its own day-log entry. Sorted ascending → one row per day.
+  const dateSet = new Set();
+  periods.forEach(p => {
+    if (!p.start) return;
+    let cur = parseDate(p.start);
+    const end = p.end ? parseDate(p.end) : cur;
+    while (cur <= end) { dateSet.add(dateStr(cur)); cur = addDays(cur, 1); }
+  });
+  Object.keys(dayLogs).forEach(ds => dateSet.add(ds));
+  const dates = [...dateSet].sort();
+
+  const avg = avgCycle();
+  const periodSpans = periods
+    .filter(p => p.start)
+    .map(p => ({ s: parseDate(p.start), e: parseDate(p.end || p.start) }));
+  const isPeriodDay = (ds) => {
+    const d = parseDate(ds);
+    return periodSpans.some(span => d >= span.s && d <= span.e);
+  };
+
+  const headers = [
+    'date', 'cycle_day', 'inner_season', 'period_day',
+    'flow', 'symptoms', 'moods', 'sex', 'discharge',
+    'energy_0_5', 'sleep_hours', 'temp_F', 'notes'
+  ];
+  const rows = dates.map(ds => {
+    const log = dayLogs[ds] || {};
+    const cd = cycleDayFor(ds);
+    const season = cd != null ? innerSeason(cd, avg) : '';
+    return [
+      ds,
+      cd != null ? cd : '',
+      season || '',
+      isPeriodDay(ds) ? 'Y' : 'N',
+      log.flow || '',
+      (log.symptoms || []).join('; '),
+      (log.moods    || []).join('; '),
+      (log.sex      || []).join('; '),
+      log.discharge || '',
+      log.energy != null ? log.energy : '',
+      log.sleep_hours != null ? log.sleep_hours : '',
+      log.temp != null ? log.temp : '',
+      log.notes || ''
+    ];
+  });
+
+  // BOM so Excel opens it as UTF-8 (otherwise non-ASCII reads as garbage).
+  // CRLF row terminator per RFC 4180.
+  const csv = '﻿' + [headers, ...rows]
+    .map(r => r.map(csvCell).join(','))
+    .join('\r\n');
+
+  const filename = 'moon-cycle-data-' + todayStr() + '.csv';
+  // Data URL approach (same fix as JSON download — sidesteps Safari's blob
+  // handoff bug).
+  const href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  const a = document.createElement('a');
+  a.href = href;
+  a.download = filename;
+  a.rel = 'noopener';
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { if (a.parentNode) a.parentNode.removeChild(a); }, 1000);
+}
+
 function downloadJSON() {
   const data = {
     exported_at: new Date().toISOString(),
