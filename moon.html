@@ -1133,15 +1133,15 @@ textarea { min-height: 80px; resize: vertical; font-family: 'Josefin Sans', sans
     <div class="birth-form" id="birth-form">
       <div class="form-field">
         <label for="birth-date">Birth date</label>
-        <input type="date" id="birth-date">
+        <input type="date" id="birth-date" onchange="autoSaveBirthInfo()">
       </div>
       <div class="form-field">
         <label for="birth-time">Birth time <span style="opacity:0.65">(optional · enables Moon + Rising)</span></label>
-        <input type="time" id="birth-time">
+        <input type="time" id="birth-time" onchange="autoSaveBirthInfo()">
       </div>
       <div class="form-field">
         <label for="birth-place">Birth place <span style="opacity:0.65">(optional · enables Rising)</span></label>
-        <input type="text" id="birth-place" placeholder="City, State / Country" autocapitalize="words" autocorrect="off" spellcheck="false">
+        <input type="text" id="birth-place" placeholder="City, State / Country" autocapitalize="words" autocorrect="off" spellcheck="false" onchange="autoSaveBirthInfo()" onblur="autoSaveBirthInfo()">
       </div>
       <button type="button" class="birth-save" onclick="saveBirthInfo()">Save</button>
       <button type="button" class="birth-clear" onclick="clearBirthInfo()" id="birth-clear-btn" hidden>Clear birth info</button>
@@ -3075,12 +3075,33 @@ function loadBirthInfo() {
   try { return JSON.parse(localStorage.getItem(BIRTH_KEY) || 'null'); } catch { return null; }
 }
 function saveBirthInfo() {
+  // Explicit Save click — persist + re-render (which collapses the form).
+  if (!persistBirthInfoFromForm({ requireDate: true })) return;
+  renderSky();
+}
+function autoSaveBirthInfo() {
+  // Fires on each input's change/blur. Persists whatever's currently in the
+  // form fields, then re-renders Big 3 — but keeps the form open because the
+  // user is still editing. Without this, the time + place could sit in the
+  // inputs without ever reaching localStorage, so Moon + Rising never compute.
+  if (!persistBirthInfoFromForm({ requireDate: false })) return;
+  const formWasVisible = !document.getElementById('birth-form').hidden;
+  renderSky();
+  if (formWasVisible) {
+    document.getElementById('birth-form').hidden = false;
+    document.getElementById('birth-edit-btn').hidden = true;
+  }
+}
+function persistBirthInfoFromForm({ requireDate } = {}) {
   const date  = document.getElementById('birth-date').value.trim();
   const time  = document.getElementById('birth-time').value.trim();
   const place = document.getElementById('birth-place').value.trim();
-  if (!date) { alert('A birth date is the minimum needed for your Sun.'); return; }
+  if (!date) {
+    if (requireDate) alert('A birth date is the minimum needed for your Sun.');
+    return false;
+  }
   localStorage.setItem(BIRTH_KEY, JSON.stringify({ date, time, place }));
-  renderSky();
+  return true;
 }
 function clearBirthInfo() {
   localStorage.removeItem(BIRTH_KEY);
