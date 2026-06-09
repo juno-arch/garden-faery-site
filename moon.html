@@ -2381,22 +2381,35 @@ function downloadJSON() {
     periods: periods,
     day_logs: dayLogs
   };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'moon-cycle-data-' + todayStr() + '.json';
-  a.rel = 'noopener';
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  // Defer cleanup — macOS Safari + Finder fetch the blob AFTER this handler
-  // returns, so revoking synchronously yields "The file can't be found."
-  // 4 seconds is generous but harmless; the blob is GC'd on revoke.
-  setTimeout(() => {
-    if (a.parentNode) a.parentNode.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, 4000);
+  const json = JSON.stringify(data, null, 2);
+  const filename = 'moon-cycle-data-' + todayStr() + '.json';
+
+  // macOS Safari's <a download> handoff to Finder fights with blob: URLs
+  // (yields "The file can't be found" even with deferred revoke). Data:
+  // URLs inline the payload in the href so the OS doesn't need to fetch
+  // anything afterwards — the bytes are right there.
+  try {
+    const href = 'data:application/json;charset=utf-8,' + encodeURIComponent(json);
+    const a = document.createElement('a');
+    a.href = href;
+    a.download = filename;
+    a.rel = 'noopener';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { if (a.parentNode) a.parentNode.removeChild(a); }, 1000);
+  } catch (err) {
+    // Last-resort fallback: open the JSON in a new tab so the user can
+    // hit Cmd+S / long-press → Save themselves.
+    const w = window.open();
+    if (w) {
+      w.document.title = filename;
+      w.document.body.style.cssText = 'font-family:monospace;white-space:pre;padding:14px';
+      w.document.body.textContent = json;
+    } else {
+      alert('Could not start the download. Try Settings → Print report and saving as PDF instead.');
+    }
+  }
 }
 
 // --- Patterns: symptom + energy aggregates per phase ---
