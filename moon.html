@@ -2385,52 +2385,34 @@ function csvCell(v) {
 }
 
 function downloadCSV() {
-  // Build the union of every date that's either inside a logged period or
-  // has its own day-log entry. Sorted ascending → one row per day.
-  const dateSet = new Set();
-  periods.forEach(p => {
-    if (!p.start) return;
-    let cur = parseDate(p.start);
-    const end = p.end ? parseDate(p.end) : cur;
-    while (cur <= end) { dateSet.add(dateStr(cur)); cur = addDays(cur, 1); }
-  });
-  Object.keys(dayLogs).forEach(ds => dateSet.add(ds));
-  const dates = [...dateSet].sort();
-
-  const avg = avgCycle();
-  const periodSpans = periods
+  // One row per period — start, end, length, notes (joined from any day
+  // within the period that had freeform notes logged). Same logic as the
+  // History list in the app, just flattened to a spreadsheet shape.
+  const headers = ['start', 'end', 'length_days', 'notes'];
+  const rows = periods
     .filter(p => p.start)
-    .map(p => ({ s: parseDate(p.start), e: parseDate(p.end || p.start) }));
-  const isPeriodDay = (ds) => {
-    const d = parseDate(ds);
-    return periodSpans.some(span => d >= span.s && d <= span.e);
-  };
-
-  const headers = [
-    'date', 'cycle_day', 'inner_season', 'period_day',
-    'flow', 'symptoms', 'moods', 'sex', 'discharge',
-    'energy_0_5', 'sleep_hours', 'temp_F', 'notes'
-  ];
-  const rows = dates.map(ds => {
-    const log = dayLogs[ds] || {};
-    const cd = cycleDayFor(ds);
-    const season = cd != null ? innerSeason(cd, avg) : '';
-    return [
-      ds,
-      cd != null ? cd : '',
-      season || '',
-      isPeriodDay(ds) ? 'Y' : 'N',
-      log.flow || '',
-      (log.symptoms || []).join('; '),
-      (log.moods    || []).join('; '),
-      (log.sex      || []).join('; '),
-      log.discharge || '',
-      log.energy != null ? log.energy : '',
-      log.sleep_hours != null ? log.sleep_hours : '',
-      log.temp != null ? log.temp : '',
-      log.notes || ''
-    ];
-  });
+    .slice()
+    .sort((a, b) => a.start.localeCompare(b.start))
+    .map(p => {
+      const start = p.start;
+      const end = p.end || p.start;
+      const days = daysBetween(start, end) + 1;
+      // Walk every day in the period; gather notes from any day-log entry
+      // that has a notes field set. Each note gets dated so you can tell
+      // which day inside the period it belongs to.
+      const noteLines = [];
+      let cur = parseDate(start);
+      const endD = parseDate(end);
+      while (cur <= endD) {
+        const ds = dateStr(cur);
+        const log = dayLogs[ds];
+        if (log && log.notes && String(log.notes).trim()) {
+          noteLines.push(ds + ': ' + String(log.notes).trim());
+        }
+        cur = addDays(cur, 1);
+      }
+      return [start, end, days, noteLines.join(' | ')];
+    });
 
   // BOM so Excel opens it as UTF-8 (otherwise non-ASCII reads as garbage).
   // CRLF row terminator per RFC 4180.
