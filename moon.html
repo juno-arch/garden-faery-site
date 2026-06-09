@@ -2386,10 +2386,17 @@ function downloadJSON() {
   const a = document.createElement('a');
   a.href = url;
   a.download = 'moon-cycle-data-' + todayStr() + '.json';
+  a.rel = 'noopener';
+  a.style.display = 'none';
   document.body.appendChild(a);
   a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  // Defer cleanup — macOS Safari + Finder fetch the blob AFTER this handler
+  // returns, so revoking synchronously yields "The file can't be found."
+  // 4 seconds is generous but harmless; the blob is GC'd on revoke.
+  setTimeout(() => {
+    if (a.parentNode) a.parentNode.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 4000);
 }
 
 // --- Patterns: symptom + energy aggregates per phase ---
