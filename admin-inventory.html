@@ -261,7 +261,7 @@
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 const PB_URL = (() => {
@@ -500,7 +500,10 @@ async function saveTxn() {
   const item = state._txItem;
   if (!item) return;
   const rawQty = parseFloat(document.getElementById('tx-qty').value);
-  if (!rawQty || rawQty <= 0) { toast('Quantity required'); return; }
+  // Adjustments may legitimately set the quantity to 0; only +/- transactions
+  // require a positive amount.
+  if (isNaN(rawQty) || rawQty < 0) { toast('Enter a quantity (0 or more)'); return; }
+  if (state._txSign !== '0' && rawQty <= 0) { toast('Quantity required'); return; }
   let delta = rawQty;
   if (state._txSign === '-') delta = -rawQty;
   else if (state._txSign === '0') delta = rawQty - (item.current_qty || 0);  // adjustment = set to value
@@ -524,7 +527,7 @@ async function saveTxn() {
       updates.last_purchased = body.transaction_date;
       if (body.cost_cents) updates.last_cost_cents = body.cost_cents;
     }
-    if (newQty === 0 && state._txSign === '-') updates.status = 'used_up';
+    if (newQty === 0 && state._txSign !== '+') updates.status = 'used_up';
     const updatedItem = await pb('PATCH', '/api/collections/inventory_items/records/' + item.id, updates);
     const idx = state.items.findIndex(x => x.id === item.id);
     if (idx >= 0) state.items[idx] = updatedItem;

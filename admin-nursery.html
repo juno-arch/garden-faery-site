@@ -439,7 +439,7 @@
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 // ============================================================
@@ -712,7 +712,8 @@ function renderSources() {
   }
   tbody.innerHTML = rows.map(s => {
     const spec = (s.specialty || []).map(x => `<span class="pill pill-prop">${x.replace(/_/g, ' ')}</span>`).join(' ');
-    const urlHtml = s.url ? `<a href="${escapeAttr(s.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">link</a>` : '';
+    const safeUrl = /^https?:\/\//i.test(s.url || '') ? s.url : '';
+    const urlHtml = safeUrl ? `<a href="${escapeAttr(safeUrl)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">link</a>` : '';
     return `<tr onclick="openSourceModal('${s.id}')">
       <td><strong>${escapeHtml(s.name||'')}</strong> ${urlHtml ? '· ' + urlHtml : ''}</td>
       <td>${escapeHtml(s.location||'')}</td>

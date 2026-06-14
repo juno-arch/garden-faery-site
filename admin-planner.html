@@ -97,7 +97,7 @@
     max-height: calc(100vh - 24px); display: none; flex-direction: column;
   }
   .plant-panel.open { display: flex; }
-  .plant-panel-head { padding: 12px; border-bottom: 1px solid var(--gray-100); }
+  .plant-panel-head { padding: 12px; border-bottom: 1px solid var(--gray-100); position: sticky; top: 0; background: var(--white); z-index: 1; border-radius: var(--radius) var(--radius) 0 0; }
   .plant-panel-head h3 { font-size: 1rem; margin-bottom: 8px; }
   .plant-panel-head input { width: 100%; padding: 8px 10px; border: 1px solid var(--gray-200); border-radius: 6px; font-family: var(--font-body); font-size: 0.85rem; color: var(--plum); }
   .plant-filters { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
@@ -284,10 +284,10 @@
     .crumbs { display: none; }
     #topbar-journal, #topbar-calendar { padding: 5px 8px; font-size: 0.74rem; }
 
-    /* Toolbar: smaller buttons, still left side but tucked. */
+    /* Toolbar: keep 44px tap targets (WCAG 2.5.5) even on phones. */
     .toolbar { top: 8px; left: 8px; padding: 4px; gap: 2px; }
-    .tool { width: 36px; height: 36px; }
-    .tool svg { width: 18px; height: 18px; }
+    .tool { width: 44px; height: 44px; }
+    .tool svg { width: 22px; height: 22px; }
 
     /* Right panel becomes a bottom sheet that doesn't fight the strip. */
     .right-panel {
@@ -301,6 +301,10 @@
       top: auto; bottom: 0; left: 0; right: 0; width: 100%;
       max-height: 70vh; border-radius: var(--radius) var(--radius) 0 0;
     }
+
+    /* When a bottom sheet (object panel or plant catalog) is open, hide the
+       bed-templates strip so they don't stack and fight for the same space. */
+    body.sheet-open .strip { display: none; }
 
     /* Bed templates strip: sticks above any open bottom panel. */
     .strip {
@@ -354,8 +358,8 @@
       <div class="crumbs" id="crumbs"></div>
     </div>
     <div class="topbar-right">
-      <button class="ghost-btn" id="topbar-journal" onclick="openJournal()" style="display:none">Journal</button>
-      <button class="ghost-btn" id="topbar-calendar" onclick="openSeasonCalendar()" style="display:none">Season calendar</button>
+      <button class="ghost-btn" id="topbar-journal" onclick="openJournal()" style="display:none" title="History of what happened in this garden — newest first">History</button>
+      <button class="ghost-btn" id="topbar-calendar" onclick="openSeasonCalendar()" style="display:none" title="When to sow, transplant, and harvest through the year">Planting calendar</button>
       <button class="ghost-btn" id="topbar-print" onclick="openPrintPlan()" style="display:none">Print plan</button>
       <a href="admin-inventory.html" class="ghost-btn" style="text-decoration:none">Inventory</a>
       <a href="admin-expenses.html" class="ghost-btn" style="text-decoration:none">Expenses</a>
@@ -370,8 +374,8 @@
       <div class="list-head">
         <h2>Your gardens</h2>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="ghost-btn" onclick="openYieldAnalytics()">Yields</button>
-          <button class="ghost-btn" onclick="openYieldForecast()">Forecast</button>
+          <button class="ghost-btn" onclick="openYieldAnalytics()" title="Actual harvests you've logged">Past yields</button>
+          <button class="ghost-btn" onclick="openYieldForecast()" title="Predicted upcoming harvests from current plantings">Forecast</button>
           <button class="ghost-btn" onclick="openCrossGardenSearch()">Find plant</button>
           <button class="btn" onclick="openGardenModal()">Add garden</button>
         </div>
@@ -528,7 +532,13 @@
     </div>
 
     <!-- Hint banner -->
-    <div class="hint" id="hint"></div>
+    <div class="hint" id="hint" role="status" aria-live="polite"></div>
+
+    <!-- Pending-plant banner: persistent, dismissable indicator while a plant is queued to drop -->
+    <div id="pending-banner" style="display:none; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:45; background:var(--spring-sage); color:var(--plum); padding:8px 12px; border-radius:8px; box-shadow:var(--shadow-hover); font-size:0.85rem; display:none; align-items:center; gap:10px;">
+      <span id="pending-banner-text"></span>
+      <button class="btn-sm" style="background:var(--plum); color:var(--white); border:none; border-radius:6px; padding:3px 10px; cursor:pointer; font-family:inherit" onclick="cancelPendingPlant()">Cancel</button>
+    </div>
   </div>
 </div>
 
@@ -677,7 +687,14 @@
     </div>
     <div class="row">
       <div><label>Plant spacing (inches)</label><input type="number" id="qp-spacing" min="0" step="0.5" placeholder="e.g. 12"></div>
-      <div><label>Days to maturity</label><input type="number" id="qp-dtm" min="0" placeholder="e.g. 60"></div>
+      <div>
+        <label>Days to maturity (min – max)</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="number" id="qp-dtm" min="0" placeholder="60" style="flex:1">
+          <span style="color:var(--gray-600)">–</span>
+          <input type="number" id="qp-dtm-max" min="0" placeholder="75" style="flex:1">
+        </div>
+      </div>
     </div>
     <div class="row">
       <div><label>Color (hex)</label><input type="color" id="qp-color" value="#9bbd85"></div>
@@ -957,7 +974,7 @@
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 // =============================================================
@@ -1316,7 +1333,10 @@ function renderJournal() {
       lastMonth = month;
     }
     const photos = (ev.photos && ev.photos.length)
-      ? '<div style="display:flex;gap:4px;margin-top:6px">' + ev.photos.slice(0, 5).map(fn => `<img src="${ev.photoBase}${fn}?thumb=100x100" style="width:42px;height:42px;object-fit:cover;border-radius:4px;border:1px solid var(--gray-200);cursor:pointer" onclick="window.open('${ev.photoBase}${fn}','_blank')">`).join('') + '</div>'
+      ? '<div style="display:flex;gap:4px;margin-top:6px">' + ev.photos.slice(0, 5).map(fn => {
+          const u = ev.photoBase + encodeURIComponent(fn);
+          return `<img src="${escapeHtml(u)}?thumb=100x100" data-full="${escapeHtml(u)}" class="ce-thumb" style="width:42px;height:42px;object-fit:cover;border-radius:4px;border:1px solid var(--gray-200);cursor:pointer">`;
+        }).join('') + '</div>'
       : '';
     html += `<div style="display:flex;gap:10px;padding:8px 4px;border-bottom:1px solid var(--gray-100)">
       <div style="width:8px;height:8px;border-radius:50%;background:${ev.color};margin-top:6px;flex:0 0 auto"></div>
@@ -1361,9 +1381,18 @@ function renderSeasonCalendar() {
     return (a.common_name || '').localeCompare(b.common_name || '');
   });
 
-  const lastFrost = g.last_frost_date ? new Date(g.last_frost_date) : null;
-  const firstFrost = g.first_frost_date ? new Date(g.first_frost_date) : null;
-  const year = lastFrost ? lastFrost.getFullYear() : new Date().getFullYear();
+  // Always render for the CURRENT calendar year, projecting the garden's
+  // frost month/day onto it — otherwise a frost date stored in a past year
+  // freezes the whole calendar (and hides the "today" marker).
+  const year = new Date().getFullYear();
+  function frostForThisYear(dateStr) {
+    if (!dateStr) return null;
+    const d = new Date(dateStr);
+    if (isNaN(d)) return null;
+    return new Date(year, d.getMonth(), d.getDate());
+  }
+  const lastFrost = frostForThisYear(g.last_frost_date);
+  const firstFrost = frostForThisYear(g.first_frost_date);
   const yearStart = new Date(year, 0, 1).getTime();
   const yearEnd = new Date(year + 1, 0, 1).getTime();
   const yearMs = yearEnd - yearStart;
@@ -1479,7 +1508,8 @@ async function showDetail(gardenId) {
 
 async function loadCareEvents(gardenId) {
   try {
-    const resp = await pb('GET', `/api/collections/care_events/records?perPage=500&filter=(garden_id="${gardenId}")&sort=-event_date`);
+    const gid = String(gardenId).replace(/"/g, '\\"');
+    const resp = await pb('GET', `/api/collections/care_events/records?perPage=500&filter=(garden_id="${gid}")&sort=-event_date`);
     state.careEvents = resp.items || [];
   } catch (err) { state.careEvents = []; }
 }
@@ -1512,8 +1542,16 @@ function renderTemplateStrip() {
 
 async function loadObjects(gardenId) {
   try {
-    const resp = await pb('GET', `/api/collections/garden_objects/records?perPage=500&filter=(garden_id="${gardenId}")`);
-    state.objects = resp.items || [];
+    const gid = String(gardenId).replace(/"/g, '\\"');
+    const resp = await pb('GET', `/api/collections/garden_objects/records?perPage=500&filter=(garden_id="${gid}")`);
+    state.objects = (resp.items || []).map(o => {
+      // Normalize shape_geojson to an object once, so vertex-drag / body-move /
+      // grid math never have to guard against a stringified shape.
+      if (typeof o.shape_geojson === 'string') {
+        try { o.shape_geojson = JSON.parse(o.shape_geojson); } catch (_) {}
+      }
+      return o;
+    });
   } catch (err) {
     toast('Load objects failed: ' + err.message);
     state.objects = [];
@@ -1560,6 +1598,10 @@ function initMap() {
     addObjectLayers();
     renderObjects();
     renderPlantings();
+    // First-time empty garden: guide the user to draw their first bed.
+    if (!state.objects.length) {
+      hint('Pick a bed from the bottom strip and tap the map — or use the polygon tool to draw a custom bed.');
+    }
   });
   state.map.on('click', onMapClick);
   // Double-click finishes a polygon/line draft instead of zooming.
@@ -2049,7 +2091,10 @@ document.addEventListener('keydown', e => {
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
     if (e.key === 'Enter') { finishDraft(); }
     else if (e.key === 'Escape') {
-      if (state.pendingPlant) { state.pendingPlant = null; state.tool = 'select'; document.querySelectorAll('.plant-row').forEach(r => r.classList.remove('active')); hint(''); }
+      // Close any open modal first, then pending plant, then draft.
+      const openModal = document.querySelector('.modal-overlay.open');
+      if (openModal) { openModal.classList.remove('open'); }
+      else if (state.pendingPlant) { cancelPendingPlant(); }
       else cancelDraft();
     }
     else if (e.key === 'v') { setTool('select'); }
@@ -2110,6 +2155,7 @@ function selectObject(id) {
 function openObjectPanel(obj) {
   const p = document.getElementById('right-panel');
   p.style.display = 'block';
+  document.body.classList.add('sheet-open');
   document.getElementById('rp-title').textContent = obj.name || obj.type.replace(/_/g, ' ');
   document.getElementById('rp-name').value = obj.name || '';
   document.getElementById('rp-type').value = obj.type || 'raised_bed';
@@ -2154,14 +2200,15 @@ function openObjectPanel(obj) {
   } else {
     careEl.innerHTML = events.map(ce => {
       const date = (ce.event_date || '').slice(0, 10);
-      const type = (ce.event_type || '').replace(/_/g, ' ');
+      const type = escapeHtml((ce.event_type || '').replace(/_/g, ' '));
       const prod = ce.product_used ? ` · ${escapeHtml(ce.product_used)}` : '';
-      const qty = ce.quantity ? ` (${ce.quantity}${ce.units ? ' ' + ce.units : ''})` : '';
+      const qty = ce.quantity ? ` (${escapeHtml(String(ce.quantity))}${ce.units ? ' ' + escapeHtml(ce.units) : ''})` : '';
       const notes = ce.notes ? ` — ${escapeHtml(ce.notes.slice(0, 50))}${ce.notes.length > 50 ? '…' : ''}` : '';
       const photoThumbs = (ce.photos && ce.photos.length)
-        ? '<div style="display:flex;gap:3px;margin-top:3px">' + ce.photos.slice(0, 4).map(fn =>
-            `<img src="${PB_URL}/api/files/care_events/${ce.id}/${fn}?thumb=100x100" style="width:34px;height:34px;object-fit:cover;border-radius:4px;border:1px solid var(--gray-200);cursor:pointer" onclick="window.open('${PB_URL}/api/files/care_events/${ce.id}/${fn}','_blank')">`
-          ).join('') + '</div>'
+        ? '<div style="display:flex;gap:3px;margin-top:3px">' + ce.photos.slice(0, 4).map(fn => {
+            const u = `${PB_URL}/api/files/care_events/${ce.id}/${encodeURIComponent(fn)}`;
+            return `<img src="${escapeHtml(u)}?thumb=100x100" data-full="${escapeHtml(u)}" class="ce-thumb" style="width:34px;height:34px;object-fit:cover;border-radius:4px;border:1px solid var(--gray-200);cursor:pointer">`;
+          }).join('') + '</div>'
         : '';
       return `<div style="margin:5px 0;font-size:0.8rem;padding:4px 0;border-top:1px dashed var(--gray-100)">
         <div style="display:flex;align-items:center;gap:6px">
@@ -2368,6 +2415,7 @@ async function removePlanting(plantingId) {
 
 function closeObjectPanel() {
   document.getElementById('right-panel').style.display = 'none';
+  if (!document.getElementById('plant-panel').classList.contains('open')) document.body.classList.remove('sheet-open');
   if (state.selectedObjectId && state.map) {
     state.map.setFeatureState({ source: 'objects', id: state.selectedObjectId }, { selected: false });
     renderVertices(null);
@@ -2410,8 +2458,10 @@ async function deleteSelected() {
 function togglePlantPanel() {
   const p = document.getElementById('plant-panel');
   p.classList.toggle('open');
-  document.querySelectorAll('.tool[data-tool="plants"]').forEach(b => b.classList.toggle('active', p.classList.contains('open')));
-  if (p.classList.contains('open')) renderPlantList();
+  const open = p.classList.contains('open');
+  document.querySelectorAll('.tool[data-tool="plants"]').forEach(b => b.classList.toggle('active', open));
+  if (open) { document.body.classList.add('sheet-open'); renderPlantList(); }
+  else if (document.getElementById('right-panel').style.display !== 'block') document.body.classList.remove('sheet-open');
 }
 
 function renderPlantList() {
@@ -2523,7 +2573,24 @@ function usePlantFromDetail() {
   if (!state.pendingPlant) return;
   document.querySelectorAll('.plant-row').forEach(r => r.classList.toggle('active', r.dataset.plant === plantId));
   state.tool = 'plant';
+  showPendingBanner(state.pendingPlant.common_name);
   hint(`Click on a bed to plant ${state.pendingPlant.common_name}.`);
+}
+
+function showPendingBanner(name) {
+  const b = document.getElementById('pending-banner');
+  document.getElementById('pending-banner-text').textContent = 'Planting: ' + name + ' — tap a bed';
+  b.style.display = 'flex';
+}
+function clearPendingBanner() {
+  document.getElementById('pending-banner').style.display = 'none';
+}
+function cancelPendingPlant() {
+  state.pendingPlant = null;
+  state.tool = 'select';
+  document.querySelectorAll('.plant-row').forEach(r => r.classList.remove('active'));
+  clearPendingBanner();
+  hint('');
 }
 
 document.getElementById('plant-search').addEventListener('input', e => {
@@ -2802,10 +2869,16 @@ function renderForecast(plantings) {
     const d = new Date(year, month + i, 1);
     monthBuckets.push({ label: d.toLocaleString('en-US', { month: 'short', year: '2-digit' }), key: d.toISOString().slice(0, 7), byUnits: {} });
   }
+  let beyondWindow = {};  // harvests expected past the 12-month window
   for (const u of upcoming) {
     const k = u.date.toISOString().slice(0, 7);
-    const bucket = monthBuckets.find(b => b.key === k) || monthBuckets[0];
-    bucket.byUnits[u.units] = (bucket.byUnits[u.units] || 0) + u.qty;
+    const bucket = monthBuckets.find(b => b.key === k);
+    if (bucket) {
+      bucket.byUnits[u.units] = (bucket.byUnits[u.units] || 0) + u.qty;
+    } else {
+      // Don't silently inflate the current month — track separately.
+      beyondWindow[u.units] = (beyondWindow[u.units] || 0) + u.qty;
+    }
   }
 
   // By plant (sum across all months).
@@ -2873,8 +2946,9 @@ function renderForecast(plantings) {
       </div>
     </div>
 
-    <h3 style="margin:14px 0 8px">Expected by month (lbs)</h3>
+    <h3 style="margin:14px 0 8px">Expected by month (lbs, next 12 months)</h3>
     <div style="display:flex;gap:4px;align-items:flex-end;height:140px;background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);overflow-x:auto">${monthBars}</div>
+    ${Object.keys(beyondWindow).length ? `<div style="font-size:0.76rem;color:var(--gray-600);margin-top:6px">Plus ${Object.entries(beyondWindow).map(([u,v]) => v.toFixed(1) + ' ' + u).join(', ')} expected beyond 12 months (slow perennials/trees).</div>` : ''}
 
     <h3 style="margin:18px 0 8px">By plant (top 15)</h3>
     <div style="background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)">
@@ -3205,6 +3279,7 @@ function openQuickAddPlant(plantId) {
   document.getElementById('qp-water').value = p?.water_requirement || '';
   document.getElementById('qp-spacing').value = p?.plant_spacing_cm ? Math.round(p.plant_spacing_cm / 2.54 * 10) / 10 : '';
   document.getElementById('qp-dtm').value = p?.days_to_maturity_min ?? '';
+  document.getElementById('qp-dtm-max').value = p?.days_to_maturity_max ?? '';
   document.getElementById('qp-color').value = p?.color_hex || '#9bbd85';
   document.getElementById('qp-native').checked = !!p?.ca_native;
   document.getElementById('qp-food').checked = !!p?.food_perennial;
@@ -3226,7 +3301,11 @@ async function saveQuickPlant() {
   const name = document.getElementById('qp-name').value.trim();
   if (!name) { toast('Common name required'); return; }
   const spacingIn = parseFloat(document.getElementById('qp-spacing').value);
-  const dtm = parseInt(document.getElementById('qp-dtm').value, 10);
+  const dtmMin = parseInt(document.getElementById('qp-dtm').value, 10);
+  let dtmMax = parseInt(document.getElementById('qp-dtm-max').value, 10);
+  // If only one of the two is filled, mirror it so the range is valid.
+  if (isNaN(dtmMax)) dtmMax = dtmMin;
+  if (isNaN(dtmMin) && !isNaN(dtmMax)) { /* min blank, max set — leave min null */ }
   const body = {
     common_name: name,
     scientific_name: document.getElementById('qp-sci').value.trim(),
@@ -3235,8 +3314,8 @@ async function saveQuickPlant() {
     sun_requirement: document.getElementById('qp-sun').value || null,
     water_requirement: document.getElementById('qp-water').value || null,
     plant_spacing_cm: isNaN(spacingIn) ? null : spacingIn * 2.54,
-    days_to_maturity_min: isNaN(dtm) ? null : dtm,
-    days_to_maturity_max: isNaN(dtm) ? null : dtm,
+    days_to_maturity_min: isNaN(dtmMin) ? null : dtmMin,
+    days_to_maturity_max: isNaN(dtmMax) ? null : dtmMax,
     color_hex: document.getElementById('qp-color').value,
     ca_native: document.getElementById('qp-native').checked,
     food_perennial: document.getElementById('qp-food').checked,
@@ -3336,6 +3415,7 @@ async function plantInObject(obj, plant) {
   state.pendingPlant = null;
   state.tool = 'select';
   document.querySelectorAll('.plant-row').forEach(r => r.classList.remove('active'));
+  clearPendingBanner();
   hint('');
 }
 
@@ -3751,6 +3831,13 @@ function escapeHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 function parseIds(s) { return String(s || '').split(',').map(x => x.trim()).filter(Boolean); }
+
+// Open care-event photo thumbnails in a new tab via delegation (avoids
+// interpolating filenames into inline onclick handlers — see audit).
+document.addEventListener('click', e => {
+  const thumb = e.target.closest && e.target.closest('.ce-thumb');
+  if (thumb && thumb.dataset.full) window.open(thumb.dataset.full, '_blank', 'noopener');
+});
 
 // Double-click on map finishes draft drawing.
 window.addEventListener('load', () => {

@@ -51,7 +51,8 @@
 
 <div id="err" style="display:none" class="err">
   <h2>Garden not found</h2>
-  <p>This share link may have expired or been disabled. Please contact Garden Faery for a new link.</p>
+  <p>This share link may have expired or been disabled.</p>
+  <p style="margin-top:12px"><a href="https://gardenfaery.love" target="_blank" rel="noopener" style="color:var(--plum);font-weight:600">Visit Garden Faery</a> for a new link.</p>
 </div>
 
 <div id="app" class="full" style="display:none">
@@ -122,6 +123,10 @@ function render(data) {
     `<span><strong>${data.plantings.length}</strong> plantings</span>` +
     `<span><strong>${data.careEvents.length}</strong> care events</span>`;
 
+  // Helper: human label for an object that may have no type/name.
+  const objLabel = o => o.name || (o.type ? o.type.replace(/_/g, ' ') : 'area');
+  const typeLabel = o => (o.type ? o.type.replace(/_/g, ' ') : 'area');
+
   // Objects list with plantings inside.
   const objsHtml = data.objects.map(o => {
     const here = data.plantings.filter(pt => pt.garden_object_id === o.id);
@@ -131,20 +136,26 @@ function render(data) {
       return `<span>${escapeHtml(name)} × ${pt.quantity || 0}</span>`;
     }).join('');
     return `<div class="obj-card">
-      <div class="obj-name">${escapeHtml(o.name || o.type.replace(/_/g, ' '))}</div>
-      <div class="obj-meta">${o.type.replace(/_/g, ' ')}${o.area_sqft ? ' · ' + o.area_sqft.toFixed(1) + ' sq ft' : ''}${o.sun_exposure ? ' · ' + o.sun_exposure.replace(/_/g, ' ') : ''}</div>
+      <div class="obj-name">${escapeHtml(objLabel(o))}</div>
+      <div class="obj-meta">${escapeHtml(typeLabel(o))}${o.area_sqft ? ' · ' + o.area_sqft.toFixed(1) + ' sq ft' : ''}${o.sun_exposure ? ' · ' + o.sun_exposure.replace(/_/g, ' ') : ''}</div>
       ${plList ? '<div class="plantings-list">' + plList + '</div>' : ''}
     </div>`;
   }).join('');
   document.getElementById('i-objects').innerHTML = objsHtml || '<div style="color:var(--gray-600);font-size:0.85rem">No objects mapped yet.</div>';
 
-  // Recent care events.
-  const careHtml = data.careEvents.slice(0, 8).map(ce => {
+  // Recent care events — with photo thumbnails (the visual progress story).
+  const careHtml = data.careEvents.slice(0, 12).map(ce => {
     const date = (ce.event_date || '').slice(0, 10);
     const type = (ce.event_type || '').replace(/_/g, ' ');
     const obj = data.objects.find(o => o.id === ce.garden_object_id);
-    const objName = obj ? obj.name || obj.type.replace(/_/g, ' ') : '';
-    return `<div class="care-row"><strong>${date}</strong> · ${type}${objName ? ' · ' + escapeHtml(objName) : ''}${ce.product_used ? ' · ' + escapeHtml(ce.product_used) : ''}${ce.notes ? ' — ' + escapeHtml(ce.notes.slice(0, 80)) : ''}</div>`;
+    const objName = obj ? objLabel(obj) : '';
+    const photos = (ce.photos && ce.photos.length)
+      ? '<div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap">' + ce.photos.slice(0, 4).map(fn => {
+          const u = PB_URL + '/api/files/care_events/' + ce.id + '/' + encodeURIComponent(fn);
+          return `<a href="${u}" target="_blank" rel="noopener"><img src="${u}?thumb=100x100" style="width:48px;height:48px;object-fit:cover;border-radius:5px;border:1px solid var(--gray-200)"></a>`;
+        }).join('') + '</div>'
+      : '';
+    return `<div class="care-row"><strong>${date}</strong> · ${escapeHtml(type)}${objName ? ' · ' + escapeHtml(objName) : ''}${ce.product_used ? ' · ' + escapeHtml(ce.product_used) : ''}${ce.notes ? ' — ' + escapeHtml(ce.notes.slice(0, 80)) : ''}${photos}</div>`;
   }).join('');
   if (careHtml) {
     document.getElementById('i-care').innerHTML = '<h3 style="margin-top:10px;font-size:0.86rem">Recent care</h3>' + careHtml;

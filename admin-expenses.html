@@ -209,7 +209,7 @@
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 const PB_URL = (() => {
@@ -304,10 +304,14 @@ function filteredExpenses() {
   const fPeriod = document.getElementById('filter-period').value;
   const fBilled = document.getElementById('filter-billed').value;
   const now = new Date();
-  const todayStr = now.toISOString().slice(0, 10);
+  // Use LOCAL date components, not toISOString() (which is UTC) — otherwise
+  // after ~4pm PST the period boundaries flip a day early.
+  const pad = n => String(n).padStart(2, '0');
+  const localDate = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  const todayStr = localDate(now);
   const yearStart = now.getFullYear() + '-01-01';
   const monthStart = todayStr.slice(0, 7) + '-01';
-  const minus = (days) => { const d = new Date(now); d.setDate(d.getDate() - days); return d.toISOString().slice(0, 10); };
+  const minus = (days) => { const d = new Date(now); d.setDate(d.getDate() - days); return localDate(d); };
   return state.expenses.filter(e => {
     if (fCat && e.category !== fCat) return false;
     if (fGarden && e.garden_id !== fGarden) return false;

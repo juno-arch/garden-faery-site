@@ -146,7 +146,7 @@
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 const PB_URL = (() => {
@@ -173,16 +173,24 @@ async function doLogin() {
   const errEl = document.getElementById('login-error');
   errEl.classList.remove('show');
   if (!email || !pw) return;
-  try {
-    const resp = await fetch(PB_URL + '/api/collections/_superusers/auth-with-password', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identity: email, password: pw }),
-    });
-    if (!resp.ok) throw new Error('Login failed');
-    const data = await resp.json();
-    PB_TOKEN = data.token; localStorage.setItem(PB_TOKEN_KEY, PB_TOKEN);
-    boot();
-  } catch (err) { errEl.textContent = 'Sign-in failed.'; errEl.classList.add('show'); }
+  // Try superuser (admin) first, then a users-collection admin. The page
+  // itself gates on the staff_invites admin-only rule, so non-admins who log
+  // in here just see the "Admins only" screen.
+  for (const endpoint of ['_superusers', 'users']) {
+    try {
+      const resp = await fetch(PB_URL + '/api/collections/' + endpoint + '/auth-with-password', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identity: email, password: pw }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        PB_TOKEN = data.token; localStorage.setItem(PB_TOKEN_KEY, PB_TOKEN);
+        boot();
+        return;
+      }
+    } catch (_) {}
+  }
+  errEl.textContent = 'Sign-in failed.'; errEl.classList.add('show');
 }
 function logout() {
   PB_TOKEN = ''; localStorage.removeItem(PB_TOKEN_KEY);
@@ -204,13 +212,25 @@ async function boot() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   try {
+    // staff_invites is admin-only (rule: @request.auth.role = "admin").
+    // A non-admin staff token gets 403 here — gate the page.
     const [inv, usr] = await Promise.all([
       pb('GET', '/api/collections/staff_invites/records?perPage=200&sort=-created'),
       pb('GET', '/api/collections/users/records?perPage=200&sort=-created'),
     ]);
     state.invites = inv.items || [];
     state.users = usr.items || [];
-  } catch (err) { toast('Load failed: ' + err.message); return; }
+  } catch (err) {
+    if (/\b403\b/.test(err.message)) {
+      document.getElementById('app').innerHTML =
+        '<div style="max-width:480px;margin:80px auto;text-align:center;background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:30px">'
+        + '<h2 style="margin-bottom:8px">Admins only</h2>'
+        + '<p style="color:var(--gray-600);font-size:0.9rem">Staff management is restricted to admin accounts. '
+        + '<a href="admin-planner.html" style="color:var(--plum)">Back to the planner</a>.</p></div>';
+      return;
+    }
+    toast('Load failed: ' + err.message); return;
+  }
   renderAll();
 }
 
@@ -234,7 +254,7 @@ function renderAll() {
       return `<tr>
         <td>${escapeHtml(i.email)}</td>
         <td>${escapeHtml(i.display_name || '—')}</td>
-        <td><span class="pill pill-role">${i.role || 'staff'}</span></td>
+        <td><span class="pill pill-role">${escapeHtml(i.role || 'staff')}</span></td>
         <td>${statusPill}</td>
         <td>${(i.created||'').slice(0,10)}</td>
         <td>${linkCell}</td>
@@ -251,7 +271,7 @@ function renderAll() {
     stTbody.innerHTML = state.users.map(u => `<tr>
       <td>${escapeHtml(u.email)}</td>
       <td>${escapeHtml(u.display_name || '—')}</td>
-      <td><span class="pill pill-role">${u.role || 'staff'}</span></td>
+      <td><span class="pill pill-role">${escapeHtml(u.role || 'staff')}</span></td>
       <td>${(u.created||'').slice(0,10)}</td>
     </tr>`).join('');
   }
