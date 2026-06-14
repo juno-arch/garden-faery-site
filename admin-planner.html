@@ -502,6 +502,21 @@
       <div class="row full">
         <div class="read-row"><div class="lbl">Approx area</div><div id="rp-area">—</div></div>
       </div>
+      <!-- Square-foot layout editor (beds only) -->
+      <div class="row full" id="rp-sfg-wrap" style="display:none">
+        <div class="read-row">
+          <div class="lbl" style="display:flex;align-items:center;justify-content:space-between">
+            <span>Square-foot layout</span>
+            <label style="display:inline-flex;align-items:center;gap:4px;text-transform:none;letter-spacing:0;font-weight:500;font-size:0.74rem;cursor:pointer"><input type="checkbox" id="rp-grid-toggle" onchange="toggleBedGrid()"> grid</label>
+          </div>
+          <div id="rp-sfg-hint" style="font-size:0.74rem;color:var(--gray-600);margin:2px 0 6px"></div>
+          <div id="rp-sfg-grid" style="margin-bottom:6px"></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="ghost-btn btn-sm" id="rp-sfg-fill" onclick="fillBedWithPending()" style="display:none">Fill bed</button>
+            <button class="ghost-btn btn-sm" onclick="clearBedSquares()">Clear all</button>
+          </div>
+        </div>
+      </div>
       <div class="row full">
         <div class="read-row"><div class="lbl">Planted</div><div id="rp-plantings">—</div></div>
       </div>
@@ -1720,6 +1735,37 @@ function addObjectLayers() {
     },
   });
 
+  // SFG square fills (one polygon per assigned square, colored by plant).
+  map.addSource('sfg', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  map.addLayer({
+    id: 'sfg-fill', type: 'fill', source: 'sfg',
+    paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.6 },
+  });
+  map.addLayer({
+    id: 'sfg-outline', type: 'line', source: 'sfg',
+    paint: { 'line-color': '#ffffff', 'line-width': 0.6, 'line-opacity': 0.7 },
+  });
+  map.addLayer({
+    id: 'sfg-label', type: 'symbol', source: 'sfg', minzoom: 18,
+    layout: { 'text-field': ['get', 'label'], 'text-size': ['interpolate', ['linear'], ['zoom'], 18, 9, 22, 16], 'text-allow-overlap': true },
+    paint: { 'text-color': '#ffffff', 'text-halo-color': 'rgba(90,18,48,0.85)', 'text-halo-width': 1.4 },
+  });
+
+  // Bed grid lines (1-ft squares) for the selected bed.
+  map.addSource('bedgrid', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  map.addLayer({
+    id: 'bedgrid-line', type: 'line', source: 'bedgrid',
+    paint: { 'line-color': '#ffffff', 'line-width': 0.8, 'line-opacity': 0.55 },
+  });
+
+  // Dimension / name label centered on each bed.
+  map.addSource('bedlabels', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  map.addLayer({
+    id: 'bedlabels-text', type: 'symbol', source: 'bedlabels', minzoom: 18,
+    layout: { 'text-field': ['get', 'label'], 'text-size': 12, 'text-anchor': 'center', 'text-allow-overlap': false },
+    paint: { 'text-color': '#ffffff', 'text-halo-color': 'rgba(90,18,48,0.9)', 'text-halo-width': 1.6 },
+  });
+
   // Vertex handles for editing the selected polygon/line/point.
   map.addSource('vertices', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   map.addLayer({
@@ -1778,7 +1824,16 @@ function addObjectLayers() {
       const obj = state.objects.find(o => o.id === f.properties.id);
       if (!obj) return;
       if (state.tool === 'plant' && state.pendingPlant) {
-        plantInObject(obj, state.pendingPlant);
+        // Square-foot beds: paint the clicked square. Non-grid objects (rows,
+        // odd shapes) fall back to flood-filling the whole object.
+        const grid = computeBedGrid(obj);
+        if (grid && grid.cells.length) {
+          if (state.selectedObjectId !== obj.id) selectObject(obj.id);
+          const cell = cellAtPoint(grid, [e.lngLat.lng, e.lngLat.lat]);
+          if (cell) paintSquare(obj, cell.r, cell.c, state.pendingPlant.id);
+        } else {
+          plantInObject(obj, state.pendingPlant);
+        }
         return;
       }
       if (state.tool !== 'select') return;
@@ -1787,6 +1842,25 @@ function addObjectLayers() {
     map.on('mouseenter', layerId, () => { if (state.tool === 'select') map.getCanvas().style.cursor = 'pointer'; });
     map.on('mouseleave', layerId, () => { map.getCanvas().style.cursor = ''; });
   });
+
+  // Click an SFG square → paint (plant mode) or open its bed (select mode).
+  map.on('click', 'sfg-fill', e => {
+    e.originalEvent._handled = true;
+    const f = e.features[0];
+    const pt = state.plantings.find(x => x.id === f.properties.planting_id);
+    const objId = pt ? pt.garden_object_id : null;
+    const obj = objId ? state.objects.find(o => o.id === objId) : null;
+    if (!obj) return;
+    if (state.tool === 'plant' && state.pendingPlant) {
+      const grid = computeBedGrid(obj);
+      const cell = grid ? cellAtPoint(grid, [e.lngLat.lng, e.lngLat.lat]) : null;
+      if (cell) { if (state.selectedObjectId !== obj.id) selectObject(obj.id); paintSquare(obj, cell.r, cell.c, state.pendingPlant.id); }
+      return;
+    }
+    if (state.selectedObjectId !== obj.id) selectObject(obj.id);
+  });
+  map.on('mouseenter', 'sfg-fill', () => { map.getCanvas().style.cursor = 'pointer'; });
+  map.on('mouseleave', 'sfg-fill', () => { map.getCanvas().style.cursor = ''; });
 
   // Click a planting circle → popup with plant info + harvest/remove.
   map.on('click', 'plantings-circle', e => {
@@ -1891,12 +1965,17 @@ function addObjectLayers() {
         shape_geojson: obj.shape_geojson,
         area_sqft: obj.area_sqft || null,
       });
+      if (typeof r.shape_geojson === 'string') { try { r.shape_geojson = JSON.parse(r.shape_geojson); } catch (_) {} }
       const idx = state.objects.findIndex(o => o.id === objectId);
       if (idx >= 0) state.objects[idx] = r;
-      // Update the panel's area display if open.
+      // The bed shape changed → the SFG grid is stale. Invalidate + redraw.
+      state._gridCacheId = null;
       if (state.selectedObjectId === objectId) {
         const area = r.area_sqft || estimateAreaSqft(r.shape_geojson);
         document.getElementById('rp-area').textContent = area ? area.toFixed(1) + ' sq ft' : '—';
+        renderBedGrid();
+        renderSfgEditor(r);
+        renderPlantings();
       }
     } catch (err) { toast('Save failed: ' + err.message); }
   });
@@ -1980,6 +2059,7 @@ function renderObjects() {
   }).filter(f => f.geometry);
   const src = state.map.getSource('objects');
   if (src) src.setData({ type: 'FeatureCollection', features });
+  renderBedLabels();
 }
 
 // ---------- Drawing ----------
@@ -2169,7 +2249,12 @@ function selectObject(id) {
   state.map.setFeatureState({ source: 'objects', id }, { selected: true });
   const obj = state.objects.find(o => o.id === id);
   if (!obj) return;
+  // Show the square-foot grid by default for plantable polygon beds.
+  state._gridCacheId = null;
+  const isBed = ['raised_bed', 'in_ground_bed', 'container', 'perennial_patch'].includes(obj.type);
+  state._showGrid = isBed && !!computeBedGrid(obj);
   renderVertices(obj);
+  renderBedGrid();
   openObjectPanel(obj);
 }
 
@@ -2186,6 +2271,7 @@ function openObjectPanel(obj) {
   document.getElementById('rp-notes').value = obj.notes || '';
   const area = obj.area_sqft || estimateAreaSqft(obj.shape_geojson);
   document.getElementById('rp-area').textContent = area ? area.toFixed(1) + ' sq ft' : '—';
+  renderSfgEditor(obj);
   // List plantings in this object with harvest totals + harvest button.
   const here = state.plantings.filter(pt => pt.garden_object_id === obj.id);
   const el = document.getElementById('rp-plantings');
@@ -2442,6 +2528,9 @@ function closeObjectPanel() {
     renderVertices(null);
   }
   state.selectedObjectId = null;
+  state._showGrid = false;
+  state._gridCacheId = null;
+  renderBedGrid();
 }
 
 async function saveSelectedObject() {
@@ -2595,7 +2684,12 @@ function usePlantFromDetail() {
   document.querySelectorAll('.plant-row').forEach(r => r.classList.toggle('active', r.dataset.plant === plantId));
   state.tool = 'plant';
   showPendingBanner(state.pendingPlant.common_name);
-  hint(`Click on a bed to plant ${state.pendingPlant.common_name}.`);
+  hint(`Tap a bed square to plant ${state.pendingPlant.common_name}.`);
+  // If a bed is open, refresh its SFG editor so the hint + fill button update.
+  if (state.selectedObjectId) {
+    const obj = state.objects.find(o => o.id === state.selectedObjectId);
+    if (obj) renderSfgEditor(obj);
+  }
 }
 
 function showPendingBanner(name) {
@@ -2612,6 +2706,10 @@ function cancelPendingPlant() {
   document.querySelectorAll('.plant-row').forEach(r => r.classList.remove('active'));
   clearPendingBanner();
   hint('');
+  if (state.selectedObjectId) {
+    const obj = state.objects.find(o => o.id === state.selectedObjectId);
+    if (obj) renderSfgEditor(obj);
+  }
 }
 
 document.getElementById('plant-search').addEventListener('input', e => {
@@ -3483,6 +3581,275 @@ function gridPointsInPolygon(polygon, spacingCm) {
   return points;
 }
 
+// ========================================================================
+// Square-foot gardening (SFG) grid system
+// A bed is divided into 1-ft squares aligned to the bed's own orientation.
+// Each square can hold one plant type at SFG density (1/4/9/16 per square).
+// ========================================================================
+
+// Length in feet of a lng/lat vector at a given latitude.
+function vecFeet(from, to, lat) {
+  const mLat = 111320, mLng = 111320 * Math.cos(lat * Math.PI / 180);
+  const dx = (to[0] - from[0]) * mLng, dy = (to[1] - from[1]) * mLat;
+  return Math.hypot(dx, dy) * 3.28084;
+}
+
+// Derive an oriented 1-ft grid from a bed polygon. Exact for template
+// rectangles (4 clean corners); approximate (parallelogram) for hand-drawn.
+function computeBedGrid(obj) {
+  const geom = typeof obj.shape_geojson === 'string' ? JSON.parse(obj.shape_geojson) : obj.shape_geojson;
+  if (!geom || geom.type !== 'Polygon') return null;
+  const ring = geom.coordinates[0];
+  if (!ring || ring.length < 4) return null;
+  const p0 = ring[0], p1 = ring[1], pN = ring[ring.length - 2];  // U = p0→p1, V = p0→pN
+  const lat = p0[1];
+  const uft = vecFeet(p0, p1, lat), vft = vecFeet(p0, pN, lat);
+  if (uft < 0.5 || vft < 0.5) return null;
+  let cols = Math.min(40, Math.max(1, Math.round(uft)));
+  let rows = Math.min(40, Math.max(1, Math.round(vft)));
+  const uStep = [(p1[0] - p0[0]) / cols, (p1[1] - p0[1]) / cols];
+  const vStep = [(pN[0] - p0[0]) / rows, (pN[1] - p0[1]) / rows];
+  const corner = (c, r) => [p0[0] + c * uStep[0] + r * vStep[0], p0[1] + c * uStep[1] + r * vStep[1]];
+  const cells = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const cx = p0[0] + (c + 0.5) * uStep[0] + (r + 0.5) * vStep[0];
+      const cy = p0[1] + (c + 0.5) * uStep[1] + (r + 0.5) * vStep[1];
+      if (!pointInPolygon([cx, cy], ring)) continue;  // clip to non-rectangular beds
+      cells.push({ r, c, center: [cx, cy], ring: [corner(c, r), corner(c + 1, r), corner(c + 1, r + 1), corner(c, r + 1), corner(c, r)] });
+    }
+  }
+  return { cols, rows, p0, uStep, vStep, cells, lat, uft, vft };
+}
+
+// SFG plants-per-square for a plant (1/4/9/16). Uses plants_per_sqft when set,
+// else derives from spacing (12in / spacing → per side, squared).
+function plantsPerSquare(plant) {
+  if (plant && plant.plants_per_sqft) {
+    const n = plant.plants_per_sqft;
+    if (n >= 16) return 16; if (n >= 9) return 9; if (n >= 4) return 4;
+    return 1;  // n < 4 (incl. big plants needing >1 sqft) → 1 in the square
+  }
+  const spIn = ((plant && plant.plant_spacing_cm) || 30) / 2.54;
+  const perSide = Math.max(1, Math.floor(12 / spIn));
+  return Math.min(16, perSide * perSide);
+}
+
+// Sub-grid plant positions inside a cell at density n.
+function cellPositions(cell, n, uStep, vStep) {
+  const k = Math.max(1, Math.round(Math.sqrt(n)));
+  const o = cell.ring[0];  // cell origin corner
+  const pts = [];
+  for (let i = 0; i < k; i++) for (let j = 0; j < k; j++) {
+    const fu = (j + 0.5) / k, fv = (i + 0.5) / k;
+    pts.push([o[0] + fu * uStep[0] + fv * vStep[0], o[1] + fu * uStep[1] + fv * vStep[1]]);
+  }
+  return pts;
+}
+
+// Cache the grid for the currently selected bed.
+function selectedBedGrid() {
+  if (!state.selectedObjectId) return null;
+  const obj = state.objects.find(o => o.id === state.selectedObjectId);
+  if (!obj) return null;
+  if (state._gridCacheId !== obj.id) {
+    state._gridCache = computeBedGrid(obj);
+    state._gridCacheId = obj.id;
+  }
+  return state._gridCache;
+}
+
+// Which cell contains a lng/lat point?
+function cellAtPoint(grid, pt) {
+  for (const cell of grid.cells) { if (pointInPolygon(pt, cell.ring)) return cell; }
+  return null;
+}
+
+// The planting in this object that currently owns square [r,c], if any.
+function squareOwner(objId, r, c) {
+  for (const pt of state.plantings) {
+    if (pt.garden_object_id !== objId) continue;
+    const sq = (typeof pt.squares === 'string') ? safeJSON(pt.squares) : pt.squares;
+    if (Array.isArray(sq) && sq.some(s => s[0] === r && s[1] === c)) return pt;
+  }
+  return null;
+}
+
+// Recompute positions_geojson + quantity for a square-based planting.
+function recomputeSquarePlanting(planting, plant, grid) {
+  const sq = (typeof planting.squares === 'string') ? safeJSON(planting.squares) : planting.squares;
+  const per = plantsPerSquare(plant);
+  const coords = [];
+  for (const [r, c] of (sq || [])) {
+    const cell = grid.cells.find(x => x.r === r && x.c === c);
+    if (cell) coords.push(...cellPositions(cell, per, grid.uStep, grid.vStep));
+  }
+  planting.positions_geojson = { type: 'MultiPoint', coordinates: coords };
+  planting.quantity = coords.length;
+}
+
+// Assign plant `plantId` to square [r,c] of bed `obj` (null clears it).
+// Updates the previous owner + the new owner plantings and persists.
+async function paintSquare(obj, r, c, plantId) {
+  if (state._sfgBusy) return;
+  state._sfgBusy = true;
+  try {
+    const grid = computeBedGrid(obj);
+    if (!grid) return;
+    const prev = squareOwner(obj.id, r, c);
+    if (prev && prev.plant_id === plantId) { return; }  // already this plant
+
+    // Remove the square from the previous owner.
+    if (prev) {
+      let sq = (typeof prev.squares === 'string') ? safeJSON(prev.squares) : (prev.squares || []);
+      sq = sq.filter(s => !(s[0] === r && s[1] === c));
+      const prevPlant = state.plantsById.get(prev.plant_id);
+      if (!sq.length) {
+        await pb('DELETE', '/api/collections/plantings/records/' + prev.id);
+        state.plantings = state.plantings.filter(x => x.id !== prev.id);
+      } else {
+        prev.squares = sq;
+        if (prevPlant) recomputeSquarePlanting(prev, prevPlant, grid);
+        const r2 = await pb('PATCH', '/api/collections/plantings/records/' + prev.id, { squares: prev.squares, positions_geojson: prev.positions_geojson, quantity: prev.quantity });
+        const i = state.plantings.findIndex(x => x.id === prev.id); if (i >= 0) state.plantings[i] = r2;
+      }
+    }
+
+    if (plantId) {
+      const plant = state.plantsById.get(plantId);
+      // Find an existing planting for this plant in this bed to extend.
+      let owner = state.plantings.find(pt => pt.garden_object_id === obj.id && pt.plant_id === plantId && (Array.isArray(pt.squares) || typeof pt.squares === 'string'));
+      if (owner) {
+        let sq = (typeof owner.squares === 'string') ? safeJSON(owner.squares) : (owner.squares || []);
+        if (!sq.some(s => s[0] === r && s[1] === c)) sq.push([r, c]);
+        owner.squares = sq;
+        recomputeSquarePlanting(owner, plant, grid);
+        const r3 = await pb('PATCH', '/api/collections/plantings/records/' + owner.id, { squares: owner.squares, positions_geojson: owner.positions_geojson, quantity: owner.quantity });
+        const i = state.plantings.findIndex(x => x.id === owner.id); if (i >= 0) state.plantings[i] = r3;
+      } else {
+        const body = {
+          garden_object_id: obj.id,
+          garden_id: state.currentGarden ? state.currentGarden.id : (obj.garden_id || null),
+          plant_id: plantId,
+          planted_date: new Date().toISOString().slice(0, 10),
+          status: 'planned',
+          squares: [[r, c]],
+          created: new Date().toISOString(),
+        };
+        const tmp = { squares: [[r, c]] };
+        recomputeSquarePlanting(tmp, plant, grid);
+        body.positions_geojson = tmp.positions_geojson;
+        body.quantity = tmp.quantity;
+        const r4 = await pb('POST', '/api/collections/plantings/records', body);
+        state.plantings.push(r4);
+      }
+    }
+    renderPlantings();
+    if (state.selectedObjectId === obj.id) renderSfgEditor(obj);
+  } catch (err) { toast('Plant failed: ' + err.message); }
+  finally { state._sfgBusy = false; }
+}
+
+// Schematic square-foot grid editor in the object panel.
+function renderSfgEditor(obj) {
+  const wrap = document.getElementById('rp-sfg-wrap');
+  const grid = obj ? computeBedGrid(obj) : null;
+  const isBed = obj && ['raised_bed', 'in_ground_bed', 'container', 'perennial_patch'].includes(obj.type);
+  if (!grid || !isBed) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  document.getElementById('rp-grid-toggle').checked = !!state._showGrid;
+  // Owner lookup per square.
+  const ownerAt = {};
+  for (const pt of state.plantings) {
+    if (pt.garden_object_id !== obj.id) continue;
+    const sq = (typeof pt.squares === 'string') ? safeJSON(pt.squares) : pt.squares;
+    if (Array.isArray(sq)) for (const [r, c] of sq) ownerAt[r + ',' + c] = pt.plant_id;
+  }
+  // Build a rows×cols grid; clipped-out cells (non-rect beds) are blanked.
+  const inGrid = {};
+  for (const cell of grid.cells) inGrid[cell.r + ',' + cell.c] = true;
+  let html = `<div style="display:grid;grid-template-columns:repeat(${grid.cols},1fr);gap:2px;max-width:${Math.min(280, grid.cols * 34)}px">`;
+  for (let r = 0; r < grid.rows; r++) {
+    for (let c = 0; c < grid.cols; c++) {
+      if (!inGrid[r + ',' + c]) { html += '<div style="aspect-ratio:1"></div>'; continue; }
+      const pid = ownerAt[r + ',' + c];
+      const plant = pid ? state.plantsById.get(pid) : null;
+      const col = plant ? (plant.color_hex || '#9bbd85') : 'var(--cream)';
+      const per = plant ? plantsPerSquare(plant) : 0;
+      const letter = plant ? (per > 1 ? per : plant.common_name.slice(0, 1)) : '';
+      const title = plant ? escapeHtml(plant.common_name + ' (' + per + '/sq)') : 'empty';
+      html += `<div onclick="sfgCellClick('${obj.id}',${r},${c})" title="${title}" style="aspect-ratio:1;border:1px solid var(--gray-200);border-radius:3px;background:${col};display:flex;align-items:center;justify-content:center;font-size:0.62rem;font-weight:700;color:${plant ? '#fff' : 'var(--gray-400)'};cursor:pointer">${letter}</div>`;
+    }
+  }
+  html += '</div>';
+  document.getElementById('rp-sfg-grid').innerHTML = html;
+  const pending = state.pendingPlant;
+  document.getElementById('rp-sfg-hint').textContent = pending
+    ? `Tap squares to plant ${pending.common_name} (${plantsPerSquare(pending)}/sq). ${grid.cols}×${grid.rows} ft.`
+    : `${grid.cols}×${grid.rows} ft grid. Pick a plant from the catalog, then tap squares. Tap a filled square to clear it.`;
+  document.getElementById('rp-sfg-fill').style.display = pending ? '' : 'none';
+  if (pending) document.getElementById('rp-sfg-fill').textContent = 'Fill bed with ' + pending.common_name;
+}
+
+function sfgCellClick(objId, r, c) {
+  const obj = state.objects.find(o => o.id === objId);
+  if (!obj) return;
+  if (state.pendingPlant) { paintSquare(obj, r, c, state.pendingPlant.id); }
+  else { paintSquare(obj, r, c, null); }  // no pending plant → clear
+}
+
+function toggleBedGrid() {
+  state._showGrid = document.getElementById('rp-grid-toggle').checked;
+  renderBedGrid();
+}
+
+async function fillBedWithPending() {
+  if (!state.pendingPlant || !state.selectedObjectId) return;
+  const obj = state.objects.find(o => o.id === state.selectedObjectId);
+  const grid = computeBedGrid(obj);
+  if (!grid) return;
+  // Fill only currently-empty squares with the pending plant, in one batch.
+  if (state._sfgBusy) return;
+  state._sfgBusy = true;
+  try {
+    const plantId = state.pendingPlant.id;
+    const plant = state.plantsById.get(plantId);
+    const empties = grid.cells.filter(cell => !squareOwner(obj.id, cell.r, cell.c));
+    if (!empties.length) { toast('No empty squares'); return; }
+    let owner = state.plantings.find(pt => pt.garden_object_id === obj.id && pt.plant_id === plantId && (Array.isArray(pt.squares) || typeof pt.squares === 'string'));
+    let sq = owner ? ((typeof owner.squares === 'string') ? safeJSON(owner.squares) : owner.squares.slice()) : [];
+    for (const cell of empties) sq.push([cell.r, cell.c]);
+    const tmp = { squares: sq }; recomputeSquarePlanting(tmp, plant, grid);
+    if (owner) {
+      const r2 = await pb('PATCH', '/api/collections/plantings/records/' + owner.id, { squares: sq, positions_geojson: tmp.positions_geojson, quantity: tmp.quantity });
+      const i = state.plantings.findIndex(x => x.id === owner.id); if (i >= 0) state.plantings[i] = r2;
+    } else {
+      const body = { garden_object_id: obj.id, garden_id: state.currentGarden ? state.currentGarden.id : null, plant_id: plantId, planted_date: new Date().toISOString().slice(0, 10), status: 'planned', squares: sq, positions_geojson: tmp.positions_geojson, quantity: tmp.quantity, created: new Date().toISOString() };
+      const r3 = await pb('POST', '/api/collections/plantings/records', body);
+      state.plantings.push(r3);
+    }
+    renderPlantings(); renderSfgEditor(obj);
+    toast(`Filled ${empties.length} squares with ${plant.common_name}`);
+  } catch (err) { toast('Fill failed: ' + err.message); }
+  finally { state._sfgBusy = false; }
+}
+
+async function clearBedSquares() {
+  if (!state.selectedObjectId) return;
+  const obj = state.objects.find(o => o.id === state.selectedObjectId);
+  const here = state.plantings.filter(pt => pt.garden_object_id === obj.id && (Array.isArray(pt.squares) || typeof pt.squares === 'string'));
+  if (!here.length) { toast('Nothing to clear'); return; }
+  if (!confirm('Clear all square-foot plantings in this bed?')) return;
+  try {
+    for (const pt of here) {
+      await pb('DELETE', '/api/collections/plantings/records/' + pt.id);
+      state.plantings = state.plantings.filter(x => x.id !== pt.id);
+    }
+    renderPlantings(); renderSfgEditor(obj);
+    toast('Cleared');
+  } catch (err) { toast('Clear failed: ' + err.message); }
+}
+
 // Ray-cast point-in-polygon.
 function pointInPolygon(pt, ring) {
   const x = pt[0], y = pt[1];
@@ -3496,28 +3863,89 @@ function pointInPolygon(pt, ring) {
   return inside;
 }
 
-// Render plantings as a circle layer on the map.
+// Grid cache keyed by object id, rebuilt each render (cheap, deterministic).
+function gridForObject(objId, cache) {
+  if (cache.has(objId)) return cache.get(objId);
+  const obj = state.objects.find(o => o.id === objId);
+  const g = obj ? computeBedGrid(obj) : null;
+  cache.set(objId, g);
+  return g;
+}
+
+// Render plantings. SFG plantings (with `squares`) draw as colored square
+// fills + a label; legacy/whole-bed plantings draw as dots.
 function renderPlantings() {
   if (!state.map || !state.map.isStyleLoaded()) return;
-  // Flatten MultiPoint positions into a feature per point.
-  const features = [];
+  const gridCache = new Map();
+  const sqFeatures = [];   // SFG square fills
+  const dotFeatures = [];  // legacy point plantings
   for (const pt of state.plantings) {
-    const plant = state.plants.find(p => p.id === pt.plant_id);
+    const plant = state.plantsById ? state.plantsById.get(pt.plant_id) : state.plants.find(p => p.id === pt.plant_id);
     const color = (plant && plant.color_hex) || '#5a7a5a';
     const plantName = (plant && plant.common_name) || 'Unknown';
-    const label = plantName.slice(0, 1);
-    const geom = typeof pt.positions_geojson === 'string' ? JSON.parse(pt.positions_geojson) : pt.positions_geojson;
-    if (!geom) continue;
-    if (geom.type === 'MultiPoint') {
-      for (const c of geom.coordinates) {
-        features.push({ type: 'Feature', geometry: { type: 'Point', coordinates: c }, properties: { color, label, plant_name: plantName, planting_id: pt.id, planted_date: pt.planted_date || '', quantity: pt.quantity || 0 } });
+    const letter = plantName.slice(0, 1);
+    const squares = (typeof pt.squares === 'string') ? safeJSON(pt.squares) : pt.squares;
+    if (Array.isArray(squares) && squares.length) {
+      const grid = gridForObject(pt.garden_object_id, gridCache);
+      if (grid) {
+        const per = plant ? plantsPerSquare(plant) : 1;
+        for (const [r, c] of squares) {
+          const cell = grid.cells.find(x => x.r === r && x.c === c);
+          if (!cell) continue;
+          sqFeatures.push({ type: 'Feature', geometry: { type: 'Polygon', coordinates: [cell.ring] },
+            properties: { color, label: per > 1 ? String(per) : letter, plant_name: plantName, planting_id: pt.id } });
+        }
+        continue;  // rendered as squares; skip dot fallback
       }
-    } else if (geom.type === 'Point') {
-      features.push({ type: 'Feature', geometry: { type: 'Point', coordinates: geom.coordinates }, properties: { color, label, plant_name: plantName, planting_id: pt.id, planted_date: pt.planted_date || '', quantity: pt.quantity || 0 } });
+    }
+    // Legacy / whole-bed: render the flat MultiPoint as dots.
+    const geom = typeof pt.positions_geojson === 'string' ? safeJSON(pt.positions_geojson) : pt.positions_geojson;
+    if (!geom) continue;
+    const coords = geom.type === 'MultiPoint' ? geom.coordinates : (geom.type === 'Point' ? [geom.coordinates] : []);
+    for (const co of coords) {
+      dotFeatures.push({ type: 'Feature', geometry: { type: 'Point', coordinates: co },
+        properties: { color, label: letter, plant_name: plantName, planting_id: pt.id, planted_date: pt.planted_date || '', quantity: pt.quantity || 0 } });
     }
   }
-  const src = state.map.getSource('plantings');
-  if (src) src.setData({ type: 'FeatureCollection', features });
+  const ps = state.map.getSource('plantings'); if (ps) ps.setData({ type: 'FeatureCollection', features: dotFeatures });
+  const ss = state.map.getSource('sfg'); if (ss) ss.setData({ type: 'FeatureCollection', features: sqFeatures });
+}
+
+function safeJSON(s) { try { return typeof s === 'string' ? JSON.parse(s) : s; } catch (_) { return null; } }
+
+// Grid lines for the currently selected bed (toggleable).
+function renderBedGrid() {
+  if (!state.map || !state.map.getSource) return;
+  const src = state.map.getSource('bedgrid');
+  if (!src) return;
+  if (!state._showGrid || !state.selectedObjectId) { src.setData({ type: 'FeatureCollection', features: [] }); return; }
+  const grid = selectedBedGrid();
+  if (!grid) { src.setData({ type: 'FeatureCollection', features: [] }); return; }
+  const lines = [];
+  const corner = (c, r) => [grid.p0[0] + c * grid.uStep[0] + r * grid.vStep[0], grid.p0[1] + c * grid.uStep[1] + r * grid.vStep[1]];
+  for (let c = 0; c <= grid.cols; c++) lines.push({ type: 'Feature', geometry: { type: 'LineString', coordinates: [corner(c, 0), corner(c, grid.rows)] }, properties: {} });
+  for (let r = 0; r <= grid.rows; r++) lines.push({ type: 'Feature', geometry: { type: 'LineString', coordinates: [corner(0, r), corner(grid.cols, r)] }, properties: {} });
+  src.setData({ type: 'FeatureCollection', features: lines });
+}
+
+// Name + dimension label centered on each polygon bed.
+function renderBedLabels() {
+  if (!state.map || !state.map.getSource) return;
+  const src = state.map.getSource('bedlabels');
+  if (!src) return;
+  const feats = [];
+  for (const o of state.objects) {
+    const geom = typeof o.shape_geojson === 'string' ? safeJSON(o.shape_geojson) : o.shape_geojson;
+    if (!geom || geom.type !== 'Polygon') continue;
+    const ring = geom.coordinates[0];
+    let cx = 0, cy = 0; for (let i = 0; i < ring.length - 1; i++) { cx += ring[i][0]; cy += ring[i][1]; }
+    const n = ring.length - 1; cx /= n; cy /= n;
+    const grid = computeBedGrid(o);
+    const dim = grid ? `${Math.round(grid.uft)}×${Math.round(grid.vft)} ft` : (o.area_sqft ? o.area_sqft.toFixed(0) + ' sqft' : '');
+    const name = o.name || (o.type || '').replace(/_/g, ' ');
+    feats.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [cx, cy] }, properties: { label: name + (dim ? '\n' + dim : '') } });
+  }
+  src.setData({ type: 'FeatureCollection', features: feats });
 }
 
 // Rough area for a Polygon in WGS84 (square feet). Uses spherical excess approximation.
