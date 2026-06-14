@@ -322,18 +322,32 @@ async function pb(method, path, body) {
   return resp.json();
 }
 
+// Page through all records (PocketBase caps perPage at 500).
+async function pbAll(collection, query) {
+  const out = []; let page = 1;
+  for (;;) {
+    const sep = query ? '&' : '';
+    const data = await pb('GET', `/api/collections/${collection}/records?perPage=500&page=${page}${sep}${query || ''}`);
+    const items = data.items || [];
+    out.push(...items);
+    if (items.length < 500 || page >= (data.totalPages || 1)) break;
+    page++;
+  }
+  return out;
+}
+
 async function boot() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   try {
     const [items, txns, gardens] = await Promise.all([
-      pb('GET', '/api/collections/inventory_items/records?perPage=1000&sort=name'),
-      pb('GET', '/api/collections/inventory_transactions/records?perPage=2000&sort=-transaction_date'),
-      pb('GET', '/api/collections/gardens/records?perPage=200&sort=name'),
+      pbAll('inventory_items', 'sort=name'),
+      pbAll('inventory_transactions', 'sort=-transaction_date'),
+      pbAll('gardens', 'sort=name'),
     ]);
-    state.items = items.items || [];
-    state.txns = txns.items || [];
-    state.gardens = gardens.items || [];
+    state.items = items;
+    state.txns = txns;
+    state.gardens = gardens;
   } catch (err) { toast('Load failed: ' + err.message); return; }
   renderAll();
 }
@@ -496,45 +510,58 @@ document.querySelectorAll('.qtx-chip').forEach(c => {
   });
 });
 
+let _txInFlight = false;
 async function saveTxn() {
   const item = state._txItem;
   if (!item) return;
+  if (_txInFlight) return;  // guard against double-submit
   const rawQty = parseFloat(document.getElementById('tx-qty').value);
   // Adjustments may legitimately set the quantity to 0; only +/- transactions
   // require a positive amount.
   if (isNaN(rawQty) || rawQty < 0) { toast('Enter a quantity (0 or more)'); return; }
   if (state._txSign !== '0' && rawQty <= 0) { toast('Quantity required'); return; }
-  let delta = rawQty;
-  if (state._txSign === '-') delta = -rawQty;
-  else if (state._txSign === '0') delta = rawQty - (item.current_qty || 0);  // adjustment = set to value
-  const body = {
-    item_id: item.id,
-    transaction_type: state._txType,
-    transaction_date: document.getElementById('tx-date').value,
-    quantity_delta: delta,
-    garden_id: document.getElementById('tx-garden').value || null,
-    cost_cents: Math.round((parseFloat(document.getElementById('tx-cost').value) || 0) * 100) || null,
-    notes: document.getElementById('tx-notes').value.trim(),
-    created: new Date().toISOString(),
-  };
+  _txInFlight = true;
   try {
+    // For an adjustment ("there are actually N"), compute the delta against the
+    // AUTHORITATIVE current quantity (re-fetched), not the possibly-stale cache,
+    // so the ledger doesn't bake in drift.
+    let delta = rawQty;
+    if (state._txSign === '-') delta = -rawQty;
+    else if (state._txSign === '0') {
+      let trueQty = item.current_qty || 0;
+      try { const fresh = await pb('GET', '/api/collections/inventory_items/records/' + item.id); trueQty = fresh.current_qty || 0; } catch (_) {}
+      delta = rawQty - trueQty;
+    }
+    const body = {
+      item_id: item.id,
+      transaction_type: state._txType,
+      transaction_date: document.getElementById('tx-date').value,
+      quantity_delta: delta,
+      garden_id: document.getElementById('tx-garden').value || null,
+      cost_cents: Math.round((parseFloat(document.getElementById('tx-cost').value) || 0) * 100) || null,
+      notes: document.getElementById('tx-notes').value.trim(),
+      created: new Date().toISOString(),
+    };
     const r = await pb('POST', '/api/collections/inventory_transactions/records', body);
     state.txns.unshift(r);
-    // Update cached current_qty on the item.
-    const newQty = Math.max(0, (item.current_qty || 0) + delta);
-    const updates = { current_qty: newQty };
+    // current_qty + status are now SERVER-DERIVED by the inventory-qty hook.
+    // We only patch the non-derived purchase metadata, then re-fetch the item
+    // to pick up the authoritative quantity.
     if (state._txType === 'purchase') {
-      updates.last_purchased = body.transaction_date;
+      const updates = { last_purchased: body.transaction_date };
       if (body.cost_cents) updates.last_cost_cents = body.cost_cents;
+      try { await pb('PATCH', '/api/collections/inventory_items/records/' + item.id, updates); } catch (_) {}
     }
-    if (newQty === 0 && state._txSign !== '+') updates.status = 'used_up';
-    const updatedItem = await pb('PATCH', '/api/collections/inventory_items/records/' + item.id, updates);
+    let updatedItem;
+    try { updatedItem = await pb('GET', '/api/collections/inventory_items/records/' + item.id); }
+    catch (_) { updatedItem = item; }
     const idx = state.items.findIndex(x => x.id === item.id);
     if (idx >= 0) state.items[idx] = updatedItem;
     closeModal('txn-modal');
     renderAll();
     toast('Transaction saved');
   } catch (err) { toast('Save failed: ' + err.message); }
+  finally { _txInFlight = false; }
 }
 
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }

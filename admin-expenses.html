@@ -275,16 +275,30 @@ async function pb(method, path, body) {
   return resp.json();
 }
 
+// Page through all records (PocketBase caps perPage at 500).
+async function pbAll(collection, query) {
+  const out = []; let page = 1;
+  for (;;) {
+    const sep = query ? '&' : '';
+    const data = await pb('GET', `/api/collections/${collection}/records?perPage=500&page=${page}${sep}${query || ''}`);
+    const items = data.items || [];
+    out.push(...items);
+    if (items.length < 500 || page >= (data.totalPages || 1)) break;
+    page++;
+  }
+  return out;
+}
+
 async function boot() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   try {
     const [ex, gd] = await Promise.all([
-      pb('GET', '/api/collections/gf_expenses/records?perPage=2000&sort=-expense_date'),
-      pb('GET', '/api/collections/gardens/records?perPage=200&sort=name'),
+      pbAll('gf_expenses', 'sort=-expense_date'),
+      pbAll('gardens', 'sort=name'),
     ]);
-    state.expenses = ex.items || [];
-    state.gardens = gd.items || [];
+    state.expenses = ex;
+    state.gardens = gd;
   } catch (err) { toast('Load failed: ' + err.message); return; }
   // Populate category dropdowns.
   const catOpts = CATEGORIES.map(c => `<option value="${c}">${c.replace(/_/g, ' ')}</option>`).join('');
@@ -433,7 +447,7 @@ async function saveExpense() {
         if (body[k] === null || body[k] === undefined) continue;
         fd.append(k, body[k]);
       }
-      for (const f of files) fd.append('receipts', f);
+      for (const f of files) { const small = await downscaleImage(f); fd.append('receipts', small); }
       const url = id ? (PB_URL + '/api/collections/gf_expenses/records/' + id) : (PB_URL + '/api/collections/gf_expenses/records');
       const resp = await fetch(url, {
         method: id ? 'PATCH' : 'POST',
@@ -476,6 +490,31 @@ function toast(msg) {
 }
 function escapeHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Downscale image receipts before upload (PDFs pass through). Cuts a 4 MB
+// phone photo to a few hundred KB so it uploads on weak rural signal.
+async function downscaleImage(file, maxDim, quality) {
+  maxDim = maxDim || 1800; quality = quality || 0.82;
+  if (!file || !/^image\//.test(file.type) || /image\/(gif|svg)/.test(file.type)) return file;
+  try {
+    const bitmap = await createImageBitmap(file).catch(() => null);
+    let w, h, src;
+    if (bitmap) { w = bitmap.width; h = bitmap.height; src = bitmap; }
+    else {
+      src = await new Promise((res, rej) => { const img = new Image(); img.onload = () => res(img); img.onerror = rej; img.src = URL.createObjectURL(file); });
+      w = src.naturalWidth; h = src.naturalHeight;
+    }
+    if (Math.max(w, h) <= maxDim) return file;
+    const scale = maxDim / Math.max(w, h);
+    const cw = Math.round(w * scale), ch = Math.round(h * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = cw; canvas.height = ch;
+    canvas.getContext('2d').drawImage(src, 0, 0, cw, ch);
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', quality));
+    if (!blob) return file;
+    return new File([blob], (file.name || 'receipt').replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' });
+  } catch (_) { return file; }
 }
 
 ['filter-search', 'filter-cat', 'filter-garden', 'filter-period', 'filter-billed'].forEach(id => {

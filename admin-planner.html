@@ -1063,32 +1063,53 @@ async function pb(method, path, body) {
   return resp.json();
 }
 
+// Fetch ALL records across pages. PocketBase hard-caps perPage at 500, so a
+// single perPage=5000 request silently returns only 500 — making forecast /
+// yields / reminders quietly WRONG past 500 rows. This loops until drained.
+async function pbAll(collection, query) {
+  const out = [];
+  let page = 1;
+  const per = 500;
+  for (;;) {
+    const sep = query ? '&' : '';
+    const data = await pb('GET', `/api/collections/${collection}/records?perPage=${per}&page=${page}${sep}${query || ''}`);
+    const items = data.items || [];
+    out.push(...items);
+    if (items.length < per || page >= (data.totalPages || 1)) break;
+    page++;
+  }
+  return out;
+}
+
 // ---------- Boot + routing ----------
 async function boot() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
   try {
     const [gardens, templates, plants, allObj, allPl] = await Promise.all([
-      pb('GET', '/api/collections/gardens/records?perPage=200&sort=-created'),
-      pb('GET', '/api/collections/bed_templates/records?perPage=200&sort=vendor,length_ft'),
-      pb('GET', '/api/collections/plants/records?perPage=500&filter=(in_planner_catalog=true)&sort=common_name'),
-      pb('GET', '/api/collections/garden_objects/records?perPage=2000&fields=id,garden_id'),
-      pb('GET', '/api/collections/plantings/records?perPage=2000&fields=garden_object_id'),
+      pbAll('gardens', 'sort=-created'),
+      pbAll('bed_templates', 'sort=vendor,length_ft'),
+      pbAll('plants', 'filter=' + encodeURIComponent('(in_planner_catalog=true)') + '&sort=common_name'),
+      pbAll('garden_objects', 'fields=id,garden_id'),
+      pbAll('plantings', 'fields=garden_object_id,garden_id'),
     ]);
-    state.gardens = gardens.items || [];
-    state.templates = templates.items || [];
-    state.plants = plants.items || [];
+    state.gardens = gardens;
+    state.templates = templates;
+    state.plants = plants;
+    // Build O(1) index Maps once (was O(N×M) .find() in every render loop).
+    state.plantsById = new Map(plants.map(p => [p.id, p]));
+    state.gardensById = new Map(gardens.map(g => [g.id, g]));
     // Pre-compute per-garden counts for the card view + persist raw lists for cross-garden search.
     state._objectsByGarden = {};
     state._plantingsByGarden = {};
     state._objToGarden = {};       // object_id -> garden_id
-    state._allPlantings = allPl.items || [];   // [{plant_id, garden_object_id, quantity, ...}]
-    for (const o of (allObj.items || [])) {
+    state._allPlantings = allPl;   // [{plant_id, garden_object_id, garden_id, ...}]
+    for (const o of allObj) {
       state._objToGarden[o.id] = o.garden_id;
       state._objectsByGarden[o.garden_id] = (state._objectsByGarden[o.garden_id] || 0) + 1;
     }
     for (const p of state._allPlantings) {
-      const gid = state._objToGarden[p.garden_object_id];
+      const gid = p.garden_id || state._objToGarden[p.garden_object_id];
       if (gid) state._plantingsByGarden[gid] = (state._plantingsByGarden[gid] || 0) + 1;
     }
   } catch (err) {
@@ -1387,9 +1408,11 @@ function renderSeasonCalendar() {
   const year = new Date().getFullYear();
   function frostForThisYear(dateStr) {
     if (!dateStr) return null;
-    const d = new Date(dateStr);
-    if (isNaN(d)) return null;
-    return new Date(year, d.getMonth(), d.getDate());
+    // Parse the stored YYYY-MM-DD as LOCAL date parts, not via new Date(str)
+    // which treats it as UTC midnight and renders a day early in PST.
+    const m = String(dateStr).slice(0, 10).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return null;
+    return new Date(year, parseInt(m[2], 10) - 1, parseInt(m[3], 10));
   }
   const lastFrost = frostForThisYear(g.last_frost_date);
   const firstFrost = frostForThisYear(g.first_frost_date);
@@ -1502,24 +1525,23 @@ async function showDetail(gardenId) {
   await loadObjects(gardenId);
   await loadPlantings(gardenId);
   await loadCareEvents(gardenId);
-  await loadHarvests();
+  await loadHarvests(gardenId);
   initMap();
 }
 
 async function loadCareEvents(gardenId) {
   try {
-    const gid = String(gardenId).replace(/"/g, '\\"');
-    const resp = await pb('GET', `/api/collections/care_events/records?perPage=500&filter=(garden_id="${gid}")&sort=-event_date`);
-    state.careEvents = resp.items || [];
+    const gid = encodeURIComponent(`(garden_id="${String(gardenId).replace(/"/g, '\\"')}")`);
+    state.careEvents = await pbAll('care_events', 'filter=' + gid + '&sort=-event_date');
   } catch (err) { state.careEvents = []; }
 }
 
-async function loadHarvests() {
+async function loadHarvests(gardenId) {
   try {
-    if (!state.plantings.length) { state.harvests = []; return; }
-    const ids = state.plantings.map(p => `planting_id="${p.id}"`).join('||');
-    const resp = await pb('GET', `/api/collections/harvests/records?perPage=500&filter=(${ids})&sort=-harvest_date`);
-    state.harvests = resp.items || [];
+    // harvests carry garden_id directly — one clause, paginated (was an OR over
+    // every planting_id, which 414'd past ~250 plantings).
+    const gid = encodeURIComponent(`(garden_id="${String(gardenId || (state.currentGarden && state.currentGarden.id) || '').replace(/"/g, '\\"')}")`);
+    state.harvests = await pbAll('harvests', 'filter=' + gid + '&sort=-harvest_date');
   } catch (err) { state.harvests = []; }
 }
 
@@ -1542,9 +1564,9 @@ function renderTemplateStrip() {
 
 async function loadObjects(gardenId) {
   try {
-    const gid = String(gardenId).replace(/"/g, '\\"');
-    const resp = await pb('GET', `/api/collections/garden_objects/records?perPage=500&filter=(garden_id="${gid}")`);
-    state.objects = (resp.items || []).map(o => {
+    const gid = encodeURIComponent(`(garden_id="${String(gardenId).replace(/"/g, '\\"')}")`);
+    const rows = await pbAll('garden_objects', 'filter=' + gid);
+    state.objects = rows.map(o => {
       // Normalize shape_geojson to an object once, so vertex-drag / body-move /
       // grid math never have to guard against a stringified shape.
       if (typeof o.shape_geojson === 'string') {
@@ -1560,12 +1582,11 @@ async function loadObjects(gardenId) {
 
 async function loadPlantings(gardenId) {
   try {
-    // Fetch plantings for objects in this garden. We need to know which objects
-    // belong to this garden first; simplest approach: filter by object list.
-    if (!state.objects.length) { state.plantings = []; return; }
-    const ids = state.objects.map(o => `garden_object_id="${o.id}"`).join('||');
-    const resp = await pb('GET', `/api/collections/plantings/records?perPage=500&filter=(${ids})`);
-    state.plantings = (resp.items || []).filter(p => !p.removed_date);
+    // One clause on the denormalized garden_id — no giant OR-string that 414s
+    // past ~200 objects. Paginated so >500 plantings aren't silently dropped.
+    const gid = encodeURIComponent(`(garden_id="${String(gardenId).replace(/"/g, '\\"')}")`);
+    const rows = await pbAll('plantings', 'filter=' + gid);
+    state.plantings = rows.filter(p => !p.removed_date);
   } catch (err) {
     state.plantings = [];
   }
@@ -2281,7 +2302,7 @@ async function saveCareEvent() {
       fd.append('notes', document.getElementById('ce-notes').value.trim());
       fd.append('photo_urls', document.getElementById('ce-photos').value.trim());
       if (!id) fd.append('created', new Date().toISOString());
-      for (const f of files) fd.append('photos', f);
+      for (const f of files) { const small = await downscaleImage(f); fd.append('photos', small); }
       const url = id
         ? (PB_URL + '/api/collections/care_events/records/' + id)
         : (PB_URL + '/api/collections/care_events/records');
@@ -2809,10 +2830,10 @@ async function suggestPlantToBed(plantId, objId) {
 async function openYieldForecast() {
   document.getElementById('fc-content').innerHTML = '<div style="padding:30px;text-align:center;color:var(--gray-600)">Calculating…</div>';
   document.getElementById('forecast-modal').classList.add('open');
-  // We need all plantings cross-garden (state._allPlantings is just {plant_id, garden_object_id}; we need full records with dates).
+  // We need all plantings cross-garden with full records (dates/quantity).
   try {
-    const resp = await pb('GET', '/api/collections/plantings/records?perPage=5000&filter=(status!="harvested"%26%26status!="removed"%26%26status!="died")&sort=planted_date');
-    const plantings = resp.items || [];
+    const filter = encodeURIComponent('(status!="harvested" && status!="removed" && status!="died")');
+    const plantings = await pbAll('plantings', 'filter=' + filter + '&sort=planted_date');
     renderForecast(plantings);
   } catch (err) {
     document.getElementById('fc-content').innerHTML = '<div style="padding:20px;color:var(--red)">Forecast failed: ' + err.message + '</div>';
@@ -2862,16 +2883,19 @@ function renderForecast(plantings) {
     return;
   }
 
-  // Aggregate.
-  // By month (next 12 months from current).
+  // Aggregate by month (next 12 months from current).
+  // IMPORTANT: build keys from LOCAL year-month, never toISOString() (UTC) —
+  // in Pacific time a local 1st-of-month serializes to the prior month in UTC,
+  // dropping harvests into the wrong bucket.
+  const ym = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
   const monthBuckets = [];
   for (let i = 0; i < 12; i++) {
     const d = new Date(year, month + i, 1);
-    monthBuckets.push({ label: d.toLocaleString('en-US', { month: 'short', year: '2-digit' }), key: d.toISOString().slice(0, 7), byUnits: {} });
+    monthBuckets.push({ label: d.toLocaleString('en-US', { month: 'short', year: '2-digit' }), key: ym(d), byUnits: {} });
   }
   let beyondWindow = {};  // harvests expected past the 12-month window
   for (const u of upcoming) {
-    const k = u.date.toISOString().slice(0, 7);
+    const k = ym(u.date);
     const bucket = monthBuckets.find(b => b.key === k);
     if (bucket) {
       bucket.byUnits[u.units] = (bucket.byUnits[u.units] || 0) + u.qty;
@@ -2975,7 +2999,11 @@ function renderForecast(plantings) {
 }
 
 // ---------- Yield analytics ----------
-const YIELD_TO_LBS = { lbs: 1, oz: 1/16, kg: 2.20462, g: 0.00220462, pint: 0.5, quart: 1 };  // approx for "produce-ish"
+// Only TRUE weight units convert to lbs. pint/quart are VOLUME — a quart of
+// raspberries (~1.3 lb) vs green beans (~1.0 lb) vs cherry tomatoes differ, so
+// folding them into a flat lbs total corrupts the by-weight ranking. They're
+// tallied separately by their own unit instead.
+const YIELD_TO_LBS = { lbs: 1, oz: 1/16, kg: 2.20462, g: 0.00220462 };
 
 async function openYieldAnalytics() {
   // Fetch all harvests + all plantings across all gardens.
@@ -2983,11 +3011,11 @@ async function openYieldAnalytics() {
     document.getElementById('ya-content').innerHTML = '<div style="padding:30px;text-align:center;color:var(--gray-600)">Loading…</div>';
     document.getElementById('yield-modal').classList.add('open');
     const [hv, pl] = await Promise.all([
-      pb('GET', '/api/collections/harvests/records?perPage=5000&sort=-harvest_date'),
-      pb('GET', '/api/collections/plantings/records?perPage=5000&fields=id,plant_id,garden_object_id'),
+      pbAll('harvests', 'sort=-harvest_date'),
+      pbAll('plantings', 'fields=id,plant_id,garden_object_id,garden_id'),
     ]);
-    state._allHarvests = hv.items || [];
-    state._allPlantingsFull = pl.items || [];
+    state._allHarvests = hv;
+    state._allPlantingsFull = pl;
     // Build year dropdown.
     const years = new Set();
     for (const h of state._allHarvests) {
@@ -3035,7 +3063,9 @@ function renderYieldAnalytics() {
       if (pt.garden_id) byGardenLbs[pt.garden_id] = (byGardenLbs[pt.garden_id] || 0) + lbs;
       const m = parseInt((h.harvest_date || '').slice(5, 7), 10) - 1;
       if (m >= 0 && m < 12) byMonthLbs[m] += lbs;
-    } else if (u === 'each' || u === 'bunch') {
+    } else if (qty > 0) {
+      // each / bunch / pint / quart — non-weight units, tallied by count so
+      // they're not folded into (and corrupting) the by-weight totals.
       byPlantCount[pt.plant_id] = (byPlantCount[pt.plant_id] || 0) + qty;
     }
   }
@@ -3396,8 +3426,20 @@ async function plantInObject(obj, plant) {
     toast('Bed too small for spacing — try a closer plant.');
     return;
   }
+  // Guard against a double-tap (easy with gloves on a phone) firing two POSTs
+  // before the first resolves → duplicate full-grid plantings. Clear the
+  // pending state SYNCHRONOUSLY, before the await.
+  if (state._plantInFlight) return;
+  state._plantInFlight = true;
+  state.pendingPlant = null;
+  state.tool = 'select';
+  document.querySelectorAll('.plant-row').forEach(r => r.classList.remove('active'));
+  clearPendingBanner();
+  hint('');
+  const localGardenId = state.currentGarden ? state.currentGarden.id : (obj.garden_id || null);
   const body = {
     garden_object_id: obj.id,
+    garden_id: localGardenId,           // denormalized for one-clause queries
     plant_id: plant.id,
     planted_date: new Date().toISOString().slice(0, 10),
     quantity: positions.length,
@@ -3411,12 +3453,7 @@ async function plantInObject(obj, plant) {
     renderPlantings();
     toast(`Planted ${positions.length} ${plant.common_name}`);
   } catch (err) { toast('Plant failed: ' + err.message); }
-  // Clear pending plant selection.
-  state.pendingPlant = null;
-  state.tool = 'select';
-  document.querySelectorAll('.plant-row').forEach(r => r.classList.remove('active'));
-  clearPendingBanner();
-  hint('');
+  finally { state._plantInFlight = false; }
 }
 
 // Generate a grid of [lng,lat] points inside the polygon at spacingCm spacing.
@@ -3774,7 +3811,10 @@ async function saveGarden() {
         if (typeof body[k] === 'object') fd.append(k, JSON.stringify(body[k]));
         else fd.append(k, body[k]);
       }
-      fd.append('photo_backdrop', photoFile);
+      // Backdrop is the drawing surface — keep more detail (2400px) than a
+      // care snapshot. Calibration stores real-world meters, not pixels, so
+      // downscaling doesn't affect scale accuracy.
+      fd.append('photo_backdrop', await downscaleImage(photoFile, 2400, 0.85));
       const url = id ? (PB_URL + '/api/collections/gardens/records/' + id) : (PB_URL + '/api/collections/gardens/records');
       const resp = await fetch(url, {
         method: id ? 'PATCH' : 'POST',
@@ -3831,6 +3871,40 @@ function escapeHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 function parseIds(s) { return String(s || '').split(',').map(x => x.trim()).filter(Boolean); }
+
+// Downscale an image File to a JPEG no larger than maxDim on its long edge.
+// A 4 MB phone photo (~4000px) becomes ~200-400 KB (~1600px) — the difference
+// between a care log that uploads on weak rural cell signal and one that times
+// out and loses the whole entry. Non-images (PDFs) pass through untouched.
+async function downscaleImage(file, maxDim, quality) {
+  maxDim = maxDim || 1600; quality = quality || 0.82;
+  if (!file || !/^image\//.test(file.type) || /image\/(gif|svg)/.test(file.type)) return file;
+  try {
+    const bitmap = await createImageBitmap(file).catch(() => null);
+    let w, h, src;
+    if (bitmap) { w = bitmap.width; h = bitmap.height; src = bitmap; }
+    else {
+      // Fallback via <img> for browsers without createImageBitmap.
+      src = await new Promise((res, rej) => {
+        const img = new Image();
+        img.onload = () => res(img); img.onerror = rej;
+        img.src = URL.createObjectURL(file);
+      });
+      w = src.naturalWidth; h = src.naturalHeight;
+    }
+    if (Math.max(w, h) <= maxDim) return file;  // already small enough
+    const scale = maxDim / Math.max(w, h);
+    const cw = Math.round(w * scale), ch = Math.round(h * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = cw; canvas.height = ch;
+    canvas.getContext('2d').drawImage(src, 0, 0, cw, ch);
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', quality));
+    if (!blob) return file;
+    // Preserve a sensible filename.
+    const name = (file.name || 'photo').replace(/\.[^.]+$/, '') + '.jpg';
+    return new File([blob], name, { type: 'image/jpeg' });
+  } catch (_) { return file; }  // never block a save on downscale failure
+}
 
 // Open care-event photo thumbnails in a new tab via delegation (avoids
 // interpolating filenames into inline onclick handlers — see audit).
