@@ -1098,7 +1098,6 @@ html[data-theme="dark"] .week-day.active { background: var(--sage-light); }
 </optgroup>
         <optgroup label="Other">
           <option value="cash">Cash</option>
-          <option value="venmo">Venmo</option>
           <option value="other">Other</option>
 </optgroup>
 </select>
@@ -1327,15 +1326,13 @@ html[data-theme="dark"] .week-day.active { background: var(--sage-light); }
 <div class="modal-overlay" id="modal-log-payment">
   <div class="modal">
     <h2>Log payment</h2>
-    <p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:12px;">For cash / check / Venmo / etc. not tied to a booking. Booking payments use the existing "Booking payment" flow from the booking card.</p>
+    <p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:12px;">For cash / check / etc. not tied to a booking. Booking payments use the existing "Booking payment" flow from the booking card.</p>
     <div class="form-group">
       <label>Method</label>
       <select id="lp-processor">
         <option value="cash">Cash</option>
         <option value="check">Check</option>
-        <option value="venmo">Venmo</option>
-        <option value="zelle">Zelle</option>
-        <option value="crypto">Crypto</option>
+        <option value="card">Card</option>
         <option value="other">Other</option>
 </select>
 </div>
@@ -8013,7 +8010,11 @@ async function loadBank() {
       expenseId: r.expense_id || '',
       categorizedAt: r.categorized_at || '',
       notes: r.notes || '',
-    }));
+    }))
+    // Business-only Bank tab: drop personal-account transactions (personal
+    // accounts are named "Basic Checking"/"Membership Savings"; business ones
+    // are prefixed "Business …"). Keeps unknown/blank account names visible.
+    .filter(t => !/^(basic checking|membership savings)\b/i.test((t.accountName || '').trim()));
   } catch (err) {
     console.warn('loadBank failed:', err);
     _bankTransactions = [];
@@ -10896,8 +10897,6 @@ function sendInvoice(bookingId) {
     `  Date:     ${b.date}\n` +
     `  Amount:   $${price.toFixed(0)}\n\n` +
     `Payment options:\n` +
-    `  Venmo:   @gardenfaery\n` +
-    `  Zelle:   taya@gardenfaery.love\n` +
     `  Check:   payable to Taya (address on request)\n` +
     `  Cash:    next visit is fine too\n\n` +
     `Just reply to this email if anything looks off or you want to reschedule something.\n\n` +
