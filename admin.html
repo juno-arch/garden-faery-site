@@ -4759,6 +4759,48 @@ function openInvoiceCreateModal(prefill) {
 let _invDraftItems = [];
 let _invDraftState = {};
 
+// Build a "pick existing client" dropdown from past bookings, so the user
+// selects a known client (autofilling email + address) instead of retyping
+// and risking a typo that splits records or sends to a wrong email.
+function invClientPickerHtml() {
+  const map = {};
+  getBookings().forEach(b => {
+    const name = (b.clientName || '').trim();
+    if (!name) return;
+    const key = ((b.clientEmail || name) + '').toLowerCase().trim();
+    if (!map[key]) {
+      map[key] = { name: name, email: (b.clientEmail || '').trim(), address: (b.clientAddress || '').trim() };
+    } else {
+      if (!map[key].email && b.clientEmail) map[key].email = (b.clientEmail || '').trim();
+      if (!map[key].address && b.clientAddress) map[key].address = (b.clientAddress || '').trim();
+    }
+  });
+  const list = Object.values(map).sort((a, b) => a.name.localeCompare(b.name));
+  if (!list.length) return '';
+  const opts = list.map(c =>
+    '<option value="" data-name="' + escAttr(c.name) + '" data-email="' + escAttr(c.email) + '" data-addr="' + escAttr(c.address) + '">' +
+      escHtml(c.name) + (c.email ? ' — ' + escHtml(c.email) : '') +
+    '</option>'
+  ).join('');
+  return '<div style="grid-column:span 2;">' +
+    '<label style="font-size:0.8rem;opacity:0.7;display:block;">Pick an existing client (or just type a new one below)</label>' +
+    '<select onchange="invPickClient(this)" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;background:var(--white);">' +
+      '<option value="">— choose a client —</option>' + opts +
+    '</select></div>';
+}
+
+function invPickClient(sel) {
+  const opt = sel.options[sel.selectedIndex];
+  if (!opt || !opt.getAttribute('data-name')) return;
+  const nm = document.getElementById('inv-name');
+  const em = document.getElementById('inv-email');
+  const ad = document.getElementById('inv-addr');
+  if (nm) nm.value = opt.getAttribute('data-name') || '';
+  if (em) em.value = opt.getAttribute('data-email') || '';
+  const addr = opt.getAttribute('data-addr') || '';
+  if (ad && addr) ad.value = addr;
+}
+
 function showInvoiceModal() {
   const s = _invDraftState;
   let modal = document.getElementById('inv-modal');
@@ -4794,6 +4836,7 @@ function showInvoiceModal() {
         '<button onclick="closeInvoiceModal()" style="background:transparent;border:none;cursor:pointer;font-size:1.4rem;">&times;</button>' +
       '</div>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">' +
+        invClientPickerHtml() +
         '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Client name</label><input type="text" id="inv-name" value="' + escAttr(s.client_name) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
         '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Client email</label><input type="email" id="inv-email" value="' + escAttr(s.client_email) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
         '<div style="grid-column:span 2;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Address (optional)</label><input type="text" id="inv-addr" value="' + escAttr(s.client_address) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
