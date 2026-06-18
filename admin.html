@@ -5294,8 +5294,16 @@ async function saveInvoice(asSent) {
 async function openInvoiceEditModal(id) {
   const inv = _invoices.find(x => x.id === id);
   if (!inv) return;
+  // line_items is a PocketBase `json` field, so the API returns it already
+  // parsed as an array. Older code JSON.parse()'d it, which throws on an
+  // array and silently blanked the draft to zero. Handle array or string.
   let items = [];
-  try { items = JSON.parse(inv.line_items || '[]'); } catch (_) {}
+  if (Array.isArray(inv.line_items)) {
+    items = inv.line_items;
+  } else if (typeof inv.line_items === 'string' && inv.line_items.trim()) {
+    try { items = JSON.parse(inv.line_items); } catch (_) {}
+  }
+  if (!Array.isArray(items) || !items.length) items = [{description: '', qty: 1, unit_cents: 0}];
   openInvoiceCreateModal({
     id: inv.id,
     client_name: inv.client_name,
