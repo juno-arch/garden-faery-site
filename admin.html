@@ -5366,8 +5366,40 @@ async function openInvoiceEditModal(id) {
   });
 }
 
+// Reusable tap-to-pick modal — replaces free-text prompt() for fixed choices
+// so there are no typos. Returns the chosen value, or null if cancelled.
+function pickOption(title, options, current) {
+  return new Promise((resolve) => {
+    const opts = options.map(o => (typeof o === 'string' ? { label: o, value: o } : o));
+    const existing = document.getElementById('pick-option-modal');
+    if (existing) existing.remove();
+    const modal = document.createElement('div');
+    modal.id = 'pick-option-modal';
+    modal.className = 'modal-overlay';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:10060;display:flex;align-items:center;justify-content:center;padding:20px;';
+    const btns = opts.map(o =>
+      '<button class="po-btn" data-val="' + escAttr(o.value) + '" style="display:block;width:100%;text-align:left;padding:13px 16px;margin:6px 0;border:1px solid var(--gray-200);border-radius:8px;background:' + (o.value === current ? 'var(--spring-sage)' : 'var(--white)') + ';font-size:1rem;cursor:pointer;color:var(--plum);">' + escHtml(o.label) + '</button>'
+    ).join('');
+    modal.innerHTML = '<div style="background:var(--white);border-radius:12px;width:100%;max-width:360px;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,0.2);">' +
+      '<h3 style="margin:0 0 12px;font-size:1.05rem;color:var(--plum);">' + escHtml(title) + '</h3>' + btns +
+      '<button class="po-cancel" style="display:block;width:100%;padding:11px;margin-top:8px;border:none;background:transparent;color:var(--gray-600);cursor:pointer;font-size:0.9rem;">Cancel</button>' +
+      '</div>';
+    document.body.appendChild(modal);
+    modal.querySelectorAll('.po-btn').forEach(b => { b.onclick = () => { const v = b.getAttribute('data-val'); modal.remove(); resolve(v); }; });
+    modal.querySelector('.po-cancel').onclick = () => { modal.remove(); resolve(null); };
+    modal.onclick = (e) => { if (e.target === modal) { modal.remove(); resolve(null); } };
+  });
+}
+
+const PAYMENT_METHOD_OPTIONS = [
+  { label: 'Cash', value: 'cash' },
+  { label: 'Check', value: 'check' },
+  { label: 'Card', value: 'card' },
+  { label: 'Other', value: 'other' },
+];
+
 async function invoiceMarkPaid(id) {
-  const method = prompt('Payment method (cash / check / other / card):', 'cash');
+  const method = await pickOption('How was this invoice paid?', PAYMENT_METHOD_OPTIONS, 'cash');
   if (!method) return;
   const ref = prompt('Reference (check #, memo, etc.) — optional:', '') || '';
   try {
@@ -6135,19 +6167,48 @@ async function deleteTodo(id) {
 }
 
 // ----- Modals: compliance item edit + todo edit -----
+const ENTITY_OPTIONS = [
+  { label: 'FYHF — farm LLC', value: 'FYHF' },
+  { label: 'WFS — S-Corp', value: 'WFS' },
+  { label: 'Personal', value: 'PERSONAL' },
+  { label: 'Both', value: 'BOTH' },
+];
+const COMPLIANCE_CATEGORY_OPTIONS = [
+  { label: 'Federal tax', value: 'federal_tax' },
+  { label: 'State tax', value: 'state_tax' },
+  { label: 'State registration', value: 'state_registration' },
+  { label: 'Local license', value: 'local_license' },
+  { label: 'Insurance', value: 'insurance' },
+  { label: 'Employment', value: 'employment' },
+  { label: 'FSA loan', value: 'fsa_loan' },
+  { label: 'Other', value: 'other' },
+];
+const FREQUENCY_OPTIONS = [
+  { label: 'One-time', value: 'once' },
+  { label: 'Monthly', value: 'monthly' },
+  { label: 'Quarterly', value: 'quarterly' },
+  { label: 'Semi-annual', value: 'semi_annual' },
+  { label: 'Annual', value: 'annual' },
+  { label: 'Biennial', value: 'biennial' },
+  { label: 'Every 5 years', value: 'every_5_years' },
+];
+const PRIORITY_OPTIONS = [
+  { label: 'Low', value: 'low' },
+  { label: 'Medium', value: 'medium' },
+  { label: 'High', value: 'high' },
+];
+
 let _editingComplianceId = null;
-function openComplianceItemModal(id) {
+async function openComplianceItemModal(id) {
   _editingComplianceId = id || null;
   const item = id ? _complianceItems.find(x => x.id === id) : {};
-  // Simple modal — reuse the existing modal-overlay pattern? Or prompt-based?
-  // For speed and minimum code, use a sequence of prompts.
   const name = prompt('Item name:', item.name || '');
   if (!name) return;
-  const entity = prompt('Entity (FYHF / WFS / PERSONAL / BOTH):', item.entity || 'FYHF');
+  const entity = await pickOption('Entity', ENTITY_OPTIONS, item.entity || 'FYHF');
   if (!entity) return;
-  const category = prompt('Category (federal_tax / state_tax / state_registration / local_license / insurance / employment / fsa_loan / other):', item.category || 'other');
+  const category = await pickOption('Category', COMPLIANCE_CATEGORY_OPTIONS, item.category || 'other');
   if (!category) return;
-  const frequency = prompt('Frequency (once / monthly / quarterly / semi_annual / annual / biennial / every_5_years):', item.frequency || 'annual');
+  const frequency = await pickOption('Frequency', FREQUENCY_OPTIONS, item.frequency || 'annual');
   if (!frequency) return;
   const nextDue = prompt('Next due date (YYYY-MM-DD):', item.nextDue || '');
   if (!nextDue || !/^\d{4}-\d{2}-\d{2}$/.test(nextDue)) { alert('Invalid date'); return; }
@@ -6173,14 +6234,14 @@ function openComplianceItemModal(id) {
 }
 
 let _editingTodoId = null;
-function openTodoModal(id) {
+async function openTodoModal(id) {
   _editingTodoId = id || null;
   const t = id ? _todos.find(x => x.id === id) : {};
   const title = prompt('Todo title:', t.title || '');
   if (!title) return;
   const description = prompt('Description (optional):', t.description || '') || '';
-  const priority = prompt('Priority (low / medium / high):', t.priority || 'medium') || 'medium';
-  const entity = prompt('Entity (FYHF / WFS / PERSONAL / BOTH / OTHER) or blank:', t.entity || '') || '';
+  const priority = (await pickOption('Priority', PRIORITY_OPTIONS, t.priority || 'medium')) || 'medium';
+  const entity = (await pickOption('Entity (optional)', ENTITY_OPTIONS.concat([{ label: '— none —', value: '' }]), t.entity || '')) || '';
   const dueDate = prompt('Due date YYYY-MM-DD (optional):', t.dueDate || '') || '';
 
   const payload = { title, description, priority, status: t.status || 'open' };
@@ -10807,7 +10868,7 @@ async function deleteCurrentBooking() {
 async function quickMarkPaid(bookingId) {
   const b = getBookings().find(x => x.id === bookingId);
   if (!b) return;
-  const method = prompt('Payment method? (cash, check, card, venmo, zelle, other)', b.paymentMethod || 'cash');
+  const method = await pickOption('How was this paid?', PAYMENT_METHOD_OPTIONS, b.paymentMethod || 'cash');
   if (method === null) return;
   const today = formatDate(new Date());
   try {
