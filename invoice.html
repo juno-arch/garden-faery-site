@@ -113,7 +113,6 @@ table.items td.r, table.items th.r { text-align: right; }
 </head>
 <body>
 <div class="wrap">
-  <div class="brand"><a href="/">Garden Faery</a></div>
   <div id="root"><div class="card"><p class="muted">Loading invoice…</p></div></div>
 </div>
 
@@ -150,11 +149,14 @@ function render(inv) {
   const isPaid = status === 'paid';
   const isVoid = status === 'void';
   const canPay = !isPaid && !isVoid && balance > 0;
+  const cardTotal = Math.round(balance * 1.03);
+  const cardFee = cardTotal - balance;
 
   document.getElementById('root').innerHTML =
     (isPaid ? '<div class="paid-banner">Paid in full on ' + (inv.paid_at || '') + '. Thank you!</div>' : '') +
     (isVoid ? '<div class="paid-banner" style="background:#e8e8e8;color:#666;">This invoice has been voided.</div>' : '') +
     '<div class="card">' +
+      '<div style="text-align:center;margin-bottom:18px;"><img src="invoice-logo.png" alt="Garden Faery" style="height:64px;width:auto;"></div>' +
       '<div class="head">' +
         '<div>' +
           '<h1>Invoice ' + esc(inv.number) + '</h1>' +
@@ -195,37 +197,40 @@ function render(inv) {
       (inv.terms ? '<div class="notes" style="font-style:italic;">Terms: ' + esc(inv.terms) + '</div>' : '') +
 
       '<div class="actions">' +
-        (canPay ? '<button class="btn" onclick="payInvoice()" id="pay-btn">Pay ' + fmt(balance) + '</button>' : '') +
+        (canPay ? '<button class="btn" onclick="payInvoice(\'bank\')" id="pay-bank">Pay by bank — ' + fmt(balance) + '</button>' : '') +
+        (canPay ? '<button class="btn secondary" onclick="payInvoice(\'card\')" id="pay-card">Pay by card — ' + fmt(cardTotal) + '</button>' : '') +
         '<button class="btn secondary" onclick="window.print()">Print / Save PDF</button>' +
       '</div>' +
       (canPay
         ? '<p style="margin-top:14px;font-size:0.82rem;color:#666;line-height:1.45;text-align:center;">' +
-          'On the checkout page you can choose <strong>Card</strong> or <strong>Bank account (ACH)</strong>. ' +
-          'Paying by bank saves Garden Faery about 3% in processing fees and goes to the same place.' +
+          'Pay by <strong>bank (ACH), cash, or check</strong> for <strong>no fee</strong>. ' +
+          'Card payments include a <strong>3% processing fee</strong> (+' + fmt(cardFee) + '), for a card total of <strong>' + fmt(cardTotal) + '</strong>.' +
           '</p>'
         : '') +
     '</div>' +
     '<div class="foot">Questions? Reply to your invoice email or write to <a href="mailto:hello@gardenfaery.love">hello@gardenfaery.love</a>.</div>';
 }
 
-async function payInvoice() {
-  const btn = document.getElementById('pay-btn');
-  btn.disabled = true; btn.textContent = 'Opening checkout…';
+async function payInvoice(method) {
+  method = method === 'card' ? 'card' : 'bank';
+  const btn = document.getElementById(method === 'card' ? 'pay-card' : 'pay-bank');
+  const orig = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Opening checkout…'; }
   try {
     const res = await fetch(PB_URL + '/api/invoice/pay', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: TOKEN }),
+      body: JSON.stringify({ token: TOKEN, method: method }),
     });
     const data = await res.json();
     if (!data.ok || !data.url) {
-      btn.disabled = false; btn.textContent = 'Pay';
+      if (btn) { btn.disabled = false; btn.textContent = orig; }
       alert('Could not start checkout: ' + (data.error || 'unknown'));
       return;
     }
     location.href = data.url;
   } catch (err) {
-    btn.disabled = false; btn.textContent = 'Pay';
+    if (btn) { btn.disabled = false; btn.textContent = orig; }
     alert('Network error: ' + err.message);
   }
 }
