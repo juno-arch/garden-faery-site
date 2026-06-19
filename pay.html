@@ -360,7 +360,7 @@ function renderList(items) {
       '</div>' +
       '<div class="booking-pay">' +
         '<div class="booking-amount">$' + (Number(b.price) || 0).toFixed(2) + '</div>' +
-        '<button onclick="payBooking(\'' + b.booking_id + '\')">Pay</button>' +
+        '<button class="pay-btn" data-bid="' + escapeHtml(b.booking_id) + '">Pay</button>' +
       '</div>' +
     '</div>';
   });
@@ -369,6 +369,13 @@ function renderList(items) {
   }
   host.innerHTML = html;
 }
+
+// Delegated handler for Pay buttons — keeps the booking id out of an inline
+// onclick string (which could otherwise execute injected code from a bad id).
+document.addEventListener('click', function (e) {
+  const btn = e.target && e.target.closest ? e.target.closest('.pay-btn[data-bid]') : null;
+  if (btn) payBooking(btn.getAttribute('data-bid'));
+});
 
 async function payBooking(bookingId) {
   if (!bookingId) return;

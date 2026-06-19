@@ -3785,7 +3785,7 @@ async function saveEmailTemplate(recordId, subject, body) {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + PB_TOKEN ? 'Bearer ' + PB_TOKEN : '',
+      'Authorization': PB_TOKEN ? 'Bearer ' + PB_TOKEN : '',
     },
     body: JSON.stringify({ subject: subject, body: body }),
   });
