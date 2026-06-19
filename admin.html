@@ -1556,6 +1556,7 @@ const DB = {
       clientEmail: r.client_email,
       clientPhone: r.client_phone,
       clientAddress: r.client_address,
+      invoiceId: r.invoice_id,
       gardenNotes: r.garden_notes,
       status: r.status,
       bookedBy: r.booked_by,
@@ -1653,6 +1654,7 @@ const DB = {
     if (updates.clientEmail !== undefined) pbUpdates.client_email = updates.clientEmail;
     if (updates.clientPhone !== undefined) pbUpdates.client_phone = updates.clientPhone;
     if (updates.clientAddress !== undefined) pbUpdates.client_address = updates.clientAddress;
+    if (updates.invoiceId !== undefined) pbUpdates.invoice_id = updates.invoiceId;
     return this._pb('PATCH', 'bookings/records/' + id, pbUpdates);
   },
 
@@ -5172,6 +5174,11 @@ function addSelectedVisitsToInvoice() {
     ? _invDraftState.internal_notes + '\n' + note
     : note;
 
+  // Authoritative link: remember which bookings this invoice covers so they get
+  // stamped with invoice_id on save (Ready-to-bill no longer relies on the
+  // editable "Covers visits" note as the source of truth).
+  _invDraftState._coveredBookingIds = picked.map(b => b.id);
+
   closeInvoiceVisitPicker();
   showInvoiceModal();
 }
@@ -5189,7 +5196,9 @@ function readyToBillData() {
   // Visits already covered by a NON-VOID invoice (so we don't re-nag).
   const coveredIds = {};     // booking id -> true
   const coveredDates = {};   // "clientKey|YYYY-MM-DD" -> true
+  const invStatusById = {};  // invoice id -> status (authoritative invoice_id link)
   invoices.forEach(inv => {
+    invStatusById[inv.id] = inv.status || '';
     if ((inv.status || '') === 'void') return;
     if (inv.booking_id) coveredIds[inv.booking_id] = true;
     const ck = String(inv.client_email || inv.client_name || '').toLowerCase().trim();
@@ -5213,6 +5222,8 @@ function readyToBillData() {
   candidates.forEach(b => {
     const ck = String(b.clientEmail || b.clientName || '').toLowerCase().trim();
     const dateKey = ck + '|' + (b.date || '');
+    // Authoritative: a booking stamped with a non-void invoice_id is billed.
+    if (b.invoiceId && invStatusById[b.invoiceId] !== 'void') return;
     if (coveredIds[b.id] || coveredDates[dateKey] || dismissed[dateKey]) return;
     let g = groups[ck];
     if (!g) g = groups[ck] = { _key: ck, clientName: b.clientName || 'Client', clientEmail: b.clientEmail || '', clientAddress: b.clientAddress || '', visits: [], total: 0 };
@@ -5330,6 +5341,20 @@ async function saveInvoice(asSent) {
     const data = await res.json();
     if (!data.ok) { alert('Save failed: ' + (data.error || res.status)); return; }
     const invoiceId = _invDraftState.id || data.id;
+
+    // Stamp every booking this invoice covers with its invoice_id, so
+    // Ready-to-bill knows they're billed from an authoritative field rather
+    // than from the editable "Covers visits" note.
+    const _coveredIds = (_invDraftState && Array.isArray(_invDraftState._coveredBookingIds)) ? _invDraftState._coveredBookingIds : [];
+    if (invoiceId && _coveredIds.length) {
+      for (const _bid of _coveredIds) {
+        try {
+          await DB.updateBooking(_bid, { invoiceId: invoiceId });
+          const _cb = (typeof _cachedBookings !== 'undefined' && _cachedBookings) ? _cachedBookings.find(x => x.id === _bid) : null;
+          if (_cb) _cb.invoiceId = invoiceId;
+        } catch (err) { console.warn('[invoice] could not stamp booking ' + _bid + ':', err && err.message); }
+      }
+    }
 
     // Record redemption (idempotent on coupon_id+invoice_id). Coupon fields
     // are already persisted by the create/update call.
