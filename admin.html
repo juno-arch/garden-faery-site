@@ -3487,7 +3487,10 @@ function exportAccountantCsv() {
   const net = gross - totalExp;
 
   const esc = v => {
-    const s = String(v ?? '');
+    let s = String(v ?? '');
+    // CSV formula-injection guard: prefix a quote so spreadsheets treat a
+    // leading = + - @ (or tab/CR) as text, not a formula.
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
     return (s.includes(',') || s.includes('"') || s.includes('\n')) ? '"' + s.replace(/"/g,'""') + '"' : s;
   };
 
@@ -4764,7 +4767,12 @@ let _invDraftState = {};
 // and risking a typo that splits records or sends to a wrong email.
 function invClientPickerHtml() {
   const map = {};
-  getBookings().forEach(b => {
+  // Process most-recent bookings first so a client's current email/address
+  // wins; older bookings only backfill fields the newest one left blank.
+  getBookings()
+    .slice()
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+    .forEach(b => {
     const name = (b.clientName || '').trim();
     if (!name) return;
     const key = ((b.clientEmail || name) + '').toLowerCase().trim();
@@ -4909,12 +4917,28 @@ function invoiceTotalsRowsHtml(subtotal, discount, tax, total, taxPct) {
     '<div style="display:flex;justify-content:space-between;font-weight:600;font-size:1.05rem;border-top:1px solid #ddd;padding-top:6px;margin-top:6px;"><span>Total</span><span>$' + (total/100).toFixed(2) + '</span></div>';
 }
 
+// When line items change while a coupon is applied, the server-validated
+// discount may no longer be correct. We don't silently recompute it — instead
+// flag the coupon note so the user knows to re-apply (or clear) it.
+function _flagCouponStaleAfterLineChange() {
+  if (!_invDraftState || !_invDraftState.coupon_code) return;
+  _invDraftState.coupon_message = 'Line items changed — re-apply the coupon to revalidate the discount.';
+  _invDraftState.coupon_error = true;
+  const msg = document.getElementById('inv-coupon-msg');
+  if (msg) {
+    msg.style.opacity = '';
+    msg.style.color = 'var(--red)';
+    msg.textContent = _invDraftState.coupon_message;
+  }
+}
+
 function invItemSet(i, key, val) {
   if (key === 'qty' || key === 'unit_cents') {
     _invDraftItems[i][key] = Number(val) || 0;
   } else {
     _invDraftItems[i][key] = val;
   }
+  _flagCouponStaleAfterLineChange();
   // Update line-total cell for this row (preserves input focus).
   const rows = document.querySelectorAll('#inv-modal tbody tr');
   if (rows[i]) {
@@ -4936,6 +4960,8 @@ async function applyCouponToInvoiceDraft() {
   if (!code) return;
   const subtotal = _invDraftItems.reduce((s, it) => s + ((+it.qty||0) * (+it.unit_cents||0)), 0);
   // Validate against pre-discount subtotal (server caps anyway).
+  const _couponCtl = new AbortController();
+  const _couponTimer = setTimeout(() => _couponCtl.abort(), 10000);
   try {
     const res = await fetch(PB_URL + '/api/coupon/validate', {
       method: 'POST',
@@ -4946,7 +4972,9 @@ async function applyCouponToInvoiceDraft() {
         client_email: _invDraftState.client_email || '',
         context: 'invoice',
       }),
+      signal: _couponCtl.signal,
     });
+    clearTimeout(_couponTimer);
     const data = await res.json();
     if (!data.ok) {
       _invDraftState.coupon_message = data.message || data.error || 'Code not valid';
@@ -4964,7 +4992,10 @@ async function applyCouponToInvoiceDraft() {
     _invDraftState.coupon_error = false;
     showInvoiceModal();
   } catch (err) {
-    _invDraftState.coupon_message = 'Network error: ' + err.message;
+    clearTimeout(_couponTimer);
+    _invDraftState.coupon_message = (err && err.name === 'AbortError')
+      ? 'Coupon check timed out — please try again.'
+      : 'Network error: ' + (err && err.message ? err.message : 'unknown');
     _invDraftState.coupon_error = true;
     showInvoiceModal();
   }
@@ -4981,11 +5012,13 @@ function clearCouponFromInvoiceDraft() {
 
 function invItemAdd() {
   _invDraftItems.push({description: '', qty: 1, unit_cents: 0});
+  _flagCouponStaleAfterLineChange();
   showInvoiceModal();
 }
 function invItemRemove(i) {
   if (_invDraftItems.length <= 1) return;
   _invDraftItems.splice(i, 1);
+  _flagCouponStaleAfterLineChange();
   showInvoiceModal();
 }
 
@@ -5344,7 +5377,14 @@ async function openInvoiceEditModal(id) {
   if (Array.isArray(inv.line_items)) {
     items = inv.line_items;
   } else if (typeof inv.line_items === 'string' && inv.line_items.trim()) {
-    try { items = JSON.parse(inv.line_items); } catch (_) {}
+    try {
+      items = JSON.parse(inv.line_items);
+    } catch (_) {
+      // Stored line items were non-empty but unparseable. Opening blank would
+      // let a save overwrite the original data, so bail out instead.
+      alert("Couldn't read saved line items — edit cancelled to avoid overwriting.");
+      return;
+    }
   }
   if (!Array.isArray(items) || !items.length) items = [{description: '', qty: 1, unit_cents: 0}];
   openInvoiceCreateModal({
@@ -5445,7 +5485,12 @@ async function invoiceVoid(id) {
 }
 
 function invoicePublicUrl(token) {
-  return 'https://gardenfaery.love/invoice.html?t=' + token;
+  // Derive the base from where the admin app is served so links don't break if
+  // the domain changes. Fall back to the production host for file:// contexts.
+  const origin = (window.location && window.location.origin && /^https?:/.test(window.location.origin))
+    ? window.location.origin
+    : 'https://gardenfaery.love';
+  return origin + '/invoice.html?t=' + token;
 }
 function invoiceCopyLink(token) {
   const url = invoicePublicUrl(token);
@@ -6104,7 +6149,7 @@ async function download1099Csv(year) {
     if (!data.ok) { alert('Roster fetch failed.'); return; }
     const rows = [['Recipient', 'Total $', 'Tx count', 'Source', 'Over $600']];
     (data.recipients || []).forEach(r => {
-      rows.push([r.name, (r.total_cents/100).toFixed(2), r.count, r.source, r.over_threshold ? 'yes' : 'no']);
+      rows.push([_csvSafeCell(r.name), (r.total_cents/100).toFixed(2), r.count, r.source, r.over_threshold ? 'yes' : 'no']);
     });
     const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -6597,6 +6642,7 @@ function expenseCategoryBreakdown(e) {
 // ============================================================================
 
 let _lineMemoryCache = null;   // key -> {category, id, hits}
+let _lineMemoryWriteChain = null;  // serializes recordLineItemMemory writes
 let _lineMemoryLoaded = false;
 
 function lineKey(vendor, desc) {
@@ -6654,10 +6700,20 @@ async function applyLineMemory(vendor, items) {
 function recordLineItemMemory(vendor, items) {
   if (!Array.isArray(items) || !items.length) return;
   if (!_lineMemoryCache) _lineMemoryCache = {};
+  // Serialize against a rapid double-save: a second invocation that reaches
+  // the "new entry" create branch before the first has POSTed would write a
+  // duplicate line_memory record. Chain runs so they never overlap.
+  _lineMemoryWriteChain = (_lineMemoryWriteChain || Promise.resolve())
+    .then(() => _recordLineItemMemoryNow(vendor, items))
+    .catch(() => {});
+  return _lineMemoryWriteChain;
+}
+
+async function _recordLineItemMemoryNow(vendor, items) {
   const now = new Date().toISOString();
-  items.forEach(it => {
+  for (const it of items) {
     const k = lineKey(vendor, it.description);
-    if (!k || !it.category) return;
+    if (!k || !it.category) continue;
     const existing = _lineMemoryCache[k];
     if (existing && existing.category === it.category) {
       // Same mapping — just bump the hit counter (best effort, non-blocking).
@@ -6686,17 +6742,22 @@ function recordLineItemMemory(vendor, items) {
         category: it.category,
         hits: 1
       };
-      fetch(PB_URL + '/api/collections/expense_line_memory/records', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
-        body: JSON.stringify(body)
-      }).then(r => r.ok ? r.json() : null).then(row => {
-        if (row && row.id) _lineMemoryCache[k] = { id: row.id, category: it.category, hits: 1 };
-      }).catch(() => {});
-      // Placeholder so duplicate saves in the same session don't create duplicates.
+      // Placeholder set synchronously so duplicate descriptions in this same
+      // run don't each create a record.
       _lineMemoryCache[k] = { id: '__pending__', category: it.category, hits: 1 };
+      // Await the create so the next chained call sees the real id (not the
+      // placeholder) and can't fire a second POST for the same key.
+      try {
+        const r = await fetch(PB_URL + '/api/collections/expense_line_memory/records', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
+          body: JSON.stringify(body)
+        });
+        const row = r.ok ? await r.json() : null;
+        if (row && row.id) _lineMemoryCache[k] = { id: row.id, category: it.category, hits: 1 };
+      } catch (_) {}
     }
-  });
+  }
 }
 
 // Friendly display label for a stored card value + optional last-4.
@@ -7277,8 +7338,10 @@ function recomputeExpenseAmountFromLines() {
   // If we have the original receipt's tax + subtotal (from a scan), prorate
   // the tax onto the business portion. Otherwise just sum business lines.
   if (_receiptMeta.tax > 0 && _receiptMeta.originalSubtotal > 0 && fullSubtotal > 0) {
-    const taxShare = (bizSubtotal / fullSubtotal) * _receiptMeta.tax;
-    newAmount = bizSubtotal + taxShare;
+    // Round the prorated tax share to cents before combining so the total
+    // doesn't drift by a fraction of a cent.
+    const taxShare = Math.round((bizSubtotal / fullSubtotal) * _receiptMeta.tax * 100) / 100;
+    newAmount = Math.round((bizSubtotal + taxShare) * 100) / 100;
   }
   // Only overwrite the top Amount when line-item math is clearly the source
   // of truth (i.e. at least one personal toggle is on, or the user is doing
@@ -7447,6 +7510,7 @@ async function exportExpenseCsv() {
   };
 
   const filenames = new Map(); // expense.id -> filename in zip
+  const failedReceipts = [];   // expenses whose receipt couldn't be attached
 
   // Download all receipt blobs in parallel, then add to the zip.
   await Promise.all(withReceipts.map(async (e) => {
@@ -7462,8 +7526,22 @@ async function exportExpenseCsv() {
       filenames.set(e.id, 'receipts/' + name);
     } catch (err) {
       console.warn('receipt download failed for', e.id, err);
+      failedReceipts.push(e);
     }
   }));
+
+  // Fail loudly rather than silently shipping a ZIP missing receipts.
+  if (failedReceipts.length) {
+    const sample = failedReceipts.slice(0, 5)
+      .map(e => '• ' + (e.date || '?') + ' ' + (e.vendor || 'unknown'))
+      .join('\n');
+    const more = failedReceipts.length > 5 ? '\n…and ' + (failedReceipts.length - 5) + ' more.' : '';
+    const proceed = confirm(
+      failedReceipts.length + ' of ' + withReceipts.length + ' receipt file(s) could not be downloaded and will be MISSING from the ZIP:\n\n' +
+      sample + more + '\n\nExport the ZIP anyway (without those receipts)?'
+    );
+    if (!proceed) return;
+  }
 
   // CSV with an extra column pointing at the bundled receipt filename.
   const csv = _buildCsv(inScope, filenames);
@@ -7476,14 +7554,23 @@ async function exportExpenseCsv() {
   URL.revokeObjectURL(url);
 }
 
+// Guard against CSV formula injection: a cell beginning with = + - @ (or a
+// leading tab/CR) can execute as a formula in Excel/Sheets. Prefix a single
+// quote so the value is treated as text. Apply to user-controlled cells.
+function _csvSafeCell(v) {
+  const s = String(v == null ? '' : v);
+  if (/^[=+\-@\t\r]/.test(s)) return "'" + s;
+  return s;
+}
+
 function _buildCsv(rows, filenamesById) {
   const header = ['Date','Vendor','Amount','Category','Card','On Biz','Notes','Receipt'];
   const out = [header];
   rows.forEach(e => {
     const receiptRef = (filenamesById && filenamesById.get(e.id)) || '';
-    out.push([e.date, e.vendor, e.amount.toFixed(2), e.category, e.card, e.onBiz?'yes':'no', (e.notes||'').replace(/"/g,'""'), receiptRef]);
+    out.push([e.date, _csvSafeCell(e.vendor), e.amount.toFixed(2), e.category, e.card, e.onBiz?'yes':'no', _csvSafeCell(e.notes||''), receiptRef]);
   });
-  return out.map(r => r.map(c => `"${String(c||'')}"`).join(',')).join('\n');
+  return out.map(r => r.map(c => `"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
 }
 
 function _downloadCsv(rows, filename, filenamesById) {
@@ -9871,7 +9958,7 @@ function exportReportPDF() {
 function exportReportCSV() {
   const d = _reportData();
   let csv, fname;
-  const esc = (s) => '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"';
+  const esc = (s) => '"' + _csvSafeCell(s).replace(/"/g, '""') + '"';
   if (_reportType === 'pnl') {
     let income = 0; d.payments.forEach(p => income += _reportNetOf(p));
     const byCat = {}; let exp = 0; d.expenses.forEach(e => { const a = Number(e.amount) || 0; exp += a; const c = e.category || 'uncategorized'; byCat[c] = (byCat[c] || 0) + a; });
@@ -10785,7 +10872,7 @@ async function savePayment() {
     // so Income tab sees this dollar. Square payments are managed by the
     // webhook and aren't touched here.
     try {
-      await fetch(PB_URL + '/api/admin/payments/booking-upsert', {
+      const upsertRes = await fetch(PB_URL + '/api/admin/payments/booking-upsert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
         body: JSON.stringify({
@@ -10797,8 +10884,13 @@ async function savePayment() {
           notes: notes,
         }),
       });
+      if (!upsertRes.ok) {
+        console.warn('payments booking-upsert failed:', upsertRes.status);
+        alert('Booking marked paid, but syncing it to the Income ledger failed (status ' + upsertRes.status + '). The Income tab may not reflect this payment — re-save the payment to retry.');
+      }
     } catch (err) {
       console.warn('payments booking-upsert failed:', err && err.message);
+      alert('Booking marked paid, but syncing it to the Income ledger failed (' + (err && err.message ? err.message : 'network error') + '). The Income tab may not reflect this payment — re-save the payment to retry.');
     }
 
     // Update cache
@@ -10918,16 +11010,16 @@ function exportIncomeCsv() {
   inMonth.forEach(b => {
     rows.push([
       b.date || '',
-      b.clientName || '',
-      EVENT_LABELS[b.eventType] || b.eventType || '',
+      _csvSafeCell(b.clientName || ''),
+      _csvSafeCell(EVENT_LABELS[b.eventType] || b.eventType || ''),
       Number(b.price)||0,
       b.paid ? 'yes' : 'no',
-      b.paymentMethod || '',
+      _csvSafeCell(b.paymentMethod || ''),
       (b.paidDate||'').slice(0,10),
-      (b.paymentNotes||'').replace(/"/g,'""')
+      _csvSafeCell(b.paymentNotes||'')
     ]);
   });
-  const csv = rows.map(r => r.map(c => `"${String(c)}"`).join(',')).join('\n');
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], { type:'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

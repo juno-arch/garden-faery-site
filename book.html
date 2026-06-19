@@ -1941,7 +1941,7 @@ function renderSummary() {
     : et.duration + ' min';
 
   const priceStr = et.price > 0
-    ? '$' + (et.price * (et.duration / 60)) + ' per visit ($' + et.price + '/hr)'
+    ? '$' + Number(et.price * (et.duration / 60)).toFixed(2) + ' per visit ($' + Number(et.price).toFixed(2) + '/hr)'
     : 'Free';
 
   if (bookingType === 'recurring') {
@@ -2061,6 +2061,7 @@ async function submitBooking() {
       return;
     }
     let saved = 0;
+    let failedDate = null;
     const autoReschedule = !!document.getElementById('f-auto-reschedule')?.checked;
     const mktEmail = !!document.getElementById('f-mkt-email')?.checked;
     // SMS reminders opt-OUT is the inverse of the checkbox (which defaults checked).
@@ -2068,6 +2069,7 @@ async function submitBooking() {
     const source   = (document.getElementById('f-source')?.value || '').trim();
     try {
       for (const ds of multiDates) {
+        failedDate = ds;
         const b = {
           id: 'b_' + Date.now() + '_' + saved,
           eventType: selectedEvent,
@@ -2090,12 +2092,21 @@ async function submitBooking() {
         };
         await DB.saveBooking(b);
         saved++;
+        failedDate = null;
       }
       showMultipleConfirmation(et, multiDates.slice(), null);
       goStep(3);
     } catch (err) {
       console.log('Multi-date booking error:', err);
-      alert('Saved ' + saved + ' of ' + multiDates.length + ' visits, then hit:\n\n' + (err && err.message ? err.message : err) + '\n\nPlease contact Taya if anything looks off.');
+      const rawMsg = (err && err.message ? err.message : String(err)) || '';
+      const isConflict = /conflict|taken|already|unavailable|booked|409/i.test(rawMsg);
+      let dateLabel = failedDate;
+      try { if (failedDate) dateLabel = new Date(failedDate + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }); } catch (_) {}
+      if (isConflict && failedDate) {
+        alert('Saved ' + saved + ' of ' + multiDates.length + ' visits. The slot for ' + dateLabel + ' was just taken by someone else.\n\nPlease go back, pick a different date for ' + dateLabel + ', and try again. Your other dates are saved.');
+      } else {
+        alert('Saved ' + saved + ' of ' + multiDates.length + ' visits' + (failedDate ? ' (stopped on ' + dateLabel + ')' : '') + ', then hit:\n\n' + rawMsg + '\n\nPlease contact Taya if anything looks off.');
+      }
       btn.disabled = false;
       btn.textContent = 'Book My Visits';
     }

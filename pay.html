@@ -349,7 +349,7 @@ function renderList(items) {
   let total = 0;
   items.forEach(b => {
     total += Number(b.price) || 0;
-    const dateStr = b.date ? new Date(b.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '?';
+    const dateStr = b.date ? new Date(b.date + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '?';
     const eventLabel = (b.event_name || b.event_type || 'Visit')
       .replace(/_/g, ' ')
       .replace(/\b\w/g, c => c.toUpperCase());

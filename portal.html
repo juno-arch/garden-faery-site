@@ -898,7 +898,7 @@ function renderOutstanding() {
 }
 
 function bookingRowHtml(b, kind) {
-  const dateStr = b.date ? new Date(b.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '?';
+  const dateStr = b.date ? new Date(b.date + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '?';
   const eventLabel = (b.event_name || b.event_type || 'Visit').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   let side = '';
   if (kind === 'upcoming') {
@@ -943,7 +943,7 @@ function bookingRowHtml(b, kind) {
 async function cancelBooking(bookingId) {
   const b = (_data.upcoming || []).find(x => x.booking_id === bookingId);
   if (!b) return;
-  const dateStr = b.date ? new Date(b.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '?';
+  const dateStr = b.date ? new Date(b.date + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '?';
   const eventLabel = (b.event_name || b.event_type || 'Visit').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   if (!confirm('Cancel ' + eventLabel + ' on ' + dateStr + '?\n\nThis cannot be undone here. To rebook, you would need to message Taya.')) return;
   const token = localStorage.getItem(STORAGE_TOKEN);
@@ -1321,7 +1321,7 @@ function updateBkFreq() {
   // Filter against availability — _bkBlockedDates is populated by loadAvailableDates.
   const available = dates.filter(d => !_bkBlockedDates.has(d));
   const blocked   = dates.filter(d =>  _bkBlockedDates.has(d));
-  const fmt = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const fmt = d => new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
   let html = '<strong>' + available.length + ' available</strong> of ' + dates.length + ' requested';
   if (available.length > 0) {
@@ -1422,8 +1422,11 @@ async function submitBook() {
 
   btn.disabled = false; btn.textContent = freq === 'once' ? 'Book this visit' : 'Book ' + count + ' visits';
 
+  const fmtFailDate = d => { try { return new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); } catch (_) { return d; } };
   if (created.length === 0) {
-    setError('bk-error', 'Could not create any bookings. ' + (failed[0] ? '(' + failed[0].err + ')' : ''));
+    const conflictDates = failed.map(f => fmtFailDate(f.date)).join(', ');
+    setError('bk-error', 'Could not book ' + (conflictDates ? conflictDates : 'those dates') + ' — ' +
+      (failed[0] ? failed[0].err : 'they may have just been taken') + '. Please pick different dates and try again.');
     return;
   }
   // Refresh portal so the new bookings show up.
@@ -1450,7 +1453,7 @@ async function submitBook() {
   } else {
     setError('bk-error',
       created.length + ' of ' + dates.length + ' visits booked. Conflicts on: ' +
-      failed.map(f => f.date).join(', ') + '. Pick different dates and try again.'
+      failed.map(f => fmtFailDate(f.date)).join(', ') + '. Pick different dates and try again.'
     );
   }
 
@@ -1549,8 +1552,9 @@ function exportIcs() {
     lines.push('DTSTART;TZID=America/Los_Angeles:' + startLocal);
     lines.push('DTEND;TZID=America/Los_Angeles:' + endLocal);
     lines.push('SUMMARY:' + fold(eventLabel));
-    lines.push('DESCRIPTION:' + fold('Garden Faery visit. Manage at https://gardenfaery.love/portal.html'));
-    if (b.garden_notes) lines.push('DESCRIPTION:' + fold(b.garden_notes));
+    const descParts = ['Garden Faery visit. Manage at https://gardenfaery.love/portal.html'];
+    if (b.garden_notes) descParts.push(b.garden_notes);
+    lines.push('DESCRIPTION:' + fold(descParts.join('\n')));
     lines.push('END:VEVENT');
   }
   lines.push('END:VCALENDAR');
