@@ -921,6 +921,80 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
   #step-2 .card:nth-of-type(2) > .form-group:nth-child(4) { grid-column: span 1; }
 }
 
+/* Returning-client sign-in card (top of booking flow) */
+.returning-card {
+  background: var(--sage-light);
+  border: 1px solid var(--spring-sage);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+.returning-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.returning-q { font-size: 0.92rem; font-weight: 600; color: var(--plum); }
+.returning-welcome-msg { font-size: 0.92rem; color: var(--plum); }
+.returning-welcome-msg strong { font-weight: 700; }
+.returning-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--plum);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.returning-link:hover { opacity: 0.75; }
+.returning-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--plum);
+  margin: 4px 2px 6px;
+}
+.returning-help {
+  font-size: 0.82rem;
+  color: var(--gray-600);
+  line-height: 1.45;
+  margin: 8px 2px 0;
+}
+.returning-card input {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  background: var(--white);
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--plum);
+}
+.returning-card input:focus {
+  outline: none;
+  border-color: var(--spring-sage);
+  box-shadow: 0 0 0 3px rgba(125, 158, 116, 0.18);
+}
+.returning-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.returning-btn { width: auto; max-width: 260px; margin: 0; }
+.returning-error {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: var(--petal-pink);
+  font-weight: 600;
+}
+
 </style>
 </head>
 <body>
@@ -947,6 +1021,42 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
 
   <!-- Step 1: Choose event type -->
   <div class="step-panel active" id="step-0">
+
+    <!-- Returning client: sign in (phone or email OTP) to autofill the details
+         form. On success we cache the profile in localStorage so the same
+         browser auto-fills next time without signing in again. -->
+    <div class="returning-card" id="returning-card">
+      <div id="returning-prompt" class="returning-row">
+        <span class="returning-q">Booked with me before? Sign in with just your phone — no password.</span>
+        <button type="button" class="returning-link" onclick="showReturningLogin()">Sign in to autofill &rarr;</button>
+      </div>
+
+      <div id="returning-login" style="display:none;">
+        <div id="returning-id-step">
+          <label class="returning-label" for="returning-id">Your phone number</label>
+          <input type="text" id="returning-id" inputmode="text" autocomplete="username" placeholder="(707) 555-1234">
+          <p class="returning-help">That's it — no password to remember. We'll text you a 6-digit code to sign in, and your details fill in automatically. (Prefer email? You can type that here instead.)</p>
+          <div class="returning-actions">
+            <button type="button" class="btn btn-primary returning-btn" id="returning-send" onclick="returningSendCode()">Send me a code</button>
+            <button type="button" class="returning-link" onclick="hideReturningLogin()">Cancel</button>
+          </div>
+        </div>
+        <div id="returning-code-step" style="display:none;">
+          <label class="returning-label" for="returning-code">Enter the 6-digit code sent to <strong id="returning-dest"></strong></label>
+          <input type="text" id="returning-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456">
+          <div class="returning-actions">
+            <button type="button" class="btn btn-primary returning-btn" id="returning-verify" onclick="returningVerify()">Verify &amp; fill my details</button>
+            <button type="button" class="returning-link" onclick="returningResetToId()">Start over</button>
+          </div>
+        </div>
+        <div id="returning-error" class="returning-error" style="display:none;"></div>
+      </div>
+
+      <div id="returning-welcome" class="returning-row" style="display:none;">
+        <span class="returning-welcome-msg" id="returning-welcome-msg"></span>
+        <button type="button" class="returning-link" onclick="returningSignOut()">Not you?</button>
+      </div>
+    </div>
 
     <div class="event-types">
       <div class="event-option">
@@ -1013,12 +1123,12 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
   <div class="manage-panel" id="manage-panel">
     <div class="card">
       <h2 style="font-size: 1.2rem; margin-bottom: 4px;">Manage Your Booking</h2>
-      <p style="font-size: 0.9rem; color: var(--gray-600); margin-bottom: 16px;">Enter the phone number you booked with to pull up your visits.</p>
+      <p style="font-size: 0.9rem; color: var(--gray-600); margin-bottom: 16px;">Enter the phone number you booked with. We'll send a quick code to verify it's you before any changes.</p>
       <div class="form-group">
         <label for="manage-phone">Phone number</label>
         <input type="tel" id="manage-phone" placeholder="(707) 555-1234">
 </div>
-      <button class="btn btn-primary" onclick="lookupBookings()">Find My Bookings</button>
+      <button class="btn btn-primary" onclick="manageRequestCode()">Find My Bookings</button>
 </div>
     <div id="manage-results"></div>
     <div style="margin-top: 12px;">
@@ -1378,8 +1488,9 @@ const DB = {
       localStorage.setItem('gf_bookings_v1', JSON.stringify(bookings));
       return bookings[idx];
     }
-    // Public PATCH endpoint requires phone for ownership check.
-    const body = { phone: phone || '' };
+    // Public PATCH endpoint requires an OTP session token (+ phone as a
+    // secondary check) so a phone number alone can't change someone's booking.
+    const body = { phone: phone || '', token: (typeof _manageToken !== 'undefined' ? _manageToken : '') };
     if (updates.date !== undefined) body.date = updates.date;
     if (updates.time !== undefined) body.time = updates.time;
     if (updates.status !== undefined) body.status = updates.status;
@@ -2232,6 +2343,65 @@ function normalizePhone(p) {
   return (p || '').replace(/[^\d]/g, '');
 }
 
+// --- Manage flow now requires a one-time code (so a phone number alone can't
+// reschedule/cancel someone else's visits). Request a code, verify it to get a
+// short-lived session token, then load + manage the bookings with that token.
+let _manageToken = '';
+let _manageEmail = '';
+
+async function manageRequestCode() {
+  const raw = document.getElementById('manage-phone').value.trim();
+  if (!raw) { alert('Please enter your phone number.'); return; }
+  const phone = normalizePhone(raw);
+  if (phone.length < 7) { alert("That doesn't look like a full phone number. Try again."); return; }
+  const results = document.getElementById('manage-results');
+  results.innerHTML = '<p style="font-size:0.9rem;color:var(--gray-600);">Sending you a code…</p>';
+  try {
+    const resp = await fetch(PB_URL + '/api/booking/request-code', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: phone }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok || !data.ok) {
+      results.innerHTML = '<p style="font-size:0.9rem;color:var(--red);">' + escAddr(data.error || "We couldn't find an account for that number or couldn't send a code. Use the number you booked with.") + '</p>';
+      return;
+    }
+    results.innerHTML =
+      '<div class="card" style="margin-top:12px;">' +
+        '<p style="font-size:0.9rem;color:var(--gray-600);margin-bottom:12px;">We sent a 6-digit code to the phone/email on file. Enter it to manage your visits.</p>' +
+        '<div class="form-group"><label for="manage-code">6-digit code</label>' +
+        '<input type="text" id="manage-code" inputmode="numeric" maxlength="6" placeholder="123456" autocomplete="one-time-code"></div>' +
+        '<button class="btn btn-primary" onclick="manageVerifyAndLoad()">Verify &amp; show my visits</button>' +
+        '<button class="btn btn-back" style="margin-top:8px;" onclick="manageRequestCode()">Resend code</button>' +
+      '</div>';
+  } catch (err) {
+    results.innerHTML = '<p style="font-size:0.9rem;color:var(--red);">Network error — please try again.</p>';
+  }
+}
+
+async function manageVerifyAndLoad() {
+  const phone = normalizePhone(document.getElementById('manage-phone').value.trim());
+  const codeEl = document.getElementById('manage-code');
+  const code = codeEl ? codeEl.value.trim() : '';
+  if (!code) { alert('Enter the 6-digit code.'); return; }
+  try {
+    const resp = await fetch(PB_URL + '/api/booking/verify-code', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: phone, code: code }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok || !data.ok || !data.token) {
+      alert(data.error || 'That code was wrong or expired. Try again.');
+      return;
+    }
+    _manageToken = data.token;
+    _manageEmail = data.email || '';
+    lookupBookings();
+  } catch (err) {
+    alert('Could not verify. Please try again.');
+  }
+}
+
 async function lookupBookings() {
   const raw = document.getElementById('manage-phone').value.trim();
   if (!raw) { alert('Please enter your phone number.'); return; }
@@ -2755,11 +2925,196 @@ function updateNextAvailable() {
 }
 
 // ============================================
-// Returning-client login (email OTP)
-// On verified OTP, we cache the client's profile (name/email/phone/address)
-// in localStorage so the same browser skips the form next time. Logout
-// clears it.
+// Returning-client login (phone or email OTP)
+// Client enters their phone or email, gets a 6-digit code (SMS for phone,
+// email for email), and on verify we prefill the details form from their most
+// recent booking and cache the profile in localStorage so the same browser
+// auto-fills next time without signing in again. "Not you?" clears it.
 // ============================================
+const RETURNING_KEY = 'gf_client_v1';
+let _returningId = '';     // raw identifier the client typed
+let _returningPhone = '';  // digits, when they signed in by phone
+
+function looksLikeEmail(s) { return String(s || '').indexOf('@') >= 0; }
+function returningNormPhone(s) { return String(s || '').replace(/[^\d]/g, ''); }
+function returningMaskPhone(s) {
+  const d = returningNormPhone(s);
+  return d.length < 4 ? 'your phone' : '(•••) •••-' + d.slice(-4);
+}
+function returningSetError(msg) {
+  const el = document.getElementById('returning-error');
+  if (!el) return;
+  el.textContent = msg || '';
+  el.style.display = msg ? '' : 'none';
+}
+
+function showReturningLogin() {
+  document.getElementById('returning-prompt').style.display = 'none';
+  document.getElementById('returning-welcome').style.display = 'none';
+  document.getElementById('returning-login').style.display = '';
+  returningResetToId();
+  setTimeout(() => { const el = document.getElementById('returning-id'); if (el) el.focus(); }, 50);
+}
+function hideReturningLogin() {
+  document.getElementById('returning-login').style.display = 'none';
+  returningSetError('');
+  // Show whichever resting state applies.
+  if (loadReturningProfile()) { renderReturningWelcome(); }
+  else { document.getElementById('returning-prompt').style.display = ''; }
+}
+function returningResetToId() {
+  document.getElementById('returning-id-step').style.display = '';
+  document.getElementById('returning-code-step').style.display = 'none';
+  document.getElementById('returning-code').value = '';
+  returningSetError('');
+}
+
+async function returningSendCode() {
+  const raw = String(document.getElementById('returning-id').value || '').trim();
+  returningSetError('');
+  const isEmail = looksLikeEmail(raw);
+  const phone = isEmail ? '' : returningNormPhone(raw);
+  const email = isEmail ? raw.toLowerCase() : '';
+  if (isEmail) {
+    if (email.indexOf('@') < 1 || email.indexOf('.') < 0) { returningSetError('Please enter a valid email.'); return; }
+  } else if (phone.length < 10) {
+    returningSetError('Please enter a valid phone number or email.'); return;
+  }
+  const btn = document.getElementById('returning-send');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const resp = await fetch(PB_URL + '/api/booking/request-code', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(isEmail ? { email: email } : { phone: phone }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) { returningSetError(data.error || ('Request failed: ' + resp.status)); return; }
+    _returningId = isEmail ? email : '';
+    _returningPhone = isEmail ? '' : phone;
+    document.getElementById('returning-dest').textContent = isEmail ? email : returningMaskPhone(phone);
+    document.getElementById('returning-id-step').style.display = 'none';
+    document.getElementById('returning-code-step').style.display = '';
+    setTimeout(() => { const el = document.getElementById('returning-code'); if (el) el.focus(); }, 50);
+  } catch (err) {
+    returningSetError('Network error: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send me a code';
+  }
+}
+
+async function returningVerify() {
+  const code = String(document.getElementById('returning-code').value || '').trim();
+  returningSetError('');
+  if (!/^\d{6}$/.test(code)) { returningSetError('Code should be 6 digits.'); return; }
+  const btn = document.getElementById('returning-verify');
+  btn.disabled = true; btn.textContent = 'Checking…';
+  try {
+    const payload = _returningPhone ? { phone: _returningPhone, code: code } : { email: _returningId, code: code };
+    const resp = await fetch(PB_URL + '/api/booking/verify-code', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) { returningSetError(data.error || ('Sign in failed: ' + resp.status)); return; }
+    const profile = {
+      name: (data.prefill && data.prefill.name) || '',
+      email: data.email || _returningId || '',
+      phone: (data.prefill && data.prefill.phone) || _returningPhone || '',
+      address: (data.prefill && data.prefill.address) || '',
+    };
+    cacheReturningProfile(profile);
+    applyReturningProfile(profile);
+    document.getElementById('returning-login').style.display = 'none';
+    renderReturningWelcome();
+  } catch (err) {
+    returningSetError('Network error: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Verify & fill my details';
+  }
+}
+
+// Reverse of composeAddressFromFields(): "street, [apt,] city, CA 95521".
+function parseReturningAddress(addr) {
+  const out = { street: '', apt: '', city: '', state: 'CA', zip: '' };
+  const parts = String(addr || '').split(',').map(s => s.trim()).filter(Boolean);
+  if (!parts.length) return out;
+  const last = parts[parts.length - 1];
+  const m = last.match(/^([A-Za-z]{2})\s+(\d{5}(?:-\d{4})?)$/);
+  if (m && parts.length >= 2) {
+    out.state = m[1].toUpperCase();
+    out.zip = m[2];
+    out.city = parts[parts.length - 2] || '';
+    out.street = parts[0] || '';
+    out.apt = parts.slice(1, parts.length - 2).join(', ');
+  } else {
+    // No recognizable "STATE ZIP" tail — best effort.
+    out.street = parts[0] || '';
+    if (parts.length >= 2) out.city = parts[parts.length - 1];
+    out.apt = parts.slice(1, Math.max(1, parts.length - 1)).join(', ');
+  }
+  return out;
+}
+
+function applyReturningProfile(p) {
+  const setVal = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.value = v; };
+  const nameParts = String(p.name || '').trim().split(/\s+/).filter(Boolean);
+  const first = nameParts.shift() || '';
+  const last = nameParts.join(' ');
+  setVal('f-first-name', first);
+  setVal('f-last-name', last);
+  setVal('f-email', p.email || '');
+  setVal('f-phone', p.phone ? (typeof formatPhoneNumber === 'function' ? formatPhoneNumber(p.phone) : p.phone) : '');
+  const a = parseReturningAddress(p.address);
+  setVal('f-address', a.street);
+  setVal('f-address2', a.apt);
+  setVal('f-city', a.city);
+  setVal('f-state', a.state || 'CA');
+  setVal('f-zip', a.zip);
+}
+
+function cacheReturningProfile(p) {
+  try { localStorage.setItem(RETURNING_KEY, JSON.stringify(p)); } catch (_) {}
+}
+function loadReturningProfile() {
+  try {
+    const raw = localStorage.getItem(RETURNING_KEY);
+    if (!raw) return null;
+    const p = JSON.parse(raw);
+    return (p && (p.name || p.email || p.phone)) ? p : null;
+  } catch (_) { return null; }
+}
+
+function renderReturningWelcome() {
+  const p = loadReturningProfile();
+  if (!p) { document.getElementById('returning-prompt').style.display = ''; return; }
+  const first = String(p.name || '').trim().split(/\s+/)[0] || 'friend';
+  document.getElementById('returning-prompt').style.display = 'none';
+  document.getElementById('returning-login').style.display = 'none';
+  const w = document.getElementById('returning-welcome');
+  document.getElementById('returning-welcome-msg').innerHTML =
+    'Welcome back, <strong>' + escAddr(first) + '</strong> — your details are filled in below.';
+  w.style.display = '';
+}
+
+function returningSignOut() {
+  try { localStorage.removeItem(RETURNING_KEY); } catch (_) {}
+  _returningId = ''; _returningPhone = '';
+  ['f-first-name','f-last-name','f-email','f-phone','f-address','f-address2','f-city','f-zip'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('returning-welcome').style.display = 'none';
+  document.getElementById('returning-login').style.display = 'none';
+  document.getElementById('returning-prompt').style.display = '';
+}
+
+// On load: if this browser has a cached profile, prefill the form and greet.
+function hydrateReturning() {
+  const p = loadReturningProfile();
+  if (!p) return;
+  applyReturningProfile(p);
+  renderReturningWelcome();
+}
+
 // ============================================
 // Address autocomplete (Photon / OpenStreetMap)
 // Free public service from komoot (https://photon.komoot.io/) — no API key,
@@ -2969,6 +3324,9 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   openManageFromHash();
   window.addEventListener('hashchange', openManageFromHash);
+
+  // Auto-fill the form for returning clients on this browser.
+  if (typeof hydrateReturning === 'function') hydrateReturning();
 });
 </script>
 
