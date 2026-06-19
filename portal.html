@@ -423,15 +423,16 @@ body {
 
 <main class="portal-wrap">
 
-  <!-- ===== LOGIN STEP 1: email ===== -->
+  <!-- ===== LOGIN STEP 1: phone or email ===== -->
   <section id="step-email" class="step">
     <h1 class="portal-h1">Sign in</h1>
-    <p class="portal-sub">Enter your email and we'll send you a one-time code. No password needed.</p>
+    <p class="portal-sub">Enter your phone number or email and we'll send you a one-time code. No password needed.</p>
     <div class="portal-card">
-      <label for="email">Email</label>
-      <input type="email" id="email" autocomplete="email" inputmode="email" placeholder="you@example.com">
+      <label for="email">Phone number or email</label>
+      <input type="text" id="email" autocomplete="username" inputmode="text" placeholder="(707) 555-1234 or you@example.com">
       <button class="btn-portal-primary" id="btn-send-code" onclick="sendCode()">Send me a code</button>
       <div id="email-error" class="error-banner" style="display:none;"></div>
+      <p style="color:var(--gray-600);font-size:0.82rem;margin:10px 2px 0;line-height:1.45;">Use the same phone number or email you booked with. We'll text the code if you enter a phone, or email it if you enter an address.</p>
 </div>
     <div class="portal-card">
       <h2>First time here?</h2>
@@ -441,7 +442,7 @@ body {
 
   <!-- ===== LOGIN STEP 2: code ===== -->
   <section id="step-code" class="step" style="display:none;">
-    <h1 class="portal-h1">Check your email</h1>
+    <h1 class="portal-h1" id="code-heading">Check your phone</h1>
     <p class="portal-sub">We sent a 6-digit code to <strong id="code-email-echo"></strong>.</p>
     <div class="portal-card">
       <label for="code">Code</label>
@@ -449,7 +450,7 @@ body {
       <button class="btn-portal-primary" id="btn-verify" onclick="verifyLogin()">Sign in</button>
       <div id="code-error" class="error-banner" style="display:none;"></div>
       <div style="margin-top:14px;text-align:center;">
-        <button class="btn-portal-link" onclick="resetToEmail()">Wrong email? Start over</button>
+        <button class="btn-portal-link" onclick="resetToEmail()">Wrong number or email? Start over</button>
 </div>
 </div>
 </section>
@@ -650,6 +651,7 @@ const SQUARE_LOCATION_ID = 'LKGZREV591V55';
 const SQUARE_SDK_URL = 'https://web.squarecdn.com/v1/square.js';
 
 let _email = '';
+let _loginPhone = ''; // set when the client signs in with a phone number instead of email
 let _data = null; // { profile, upcoming, past, outstanding }
 let _savedCards = []; // populated from /api/portal/cards/list
 let _squarePayments = null; // Square.payments(...) instance
@@ -670,20 +672,42 @@ function escapeHtml(s) {
 }
 
 // ----- AUTH FLOW -----
+// The sign-in field accepts either an email or a phone number. Anything with
+// an "@" is treated as email (code delivered by email); otherwise we treat it
+// as a phone number (code delivered by SMS). The backend resolves a phone to
+// the matching client account, so the rest of the portal still works the same.
+function looksLikeEmail(s) { return String(s || '').indexOf('@') >= 0; }
+function normPhone(s) { return String(s || '').replace(/[^\d]/g, ''); }
+function maskPhone(s) {
+  const d = normPhone(s);
+  if (d.length < 4) return 'your phone';
+  return '(•••) •••-' + d.slice(-4);
+}
+
 async function sendCode() {
-  const email = String(document.getElementById('email').value || '').trim().toLowerCase();
+  const raw = String(document.getElementById('email').value || '').trim();
   setError('email-error', '');
-  if (!email || email.indexOf('@') < 0) {
-    setError('email-error', 'Please enter a valid email.');
+  const isEmail = looksLikeEmail(raw);
+  const phone = isEmail ? '' : normPhone(raw);
+  const email = isEmail ? raw.toLowerCase() : '';
+
+  if (isEmail) {
+    if (email.indexOf('@') < 1 || email.indexOf('.') < 0) {
+      setError('email-error', 'Please enter a valid email.');
+      return;
+    }
+  } else if (phone.length < 10) {
+    setError('email-error', 'Please enter a valid phone number or email.');
     return;
   }
+
   const btn = document.getElementById('btn-send-code');
   btn.disabled = true; btn.textContent = 'Sending…';
   try {
     const resp = await fetch(PB_URL + '/api/booking/request-code', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email }),
+      body: JSON.stringify(isEmail ? { email: email } : { phone: phone }),
     });
     const data = await resp.json().catch(() => ({}));
     if (!resp.ok) {
@@ -691,7 +715,9 @@ async function sendCode() {
       return;
     }
     _email = email;
-    document.getElementById('code-email-echo').textContent = email;
+    _loginPhone = phone;
+    document.getElementById('code-heading').textContent = isEmail ? 'Check your email' : 'Check your phone';
+    document.getElementById('code-email-echo').textContent = isEmail ? email : maskPhone(phone);
     showStep('step-code');
     setTimeout(() => document.getElementById('code').focus(), 100);
   } catch (err) {
@@ -711,10 +737,11 @@ async function verifyLogin() {
   const btn = document.getElementById('btn-verify');
   btn.disabled = true; btn.textContent = 'Signing in…';
   try {
+    const payload = _loginPhone ? { phone: _loginPhone, code: code } : { email: _email, code: code };
     const resp = await fetch(PB_URL + '/api/portal/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: _email, code: code }),
+      body: JSON.stringify(payload),
     });
     const data = await resp.json().catch(() => ({}));
     if (!resp.ok) {
@@ -753,6 +780,7 @@ async function signOut() {
   localStorage.removeItem(STORAGE_TOKEN);
   localStorage.removeItem(STORAGE_EMAIL);
   _email = '';
+  _loginPhone = '';
   _data = null;
   document.getElementById('email').value = '';
   document.getElementById('code').value = '';
