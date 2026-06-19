@@ -236,7 +236,7 @@ async function payInvoice(method) {
 }
 
 function showErr(msg) {
-  document.getElementById('root').innerHTML = '<div class="card"><p class="err">' + msg + '</p></div>';
+  document.getElementById('root').innerHTML = '<div class="card"><p class="err">' + esc(msg) + '</p></div>';
 }
 
 loadInvoice();

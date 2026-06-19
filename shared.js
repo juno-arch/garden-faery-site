@@ -16,11 +16,19 @@
       .then(r => r.ok ? r.text() : null)
       .then(svg => {
         if (!svg) return;
+        // Defense-in-depth: strip <script> blocks and inline on*= handlers
+        // so a compromised botanicals.svg asset can't execute code when
+        // injected via innerHTML below.
+        const cleanSvg = String(svg)
+          .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, '')
+          .replace(/\son\w+\s*=\s*"[^"]*"/gi, '')
+          .replace(/\son\w+\s*=\s*'[^']*'/gi, '')
+          .replace(/\son\w+\s*=\s*[^\s>]+/gi, '');
         const div = document.createElement('div');
         div.id = 'gf-botanicals-sprite';
         div.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden;';
         div.setAttribute('aria-hidden', 'true');
-        div.innerHTML = svg;
+        div.innerHTML = cleanSvg;
         document.body.insertBefore(div, document.body.firstChild);
         // Rewrite any existing <use href="botanicals.svg#..."> to same-document #...
         document.querySelectorAll('use[href^="botanicals.svg#"]').forEach(u => {

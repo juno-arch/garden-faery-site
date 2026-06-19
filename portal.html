@@ -862,7 +862,7 @@ function renderCardsList() {
       '<span class="value">' + escapeHtml(brand) + ' &middot;&middot;&middot;&middot; ' + escapeHtml(c.last_4 || '????') +
         (exp ? '<span style="color:var(--gray-600);font-weight:400;margin-left:8px;">exp ' + escapeHtml(exp) + '</span>' : '') +
       '</span>' +
-      '<button class="btn-portal-link" style="color:var(--red);" onclick="deleteCard(\'' + c.id + '\')">Remove</button>' +
+      '<button class="btn-portal-link" style="color:var(--red);" onclick="deleteCard(\'' + escapeHtml(c.id) + '\')">Remove</button>' +
     '</div>';
   }).join('');
 }
@@ -904,8 +904,8 @@ function bookingRowHtml(b, kind) {
   if (kind === 'upcoming') {
     side = '<span class="pill pill-upcoming">upcoming</span>' +
            '<div style="display:flex;gap:6px;margin-top:6px;">' +
-             '<button class="btn-portal-secondary" style="padding:6px 10px;font-size:0.78rem;" onclick="openReschedule(\'' + b.booking_id + '\')">Reschedule</button>' +
-             '<button class="btn-portal-secondary" style="padding:6px 10px;font-size:0.78rem;color:var(--red);border-color:var(--red-light);" onclick="cancelBooking(\'' + b.booking_id + '\')">Cancel</button>' +
+             '<button class="btn-portal-secondary" style="padding:6px 10px;font-size:0.78rem;" onclick="openReschedule(\'' + escapeHtml(b.booking_id) + '\')">Reschedule</button>' +
+             '<button class="btn-portal-secondary" style="padding:6px 10px;font-size:0.78rem;color:var(--red);border-color:var(--red-light);" onclick="cancelBooking(\'' + escapeHtml(b.booking_id) + '\')">Cancel</button>' +
            '</div>';
   } else if (kind === 'outstanding') {
     let payButtons = '';
@@ -913,10 +913,10 @@ function bookingRowHtml(b, kind) {
       // One-tap pay with the most recently saved card.
       const c = _savedCards[0];
       const cardLabel = (c.card_brand || 'CARD').slice(0, 4) + ' ' + (c.last_4 || '????');
-      payButtons += '<button class="btn-portal-secondary" style="background:var(--plum);color:#fff;border-color:var(--plum);margin-bottom:4px;font-size:0.78rem;padding:6px 10px;" onclick="payWithCard(\'' + b.booking_id + '\', \'' + c.id + '\', this)">Pay with ' + escapeHtml(cardLabel) + '</button>';
-      payButtons += '<button class="btn-portal-link" style="font-size:0.75rem;" onclick="payBooking(\'' + b.booking_id + '\', this)">or use a different card →</button>';
+      payButtons += '<button class="btn-portal-secondary" style="background:var(--plum);color:#fff;border-color:var(--plum);margin-bottom:4px;font-size:0.78rem;padding:6px 10px;" onclick="payWithCard(\'' + escapeHtml(b.booking_id) + '\', \'' + escapeHtml(c.id) + '\', this)">Pay with ' + escapeHtml(cardLabel) + '</button>';
+      payButtons += '<button class="btn-portal-link" style="font-size:0.75rem;" onclick="payBooking(\'' + escapeHtml(b.booking_id) + '\', this)">or use a different card →</button>';
     } else {
-      payButtons = '<button class="btn-portal-secondary" style="background:var(--petal-pink);color:#fff;border-color:var(--petal-pink);" onclick="payBooking(\'' + b.booking_id + '\', this)">Pay</button>';
+      payButtons = '<button class="btn-portal-secondary" style="background:var(--petal-pink);color:#fff;border-color:var(--petal-pink);" onclick="payBooking(\'' + escapeHtml(b.booking_id) + '\', this)">Pay</button>';
     }
     side = '<div class="booking-amount">$' + (b.price).toFixed(2) + '</div>' + payButtons;
   } else { // past

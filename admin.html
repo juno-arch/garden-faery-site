@@ -8719,11 +8719,11 @@ function bankTxTableRow(t) {
     '<td style="padding:7px 4px;text-align:right;white-space:nowrap;font-weight:700;color:' + amtColor + ';font-variant-numeric:tabular-nums;vertical-align:top;">' + amt + '</td>' +
     '<td style="padding:7px 4px;vertical-align:top;">' +
       '<input list="bank-cat-dl" value="' + escAttr(curLabel) + '" placeholder="' + escAttr(placeholder) + '" ' +
-        'onchange="setBankCatInline(\'' + t.id + '\', this.value)" onfocus="this.select()" ' +
+        'onchange="setBankCatInline(\'' + escAttr(t.id) + '\', this.value)" onfocus="this.select()" ' +
         'style="width:100%;min-width:90px;padding:4px 6px;font-size:0.76rem;border:1px solid ' + catBorder + ';border-radius:5px;background:var(--white);color:var(--plum);box-sizing:border-box;">' +
     '</td>' +
     '<td style="padding:7px 2px;vertical-align:top;text-align:center;">' +
-      '<button class="modal-btn secondary" style="padding:3px 6px;font-size:0.8rem;" title="More actions" onclick="' + moreFn + '(\'' + t.id + '\')">⋯</button>' +
+      '<button class="modal-btn secondary" style="padding:3px 6px;font-size:0.8rem;" title="More actions" onclick="' + moreFn + '(\'' + escAttr(t.id) + '\')">⋯</button>' +
     '</td>' +
   '</tr>';
 }
@@ -10678,7 +10678,7 @@ function renderMatchPickerModal() {
         const exactBadge = (Math.round(price * 100) === payAmount && payAmount > 0)
           ? '<span style="background:#dfe8d4;color:var(--plum);padding:1px 6px;border-radius:6px;font-size:0.65rem;font-weight:700;margin-left:6px;">EXACT</span>'
           : '';
-        return '<button type="button" onclick="confirmMatchPayment(\'' + b.id + '\')" style="' +
+        return '<button type="button" onclick="confirmMatchPayment(\'' + escAttr(b.id) + '\')" style="' +
           'display:flex;width:100%;justify-content:space-between;align-items:center;gap:10px;' +
           'padding:10px 12px;border:1px solid ' + (isBest ? 'var(--spring-sage,#9bbd85)' : 'var(--gray-200)') + ';' +
           'background:' + (isBest ? 'rgba(155,189,133,0.08)' : 'var(--white)') + ';border-radius:8px;font-family:inherit;cursor:pointer;text-align:left;color:inherit;">' +
@@ -11037,21 +11037,21 @@ function renderDay() {
             (b.eventType === 'morning' ? 'pollen-gold' : b.eventType === 'afternoon' ? 'petal-pink' : 'spring-sage') +
           ')"></span>' +
           '<div class="booking-card ' + b.eventType + '">' +
-          '<h3>' + b.clientName +
-            (b.recurringSeriesId ? '<span class="series-badge">' + (b.recurringFrequency || 'recurring') + '</span>' : '') +
+          '<h3>' + escapeHtml(b.clientName) +
+            (b.recurringSeriesId ? '<span class="series-badge">' + escapeHtml(b.recurringFrequency || 'recurring') + '</span>' : '') +
           '</h3>' +
-          '<div class="booking-meta">' + (EVENT_LABELS[b.eventType] || b.eventName || 'Visit') + ' (' + bookingDisplayTime(b) + ')</div>' +
+          '<div class="booking-meta">' + escapeHtml(EVENT_LABELS[b.eventType] || b.eventName || 'Visit') + ' (' + escapeHtml(bookingDisplayTime(b)) + ')</div>' +
           '<div class="booking-client">' +
-            (b.clientPhone ? b.clientPhone : '') +
-            (b.clientAddress ? ' &middot; ' + b.clientAddress : '') +
+            (b.clientPhone ? escapeHtml(b.clientPhone) : '') +
+            (b.clientAddress ? ' &middot; ' + escapeHtml(b.clientAddress) : '') +
           '</div>' +
-          (b.gardenNotes ? '<div class="booking-meta" style="margin-top:6px;font-style:italic;">"' + b.gardenNotes + '"</div>' : '') +
+          (b.gardenNotes ? '<div class="booking-meta" style="margin-top:6px;font-style:italic;">"' + escapeHtml(b.gardenNotes) + '"</div>' : '') +
           '<div class="booking-actions">' +
             '<button class="action-btn" onclick="callClient(\'' + phoneAttr(b.clientPhone) + '\')">Call</button>' +
             '<button class="action-btn" onclick="textClient(\'' + phoneAttr(b.clientPhone) + '\')">Text</button>' +
-            '<button class="action-btn" onclick="openReschedule(\'' + b.id + '\')">Reschedule</button>' +
-            '<button class="action-btn danger" onclick="cancelBooking(\'' + b.id + '\')">Cancel</button>' +
-            (b.recurringSeriesId && String(b.recurringSeriesId).startsWith('rec_') ? '<button class="action-btn danger" onclick="cancelSeries(\'' + b.recurringSeriesId + '\')">Cancel Series</button>' : '') +
+            '<button class="action-btn" onclick="openReschedule(\'' + escAttr(b.id) + '\')">Reschedule</button>' +
+            '<button class="action-btn danger" onclick="cancelBooking(\'' + escAttr(b.id) + '\')">Cancel</button>' +
+            (b.recurringSeriesId && String(b.recurringSeriesId).startsWith('rec_') ? '<button class="action-btn danger" onclick="cancelSeries(\'' + escAttr(b.recurringSeriesId) + '\')">Cancel Series</button>' : '') +
           '</div></div></div>';
       } else {
         const b = item.data;
@@ -11188,20 +11188,20 @@ function renderUpcoming() {
     }
     const phone = b.clientPhone || '';
     html += '<div class="booking-card ' + b.eventType + '">' +
-      '<h3>' + b.clientName +
-        (b.recurringSeriesId ? '<span class="series-badge">' + (b.recurringFrequency || 'recurring') + '</span>' : '') +
+      '<h3>' + escapeHtml(b.clientName) +
+        (b.recurringSeriesId ? '<span class="series-badge">' + escapeHtml(b.recurringFrequency || 'recurring') + '</span>' : '') +
       '</h3>' +
-      '<div class="booking-meta">' + EVENT_LABELS[b.eventType] + ' at ' + b.time + '</div>' +
+      '<div class="booking-meta">' + escapeHtml(EVENT_LABELS[b.eventType] || b.eventName || 'Visit') + ' at ' + escapeHtml(b.time) + '</div>' +
       '<div class="booking-client">' +
-        (b.clientPhone ? b.clientPhone : '') +
-        (b.clientAddress ? ' &middot; ' + b.clientAddress : '') +
+        (b.clientPhone ? escapeHtml(b.clientPhone) : '') +
+        (b.clientAddress ? ' &middot; ' + escapeHtml(b.clientAddress) : '') +
       '</div>' +
       '<div class="booking-actions">' +
         (phone ? '<button class="action-btn" onclick="callClient(\'' + phoneAttr(phone) + '\')">Call</button>' : '') +
         (phone ? '<button class="action-btn" onclick="textClient(\'' + phoneAttr(phone) + '\')">Text</button>' : '') +
-        '<button class="action-btn" onclick="openReschedule(\'' + b.id + '\')">Reschedule</button>' +
-        '<button class="action-btn danger" onclick="cancelBooking(\'' + b.id + '\')">Cancel</button>' +
-        (b.recurringSeriesId && String(b.recurringSeriesId).startsWith('rec_') ? '<button class="action-btn danger" onclick="cancelSeries(\'' + b.recurringSeriesId + '\')">Cancel Series</button>' : '') +
+        '<button class="action-btn" onclick="openReschedule(\'' + escAttr(b.id) + '\')">Reschedule</button>' +
+        '<button class="action-btn danger" onclick="cancelBooking(\'' + escAttr(b.id) + '\')">Cancel</button>' +
+        (b.recurringSeriesId && String(b.recurringSeriesId).startsWith('rec_') ? '<button class="action-btn danger" onclick="cancelSeries(\'' + escAttr(b.recurringSeriesId) + '\')">Cancel Series</button>' : '') +
       '</div>' +
     '</div>';
   });
@@ -11309,12 +11309,12 @@ function renderMoonConflicts() {
             ? '<span style="color:var(--red);font-size:0.8rem;">cancelling now...</span>'
             : '<span style="color:var(--gray-600);font-size:0.8rem;">pending (auto-cancels 7 days before)</span>');
     const keepBtn = c.kept
-      ? '<button class="action-btn danger" onclick="releaseMoonKeep(\'' + b.id + '\')" style="font-size:0.8rem;">Undo keep</button>'
-      : '<button class="action-btn" onclick="keepMoonBooking(\'' + b.id + '\')" style="font-size:0.8rem;">Keep</button>';
+      ? '<button class="action-btn danger" onclick="releaseMoonKeep(\'' + escAttr(b.id) + '\')" style="font-size:0.8rem;">Undo keep</button>'
+      : '<button class="action-btn" onclick="keepMoonBooking(\'' + escAttr(b.id) + '\')" style="font-size:0.8rem;">Keep</button>';
     const notCanceled = b.status !== 'canceled';
     const extraBtns =
-      '<button class="action-btn" onclick="openReschedule(\'' + b.id + '\')" style="font-size:0.8rem;">Reschedule</button>' +
-      (notCanceled ? '<button class="action-btn danger" onclick="cancelBooking(\'' + b.id + '\')" style="font-size:0.8rem;">Cancel</button>' : '');
+      '<button class="action-btn" onclick="openReschedule(\'' + escAttr(b.id) + '\')" style="font-size:0.8rem;">Reschedule</button>' +
+      (notCanceled ? '<button class="action-btn danger" onclick="cancelBooking(\'' + escAttr(b.id) + '\')" style="font-size:0.8rem;">Cancel</button>' : '');
     return '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid var(--gray-100);">' +
       '<div style="flex:1;min-width:0;">' +
         '<div style="font-weight:600;">' + escapeHtml(b.date) + ' ' + escapeHtml(b.time || '') + ' &middot; ' + escapeHtml(b.clientName) + (b.isRecurring ? ' (recurring)' : '') + '</div>' +

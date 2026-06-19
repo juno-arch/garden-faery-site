@@ -2157,8 +2157,8 @@ function showMultipleConfirmation(et, dates, seriesId) {
       '<div class="summary-item"><span class="summary-label">Visits</span><span class="summary-value">' + dates.length + '</span></div>' +
       '<div class="summary-item"><span class="summary-label">Dates</span><span class="summary-value" style="text-align:right;max-width:60%;">' + list + '</span></div>' +
       '<div class="summary-item"><span class="summary-label">Time</span><span class="summary-value">' + eventTimeRange(et) + '</span></div>' +
-      '<div class="summary-item"><span class="summary-label">Where</span><span class="summary-value">' + (address || 'TBD') + '</span></div>' +
-      '<div class="summary-item"><span class="summary-label">Who</span><span class="summary-value">' + name + '</span></div>';
+      '<div class="summary-item"><span class="summary-label">Where</span><span class="summary-value">' + escAddr(address || 'TBD') + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Who</span><span class="summary-value">' + escAddr(name) + '</span></div>';
   }
 }
 
@@ -2183,8 +2183,8 @@ function showRecurringConfirmation(et, okDates, seriesId) {
       '<div class="summary-item"><span class="summary-label">Visits</span><span class="summary-value">' + okDates.length + '</span></div>' +
       '<div class="summary-item"><span class="summary-label">First visit</span><span class="summary-value">' + firstStr + ' at ' + et.slots[0] + '</span></div>' +
       '<div class="summary-item"><span class="summary-label">Last visit</span><span class="summary-value">' + lastStr + '</span></div>' +
-      '<div class="summary-item"><span class="summary-label">Where</span><span class="summary-value">' + (address || 'TBD') + '</span></div>' +
-      '<div class="summary-item"><span class="summary-label">Who</span><span class="summary-value">' + name + '</span></div>';
+      '<div class="summary-item"><span class="summary-label">Where</span><span class="summary-value">' + escAddr(address || 'TBD') + '</span></div>' +
+      '<div class="summary-item"><span class="summary-label">Who</span><span class="summary-value">' + escAddr(name) + '</span></div>';
   }
 }
 
@@ -2197,8 +2197,8 @@ function showConfirmation(booking, et) {
   document.getElementById('confirm-details').innerHTML =
     '<div class="summary-item"><span class="summary-label">What</span><span class="summary-value">' + et.name + '</span></div>' +
     '<div class="summary-item"><span class="summary-label">When</span><span class="summary-value">' + dateStr + ' at ' + booking.time + '</span></div>' +
-    '<div class="summary-item"><span class="summary-label">Where</span><span class="summary-value">' + (booking.clientAddress || 'TBD') + '</span></div>' +
-    '<div class="summary-item"><span class="summary-label">Who</span><span class="summary-value">' + booking.clientName + '</span></div>';
+    '<div class="summary-item"><span class="summary-label">Where</span><span class="summary-value">' + escAddr(booking.clientAddress || 'TBD') + '</span></div>' +
+    '<div class="summary-item"><span class="summary-label">Who</span><span class="summary-value">' + escAddr(booking.clientName) + '</span></div>';
 }
 
 // --- Manage bookings (client self-service) ---
@@ -2278,39 +2278,39 @@ async function lookupBookings() {
       const count = seriesSizes[b.recurringSeriesId];
       const freqLabel = { weekly: 'weekly', biweekly: 'every other week', monthly: 'monthly' }[b.recurringFrequency] || 'recurring';
       html += '<div class="my-booking-card ' + b.eventType + '" style="border-left:4px solid var(--spring-sage);">' +
-        '<h3>Recurring series <span class="status-badge confirmed">' + (eventNames[b.eventType] || b.eventName) + ' - ' + freqLabel + '</span></h3>' +
+        '<h3>Recurring series <span class="status-badge confirmed">' + (eventNames[b.eventType] || escAddr(b.eventName)) + ' - ' + freqLabel + '</span></h3>' +
         '<div class="meta">' + count + ' upcoming visit' + (count === 1 ? '' : 's') + '</div>' +
         '<div class="actions" style="margin-top:8px;">' +
-          '<button class="cancel-btn" onclick="clientCancelSeries(\'' + b.recurringSeriesId + '\')">Cancel entire series</button>' +
+          '<button class="cancel-btn" onclick="clientCancelSeries(\'' + escAddr(b.recurringSeriesId) + '\')">Cancel entire series</button>' +
         '</div>' +
       '</div>';
     }
 
-    html += '<div class="my-booking-card ' + b.eventType + '" id="manage-card-' + b.id + '">' +
-      '<h3>' + (eventNames[b.eventType] || b.eventName) +
+    html += '<div class="my-booking-card ' + b.eventType + '" id="manage-card-' + escAddr(b.id) + '">' +
+      '<h3>' + (eventNames[b.eventType] || escAddr(b.eventName)) +
         (b.recurringSeriesId ? ' <span style="font-size:0.75rem;color:var(--gray-600);font-weight:400;">(recurring)</span>' : '') +
         ' <span class="status-badge ' + statusClass + '">' + statusLabel + '</span></h3>' +
       '<div class="meta">' + dateStr + ' at ' + b.time + '</div>';
 
     if (b.status !== 'canceled') {
       html += '<div class="actions">' +
-        '<button onclick="clientReschedule(\'' + b.id + '\')">Reschedule</button>' +
-        '<button class="cancel-btn" onclick="clientCancel(\'' + b.id + '\')">' +
+        '<button onclick="clientReschedule(\'' + escAddr(b.id) + '\')">Reschedule</button>' +
+        '<button class="cancel-btn" onclick="clientCancel(\'' + escAddr(b.id) + '\')">' +
           (b.recurringSeriesId ? 'Cancel this visit' : 'Cancel Visit') +
         '</button>' +
       '</div>' +
-      '<div class="reschedule-picker" id="reschedule-' + b.id + '" style="display:none;">' +
+      '<div class="reschedule-picker" id="reschedule-' + escAddr(b.id) + '" style="display:none;">' +
         '<label>New time</label>' +
-        '<select id="resched-slot-' + b.id + '" onchange="onReschedSlotChange(\'' + b.id + '\')">' +
+        '<select id="resched-slot-' + escAddr(b.id) + '" onchange="onReschedSlotChange(\'' + escAddr(b.id) + '\')">' +
           '<option value="morning">Morning (9:00am to 2:00pm)</option>' +
           '<option value="afternoon">Afternoon (2:30pm to 4:30pm)</option>' +
         '</select>' +
         '<label style="margin-top:12px;">Pick a new date (only open days shown)</label>' +
-        '<div id="resched-cal-' + b.id + '" style="margin-top:4px;"></div>' +
-        '<div id="resched-selected-' + b.id + '" style="font-size:0.85rem;color:var(--gray-600);margin-top:8px;min-height:1.1em;">Pick a date above.</div>' +
+        '<div id="resched-cal-' + escAddr(b.id) + '" style="margin-top:4px;"></div>' +
+        '<div id="resched-selected-' + escAddr(b.id) + '" style="font-size:0.85rem;color:var(--gray-600);margin-top:8px;min-height:1.1em;">Pick a date above.</div>' +
         '<div class="actions" style="margin-top: 8px;">' +
-          '<button onclick="confirmClientReschedule(\'' + b.id + '\')" id="resched-confirm-' + b.id + '" disabled>Confirm New Date</button>' +
-          '<button onclick="hideRescheduleCard(\'' + b.id + '\')">Never Mind</button>' +
+          '<button onclick="confirmClientReschedule(\'' + escAddr(b.id) + '\')" id="resched-confirm-' + escAddr(b.id) + '" disabled>Confirm New Date</button>' +
+          '<button onclick="hideRescheduleCard(\'' + escAddr(b.id) + '\')">Never Mind</button>' +
         '</div>' +
       '</div>';
     }
