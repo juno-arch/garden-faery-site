@@ -262,6 +262,24 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
 }
 .cal-nav:hover { background: var(--gray-100); }
 
+.btn-next-avail {
+  display: block;
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 9px 14px;
+  background: var(--sage-light);
+  color: var(--plum);
+  border: 1px solid var(--spring-sage);
+  border-radius: 10px;
+  font-family: 'Inter', 'Nunito', -apple-system, sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.btn-next-avail:hover { background: var(--spring-sage); color: var(--white); }
+.btn-next-avail:disabled { opacity: 0.45; cursor: default; }
+
 .cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -875,6 +893,34 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
   .contact-plug-btn { justify-content: center; }
 }
 
+/* Desktop layout — give the booking flow real breathing room instead of a
+   phone-width column. Widens the shell, scales the hero, and lays the
+   details form out two-up. */
+@media (min-width: 760px) {
+  .container { max-width: 760px; padding: 40px 36px; }
+  .header { height: 300px; margin: -40px -36px 32px; border-radius: 0 0 24px 24px; }
+  .header h1 { font-size: 3rem; }
+  .header p { font-size: 1.1rem; }
+  .card { padding: 28px 32px; }
+  .cal-grid { gap: 6px; }
+  .cal-day { font-size: 1rem; }
+
+  /* Two-column details form: name + contact pair up, everything else
+     spans the full width. (nth-of-type(2) is the form card; the first
+     card in this step is the booking summary.) */
+  #step-2 .card:nth-of-type(2) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 20px;
+    align-items: start;
+  }
+  #step-2 .card:nth-of-type(2) > .form-group { grid-column: 1 / -1; margin-bottom: 0; }
+  #step-2 .card:nth-of-type(2) > .form-group:nth-child(1),
+  #step-2 .card:nth-of-type(2) > .form-group:nth-child(2),
+  #step-2 .card:nth-of-type(2) > .form-group:nth-child(3),
+  #step-2 .card:nth-of-type(2) > .form-group:nth-child(4) { grid-column: span 1; }
+}
+
 </style>
 </head>
 <body>
@@ -988,6 +1034,7 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
         <h2 id="cal-month-label"></h2>
         <button class="cal-nav" id="cal-next">&#8594;</button>
 </div>
+      <button type="button" class="btn-next-avail" id="btn-next-avail" onclick="goToNextAvailable()">Skip to next available</button>
       <div class="cal-grid" id="cal-grid"></div>
       <div id="time-slot-area"></div>
 </div>
@@ -1673,6 +1720,9 @@ function renderCalendar() {
   const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   label.textContent = monthNames[calMonth] + ' ' + calYear;
 
+  const naBtn = document.getElementById('btn-next-avail');
+  if (naBtn) { naBtn.disabled = false; naBtn.textContent = 'Skip to next available'; }
+
   const today = new Date();
   today.setHours(0,0,0,0);
   const firstDay = new Date(calYear, calMonth, 1);
@@ -1849,6 +1899,29 @@ document.getElementById('cal-next').addEventListener('click', () => {
   if (calMonth > 11) { calMonth = 0; calYear++; }
   renderCalendar();
 });
+
+// Jump the calendar to the next open date for the chosen service and select it.
+function goToNextAvailable() {
+  const next = findNextAvailable(selectedEvent);
+  const btn = document.getElementById('btn-next-avail');
+  if (!next) {
+    if (btn) { btn.textContent = 'No openings in the next four months'; btn.disabled = true; }
+    return;
+  }
+  calMonth = next.getMonth();
+  calYear = next.getFullYear();
+  renderCalendar();
+  // For single bookings, also select the day and reveal its time slots.
+  if (bookingType !== 'multiple') {
+    const grid = document.getElementById('cal-grid');
+    const cell = grid && grid.querySelector(
+      '.cal-day.available[data-date="' + calYear + '-' + (calMonth + 1) + '-' + next.getDate() + '"]');
+    if (cell) {
+      selectDate(cell);
+      cell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+}
 
 // --- Summary ---
 function renderSummary() {
