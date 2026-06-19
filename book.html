@@ -1122,13 +1122,13 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
         <label for="f-sms-reminders" style="display: block; cursor: pointer; font-weight: 400; line-height: 1.35; font-size: 0.92em;">
           <input type="checkbox" id="f-sms-reminders" checked style="margin-right: 8px; vertical-align: -1px;">
           Text me reminders about my visits
-          <span style="display: block; padding-left: 24px; font-size: 0.85em; color: var(--gray-600); margin-top: 2px;">Booking confirmation, day-before reminder, weather changes, cancellation notices. Reply STOP anytime.</span>
+          <span style="display: block; padding-left: 24px; font-size: 0.85em; color: var(--gray-600); margin-top: 2px;">Booking confirmation, day-before reminder, cancellation notices. Reply STOP anytime.</span>
 </label>
 </div>
 
       <!-- Email newsletter opt-in. Unchecked by default (opt-in is opt-in).
            No promo SMS option — Garden Faery doesn't send marketing texts.
-           Visit reminders, weather reroutes, login codes, etc. are
+           Visit reminders, login codes, etc. are
            covered by the operational SMS consent block below. -->
       <div class="form-group" style="background: var(--cream); padding: 12px 14px; border-radius: 8px; margin-top: 4px;">
         <label for="f-mkt-email" style="display: block; cursor: pointer; font-weight: 400; line-height: 1.35; font-size: 0.92em;">
@@ -1138,7 +1138,7 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
 </div>
 </div>
     <p style="font-size: 0.78rem; color: var(--gray-600); line-height: 1.5; margin: 14px 2px 0;">
-      By providing your phone number and submitting this form, you agree to receive recurring SMS messages from Garden Faery, including booking confirmations, day-before reminders, weather-related reschedule notices, one-time portal login codes, and booking cancellation confirmations. Message frequency varies (typically 1 to 5 messages per month per active client). Message and data rates may apply. Your mobile phone number and SMS opt-in status will never be shared with third parties or affiliates for marketing or promotional purposes. Reply STOP to opt out at any time. Reply HELP for assistance. See our <a href="privacy.html" style="color: var(--plum); text-decoration: underline;">Privacy Policy</a> and <a href="terms.html" style="color: var(--plum); text-decoration: underline;">Terms</a>.
+      By providing your phone number and submitting this form, you agree to receive recurring SMS messages from Garden Faery, including booking confirmations, day-before reminders, one-time portal login codes, and booking cancellation confirmations. Message frequency varies (typically 1 to 5 messages per month per active client). Message and data rates may apply. Your mobile phone number and SMS opt-in status will never be shared with third parties or affiliates for marketing or promotional purposes. Reply STOP to opt out at any time. Reply HELP for assistance. See our <a href="privacy.html" style="color: var(--plum); text-decoration: underline;">Privacy Policy</a> and <a href="terms.html" style="color: var(--plum); text-decoration: underline;">Terms</a>.
 </p>
     <div class="btn-row">
       <button class="btn btn-back" onclick="goStep(1)">&#8592; Back</button>
@@ -1268,7 +1268,14 @@ function dateHasTimeConflict(dateStr, eventTypeKey, bookings, excludeId) {
     if (b.status === 'canceled') continue;
     const bStart = clockTimeToMinutes(b.time);
     if (bStart == null) continue;
-    const bEnd = bStart + (Number(b.duration) || 0);
+    // Fall back to the slot's standard length if a booking has no duration,
+    // so a 0-minute record can't read as "occupies no time" and free a slot.
+    let bDur = Number(b.duration) || 0;
+    if (bDur <= 0) {
+      const bet = EVENT_TYPES[b.eventType];
+      if (bet) bDur = (bet.endHour * 60 + bet.endMin) - (bet.startHour * 60 + bet.startMin);
+    }
+    const bEnd = bStart + bDur;
     if (wantStart < bEnd && bStart < wantEnd) return true;
   }
   return false;

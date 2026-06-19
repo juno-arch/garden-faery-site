@@ -12217,6 +12217,9 @@ async function saveOBO() {
         eventName: EVENT_LABELS[t.eventType],
         date: t.date,
         time: EVENT_TIME_SLOTS[t.eventType],
+        // Duration MUST be set or the slot won't block availability (a
+        // 0-minute booking occupies no time in the conflict check).
+        duration: (_EVENT_DURATION_HOURS[t.eventType] || 0) * 60,
         clientName: name,
         clientEmail: email,
         clientPhone: phone,
