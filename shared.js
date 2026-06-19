@@ -446,8 +446,7 @@
       if (hit) showMilestoneToast(hit.label);
     }
 
-    // Initial paint of the jar so it shows the stored count on page load.
-    setTimeout(() => { ensureHoneyJar(); updateHoneyJar(); }, 600);
+    // Bee-catching mini-game removed — the honey jar widget is no longer shown.
 
     function onBeeClick(e) {
       e.preventDefault();
@@ -455,9 +454,6 @@
       showBeeTip(beeMessages[beeMsgIdx % beeMessages.length]);
       beeMsgIdx++;
       spawnPetals();
-      // Bee-catching game: +1 honey, anti-spam gated.
-      const r = bee.getBoundingClientRect();
-      bumpHoney(r.left + r.width / 2, r.top);
       // retrigger the wiggle animation
       beeWrap.classList.remove('wiggling');
       void beeWrap.offsetWidth;
