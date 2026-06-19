@@ -1044,6 +1044,7 @@ h1, h2, h3 { font-family: 'Fraunces', 'Lora', Georgia, serif; font-weight: 400; 
         <div id="returning-code-step" style="display:none;">
           <label class="returning-label" for="returning-code">Enter the 6-digit code sent to <strong id="returning-dest"></strong></label>
           <input type="text" id="returning-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456">
+          <p class="returning-help">Didn't get a code within a minute? Double-check the number or email matches what you booked with, or just fill the form in below.</p>
           <div class="returning-actions">
             <button type="button" class="btn btn-primary returning-btn" id="returning-verify" onclick="returningVerify()">Verify &amp; fill my details</button>
             <button type="button" class="returning-link" onclick="returningResetToId()">Start over</button>
@@ -3040,17 +3041,28 @@ function parseReturningAddress(addr) {
   if (!parts.length) return out;
   const last = parts[parts.length - 1];
   const m = last.match(/^([A-Za-z]{2})\s+(\d{5}(?:-\d{4})?)$/);
-  if (m && parts.length >= 2) {
+  if (m && parts.length >= 3) {
+    // Standard composed form: "street, [apt,] city, STATE ZIP".
     out.state = m[1].toUpperCase();
     out.zip = m[2];
     out.city = parts[parts.length - 2] || '';
     out.street = parts[0] || '';
     out.apt = parts.slice(1, parts.length - 2).join(', ');
+  } else if (m && parts.length === 2) {
+    // "street, STATE ZIP" — no city captured. Don't shove the street into city.
+    out.state = m[1].toUpperCase();
+    out.zip = m[2];
+    out.street = parts[0] || '';
+  } else if (m && parts.length === 1) {
+    // Only "STATE ZIP" — keep state/zip, leave street/city blank.
+    out.state = m[1].toUpperCase();
+    out.zip = m[2];
   } else {
-    // No recognizable "STATE ZIP" tail — best effort.
+    // No recognizable "STATE ZIP" tail — best effort: first part is the street,
+    // the last (when distinct) is the city, anything between is the apt.
     out.street = parts[0] || '';
     if (parts.length >= 2) out.city = parts[parts.length - 1];
-    out.apt = parts.slice(1, Math.max(1, parts.length - 1)).join(', ');
+    out.apt = parts.length > 2 ? parts.slice(1, parts.length - 1).join(', ') : '';
   }
   return out;
 }
@@ -3102,6 +3114,7 @@ function returningSignOut() {
   ['f-first-name','f-last-name','f-email','f-phone','f-address','f-address2','f-city','f-zip'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
+  const stateEl = document.getElementById('f-state'); if (stateEl) stateEl.value = 'CA';
   document.getElementById('returning-welcome').style.display = 'none';
   document.getElementById('returning-login').style.display = 'none';
   document.getElementById('returning-prompt').style.display = '';
