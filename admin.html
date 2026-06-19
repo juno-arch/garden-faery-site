@@ -2039,10 +2039,12 @@ function spawnClickBee(x, y) {
   } catch (_) {}
 }
 
-// Delegated: any action button (modal-btn / fab) buzzes a bee from the tap point.
+// Delegated: only PRIMARY (save/confirm) buttons buzz a bee from the tap
+// point — that's the "it's saving" feedback. Plain/secondary buttons no
+// longer spawn bees, so it's not a click-everywhere game.
 document.addEventListener('click', function (e) {
   try {
-    const btn = e.target && e.target.closest ? e.target.closest('.modal-btn, .fab') : null;
+    const btn = e.target && e.target.closest ? e.target.closest('.modal-btn.primary') : null;
     if (!btn || btn.disabled) return;
     const x = e.clientX || (btn.getBoundingClientRect().left + btn.offsetWidth / 2);
     const y = e.clientY || (btn.getBoundingClientRect().top + btn.offsetHeight / 2);
