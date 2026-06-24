@@ -1750,6 +1750,7 @@ async function refreshData() {
     _cachedBookings = await DB.getBookings();
     _cachedBlocks = await DB.getBlocks();
     await loadClientsRecords();
+    if (typeof ensureFileToken === 'function') await ensureFileToken();  // so receipt images have a valid ?token= on first paint
     _dataLoadError = false;
     hideDataErrorBanner();
   } catch (err) {
@@ -7603,6 +7604,10 @@ async function exportExpenseCsv() {
   const filenames = new Map(); // expense.id -> filename in zip
   const failedReceipts = [];   // expenses whose receipt couldn't be attached
 
+  // Refresh the file token once up front so every receipt URL in this export
+  // carries a valid ?token= (PB ignores the Authorization header for files).
+  if (typeof ensureFileToken === 'function') await ensureFileToken();
+
   // Download all receipt blobs in parallel, then add to the zip.
   await Promise.all(withReceipts.map(async (e) => {
     try {
@@ -7674,9 +7679,27 @@ function _downloadCsv(rows, filename, filenamesById) {
 }
 
 // --- Receipt helpers (URL + lightbox) ---
+// PocketBase protected files need a short-lived ?token= (the Authorization
+// header is ignored for file routes). We cache one and refresh it periodically
+// + before the CSV export so receipt thumbnails, the lightbox, and the ZIP load.
+let _fileToken = '';
+async function ensureFileToken() {
+  try {
+    const r = await fetch(PB_URL + '/api/files/token', {
+      method: 'POST',
+      headers: PB_TOKEN ? { 'Authorization': 'Bearer ' + PB_TOKEN } : {},
+    });
+    const j = await r.json().catch(() => ({}));
+    if (j && j.token) _fileToken = j.token;
+  } catch (_) { /* keep the previous token; file may still load if unexpired */ }
+}
+// PB file tokens are short-lived; refresh ahead of expiry during long sessions.
+setInterval(function () { if (PB_TOKEN) ensureFileToken(); }, 150000);
+
 function receiptUrl(e) {
   if (!e || !e.receipt || !e._collection || !e.id) return '';
-  return PB_URL + '/api/files/' + e._collection + '/' + e.id + '/' + encodeURIComponent(e.receipt);
+  return PB_URL + '/api/files/' + e._collection + '/' + e.id + '/' + encodeURIComponent(e.receipt) +
+    (_fileToken ? '?token=' + _fileToken : '');
 }
 function openReceiptLightbox(url) {
   if (!url) return;
