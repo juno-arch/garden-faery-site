@@ -74,32 +74,26 @@
     .page-hero p { font-size: 16px; color: rgba(255,255,255,0.95); max-width: 480px; text-shadow: 0 1px 8px rgba(0,0,0,0.35); }
     @media (max-width: 600px) { .page-hero { height: 200px; } .page-hero h1 { font-size: 32px; } .page-hero p { font-size: 14px; } }
 
-    .page-content { max-width: 580px; margin: 0 auto; padding: 40px 20px; }
-    .lead { text-align: center; font-size: 16px; color: var(--text-secondary); margin-bottom: 28px; }
+    .page-content { max-width: 560px; margin: 0 auto; padding: 44px 20px 8px; }
+    .lead { text-align: center; font-size: 16px; color: var(--text-secondary); margin-bottom: 30px; }
 
-    .book-card { border-radius: 16px; padding: 24px 22px; background: rgba(255, 255, 255, 0.55); border: 1px solid rgba(255, 255, 255, 0.65); margin-bottom: 22px; }
-    .book-card h2 { font-size: 22px; font-weight: 900; margin-bottom: 6px; }
-    .book-card p { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+    /* Brand card: white on cream with the site's soft wine shadow. */
+    .book-card { background: var(--white); border-radius: var(--radius); padding: 28px 26px; box-shadow: var(--shadow); margin-bottom: 20px; }
+    .book-card .eyebrow { margin-bottom: 8px; }
+    .book-card h2 { font-size: 25px; margin-bottom: 8px; }
+    .book-card > p { font-size: 15px; color: var(--text-secondary); margin-bottom: 20px; }
 
-    .form-section input, .form-section textarea { width: 100%; padding: 13px 14px; border: 1px solid rgba(90, 18, 48, 0.15); border-radius: 10px; font-family: inherit; font-size: 15px; background: rgba(255, 255, 255, 0.6); color: var(--text-primary); margin-bottom: 10px; }
-    .form-section textarea { height: 120px; resize: vertical; }
-    .form-section input:focus, .form-section textarea:focus { outline: none; border-color: var(--accent-1); box-shadow: 0 0 0 3px rgba(194, 85, 122, 0.2); }
-    .form-btn { width: 100%; padding: 14px; background: var(--accent-1); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: var(--font-body); transition: background 0.2s, transform 0.2s; }
-    .form-btn:hover { background: var(--highlight); transform: scale(1.02); }
-    .form-btn:disabled { opacity: 0.6; cursor: default; transform: none; }
-    .form-note { font-size: 13px; text-align: center; margin-top: 10px; min-height: 18px; }
+    .form-section input, .form-section textarea { width: 100%; padding: 13px 15px; border: 1px solid var(--gray-200); border-radius: 11px; font-family: inherit; font-size: 15px; background: var(--cream); color: var(--text-primary); margin-bottom: 11px; transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; }
+    .form-section textarea { height: 122px; resize: vertical; }
+    .form-section input:focus, .form-section textarea:focus { outline: none; border-color: var(--coral); box-shadow: 0 0 0 3px rgba(232, 137, 111, 0.22); background: var(--white); }
+    /* Full-width brand pill button inside cards. */
+    .book-card .btn { width: 100%; margin-top: 2px; }
+    .book-card .btn[disabled] { opacity: 0.6; cursor: default; box-shadow: none; transform: none; }
+    .form-note { font-size: 13px; text-align: center; margin-top: 12px; min-height: 18px; }
 
-    .email-btn { display: inline-block; padding: 12px 22px; background: var(--accent-1); color: #fff; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 15px; transition: background 0.2s; }
-    .email-btn:hover { background: var(--highlight); }
-    .or-line { text-align: center; font-size: 13px; color: var(--text-secondary); margin: 14px 0; }
-    .fine { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
-    .fine a { color: var(--accent-1); }
-
-    .social-links { display: flex; justify-content: center; gap: 16px; margin-top: 10px; }
-    .social-links a { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); transition: background 0.2s, transform 0.2s; }
-    .social-links a:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
-    .social-links svg { width: 18px !important; height: 18px !important; fill: var(--accent-1); display: block; }
-    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+    .email-alt { text-align: center; font-size: 13.5px; color: var(--text-secondary); margin: 16px 0 0; }
+    .email-alt a { color: var(--wine); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+    .fine { font-size: 13px; color: var(--text-secondary); line-height: 1.5; text-align: center; margin-top: 6px; }
   </style>
 </head>
 <body>
@@ -139,8 +133,9 @@
 
     <!-- Booking request form (emails Garden Faery via the contact proxy) -->
     <div class="book-card">
+      <span class="eyebrow">Garden care</span>
       <h2>Request a visit</h2>
-      <p>Tell me what you're growing and what you'd like help with. I'll get back to you within a day or two.</p>
+      <p>Tell me what you're growing and what you'd like help with, and I'll reply with a time within a day or two.</p>
       <div class="form-section">
         <form onsubmit="sendBookingRequest(event)">
           <label for="bf-name" class="sr-only">Your name</label>
@@ -149,21 +144,20 @@
           <input type="email" id="bf-email" placeholder="Your email" autocomplete="email" required>
           <label for="bf-message" class="sr-only">What you need</label>
           <textarea id="bf-message" placeholder="Where's your garden, and what would you like help with? (Beds, weeding, planting, ongoing care...)" required></textarea>
-          <button type="submit" class="form-btn">Send my request</button>
+          <button type="submit" class="btn btn-primary" id="bf-submit">Send my request</button>
           <div class="form-note" id="bf-note"></div>
         </form>
       </div>
-      <p class="or-line">&mdash; or &mdash;</p>
-      <p style="text-align:center; margin:0;"><a class="email-btn" href="mailto:taya@gardenfaery.love?subject=Booking%20a%20visit">Email me directly</a></p>
+      <p class="email-alt">Prefer email? Write me at <a href="mailto:taya@gardenfaery.love?subject=Booking%20a%20visit">taya@gardenfaery.love</a></p>
     </div>
 
     <div class="book-card">
       <h2>Already a client?</h2>
-      <p style="margin-bottom:10px;">Just text me and we'll sort out your next visit. To see your past visits or pay an invoice, sign in to your account.</p>
-      <p style="text-align:center; margin:0;"><a class="email-btn" href="portal.html">Go to my account</a></p>
+      <p>Just text me and we'll sort out your next visit. To see your past visits or pay an invoice, sign in to your account.</p>
+      <a class="btn btn-secondary" href="portal.html">Go to my account</a>
     </div>
 
-    <p class="fine" style="text-align:center;">Garden Faery serves Arcata, Bayside, McKinleyville, and Eureka, CA.</p>
+    <p class="fine">Garden Faery serves Arcata, Bayside, McKinleyville, and Eureka, CA.</p>
   </div>
   </main>
 
@@ -210,7 +204,7 @@
       var name = document.getElementById('bf-name').value.trim();
       var email = document.getElementById('bf-email').value.trim();
       var message = document.getElementById('bf-message').value.trim();
-      var btn = document.querySelector('.form-btn');
+      var btn = document.getElementById('bf-submit');
       var note = document.getElementById('bf-note');
       if (!name || !email || !message) return;
       btn.textContent = 'Sending...';
