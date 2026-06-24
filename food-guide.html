@@ -2183,9 +2183,10 @@
         const lifecycleClass = plant.lifecycle === 'semi' ? 'semi' : plant.lifecycle;
         const lifecycleLabel = plant.lifecycle.charAt(0).toUpperCase() + plant.lifecycle.slice(1);
 
+        card.dataset.slug = plant.slug;
         card.innerHTML = `
           <div class="plant-image">
-            <img src="plant-guide/${plant.slug}.jpg" alt="${plant.name}" loading="lazy" onerror="handleImgError(this, '#c2557a')" decoding="async">
+            <div class="plant-image-fallback"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:60px;height:60px;"><circle cx="50" cy="50" r="45" fill="#c2557a" opacity="0.15"/><path d="M50 20 Q60 35 55 50 Q65 60 50 75 Q35 60 45 50 Q40 35 50 20" fill="#c2557a" opacity="0.3"/></svg></div>
           </div>
           <div class="card-content">
             <div class="card-titles">
@@ -2394,7 +2395,6 @@
   const GFKit = (function() {
     const STORAGE_KEY = 'gf_favorites_v1';
     const PAGE_KEY = 'food';
-    const OTHER_PAGE = 'plant-guide.html';
     const SUB_LABELS = { vegetables: 'Vegetables', fruits: 'Fruits & Berries', staples: 'Root Crops & Staples' };
     const SUB_COLORS = { vegetables: '#9bbd85', fruits: '#c2557a', staples: '#d4a04a' };
     const LIFECYCLE_LABELS = { perennial: 'Perennial', annual: 'Annual', semi: 'Semi-Perennial' };
@@ -2485,13 +2485,9 @@
         if (card.dataset.kitDecorated === '1') return;
         card.dataset.kitDecorated = '1';
 
-        // Derive slug from image src
-        const img = card.querySelector('.plant-image img');
-        const src = img ? img.getAttribute('src') : '';
-        const match = src && src.match(/plant-guide\/([a-z0-9-]+)\.jpg/);
-        const slug = match ? match[1] : null;
+        // Slug is set on the card when it is rendered (see renderPlants).
+        const slug = card.dataset.slug || null;
         if (!slug) return;
-        card.dataset.slug = slug;
 
         // Heart
         const heart = document.createElement('button');
@@ -2548,7 +2544,7 @@
     function updateFab() {
       const fab = document.getElementById('my-garden-fab');
       const badge = document.getElementById('fav-count-badge');
-      const count = favorites.plants.length + favorites.food.length;
+      const count = favorites.food.length;
       if (!fab) return;
       fab.hidden = false;
       badge.textContent = count;
@@ -2660,18 +2656,10 @@
       const imgWrap = document.getElementById('modal-image');
 
       imgWrap.innerHTML = '';
-      const modalImg = document.createElement('img');
-      modalImg.src = 'plant-guide/' + p.slug + '.jpg';
-      modalImg.alt = p.name || '';
-      modalImg.decoding = 'async';
-      modalImg.onerror = function() {
-        const fb = document.createElement('div');
-        fb.className = 'modal-image-fallback';
-        fb.innerHTML = '<svg viewBox="0 0 100 100" style="width:100px;height:100px;opacity:0.3;"><circle cx="50" cy="50" r="45" fill="#c48bb0" opacity="0.3"/></svg>';
-        const parent = this.parentElement;
-        if (parent) { parent.innerHTML = ''; parent.appendChild(fb); }
-      };
-      imgWrap.appendChild(modalImg);
+      const fb = document.createElement('div');
+      fb.className = 'modal-image-fallback';
+      fb.innerHTML = '<svg viewBox="0 0 100 100" style="width:100px;height:100px;opacity:0.3;"><circle cx="50" cy="50" r="45" fill="#c48bb0" opacity="0.3"/></svg>';
+      imgWrap.appendChild(fb);
 
       const subColor = SUB_COLORS[p.sub] || '#c2557a';
       const lifecycleColor = LIFECYCLE_COLORS[p.lifecycle] || '#7a92a5';
@@ -2769,10 +2757,8 @@
       const body = document.getElementById('drawer-body');
       const footer = document.getElementById('drawer-footer');
       const foodFavs = favorites.food.map(s => findPlant(s)).filter(Boolean);
-      const plantFavs = favorites.plants || [];
-      const total = foodFavs.length + plantFavs.length;
 
-      if (total === 0) {
+      if (foodFavs.length === 0) {
         body.innerHTML =
           '<div class="fav-empty">' +
           '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-7.5-4.7-9.5-9.2C1 7.7 4 4 7.5 4c2 0 3.5 1 4.5 2.5C13 5 14.5 4 16.5 4 20 4 23 7.7 21.5 11.8 19.5 16.3 12 21 12 21z"/></svg>' +
@@ -2803,21 +2789,6 @@
         html += '</div>';
       });
 
-      if (plantFavs.length > 0) {
-        html += '<div class="fav-group">' +
-          '<div class="fav-group-title" style="background:#f0c87830">From Plant Archive (' + plantFavs.length + ')</div>' +
-          plantFavs.map(slug =>
-            '<div class="fav-item">' +
-              '<a class="fav-item-main" href="plant-guide.html?plant=' + slug + '">' +
-                '<div class="fav-item-name">' + escapeHtml(slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())) + '</div>' +
-                '<div class="fav-item-scientific">View on Plant Archive</div>' +
-              '</a>' +
-              '<button class="fav-remove" data-remove-plant="' + slug + '" aria-label="Remove">&times;</button>' +
-            '</div>'
-          ).join('') +
-          '</div>';
-      }
-
       body.innerHTML = html;
       footer.hidden = false;
 
@@ -2827,25 +2798,15 @@
       body.querySelectorAll('[data-remove]').forEach(el => {
         el.addEventListener('click', () => { toggleFav(el.dataset.remove); showToast('Removed from My Garden'); });
       });
-      body.querySelectorAll('[data-remove-plant]').forEach(el => {
-        el.addEventListener('click', () => {
-          const slug = el.dataset.removePlant;
-          favorites.plants = favorites.plants.filter(s => s !== slug);
-          saveFavorites();
-          updateFab();
-          renderDrawer();
-          showToast('Removed from My Garden');
-        });
-      });
 
-      const emailBody = buildEmailBody(foodFavs, plantFavs);
+      const emailBody = buildEmailBody(foodFavs);
       const subject = 'My Garden list from gardenfaery.love';
       document.getElementById('email-taya-btn').href =
         'mailto:taya@gardenfaery.love?subject=' + encodeURIComponent(subject) +
         '&body=' + encodeURIComponent(emailBody);
     }
 
-    function buildEmailBody(foodFavs, plantFavs) {
+    function buildEmailBody(foodFavs) {
       let body = "Hi Taya,\n\nHere are the plants I'd love to include in my garden:\n\n";
       const bySub = {};
       foodFavs.forEach(p => { (bySub[p.sub] = bySub[p.sub] || []).push(p); });
@@ -2855,11 +2816,6 @@
         bySub[sub].forEach(p => { body += '  - ' + p.name + ' (' + p.scientific + ')\n'; });
         body += '\n';
       });
-      if (plantFavs.length > 0) {
-        body += 'FROM THE GREENERY\n';
-        plantFavs.forEach(s => { body += '  - ' + s.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) + '\n'; });
-        body += '\n';
-      }
       body += "I'd like to talk about how to make these work in my space.\n\nThanks!";
       return body;
     }
@@ -2893,9 +2849,6 @@
         const onThisPage = !!findPlant(companionSlug);
         if (onThisPage) {
           return '<button type="button" class="companion-chip ' + kind + '" data-companion="' + companionSlug + '">' + escapeHtml(label) + '</button>';
-        }
-        if (COMPANIONS[companionSlug]) {
-          return '<a class="companion-chip ' + kind + '" href="' + OTHER_PAGE + '?plant=' + companionSlug + '">' + escapeHtml(label) + '</a>';
         }
         return '<span class="companion-chip unknown">' + escapeHtml(label) + '</span>';
       }

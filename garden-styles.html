@@ -736,8 +736,6 @@
     function plantTitle(slug) {
       return slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     }
-    function plantHref(slug) { return 'plant-guide.html?plant=' + slug; }
-    function plantThumbSrc(slug) { return 'plant-guide/' + slug + '.jpg'; }
     function recipesForStyle(styleSlug) {
       return RECIPES.filter(r => r.styles.indexOf(styleSlug) !== -1);
     }
@@ -763,14 +761,13 @@
     const modalBody = document.getElementById('modal-body');
 
     function plantRow(p) {
-      return `<a class="plant-row" href="${plantHref(p.slug)}">
-        <img class="plant-thumb" src="${plantThumbSrc(p.slug)}" alt="" loading="lazy"
-          onerror="this.style.background='var(--sage-light)';this.removeAttribute('src');" decoding="async">
+      return `<span class="plant-row">
+        <span class="plant-thumb" aria-hidden="true"></span>
         <div class="plant-info">
           <div class="plant-info-name">${plantTitle(p.slug)}</div>
           <div class="plant-info-role">${p.role}</div>
         </div>
-      </a>`;
+      </span>`;
     }
 
     function recipeBlock(r) {
