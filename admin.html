@@ -8806,7 +8806,7 @@ function bankTxTableRow(t) {
   const dateStr = t.postedAt ? (new Date(t.postedAt)).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' }) : '?';
   const isCredit = t.amountCents > 0;
   const amtColor = isCredit ? 'var(--spring-sage)' : (t.amountCents < 0 ? 'var(--red)' : 'var(--gray-600)');
-  const amt = (isCredit ? '+' : '−') + '$' + (Math.abs(t.amountCents) / 100).toFixed(2);
+  const amt = (isCredit ? '+' : '−') + '$' + (Math.abs(t.amountCents||0) / 100).toFixed(2);
   const desc = t.vendor || t.description || t.payee || 'transaction';
   const curLabel = t.category ? categoryLabel(t.category) : '';
   const suggestion = !t.category ? suggestCategoryFor(t.payee, t.description) : null;
@@ -8957,7 +8957,7 @@ function bankTxRowHtml(t) {
         '<div class="booking-meta" style="font-size:0.75rem;">' + dateStr + (t.expenseId ? ' · linked to expense' : '') + '</div>' +
       '</div>' +
       '<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;">' +
-        '<div style="font-size:1rem;font-weight:700;color:' + amtColor + ';">' + amtSign + '$' + (Math.abs(t.amountCents)/100).toFixed(2) + '</div>' +
+        '<div style="font-size:1rem;font-weight:700;color:' + amtColor + ';">' + amtSign + '$' + (Math.abs(t.amountCents||0)/100).toFixed(2) + '</div>' +
         matchPill +
       '</div>' +
     '</div>' +
@@ -9246,7 +9246,7 @@ function renderCategoryDrillIn(modal, catKey) {
               '<div style="font-weight:500;">' + escapeHtml(String(name).slice(0, 50)) + '</div>' +
               '<div style="font-size:0.72rem;color:var(--gray-600);">' + dateStr + '</div>' +
             '</div>' +
-            '<div style="font-weight:600;font-variant-numeric:tabular-nums;">$' + (Math.abs(t.amountCents)/100).toFixed(2) + '</div>' +
+            '<div style="font-weight:600;font-variant-numeric:tabular-nums;">$' + (Math.abs(t.amountCents||0)/100).toFixed(2) + '</div>' +
           '</div>';
         }).join('') +
       '</div>' + (txs.length > 30 ? '<div style="text-align:center;color:var(--gray-600);font-size:0.75rem;margin-top:6px;">+' + (txs.length - 30) + ' more</div>' : '');
@@ -9332,7 +9332,7 @@ function openCategorizeBank(bankId) {
 
   // Header info — show suggested badge if we're auto-picking from memory
   const isCredit = t.amountCents > 0;
-  const amt = (isCredit ? '+' : '-') + '$' + (Math.abs(t.amountCents)/100).toFixed(2);
+  const amt = (isCredit ? '+' : '-') + '$' + (Math.abs(t.amountCents||0)/100).toFixed(2);
   const date = t.postedAt ? (new Date(t.postedAt)).toLocaleDateString() : '?';
   let suggestionBadge = '';
   if (suggestion) {
@@ -10440,7 +10440,7 @@ function renderPayments() {
   } else {
     filtered.forEach(p => {
       const dateStr = p.capturedAt ? (new Date(p.capturedAt)).toLocaleDateString() : '?';
-      const who = p.customerName || p.customerEmail || (p.cardLast4 ? p.cardBrand + ' •••' + p.cardLast4 : 'unknown');
+      const who = p.customerName || p.customerEmail || (p.cardLast4 ? (p.cardBrand || 'Card') + ' •••' + p.cardLast4 : 'unknown');
       const sub = [];
       if (p.feeCents > 0) sub.push('fee ' + fmtMoney(p.feeCents) + ' · net ' + fmtMoney(p.netCents));
       if (p.invoiceNumber) sub.push('inv ' + p.invoiceNumber);
@@ -11173,11 +11173,11 @@ function renderDay() {
       } else {
         const b = item.data;
         html += '<div class="time-marker">' +
-          '<span class="time-label">' + (b.allDay ? 'all day' : b.startTime) + '</span>' +
+          '<span class="time-label">' + (b.allDay ? 'all day' : escapeHtml(b.startTime)) + '</span>' +
           '<span class="time-dot" style="background: var(--gray-400)"></span>' +
           '<div class="booking-card blocked">' +
-          '<h3>Blocked: ' + (b.reason || 'Time off') + '</h3>' +
-          '<div class="booking-meta">' + (b.allDay ? 'All day' : b.startTime + ' to ' + b.endTime) + '</div>' +
+          '<h3>Blocked: ' + escapeHtml(b.reason || 'Time off') + '</h3>' +
+          '<div class="booking-meta">' + (b.allDay ? 'All day' : escapeHtml(b.startTime) + ' to ' + escapeHtml(b.endTime)) + '</div>' +
           '<div class="booking-actions">' +
             '<button class="action-btn danger" onclick="removeBlock(\'' + b.id + '\')">Remove</button>' +
           '</div></div></div>';
@@ -11589,7 +11589,7 @@ function renderClients() {
       churned:  ['#fde2e2', '#a03020'],
     };
     const sc = statusColors[status] || statusColors.active;
-    const statusPill = '<span style="background:' + sc[0] + ';color:' + sc[1] + ';padding:2px 9px;border-radius:99px;font-size:0.7rem;font-weight:600;text-transform:capitalize;">' + status + '</span>';
+    const statusPill = '<span style="background:' + sc[0] + ';color:' + sc[1] + ';padding:2px 9px;border-radius:99px;font-size:0.7rem;font-weight:600;text-transform:capitalize;">' + esc(status) + '</span>';
     const tagsHtml = (crec && crec.tags)
       ? String(crec.tags).split(',').map(t => t.trim()).filter(Boolean).map(t =>
           '<span style="background:var(--cream);border:1px solid var(--gray-200);color:var(--gray-600);padding:2px 8px;border-radius:99px;font-size:0.7rem;">' + esc(t) + '</span>'
