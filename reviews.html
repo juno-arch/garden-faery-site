@@ -144,7 +144,9 @@ async function load() {
     };
     const s = document.createElement('script');
     s.type = 'application/ld+json';
-    s.textContent = JSON.stringify(aggregate);
+    // Escape '<' so a review containing "</script>" can never break out of the
+    // JSON-LD block (defense in depth — textContent already blocks parser breakout).
+    s.textContent = JSON.stringify(aggregate).replace(/</g, '\\u003c');
     document.head.appendChild(s);
 
     list.innerHTML = d.reviews.map(rv =>

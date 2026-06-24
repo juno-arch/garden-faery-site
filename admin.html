@@ -2938,7 +2938,7 @@ async function renderDashboard() {
       html += `
         <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:${i<topClients.length-1?'1px solid var(--gray-100)':'none'};">
           <div style="flex:1;min-width:0;">
-            <div style="font-weight:600;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
+            <div style="font-weight:600;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(c.name)}</div>
             <div style="height:4px;background:var(--gray-100);border-radius:2px;margin-top:4px;overflow:hidden;">
               <div style="width:${pct}%;height:100%;background:#c2557a;"></div>
 </div>
@@ -5566,7 +5566,7 @@ function invoiceSendSms(id) {
     if (crec && crec.phone) phone = String(crec.phone).replace(/[^\d+]/g, '');
   }
 
-  const smsUrl = (phone ? 'sms:' + phone : 'sms:') + '&body=' + encodeURIComponent(body);
+  const smsUrl = (phone ? 'sms:' + phone : 'sms:') + '?body=' + encodeURIComponent(body);
   window.location.href = smsUrl;
 }
 
@@ -7446,7 +7446,7 @@ async function saveExpense() {
     if (_pendingReceiptFile) {
       // Use multipart so we can include the file
       const fd = new FormData();
-      Object.entries(body).forEach(([k,v]) => fd.append(k, v == null ? '' : (typeof v === 'boolean' ? String(v) : v)));
+      Object.entries(body).forEach(([k,v]) => fd.append(k, v == null ? '' : (typeof v === 'object' ? JSON.stringify(v) : (typeof v === 'boolean' ? String(v) : v))));
       fd.append('receipt', _pendingReceiptFile);
       const url = PB_URL + '/api/collections/expenses/records' + (id ? '/'+id : '');
       const r = await fetch(url, {
@@ -12616,7 +12616,9 @@ function logout() {
 
 function showApp() {
   document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app-wrap').classList.add('visible');
+  const w = document.getElementById('app-wrap');
+  w.style.display = '';            // clear inline display:none left by logout()
+  w.classList.add('visible');
   refreshData().then(() => renderAll());
 }
 
