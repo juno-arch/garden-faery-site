@@ -6451,6 +6451,7 @@ let _pendingReceiptFile = null;
 // line item between business and personal can prorate tax correctly.
 // Reset on modal open/close.
 let _receiptMeta = { tax: 0, originalSubtotal: 0, originalTotal: 0 };
+let _expAmountOverwritten = false;  // did line-item math overwrite #exp-amount?
 
 async function loadExpenses() {
   try {
@@ -7383,6 +7384,12 @@ function recomputeExpenseAmountFromLines() {
   // user's amount alone so they can still override.
   if (personalCount > 0) {
     document.getElementById('exp-amount').value = newAmount.toFixed(2);
+    _expAmountOverwritten = true;
+  } else if (_expAmountOverwritten && _receiptMeta.originalTotal > 0) {
+    // The last personal line was just un-checked — restore the full scanned
+    // total instead of leaving the stale business-only amount behind.
+    document.getElementById('exp-amount').value = _receiptMeta.originalTotal.toFixed(2);
+    _expAmountOverwritten = false;
   }
 
   // Update the summary line
@@ -8648,7 +8655,7 @@ async function renderBank() {
         '<button class="modal-btn secondary" onclick="openCategoriesView()" style="padding:8px 14px;font-size:0.85rem;">Categories</button>' +
         '<button class="modal-btn secondary" onclick="syncBankBackfill()" style="padding:8px 14px;font-size:0.85rem;" title="Pull last 12 months">Backfill year</button>' +
         '<button class="modal-btn secondary" onclick="openPlaidLink()" style="padding:8px 14px;font-size:0.85rem;" title="Reconnect or add a bank via Plaid">Connect via Plaid</button>' +
-        '<button class="modal-btn primary" onclick="syncBank()" style="padding:10px 18px;">Sync</button>' +
+        '<button class="modal-btn primary" onclick="syncBank(null, event)" style="padding:10px 18px;">Sync</button>' +
       '</div>' +
     '</div>';
   } else {
@@ -8662,7 +8669,7 @@ async function renderBank() {
         '<button class="modal-btn secondary" onclick="openCategoriesView()" style="padding:8px 14px;font-size:0.85rem;">Categories</button>' +
         '<button class="modal-btn secondary" onclick="syncBankBackfill()" style="padding:8px 14px;font-size:0.85rem;" title="Pull last 12 months of transactions">Backfill year</button>' +
         '<button class="modal-btn secondary" onclick="openPlaidLink()" style="padding:8px 14px;font-size:0.85rem;" title="Reconnect or add a bank via Plaid">Connect via Plaid</button>' +
-        '<button class="modal-btn primary" onclick="syncBank()" style="padding:10px 18px;">Sync</button>' +
+        '<button class="modal-btn primary" onclick="syncBank(null, event)" style="padding:10px 18px;">Sync</button>' +
       '</div>' +
     '</div>';
 
@@ -10415,7 +10422,7 @@ function renderPayments() {
   html += '<div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;">' +
     '<button class="modal-btn primary" onclick="openLogPayment()" style="padding:8px 14px;font-size:0.85rem;">+ Log cash/check</button>' +
     '<div style="display:flex;gap:6px;">' +
-      '<button class="modal-btn secondary" onclick="syncBank()" style="padding:8px 14px;font-size:0.85rem;" title="Pull the latest bank transactions and auto-match to payments">Sync bank</button>' +
+      '<button class="modal-btn secondary" onclick="syncBank(null, event)" style="padding:8px 14px;font-size:0.85rem;" title="Pull the latest bank transactions and auto-match to payments">Sync bank</button>' +
       '<button class="modal-btn secondary" onclick="refreshPayments()" style="padding:8px 14px;font-size:0.85rem;">↻ Refresh</button>' +
     '</div>' +
     '</div>';
@@ -10585,8 +10592,12 @@ async function syncBankBackfill() {
   return syncBank(365);
 }
 
-async function syncBank(startDays) {
-  const btn = event && event.target ? event.target : null;
+async function syncBank(startDays, evt) {
+  // Use the explicitly-passed event; fall back to the legacy global only if a
+  // handler still relies on it. When called programmatically (backfill), btn is
+  // null and the spinner is simply skipped — no wrong button grabbed.
+  const src = evt || (typeof event !== 'undefined' ? event : null);
+  const btn = src && src.target ? src.target : null;
   const originalText = btn ? btn.textContent : '';
   if (btn) { btn.disabled = true; btn.textContent = (startDays ? 'Backfilling…' : 'Syncing…'); }
 
@@ -12624,10 +12635,9 @@ function logout() {
 }
 
 function showApp() {
-  document.getElementById('login-screen').style.display = 'none';
+  const login = document.getElementById('login-screen'); if (login) login.style.display = 'none';
   const w = document.getElementById('app-wrap');
-  w.style.display = '';            // clear inline display:none left by logout()
-  w.classList.add('visible');
+  if (w) { w.style.display = ''; w.classList.add('visible'); }  // clear inline display:none left by logout()
   refreshData().then(() => renderAll());
 }
 
