@@ -4267,7 +4267,7 @@ async function renderCoupons() {
 
 function drawCoupons() {
   const root = document.getElementById('coupons-content');
-  const today = new Date().toISOString().slice(0, 10);
+  const today = formatDate(new Date());
 
   const active = _coupons.filter(c => c.active && (!c.expires_at || c.expires_at >= today));
   const totalRedeemed = _coupons.reduce((s, c) => s + (c.usage_count || 0), 0);
@@ -4319,7 +4319,7 @@ function setCouponFilter(f) { _couponsFilter = f; drawCoupons(); }
 function setCouponSearch(v) { _couponsSearch = v; drawCoupons(); }
 
 function couponRow(c) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = formatDate(new Date());
   const expired = c.expires_at && c.expires_at < today;
   const notYet = c.starts_at && c.starts_at > today;
   let statusBg = '#dcefe2', statusFg = '#0a7a3a', statusLabel = 'active';
@@ -4573,7 +4573,7 @@ async function renderInvoices() {
 function drawInvoices() {
   const root = document.getElementById('invoices-content');
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = formatDate(new Date());
   const monthStart = today.slice(0, 7) + '-01';
 
   let outstanding = 0, overdueAmt = 0, paidThisMonth = 0, draftCount = 0;
@@ -4664,7 +4664,7 @@ function setInvoiceFilter(f) { _invoicesFilter = f; drawInvoices(); }
 function setInvoiceSearch(v) { _invoicesSearch = v; drawInvoices(); }
 
 function invoiceStatusPill(inv) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = formatDate(new Date());
   let label = inv.status, color = 'var(--gray-600)', bg = 'var(--gray-100)';
   if (inv.status === 'paid')      { color = '#0a7a3a'; bg = '#dcefe2'; }
   else if (inv.status === 'void') { color = 'var(--gray-600)';    bg = '#e8e8e8'; }
@@ -4742,7 +4742,7 @@ function invoiceRow(inv) {
 
 // ---------------- Create modal ----------------
 function openInvoiceCreateModal(prefill) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = formatDate(new Date());
   const due14 = new Date(Date.now() + 14*24*3600*1000).toISOString().slice(0, 10);
   const items = (prefill && prefill.items) || [{description: '', qty: 1, unit_cents: 0}];
   _invDraftItems = items.slice();
@@ -5686,7 +5686,7 @@ function switchComplianceSubTab(t) {
 // Compute a status pill for an item based on next_due + today.
 function complianceStatus(item) {
   if (item.paused) return { key: 'paused', label: 'paused', bg: 'var(--gray-200)', fg: 'var(--gray-600)' };
-  const today = new Date().toISOString().slice(0, 10);
+  const today = formatDate(new Date());
   if (item.snoozedUntil && item.snoozedUntil > today) {
     return { key: 'snoozed', label: 'snoozed', bg: 'var(--gray-200)', fg: 'var(--gray-600)' };
   }
@@ -12714,9 +12714,13 @@ document.getElementById('login-pin').addEventListener('keydown', function(e) {
 // have to re-enter her PIN after signing in there.
 var _gfHandoff = sessionStorage.getItem('gf_pb_handoff');
 if (_gfHandoff) {
+  // Always clear the handoff, and only trust it if it's a valid, unexpired
+  // token — never persist a malformed/expired/planted token across reloads.
   sessionStorage.removeItem('gf_pb_handoff');
-  PB_TOKEN = _gfHandoff;
-  try { localStorage.setItem(PB_TOKEN_KEY, _gfHandoff); } catch (_) {}
+  if (tokenValid(_gfHandoff)) {
+    PB_TOKEN = _gfHandoff;
+    try { localStorage.setItem(PB_TOKEN_KEY, _gfHandoff); } catch (_) {}
+  }
 }
 
 // Restore a persisted token on load so refresh / reopen stays logged in.
