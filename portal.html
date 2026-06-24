@@ -472,7 +472,6 @@ body {
     <div class="portal-tabs">
       <button class="portal-tab active" data-tab="visits" onclick="switchPortalTab('visits')">My Visits</button>
       <button class="portal-tab" data-tab="pay" onclick="switchPortalTab('pay')">Pay</button>
-      <button class="portal-tab" data-tab="book" onclick="switchPortalTab('book')">Book</button>
       <button class="portal-tab" data-tab="account" onclick="switchPortalTab('account')">Account</button>
 </div>
 
@@ -501,47 +500,8 @@ body {
 </div>
 </div>
 
-    <div id="pane-book" class="portal-pane">
-      <div class="portal-card">
-        <h2>Book a visit</h2>
-        <p style="color:var(--gray-600);font-size:0.88rem;margin-bottom:14px;">Morning Garden Care &middot; 9:00am to 2:00pm &middot; $30/hr.</p>
-
-        <label>Pick a date</label>
-        <div id="bk-date-chips" class="bk-date-chips">
-          <div class="bk-date-loading">Loading available dates...</div>
-</div>
-        <input type="hidden" id="bk-date">
-        <p id="bk-no-dates" style="display:none;font-size:0.85rem;color:var(--gray-600);margin-top:8px;">No available Wed/Thu/Fri in the next 8 weeks. Message Taya if you need to book further out.</p>
-
-        <label for="bk-address" style="margin-top:14px;">Address</label>
-        <input type="text" id="bk-address" autocomplete="street-address" placeholder="123 Main St, Arcata, CA 95521">
-        <p style="font-size:0.78rem;color:var(--gray-600);margin-top:4px;">Service area: Arcata, Bayside, McKinleyville, Eureka.</p>
-
-        <label style="margin-top:14px;">Frequency</label>
-        <div class="bk-freq-row">
-          <button type="button" class="bk-freq-card selected" data-freq="once" onclick="selectBkFreq('once')">One-time</button>
-          <button type="button" class="bk-freq-card" data-freq="weekly" onclick="selectBkFreq('weekly')">Weekly</button>
-          <button type="button" class="bk-freq-card" data-freq="biweekly" onclick="selectBkFreq('biweekly')">Biweekly</button>
-</div>
-        <p style="font-size:0.78rem;color:var(--gray-600);margin-top:4px;">Recurring visits repeat on the same weekday as your first date.</p>
-
-        <div id="bk-recurring-detail" style="display:none;margin-top:10px;padding:12px;background:var(--gray-100);border-radius:8px;">
-          <label for="bk-count">Number of visits</label>
-          <input type="number" id="bk-count" min="2" max="52" value="8" oninput="updateBkFreq()">
-          <p id="bk-recurring-preview" style="font-size:0.8rem;color:var(--plum);margin-top:6px;font-style:italic;"></p>
-</div>
-
-        <label for="bk-notes" style="margin-top:14px;">Garden notes (optional)</label>
-        <textarea id="bk-notes" rows="3" placeholder="Any specifics for the visit?"></textarea>
-
-        <p style="font-size:0.72rem;color:var(--gray-600);line-height:1.5;margin-top:14px;">
-          By providing your phone number and submitting this booking, you agree to receive recurring SMS messages from Garden Faery, including booking confirmations, day-before reminders, one-time portal login codes, and booking cancellation confirmations. Message frequency varies (typically 1 to 5 messages per month per active client). Message and data rates may apply. Your mobile phone number and SMS opt-in status will never be shared with third parties or affiliates for marketing or promotional purposes. Reply STOP to opt out at any time. Reply HELP for assistance. See our <a href="privacy.html" style="color:var(--plum);">Privacy Policy</a> and <a href="terms.html" style="color:var(--plum);">Terms</a>.
-</p>
-        <button class="btn-portal-primary" id="bk-submit" onclick="submitBook()">Book this visit</button>
-        <div id="bk-error" class="error-banner" style="display:none;"></div>
-        <div id="bk-success" class="success-banner" style="display:none;margin-top:12px;">Booked. See your upcoming visits in the My Visits tab.</div>
-</div>
-</div>
+    <!-- Self-service booking removed: Garden Faery schedules every visit by hand
+         now. Clients request a visit by text/email; see book.html. -->
 
     <div id="pane-account" class="portal-pane">
       <div class="portal-card">
