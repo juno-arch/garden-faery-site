@@ -82,7 +82,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(180deg, rgba(42,20,36,0) 30%, rgba(42,20,36,0.55) 100%);
+      background: linear-gradient(180deg, rgba(42,20,36,0) 52%, rgba(42,20,36,0.42) 100%);
       z-index: 1;
     }
     .hero-overlay {
@@ -450,21 +450,6 @@
 </head>
 <body>
 
-  <!-- ═══ TEASER BANNER — delete this entire block when Succession Planting Kit launches ═══ -->
-  <style>
-    .announcement-banner { display: flex; align-items: center; justify-content: center; padding: 9px 48px 9px 16px; background: var(--plum); color: var(--cream); font-family: var(--font-body); font-size: 14px; font-weight: 600; text-align: center; position: relative; border-bottom: 2px solid var(--petal-pink); }
-    .announcement-banner-link { color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: opacity 0.2s; }
-    .announcement-banner-link:hover { opacity: 0.85; }
-    .announcement-banner strong { color: var(--pollen-gold); font-family: var(--font-heading); font-weight: 600; }
-    .announcement-close { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--cream); cursor: pointer; font-size: 18px; line-height: 1; padding: 4px 6px; opacity: 0.65; transition: opacity 0.2s; }
-    .announcement-close:hover { opacity: 1; }
-</style>
-  <div class="announcement-banner" id="announcementBanner" role="note" aria-label="Upcoming product announcement">
-    <a class="announcement-banner-link" href="seed-kit.html"><span><strong>Coming Soon:</strong> Succession Planting Kit, peek inside.</span></a>
-    <button class="announcement-close" onclick="event.stopPropagation();document.getElementById('announcementBanner').remove();try{localStorage.setItem('gf_succession_banner_dismissed','1')}catch(e){}" aria-label="Dismiss announcement">×</button>
-</div>
-  <script>try{if(localStorage.getItem('gf_succession_banner_dismissed'))document.getElementById('announcementBanner').remove()}catch(e){}</script>
-  <!-- ═══ END TEASER BANNER ═══ -->
 
   <nav class="site-nav">
     <a href="index.html" class="nav-logo"><img src="garden-faery-logo.svg" alt="" class="nav-logo-img" aria-hidden="true" decoding="async">Garden Faery</a>
@@ -474,15 +459,6 @@
       <a href="about.html">About</a>
       <a href="services.html">Services</a>
       <a href="gallery.html">Gallery</a>
-      <div class="nav-group">
-        <button class="nav-group-toggle" type="button" onclick="this.parentElement.classList.toggle('open')">Guides<span class="caret" aria-hidden="true">&#9662;</span></button>
-        <div class="nav-group-menu">
-          <a href="garden-styles.html">Garden Styles</a>
-          <a href="food-guide.html">Succession Planting</a>
-          <a href="seed-kit.html">Succession Planting Seed Kit</a>
-          <a href="estimator.html">Bed Builder</a>
-</div>
-</div>
       <a href="book.html">Book</a>
       <a href="portal.html">Sign in</a>
 </div>
@@ -522,32 +498,6 @@
 </a>
 </div>
 </section>
-
-  <div class="potm">
-    <a class="potm-card" id="potm-card" href="plant-guide.html">
-      <div class="potm-image"><img id="potm-img" src="" alt="" loading="lazy" decoding="async"></div>
-      <div class="potm-body">
-        <div class="potm-eyebrow" id="potm-eyebrow">Plant of the Month</div>
-        <div class="potm-name" id="potm-name"></div>
-        <div class="potm-sci" id="potm-sci"></div>
-        <div class="potm-note" id="potm-note"></div>
-        <div class="potm-link">Learn how to grow it &rarr;</div>
-</div>
-</a>
-</div>
-
-  <div class="sow-week" id="sow-week-section"></div>
-
-  <div class="season-section">
-    <div class="season-header">
-      <div>
-        <div class="season-title">Plant this <em id="season-name"></em></div>
-        <div class="season-subtitle" id="season-subtitle">Wheel-of-the-year planting cues for Humboldt</div>
-</div>
-</div>
-    <div class="season-grid" id="season-grid"></div>
-    <div class="season-link"><a href="garden-styles.html">Browse garden styles &rarr;</a></div>
-</div>
 
   <div class="content">
     <div class="newsletter">
