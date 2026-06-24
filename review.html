@@ -7,12 +7,13 @@
 <title>Share your visit · Garden Faery</title>
 <meta name="description" content="A few words about your Garden Faery visit.">
 <meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com" referrerpolicy="no-referrer">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin referrerpolicy="no-referrer">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" referrerpolicy="no-referrer">
 <style>
 :root {
   --plum: #4a1942;
@@ -245,7 +246,7 @@ async function submit() {
     });
     const data = await res.json();
     if (!data.ok) {
-      btn.disabled = false; btn.textContent = 'Send';
+      btn.disabled = false; btn.textContent = (_ctx && _ctx.existing) ? 'Update' : 'Send';
       errEl.textContent = data.error || 'Could not send. Try again.';
       errEl.style.display = 'block';
       return;
@@ -257,7 +258,7 @@ async function submit() {
         '<p><a href="/" style="color:var(--plum);">Back to gardenfaery.love &rarr;</a></p>' +
       '</div>';
   } catch (err) {
-    btn.disabled = false; btn.textContent = 'Send';
+    btn.disabled = false; btn.textContent = (_ctx && _ctx.existing) ? 'Update' : 'Send';
     errEl.textContent = 'Network error: ' + err.message;
     errEl.style.display = 'block';
   }

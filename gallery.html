@@ -209,11 +209,11 @@
   </div>
 
   <!-- Lightbox -->
-  <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
-    <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
-    <button class="lightbox-nav lightbox-prev" onclick="event.stopPropagation(); navLightbox(-1)">&lsaquo;</button>
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo viewer" tabindex="-1" onclick="closeLightbox(event)">
+    <button class="lightbox-close" aria-label="Close" onclick="closeLightbox()">&times;</button>
+    <button class="lightbox-nav lightbox-prev" aria-label="Previous photo" onclick="event.stopPropagation(); navLightbox(-1)">&lsaquo;</button>
     <img id="lightbox-img" src="" alt="" decoding="async">
-    <button class="lightbox-nav lightbox-next" onclick="event.stopPropagation(); navLightbox(1)">&rsaquo;</button>
+    <button class="lightbox-nav lightbox-next" aria-label="Next photo" onclick="event.stopPropagation(); navLightbox(1)">&rsaquo;</button>
     <div class="lightbox-caption" id="lightbox-caption"></div>
   </div>
   </main>
@@ -277,6 +277,7 @@
     ];
 
     var currentIndex = 0;
+    var lastFocusedEl = null;
 
     // Build grid
     (function buildGrid() {
@@ -305,14 +306,18 @@
       document.getElementById('lightbox-img').src = photos[index].src;
       document.getElementById('lightbox-img').alt = photos[index].alt;
       document.getElementById('lightbox-caption').textContent = photos[index].caption;
+      lastFocusedEl = document.activeElement;
       lb.classList.add('active');
       document.body.style.overflow = 'hidden';
+      lb.focus();
     }
 
     function closeLightbox(e) {
       if (e && e.target !== e.currentTarget) return;
       document.getElementById('lightbox').classList.remove('active');
       document.body.style.overflow = '';
+      if (lastFocusedEl && typeof lastFocusedEl.focus === 'function') lastFocusedEl.focus();
+      lastFocusedEl = null;
     }
 
     function navLightbox(dir) {

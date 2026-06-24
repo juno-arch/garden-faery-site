@@ -209,6 +209,13 @@
       transition: background 0.2s, transform 0.2s;
     }
     .cta-btn:hover { background: var(--highlight); transform: scale(1.03); }
+
+    /* Summer accent (#e8b828) is a light yellow; force dark text on accent-colored
+       surfaces so the CTA and footer links clear WCAG AA contrast. The CTA reverts
+       to white text on hover because the hover background (--highlight) is dark. */
+    html[data-season="summer"] .cta-btn { color: #3a2a05; }
+    html[data-season="summer"] .cta-btn:hover { color: #fff; }
+    html[data-season="summer"] footer a { color: #f0d480; }
   </style>
 </head>
 <body>
@@ -229,7 +236,7 @@
 <main class="page-content">
   <div class="about-hero"><img src="farm.jpg" alt="Taya, the Garden Faery, gardener in Arcata and Humboldt County" loading="lazy" decoding="async"></div>
   <h1 class="page-title">Hey, I'm Taya</h1>
-  <p class="page-subtitle">The Garden Faery &middot; Arcata, CA</p>
+  <p class="page-subtitle">The Garden Faery &middot; Arcata &amp; Humboldt County, CA</p>
 
   <div class="about-section">
     <h2>The Mud Pie Kid</h2>
@@ -333,11 +340,13 @@
       autumn: { bg: '#faf3ea', a1: '#d4943a', a2: '#a67c52', hl: '#7a3b4e' },
       winter: { bg: '#f5f3f0', a1: '#8fb0a5', a2: '#506a6e', hl: '#c4b5a0' }
     };
-    var p;
-    if (month >= 2 && month <= 4) p = palettes.spring;
-    else if (month >= 5 && month <= 7) p = palettes.summer;
-    else if (month >= 8 && month <= 10) p = palettes.autumn;
-    else p = palettes.winter;
+    var season;
+    if (month >= 2 && month <= 4) season = 'spring';
+    else if (month >= 5 && month <= 7) season = 'summer';
+    else if (month >= 8 && month <= 10) season = 'autumn';
+    else season = 'winter';
+    var p = palettes[season];
+    root.setAttribute('data-season', season);
     root.style.setProperty('--bg', p.bg);
     root.style.setProperty('--accent-1', p.a1);
     root.style.setProperty('--accent-2', p.a2);

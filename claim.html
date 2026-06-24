@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
 <title>Set up your account — Garden Faery</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,6 +41,7 @@ const PB_URL = (() => {
 })();
 
 const token = new URLSearchParams(location.search).get('token');
+let _inviteEmail = '';
 
 function escapeHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -91,20 +93,25 @@ function showForm(inv) {
       Invited to <strong>${escapeHtml(inv.email)}</strong> as a <span class="role-pill">${escapeHtml(inv.role || 'staff')}</span>
     </div>
     <div id="err-box"></div>
-    <div class="field">
-      <label>Your name</label>
-      <input type="text" id="f-name" value="${escapeHtml(inv.display_name || '')}" placeholder="How should we address you?">
-    </div>
-    <div class="field">
-      <label>Password (8+ characters)</label>
-      <input type="password" id="f-pw" autocomplete="new-password">
-    </div>
-    <div class="field">
-      <label>Confirm password</label>
-      <input type="password" id="f-pw2" autocomplete="new-password">
-    </div>
-    <button class="btn" onclick="submitClaim()">Create my account</button>
+    <form id="claim-form">
+      <div class="field">
+        <label for="f-name">Your name</label>
+        <input type="text" id="f-name" value="${escapeHtml(inv.display_name || '')}" placeholder="How should we address you?">
+      </div>
+      <div class="field">
+        <label for="f-pw">Password (8+ characters)</label>
+        <input type="password" id="f-pw" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label for="f-pw2">Confirm password</label>
+        <input type="password" id="f-pw2" autocomplete="new-password">
+      </div>
+      <button class="btn" type="submit">Create my account</button>
+    </form>
   `;
+  _inviteEmail = inv.email || '';
+  const form = document.getElementById('claim-form');
+  if (form) form.addEventListener('submit', e => { e.preventDefault(); submitClaim(); });
 }
 
 async function submitClaim() {
@@ -125,7 +132,7 @@ async function submitClaim() {
     if (!resp.ok) { err.innerHTML = '<div class="err">' + escapeHtml(humanError(data.error)) + '</div>'; return; }
     document.getElementById('card').innerHTML = `
       <h1>You're in</h1>
-      <div class="ok">Account created for <strong>${escapeHtml(data.email)}</strong>. You can now sign in to the planner.</div>
+      <div class="ok">Account created for <strong>${escapeHtml(data.email || _inviteEmail || 'your account')}</strong>. You can now sign in to the planner.</div>
       <a href="/admin-planner.html" class="btn" style="text-decoration:none;text-align:center;display:block">Open the planner →</a>
     `;
   } catch (e) {

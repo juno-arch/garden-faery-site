@@ -139,7 +139,7 @@ footer a:hover { text-decoration: underline; }
 .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 5px 18px rgba(232, 137, 111, 0.45); background: var(--coral); color: var(--wine); }
 .btn-secondary { background: var(--cream); color: var(--wine); border-color: var(--wine); }
 .btn-secondary:hover { background: var(--wine); color: var(--cream); }
-.btn-ghost { background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.6); backdrop-filter: blur(4px); }
+.btn-ghost { background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.6); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
 .btn-ghost:hover { background: rgba(255,255,255,0.25); }
 
 /* --- Section eyebrow (uppercase, letterspaced label above headings) --- */

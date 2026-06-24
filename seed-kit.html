@@ -469,7 +469,7 @@
       const m = now.getMonth() + 1; // 1-12
       const d = now.getDate();
       // Off season before Feb 1
-      if (m < 2 || (m === 2 && d < 1)) return null;
+      if (m < 2) return null;
       // Off season after Oct 1
       if (m >= 10) return null;
       for (const [bm, bd, caseN] of BOUNDARIES) {
@@ -507,9 +507,9 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email, tags: ['seed-kit-waitlist'] })
-      }).then(r => r.json().then(data => ({ ok: r.ok, data })))
+      }).then(r => r.json().catch(() => ({})).then(data => ({ ok: r.ok, data })))
         .then(result => {
-          if (result.ok && (result.data.status === 'subscribed' || result.data.status === 'already_subscribed')) {
+          if (result.ok) {
             status.textContent = "You're on the list. I'll be in touch when the kit is ready.";
             document.getElementById('waitlist-email').value = '';
           } else {

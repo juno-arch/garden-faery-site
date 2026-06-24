@@ -786,9 +786,17 @@
     })();
 
     function subscribeNewsletter() {
-      var email = document.getElementById('nl-email').value;
-      if (!email) return;
+      var email = (document.getElementById('nl-email').value || '').trim();
       var status = document.getElementById('nl-status');
+      // Reset any stale message before each attempt.
+      status.style.display = 'none';
+      status.textContent = '';
+      if (!email) return;
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        status.style.display = 'block';
+        status.textContent = 'Please enter a valid email address.';
+        return;
+      }
       status.style.display = 'block';
       status.textContent = 'Signing you up...';
       // Posts to our PocketBase proxy, which holds the Buttondown key server-side.

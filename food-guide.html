@@ -322,6 +322,7 @@
     .calendar-title {
       font-family: var(--font-heading);
       font-size: 1.3rem;
+      margin-top: 0;
       margin-bottom: 12px;
       color: var(--text-primary);
     }
@@ -1250,6 +1251,7 @@
       font-size: 1.4rem;
       font-weight: 900;
       color: var(--text-primary);
+      margin-top: 0;
       margin-bottom: 4px;
     }
     .this-month-subtitle {
@@ -1457,7 +1459,7 @@
 
     <!-- Succession Planting Calendar -->
     <div class="succession-calendar">
-      <div class="calendar-title">Succession Planting Calendar</div>
+      <h2 class="calendar-title">Succession Planting Calendar</h2>
       <p class="succession-intro">Succession planting means sowing the same crop every 2-4 weeks so you harvest continuously instead of all at once. These are the best crops for succession planting in Humboldt County, with each colored block showing when to sow a new round.</p>
 
       <div class="succession-grid">
@@ -2467,9 +2469,7 @@
         p._tags = new Set();
         if (text.includes('full sun')) p._tags.add('full-sun');
         if (text.includes('part shade') || text.includes('part sun') || text.includes('partial')) p._tags.add('part-shade');
-        if (text.includes('low') || text.includes('moderate watering') || text.includes('drought')) {
-          if (text.includes('low') || text.includes('drought')) p._tags.add('low-water');
-        }
+        if (text.includes('low') || text.includes('drought')) p._tags.add('low-water');
       });
     }
 
@@ -2629,7 +2629,7 @@
       const toHarvest = plants.filter(p => p._harvestMonths.includes(currentMonth));
 
       panel.innerHTML =
-        '<div class="this-month-title">What to do in ' + monthName + '</div>' +
+        '<h2 class="this-month-title">What to do in ' + escapeHtml(monthName) + '</h2>' +
         '<div class="this-month-subtitle">Right now in Humboldt County, you could be planting these and harvesting these.</div>' +
         '<div class="this-month-grid">' +
           '<div class="this-month-col">' +
@@ -2660,8 +2660,19 @@
       const body = document.getElementById('modal-body');
       const imgWrap = document.getElementById('modal-image');
 
-      imgWrap.innerHTML = '<img src="plant-guide/' + p.slug + '.jpg" alt="' + escapeHtml(p.name) +
-        '" onerror="this.parentElement.innerHTML=\'<div class=modal-image-fallback decoding="async"><svg viewBox=\\\'0 0 100 100\\\' style=\\\'width:100px;height:100px;opacity:0.3;\\\'><circle cx=50 cy=50 r=45 fill=%23c48bb0 opacity=0.3/></svg></div>\'">';
+      imgWrap.innerHTML = '';
+      const modalImg = document.createElement('img');
+      modalImg.src = 'plant-guide/' + p.slug + '.jpg';
+      modalImg.alt = p.name || '';
+      modalImg.decoding = 'async';
+      modalImg.onerror = function() {
+        const fb = document.createElement('div');
+        fb.className = 'modal-image-fallback';
+        fb.innerHTML = '<svg viewBox="0 0 100 100" style="width:100px;height:100px;opacity:0.3;"><circle cx="50" cy="50" r="45" fill="#c48bb0" opacity="0.3"/></svg>';
+        const parent = this.parentElement;
+        if (parent) { parent.innerHTML = ''; parent.appendChild(fb); }
+      };
+      imgWrap.appendChild(modalImg);
 
       const subColor = SUB_COLORS[p.sub] || '#c2557a';
       const lifecycleColor = LIFECYCLE_COLORS[p.lifecycle] || '#7a92a5';

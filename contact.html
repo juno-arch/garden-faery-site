@@ -471,10 +471,20 @@
 
     // Newsletter signup
     function subscribeNewsletter() {
-      var email = document.getElementById('nl-email').value;
-      if (!email) return;
+      var emailInput = document.getElementById('nl-email');
+      var email = emailInput.value;
       var status = document.getElementById('nl-status');
+      var btn = document.querySelector('.newsletter-btn');
+      if (!email) return;
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) {
+        status.style.display = 'block';
+        status.textContent = 'Please enter a valid email.';
+        status.style.color = '#c0392b';
+        return;
+      }
+      if (btn) btn.disabled = true;
       status.style.display = 'block';
+      status.style.color = '';
       status.textContent = 'Signing you up...';
       // Posts to our PocketBase proxy, which holds the Buttondown key server-side.
       fetch('https://bookings.gardenfaery.love/api/newsletter-subscribe', {
@@ -484,19 +494,24 @@
       }).then(function(r) {
         return r.json().then(function(data) { return { status: r.status, data: data }; });
       }).then(function(result) {
+        if (btn) btn.disabled = false;
         if (result.status === 200 && result.data.status === 'subscribed') {
           status.textContent = "You're in! Watch for garden magic in your inbox.";
           status.style.color = 'var(--accent-2)';
-          document.getElementById('nl-email').value = '';
+          emailInput.value = '';
         } else if (result.status === 200 && result.data.status === 'already_subscribed') {
           status.textContent = "Looks like you're already on the list!";
           status.style.color = 'var(--accent-2)';
+          emailInput.value = '';
         } else {
           throw new Error('Server error');
         }
+        setTimeout(function() { status.style.display = 'none'; status.textContent = ''; status.style.color = ''; }, 6000);
       }).catch(function() {
+        if (btn) btn.disabled = false;
         status.textContent = 'Hmm, something went wrong. Try again or email taya@gardenfaery.love.';
         status.style.color = '#c0392b';
+        setTimeout(function() { status.style.display = 'none'; status.textContent = ''; status.style.color = ''; }, 6000);
       });
     }
   </script>

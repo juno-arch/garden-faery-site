@@ -249,7 +249,7 @@
     <h2 id="plant-modal-title">Add plant</h2>
     <input type="hidden" id="pl-id">
     <div class="modal-row">
-      <div><label>Common name</label><input type="text" id="pl-common" required></div>
+      <div><label>Common name</label><input type="text" id="pl-common"></div>
       <div><label>Scientific name</label><input type="text" id="pl-sci"></div>
     </div>
     <div class="modal-row">
@@ -334,7 +334,7 @@
     <h2 id="source-modal-title">Add source</h2>
     <input type="hidden" id="src-id">
     <div class="modal-row">
-      <div><label>Name</label><input type="text" id="src-name" required></div>
+      <div><label>Name</label><input type="text" id="src-name"></div>
       <div><label>Location</label><input type="text" id="src-loc"></div>
     </div>
     <div class="modal-row">
@@ -464,7 +464,6 @@ let PB_TOKEN = localStorage.getItem(PB_TOKEN_KEY) || '';
 const state = {
   plants: [],
   sources: [],
-  links: [],
   props: [],
   inv: [],
 };
@@ -531,16 +530,14 @@ async function pb(method, path, body) {
 // ---------- Data load ----------
 async function loadAll() {
   try {
-    const [plants, sources, links, props, inv] = await Promise.all([
+    const [plants, sources, props, inv] = await Promise.all([
       pb('GET', '/api/collections/plants/records?perPage=500&sort=priority,common_name'),
       pb('GET', '/api/collections/plant_sources/records?perPage=500&sort=region,name'),
-      pb('GET', '/api/collections/plant_source_links/records?perPage=500'),
       pb('GET', '/api/collections/propagation_events/records?perPage=500&sort=-event_date'),
       pb('GET', '/api/collections/inventory_snapshots/records?perPage=500&sort=-snapshot_date'),
     ]);
     state.plants  = plants.items  || [];
     state.sources = sources.items || [];
-    state.links   = links.items   || [];
     state.props   = props.items   || [];
     state.inv     = inv.items     || [];
     renderAll();
@@ -611,7 +608,7 @@ function renderPlants() {
       p.collector_layer ? '<span class="pill pill-collector">collector</span>' : '',
       p.install_layer ? '<span class="pill pill-install">install</span>' : '',
     ].filter(Boolean).join(' ');
-    return `<tr onclick="openPlantModal('${p.id}')">
+    return `<tr>
       <td><strong>${escapeHtml(p.common_name||'')}</strong>${p.scientific_name ? '<div class="sci">' + escapeHtml(p.scientific_name) + (p.cultivar ? " '" + escapeHtml(p.cultivar) + "'" : '') + '</div>' : ''}</td>
       <td>${(p.category||'').replace(/_/g,' ')}</td>
       <td><div class="pill-row">${propPills}</div></td>
@@ -664,8 +661,8 @@ async function savePlant() {
     category: document.getElementById('pl-category').value,
     propagation_methods: Array.from(document.querySelectorAll('#pl-prop-multi input:checked')).map(cb => cb.value),
     propagation_difficulty: document.getElementById('pl-difficulty').value,
-    years_to_sellable: parseInt(document.getElementById('pl-years').value, 10) || null,
-    target_retail_cents: parseInt(document.getElementById('pl-price').value, 10) || null,
+    years_to_sellable: intOrNull(document.getElementById('pl-years').value),
+    target_retail_cents: intOrNull(document.getElementById('pl-price').value),
     invasive_risk: document.getElementById('pl-invasive').value || 'none',
     priority: document.getElementById('pl-priority').value || 'wishlist',
     status: document.getElementById('pl-status').value || 'wishlist',
@@ -714,7 +711,7 @@ function renderSources() {
     const spec = (s.specialty || []).map(x => `<span class="pill pill-prop">${x.replace(/_/g, ' ')}</span>`).join(' ');
     const safeUrl = /^https?:\/\//i.test(s.url || '') ? s.url : '';
     const urlHtml = safeUrl ? `<a href="${escapeAttr(safeUrl)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">link</a>` : '';
-    return `<tr onclick="openSourceModal('${s.id}')">
+    return `<tr>
       <td><strong>${escapeHtml(s.name||'')}</strong> ${urlHtml ? '· ' + urlHtml : ''}</td>
       <td>${escapeHtml(s.location||'')}</td>
       <td>${(s.region||'').replace(/_/g,' ')}</td>
@@ -790,7 +787,7 @@ function renderProps() {
   }
   tbody.innerHTML = rows.map(e => {
     const plant = state.plants.find(p => p.id === e.plant_id);
-    return `<tr onclick="openPropModal('${e.id}')">
+    return `<tr>
       <td>${(e.event_date||'').slice(0,10)}</td>
       <td>${plant ? escapeHtml(plant.common_name) : '<em>(deleted)</em>'}</td>
       <td>${(e.event_type||'').replace(/_/g,' ')}</td>
@@ -809,9 +806,15 @@ function openPropModal(id) {
   document.getElementById('pe-id').value = e ? e.id : '';
   // Populate plant dropdown
   const sel = document.getElementById('pe-plant');
-  sel.innerHTML = state.plants.map(p => `<option value="${p.id}">${escapeHtml(p.common_name)}</option>`).join('');
+  let optsHtml = state.plants.map(p => `<option value="${escapeAttr(p.id)}">${escapeHtml(p.common_name)}</option>`).join('');
+  // If editing an event whose plant was deleted, keep a placeholder for the
+  // original id so saving doesn't silently reassign to the first plant.
+  if (e?.plant_id && !state.plants.some(p => p.id === e.plant_id)) {
+    optsHtml = `<option value="${escapeAttr(e.plant_id)}" disabled selected>(deleted plant — choose a plant)</option>` + optsHtml;
+  }
+  sel.innerHTML = optsHtml;
   document.getElementById('pe-plant').value = e?.plant_id || (state.plants[0]?.id || '');
-  document.getElementById('pe-date').value = (e?.event_date || new Date().toISOString()).slice(0,10);
+  document.getElementById('pe-date').value = e?.event_date ? e.event_date.slice(0,10) : localDateStr();
   document.getElementById('pe-type').value = e?.event_type || 'sown';
   document.getElementById('pe-qty').value = e?.quantity_started ?? '';
   document.getElementById('pe-success').value = e?.success_count ?? '';
@@ -828,13 +831,14 @@ async function saveProp() {
     plant_id: document.getElementById('pe-plant').value,
     event_date: document.getElementById('pe-date').value,
     event_type: document.getElementById('pe-type').value,
-    quantity_started: parseInt(document.getElementById('pe-qty').value, 10) || null,
-    success_count: parseInt(document.getElementById('pe-success').value, 10) || null,
+    quantity_started: intOrNull(document.getElementById('pe-qty').value),
+    success_count: intOrNull(document.getElementById('pe-success').value),
     substrate: document.getElementById('pe-sub').value.trim(),
     location: document.getElementById('pe-loc').value.trim(),
     notes: document.getElementById('pe-notes').value.trim(),
   };
   if (!body.plant_id || !body.event_date) { toast('Plant + date required'); return; }
+  if (!state.plants.some(p => p.id === body.plant_id)) { toast('Pick a current plant for this event'); return; }
   if (!id) body.created = new Date().toISOString();
   try {
     if (id) await pb('PATCH', '/api/collections/propagation_events/records/' + id, body);
@@ -868,7 +872,7 @@ function renderInventory() {
   }
   tbody.innerHTML = rows.map(s => {
     const plant = state.plants.find(p => p.id === s.plant_id);
-    return `<tr onclick="openInvModal('${s.id}')">
+    return `<tr>
       <td>${(s.snapshot_date||'').slice(0,10)}</td>
       <td>${plant ? escapeHtml(plant.common_name) : '<em>(deleted)</em>'}</td>
       <td>${s.mother_plants ?? ''}</td>
@@ -888,9 +892,14 @@ function openInvModal(id) {
   document.getElementById('inv-modal-title').textContent = s ? 'Edit snapshot' : 'New snapshot';
   document.getElementById('is-id').value = s ? s.id : '';
   const sel = document.getElementById('is-plant');
-  sel.innerHTML = state.plants.map(p => `<option value="${p.id}">${escapeHtml(p.common_name)}</option>`).join('');
+  let optsHtml = state.plants.map(p => `<option value="${escapeAttr(p.id)}">${escapeHtml(p.common_name)}</option>`).join('');
+  // Keep a placeholder for a deleted plant so saving doesn't silently reassign.
+  if (s?.plant_id && !state.plants.some(p => p.id === s.plant_id)) {
+    optsHtml = `<option value="${escapeAttr(s.plant_id)}" disabled selected>(deleted plant — choose a plant)</option>` + optsHtml;
+  }
+  sel.innerHTML = optsHtml;
   document.getElementById('is-plant').value = s?.plant_id || (state.plants[0]?.id || '');
-  document.getElementById('is-date').value = (s?.snapshot_date || new Date().toISOString()).slice(0,10);
+  document.getElementById('is-date').value = s?.snapshot_date ? s.snapshot_date.slice(0,10) : localDateStr();
   document.getElementById('is-mothers').value = s?.mother_plants ?? '';
   document.getElementById('is-liners').value = s?.liners ?? '';
   document.getElementById('is-gallons').value = s?.gallon_pots ?? '';
@@ -916,6 +925,7 @@ async function saveInv() {
     notes: document.getElementById('is-notes').value.trim(),
   };
   if (!body.plant_id || !body.snapshot_date) { toast('Plant + date required'); return; }
+  if (!state.plants.some(p => p.id === body.plant_id)) { toast('Pick a current plant for this snapshot'); return; }
   if (!id) body.created = new Date().toISOString();
   try {
     if (id) await pb('PATCH', '/api/collections/inventory_snapshots/records/' + id, body);
@@ -964,6 +974,23 @@ function escapeHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 function escapeAttr(s) { return escapeHtml(s); }
+
+// Parse an integer field, preserving a legitimate 0; null only on blank/NaN.
+function intOrNull(val) {
+  if (val == null || String(val).trim() === '') return null;
+  const n = parseInt(val, 10);
+  return Number.isNaN(n) ? null : n;
+}
+
+// Local (not UTC) YYYY-MM-DD for default date inputs.
+function localDateStr(d) {
+  const dt = d ? new Date(d) : new Date();
+  if (Number.isNaN(dt.getTime())) return localDateStr(new Date());
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, '0');
+  const day = String(dt.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
 // ---------- Tabs ----------
 document.querySelectorAll('.tab').forEach(btn => {

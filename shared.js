@@ -317,144 +317,11 @@
       }
     }
 
-    // ----- Bee-catching mini-game state (localStorage-backed) -----
-    // Tap the bee = +1 honey. Milestones earn a badge toast. Anti-spam
-    // gate at 400ms so an autoclick can't speed-run the achievements.
-    const HONEY_KEY = 'gf_honey_v1';
-    const MILESTONES = [
-      { at: 10,  label: 'Worker Bee 🐝' },
-      { at: 25,  label: 'Pollen Patrol ✨' },
-      { at: 50,  label: 'Hive Mind 🍯' },
-      { at: 100, label: 'Queen Bee 👑' },
-      { at: 250, label: 'Apiarist of Arcata 🌼' },
-    ];
-    let honey = 0, lastCatch = 0;
-    try { honey = parseInt(localStorage.getItem(HONEY_KEY) || '0', 10) || 0; } catch (_) {}
-
-    function honeyJarSvg(level) {
-      // level in 0..1 maps to fill height
-      const fillH = Math.round(28 * Math.max(0, Math.min(1, level)));
-      const y = 40 - fillH;
-      return '<svg viewBox="0 0 36 44" width="28" height="34" aria-hidden="true">' +
-        // Jar body
-        '<rect x="6" y="14" width="24" height="26" rx="3" ry="3" fill="rgba(255,255,255,0.85)" stroke="#5a1230" stroke-width="1.4"/>' +
-        // Honey fill
-        '<rect x="7" y="' + y + '" width="22" height="' + fillH + '" fill="#d4b86a" opacity="0.92"/>' +
-        // Jar rim
-        '<rect x="4" y="10" width="28" height="6" rx="1.5" ry="1.5" fill="#5a1230"/>' +
-        // Highlight
-        '<rect x="9" y="16" width="3" height="20" rx="1" fill="rgba(255,255,255,0.35)"/>' +
-        '</svg>';
-    }
-
-    function ensureHoneyJar() {
-      let jar = document.querySelector('.gf-honey-jar');
-      if (jar) return jar;
-      jar = document.createElement('button');
-      jar.className = 'gf-honey-jar';
-      jar.setAttribute('aria-label', 'Honey jar — bee-catching score');
-      jar.setAttribute('type', 'button');
-      jar.style.cssText = [
-        'position:fixed', 'bottom:16px', 'right:16px',
-        'background:rgba(255,255,255,0.92)',
-        'border:1.5px solid #5a1230', 'border-radius:24px',
-        'padding:5px 12px 5px 8px',
-        'display:flex', 'align-items:center', 'gap:6px',
-        'font-family:inherit', 'font-weight:700',
-        'font-size:0.85rem', 'color:#5a1230',
-        'cursor:pointer', 'z-index:9998',
-        'box-shadow:0 4px 14px rgba(90,18,48,0.16)',
-        'transition:transform 0.18s ease',
-      ].join(';') + ';';
-      jar.innerHTML = '<span class="gf-honey-jar-svg">' + honeyJarSvg(0) + '</span><span class="gf-honey-count">0</span>';
-      jar.addEventListener('mouseenter', () => { jar.style.transform = 'scale(1.06)'; });
-      jar.addEventListener('mouseleave', () => { jar.style.transform = ''; });
-      jar.addEventListener('click', onHoneyJarClick);
-      document.body.appendChild(jar);
-      return jar;
-    }
-
-    function updateHoneyJar() {
-      const jar = ensureHoneyJar();
-      jar.querySelector('.gf-honey-count').textContent = honey;
-      // Fill level cycles every 10 catches; rolling over keeps it satisfying.
-      const lvl = (honey % 10) / 10 || (honey > 0 ? 1 : 0);
-      jar.querySelector('.gf-honey-jar-svg').innerHTML = honeyJarSvg(lvl);
-    }
-
-    function flashHoneyPlusOne(x, y) {
-      const flash = document.createElement('div');
-      flash.textContent = '+1 🍯';
-      flash.style.cssText = [
-        'position:fixed', 'left:' + x + 'px', 'top:' + y + 'px',
-        'font-weight:700', 'font-size:0.95rem', 'color:#5a1230',
-        'pointer-events:none', 'z-index:9999',
-        'transition:transform 0.9s ease-out, opacity 0.9s ease-out',
-        'text-shadow:0 1px 2px rgba(255,255,255,0.8)',
-      ].join(';') + ';';
-      document.body.appendChild(flash);
-      requestAnimationFrame(() => {
-        flash.style.transform = 'translate(-50%, -40px)';
-        flash.style.opacity = '0';
-      });
-      setTimeout(() => flash.remove(), 950);
-    }
-
-    function showMilestoneToast(text) {
-      const t = document.createElement('div');
-      t.textContent = '🏅 ' + text;
-      t.style.cssText = [
-        'position:fixed', 'left:50%', 'top:80px',
-        'transform:translateX(-50%) translateY(-10px)',
-        'background:#5a1230', 'color:#fff',
-        'padding:12px 22px', 'border-radius:999px',
-        'font-weight:700', 'font-size:0.95rem',
-        'box-shadow:0 8px 26px rgba(90,18,48,0.35)',
-        'pointer-events:none', 'z-index:9999',
-        'opacity:0', 'transition:opacity 0.35s ease, transform 0.35s ease',
-      ].join(';') + ';';
-      document.body.appendChild(t);
-      requestAnimationFrame(() => {
-        t.style.opacity = '1';
-        t.style.transform = 'translateX(-50%) translateY(0)';
-      });
-      setTimeout(() => {
-        t.style.opacity = '0';
-        t.style.transform = 'translateX(-50%) translateY(-10px)';
-      }, 2600);
-      setTimeout(() => t.remove(), 3000);
-    }
-
-    function onHoneyJarClick() {
-      const last = MILESTONES.slice().reverse().find(m => honey >= m.at);
-      const next = MILESTONES.find(m => honey < m.at);
-      const earned = last ? last.label : 'Just getting started';
-      const toGo = next ? (next.at - honey) + ' to ' + next.label : 'all milestones unlocked!';
-      const msg = '🍯 Honey: ' + honey + '\n' +
-                  'Current rank: ' + earned + '\n' +
-                  (next ? toGo : toGo) + '\n\n' +
-                  'Reset honey?';
-      if (confirm(msg)) {
-        honey = 0;
-        try { localStorage.setItem(HONEY_KEY, '0'); } catch (_) {}
-        updateHoneyJar();
-      }
-    }
-
-    function bumpHoney(x, y) {
-      const now = Date.now();
-      if (now - lastCatch < 400) return; // anti-autoclick gate
-      lastCatch = now;
-      honey++;
-      try { localStorage.setItem(HONEY_KEY, String(honey)); } catch (_) {}
-      flashHoneyPlusOne(x, y);
-      updateHoneyJar();
-      // Milestone toast — fire exactly once per threshold crossing.
-      const hit = MILESTONES.find(m => m.at === honey);
-      if (hit) showMilestoneToast(hit.label);
-    }
-
-    // Bee-catching mini-game removed — the honey jar widget is no longer shown.
+    // Bee-catching mini-game removed — the honey jar widget is no longer
+    // shown. The localStorage-backed scoring code (honeyJarSvg/ensureHoneyJar/
+    // updateHoneyJar/flashHoneyPlusOne/showMilestoneToast/onHoneyJarClick/
+    // bumpHoney + HONEY_KEY/MILESTONES) was unreachable dead code and has been
+    // deleted; recover it from version control if the feature returns.
 
     function onBeeClick(e) {
       e.preventDefault();
@@ -499,11 +366,15 @@
     }
 
     function randomCruisePoint() {
-      // Keep the bee comfortably within viewport padding
+      // Keep the bee comfortably within viewport padding. Clamp the spans to a
+      // non-negative minimum so tiny/landscape viewports (innerHeight < 120,
+      // innerWidth < 120) don't invert the range and fling the bee off-screen.
       const pad = 60;
+      const spanX = Math.max(40, innerWidth - pad * 2);
+      const spanY = Math.max(40, Math.min(innerHeight, 500) - pad * 2);
       return {
-        x: pad + Math.random() * (innerWidth - pad * 2),
-        y: pad + Math.random() * (Math.min(innerHeight, 500) - pad * 2)
+        x: pad + Math.random() * spanX,
+        y: pad + Math.random() * spanY
       };
     }
 

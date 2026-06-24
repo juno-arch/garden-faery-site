@@ -120,7 +120,7 @@
 
     <div id="error-state" class="hidden">
       <h1>Hmm, something's off</h1>
-      <p class="lede" id="error-message">This reschedule link looks invalid or expired.</p>
+      <p class="lede" id="error-message" role="alert" aria-live="assertive">This reschedule link looks invalid or expired.</p>
       <p class="footer">Just <a href="mailto:taya@gardenfaery.love">email Taya</a> and we'll sort it.</p>
 </div>
 
@@ -133,7 +133,7 @@
         <div class="value struck" id="current-info">--</div>
 </div>
 
-      <div id="form-error" class="msg error hidden"></div>
+      <div id="form-error" class="msg error hidden" role="alert" aria-live="assertive"></div>
 
       <label for="new-date">New date</label>
       <input type="date" id="new-date" required>
@@ -179,9 +179,18 @@
       showState('error-state');
     }
 
+    function localToday() {
+      const now = new Date();
+      return now.getFullYear() + '-' +
+        String(now.getMonth() + 1).padStart(2, '0') + '-' +
+        String(now.getDate()).padStart(2, '0');
+    }
+
     function fmtDate(iso) {
+      if (!iso) return '';
       try {
         const d = new Date(iso + 'T12:00:00');
+        if (isNaN(d)) return iso;
         return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
       } catch (e) { return iso; }
     }
@@ -211,10 +220,15 @@
         currentBooking = await resp.json();
         document.getElementById('current-info').textContent =
           currentBooking.event_name + ' on ' + fmtDate(currentBooking.date) + ' at ' + currentBooking.time;
-        // Default new date to tomorrow
+        // Default new date to tomorrow (local time, not UTC)
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
-        document.getElementById('new-date').value = tomorrow.toISOString().slice(0, 10);
+        const tomorrowStr = tomorrow.getFullYear() + '-' +
+          String(tomorrow.getMonth() + 1).padStart(2, '0') + '-' +
+          String(tomorrow.getDate()).padStart(2, '0');
+        const dateInput = document.getElementById('new-date');
+        dateInput.min = localToday();
+        dateInput.value = tomorrowStr;
         document.getElementById('new-time').value = currentBooking.time || '09:00';
         showState('form-state');
       } catch (err) {
@@ -233,9 +247,9 @@
         errorEl.classList.remove('hidden');
         return;
       }
-      const today = new Date().toISOString().slice(0, 10);
+      const today = localToday();
       if (date < today) {
-        errorEl.textContent = 'Please pick a date in the future.';
+        errorEl.textContent = 'Please pick today or a future date.';
         errorEl.classList.remove('hidden');
         return;
       }

@@ -109,6 +109,14 @@ function escapeHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+// Safely parse a field that may be a JSON string or already-parsed object.
+// Returns null on malformed input so one bad record can't abort a whole render.
+function parseGeo(v) {
+  if (v == null) return null;
+  if (typeof v !== 'string') return v;
+  try { return JSON.parse(v); } catch (e) { return null; }
+}
+
 function render(data) {
   const g = data.garden;
   document.getElementById('loading').style.display = 'none';
@@ -127,17 +135,30 @@ function render(data) {
   const objLabel = o => o.name || (o.type ? o.type.replace(/_/g, ' ') : 'area');
   const typeLabel = o => (o.type ? o.type.replace(/_/g, ' ') : 'area');
 
+  // Build lookup maps once to avoid repeated linear .find() scans in loops.
+  const plantsById = new Map((data.plants || []).map(p => [p.id, p]));
+  const objectsById = new Map((data.objects || []).map(o => [o.id, o]));
+  // Pre-group plantings by their garden object so the objects list doesn't filter per object.
+  const plantingsByObject = new Map();
+  for (const pt of (data.plantings || [])) {
+    const arr = plantingsByObject.get(pt.garden_object_id);
+    if (arr) arr.push(pt); else plantingsByObject.set(pt.garden_object_id, [pt]);
+  }
+
   // Objects list with plantings inside.
   const objsHtml = data.objects.map(o => {
-    const here = data.plantings.filter(pt => pt.garden_object_id === o.id);
+    const here = plantingsByObject.get(o.id) || [];
     const plList = here.map(pt => {
-      const plant = data.plants.find(p => p.id === pt.plant_id);
+      const plant = plantsById.get(pt.plant_id);
       const name = plant ? plant.common_name : 'unknown';
       return `<span>${escapeHtml(name)} × ${pt.quantity || 0}</span>`;
     }).join('');
+    const areaSqft = Number(o.area_sqft);
+    const hasArea = Number.isFinite(areaSqft);
+    const sun = o.sun_exposure ? String(o.sun_exposure).replace(/_/g, ' ') : '';
     return `<div class="obj-card">
       <div class="obj-name">${escapeHtml(objLabel(o))}</div>
-      <div class="obj-meta">${escapeHtml(typeLabel(o))}${o.area_sqft ? ' · ' + o.area_sqft.toFixed(1) + ' sq ft' : ''}${o.sun_exposure ? ' · ' + o.sun_exposure.replace(/_/g, ' ') : ''}</div>
+      <div class="obj-meta">${escapeHtml(typeLabel(o))}${hasArea ? ' · ' + areaSqft.toFixed(1) + ' sq ft' : ''}${sun ? ' · ' + escapeHtml(sun) : ''}</div>
       ${plList ? '<div class="plantings-list">' + plList + '</div>' : ''}
     </div>`;
   }).join('');
@@ -147,12 +168,13 @@ function render(data) {
   const careHtml = data.careEvents.slice(0, 12).map(ce => {
     const date = (ce.event_date || '').slice(0, 10);
     const type = (ce.event_type || '').replace(/_/g, ' ');
-    const obj = data.objects.find(o => o.id === ce.garden_object_id);
+    const obj = objectsById.get(ce.garden_object_id);
     const objName = obj ? objLabel(obj) : '';
     const photos = (ce.photos && ce.photos.length)
       ? '<div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap">' + ce.photos.slice(0, 4).map(fn => {
           const u = PB_URL + '/api/files/care_events/' + ce.id + '/' + encodeURIComponent(fn);
-          return `<a href="${u}" target="_blank" rel="noopener"><img src="${u}?thumb=100x100" style="width:48px;height:48px;object-fit:cover;border-radius:5px;border:1px solid var(--gray-200)"></a>`;
+          const alt = escapeHtml((type || 'care') + ' photo' + (date ? ' on ' + date : ''));
+          return `<a href="${u}" target="_blank" rel="noopener"><img src="${u}?thumb=100x100" alt="${alt}" style="width:48px;height:48px;object-fit:cover;border-radius:5px;border:1px solid var(--gray-200)"></a>`;
         }).join('') + '</div>'
       : '';
     return `<div class="care-row"><strong>${date}</strong> · ${escapeHtml(type)}${objName ? ' · ' + escapeHtml(objName) : ''}${ce.product_used ? ' · ' + escapeHtml(ce.product_used) : ''}${ce.notes ? ' — ' + escapeHtml(ce.notes.slice(0, 80)) : ''}${photos}</div>`;
@@ -166,12 +188,17 @@ function render(data) {
   const zoom = g.default_zoom || 19;
   const style = buildStyle(g, center);
   const map = new maplibregl.Map({ container: 'map', style, center, zoom, attributionControl: true });
+  // Keep the canvas correctly sized when the container changes (e.g. mobile info-panel layout shifts).
+  if (typeof ResizeObserver !== 'undefined') {
+    const mapWrap = document.querySelector('.map-wrap');
+    if (mapWrap) new ResizeObserver(() => map.resize()).observe(mapWrap);
+  }
   map.addControl(new maplibregl.NavigationControl({ visualizePitch: false }), 'top-right');
   map.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: g.units === 'metric' ? 'metric' : 'imperial' }), 'bottom-right');
   map.on('load', () => {
     // Object polygons / lines / points.
     map.addSource('objects', { type: 'geojson', data: { type: 'FeatureCollection', features:
-      data.objects.map(o => ({ type: 'Feature', geometry: typeof o.shape_geojson === 'string' ? JSON.parse(o.shape_geojson) : o.shape_geojson, properties: { id: o.id, name: o.name || '', color: o.fill_color || '#9bbd85' } })).filter(f => f.geometry)
+      data.objects.map(o => ({ type: 'Feature', geometry: parseGeo(o.shape_geojson), properties: { id: o.id, name: o.name || '', color: o.fill_color || '#9bbd85' } })).filter(f => f.geometry)
     }});
     map.addLayer({ id: 'obj-fill', type: 'fill', source: 'objects', filter: ['==', ['geometry-type'], 'Polygon'], paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.42 } });
     map.addLayer({ id: 'obj-out',  type: 'line', source: 'objects', filter: ['==', ['geometry-type'], 'Polygon'], paint: { 'line-color': ['get', 'color'], 'line-width': 1.6 } });
@@ -181,10 +208,11 @@ function render(data) {
     // Plantings.
     const features = [];
     for (const pt of data.plantings) {
-      const plant = data.plants.find(p => p.id === pt.plant_id);
+      const plant = plantsById.get(pt.plant_id);
       const color = (plant && plant.color_hex) || '#5a7a5a';
-      const label = (plant && plant.common_name || '?').slice(0, 1);
-      const geom = typeof pt.positions_geojson === 'string' ? JSON.parse(pt.positions_geojson) : pt.positions_geojson;
+      const cn = (plant && plant.common_name != null) ? String(plant.common_name) : '?';
+      const label = cn.slice(0, 1);
+      const geom = parseGeo(pt.positions_geojson);
       if (!geom) continue;
       if (geom.type === 'MultiPoint') for (const c of geom.coordinates) features.push({ type: 'Feature', geometry: { type: 'Point', coordinates: c }, properties: { color, label } });
       else if (geom.type === 'Point') features.push({ type: 'Feature', geometry: geom, properties: { color, label } });
@@ -217,7 +245,7 @@ function buildStyle(g, center) {
     sources.drone = { type: 'raster', tiles: [g.drone_tiles_url], tileSize: 256 };
     layers.push({ id: 'drone', type: 'raster', source: 'drone' });
   } else if (g.base_layer === 'photo_calibrated' && g.photo_backdrop) {
-    const calib = (typeof g.photo_calibration === 'string') ? JSON.parse(g.photo_calibration) : g.photo_calibration;
+    const calib = parseGeo(g.photo_calibration);
     if (calib) {
       const lat = center[1], lng = center[0];
       const halfWdeg = (calib.widthM / 2) / (111320 * Math.cos(lat * Math.PI / 180));

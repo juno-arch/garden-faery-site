@@ -359,7 +359,7 @@ function renderAll() {
     <div class="card"><div class="label">Tax deductible</div><div class="val">$${(taxDed/100).toFixed(2)}</div></div>
     <div class="card"><div class="label">Pending bill to clients</div><div class="val">$${(billable/100).toFixed(2)}</div></div>
     <div class="card"><div class="label">Recouped (billed paid)</div><div class="val">$${(billedPaid/100).toFixed(2)}</div></div>
-    ${topCats.map(([cat, v]) => `<div class="card"><div class="label">${cat.replace(/_/g,' ')}</div><div class="val">$${(v/100).toFixed(2)}</div></div>`).join('')}
+    ${topCats.map(([cat, v]) => `<div class="card"><div class="label">${escapeHtml((cat||'').replace(/_/g,' '))}</div><div class="val">$${(v/100).toFixed(2)}</div></div>`).join('')}
   `;
   // Table.
   const tbody = document.querySelector('#expenses-table tbody');
@@ -378,7 +378,7 @@ function renderAll() {
     return `<tr onclick="openExpenseModal('${e.id}')">
       <td>${(e.expense_date||'').slice(0,10)}</td>
       <td>${escapeHtml(e.description||'')}</td>
-      <td><span class="pill pill-cat">${(e.category||'').replace(/_/g,' ')}</span></td>
+      <td><span class="pill pill-cat">${escapeHtml((e.category||'').replace(/_/g,' '))}</span></td>
       <td>${escapeHtml(e.vendor||'—')}</td>
       <td>${garden ? escapeHtml(garden.name) : '<span style="color:var(--gray-600)">—</span>'}</td>
       <td class="num">$${((e.amount_cents||0)/100).toFixed(2)}</td>
@@ -408,11 +408,11 @@ function openExpenseModal(id) {
   const existingEl = document.getElementById('em-existing');
   if (e && e.receipts && e.receipts.length) {
     existingEl.innerHTML = e.receipts.map(fn => {
-      const url = PB_URL + '/api/files/gf_expenses/' + e.id + '/' + fn;
+      const url = PB_URL + '/api/files/gf_expenses/' + e.id + '/' + encodeURIComponent(fn);
       const isPdf = fn.toLowerCase().endsWith('.pdf');
       return isPdf
-        ? `<a href="${url}" target="_blank" style="display:inline-block;padding:8px 12px;background:var(--cream);border-radius:6px;text-decoration:none;color:var(--plum);font-size:0.78rem">${escapeHtml(fn.slice(0, 30))}</a>`
-        : `<img src="${url}?thumb=100x100" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--gray-200)">`;
+        ? `<a href="${escapeHtml(url)}" target="_blank" style="display:inline-block;padding:8px 12px;background:var(--cream);border-radius:6px;text-decoration:none;color:var(--plum);font-size:0.78rem">${escapeHtml(fn.slice(0, 30))}</a>`
+        : `<img src="${escapeHtml(url)}?thumb=100x100" alt="${escapeHtml(fn.slice(0, 30))}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--gray-200)">`;
     }).join('');
   } else existingEl.innerHTML = '';
   document.getElementById('expense-modal').classList.add('open');
@@ -445,7 +445,7 @@ async function saveExpense() {
       const fd = new FormData();
       for (const k in body) {
         if (body[k] === null || body[k] === undefined) continue;
-        fd.append(k, body[k]);
+        fd.append(k, typeof body[k] === 'boolean' ? (body[k] ? 'true' : 'false') : body[k]);
       }
       for (const f of files) { const small = await downscaleImage(f); fd.append('receipts', small); }
       const url = id ? (PB_URL + '/api/collections/gf_expenses/records/' + id) : (PB_URL + '/api/collections/gf_expenses/records');
@@ -454,6 +454,7 @@ async function saveExpense() {
         headers: PB_TOKEN ? { 'Authorization': 'Bearer ' + PB_TOKEN } : {},
         body: fd,
       });
+      if (resp.status === 401) { logout(); throw new Error('Auth expired'); }
       if (!resp.ok) { const t = await resp.text().catch(() => ''); throw new Error('PB ' + resp.status + ': ' + t); }
       r = await resp.json();
     } else {

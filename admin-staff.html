@@ -163,7 +163,7 @@ function tokenValid(tok) {
   if (!tok || tok.split('.').length !== 3) return false;
   try {
     const payload = JSON.parse(atob(tok.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-    return payload.exp && (payload.exp * 1000) > (Date.now() - 30000);
+    return payload.exp && (payload.exp * 1000) > (Date.now() + 30000);
   } catch (_) { return false; }
 }
 
@@ -240,17 +240,18 @@ function renderAll() {
   if (!state.invites.length) {
     ivTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--gray-600)">No invites yet.</td></tr>';
   } else {
+    const todayLocal = (() => { const d = new Date(); const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0'); return y + '-' + m + '-' + day; })();
     ivTbody.innerHTML = state.invites.map(i => {
-      const now = new Date();
-      const expDate = i.expires ? new Date(i.expires) : null;
+      const expDay = i.expires ? String(i.expires).slice(0, 10) : null;
       let statusPill;
       if (i.claimed_at) statusPill = '<span class="pill pill-claimed">claimed</span>';
-      else if (expDate && expDate < now) statusPill = '<span class="pill pill-expired">expired</span>';
+      else if (expDay && expDay < todayLocal) statusPill = '<span class="pill pill-expired">expired</span>';
       else statusPill = '<span class="pill pill-pending">pending</span>';
-      const url = (location.protocol === 'file:' ? 'http://localhost' : location.origin) + '/claim.html?token=' + i.token;
+      const safeToken = /^[a-f0-9]+$/i.test(i.token || '') ? i.token : '';
+      const url = (location.protocol === 'file:' ? 'http://localhost' : location.origin) + '/claim.html?token=' + safeToken;
       const linkCell = i.claimed_at
         ? '<span style="color:var(--gray-600);font-size:0.78rem">used</span>'
-        : '<span class="invite-link" data-url="' + escapeHtml(url) + '">' + escapeHtml(url.slice(0, 50)) + '…</span>';
+        : '<span class="invite-link" role="button" tabindex="0" aria-label="Copy invite link" data-url="' + escapeHtml(url) + '">' + escapeHtml(url.slice(0, 50)) + '…</span>';
       return `<tr>
         <td>${escapeHtml(i.email)}</td>
         <td>${escapeHtml(i.display_name || '—')}</td>
@@ -258,7 +259,7 @@ function renderAll() {
         <td>${statusPill}</td>
         <td>${(i.created||'').slice(0,10)}</td>
         <td>${linkCell}</td>
-        <td><button class="btn-ghost btn-sm" onclick="deleteInvite('${i.id}')">Revoke</button></td>
+        <td><button class="btn-ghost btn-sm" data-revoke="${escapeHtml(i.id)}">Revoke</button></td>
       </tr>`;
     }).join('');
   }
@@ -306,7 +307,6 @@ async function createInvite() {
     expires: exp.toISOString().slice(0, 10),
     notes: document.getElementById('iv-notes').value.trim(),
     invited_by: 'admin',
-    created: new Date().toISOString(),
   };
   try {
     const r = await pb('POST', '/api/collections/staff_invites/records', body);
@@ -334,10 +334,20 @@ function copyText(text) {
   navigator.clipboard.writeText(text).then(() => toast('Copied')).catch(() => toast('Copy failed'));
 }
 
-// Delegate clicks on invite-link spans (rendered with data-url attribute).
+// Delegate clicks on invite-link spans (rendered with data-url attribute) and
+// Revoke buttons (rendered with data-revoke attribute).
 document.addEventListener('click', e => {
-  const el = e.target.closest && e.target.closest('.invite-link');
-  if (el && el.dataset.url) copyText(el.dataset.url);
+  if (!e.target.closest) return;
+  const link = e.target.closest('.invite-link');
+  if (link && link.dataset.url) { copyText(link.dataset.url); return; }
+  const revoke = e.target.closest('[data-revoke]');
+  if (revoke) deleteInvite(revoke.dataset.revoke);
+});
+// Keyboard activation for the focusable invite-link span.
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const link = e.target.closest && e.target.closest('.invite-link');
+  if (link && link.dataset.url) { e.preventDefault(); copyText(link.dataset.url); }
 });
 
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }

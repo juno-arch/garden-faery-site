@@ -1594,8 +1594,8 @@ function renderObOAvailability() {
     if (dayBookings.length) {
       const list = dayBookings.map(b => {
         const time = (EVENT_TIMES[b.eventType] || '').replace(/:00/g, '');
-        const name = b.clientName || ((b.clientFirstName || '') + ' ' + (b.clientLastName || '')).trim() || 'Booked';
-        return time + ' ' + name;
+        const name = escapeHtml(b.clientName || 'Booked');
+        return escapeHtml(time) + ' ' + name;
       }).join(' · ');
       html += '<div style="font-size:0.75rem;color:var(--gray-600,#666);font-weight:400;margin-top:2px;">' + list + '</div>';
     }
@@ -2188,7 +2188,13 @@ function exportAccountantCsv() {
   const net = gross - totalExp;
 
   const esc = v => {
-    const s = String(v ?? '');
+    let s = String(v ?? '');
+    // Neutralize CSV/spreadsheet formula injection: a cell that opens with
+    // = + - @ (or a leading tab/CR) is treated as a formula by Excel/Sheets,
+    // so prefix it with an apostrophe to force literal text. These CSVs go to
+    // a third-party accountant, so a scanned vendor like =HYPERLINK(...) must
+    // not execute on open.
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
     return (s.includes(',') || s.includes('"') || s.includes('\n')) ? '"' + s.replace(/"/g,'""') + '"' : s;
   };
 
@@ -2750,15 +2756,16 @@ async function renderExpenses() {
         ? `<span class="expense-mixed-badge" title="Mixed receipt: some line items on the original receipt are personal and excluded from this expense total.">mixed</span>`
         : '';
       const cardLabel = cardDisplayLabel(e.card);
+      const thumbAlt = escAttr('Receipt from ' + (e.vendor || 'unknown vendor') + (e.date ? ' on ' + e.date : ''));
       const thumb = e.receipt && e._collection && e.id
-        ? `<img class="receipt-thumb" src="${receiptUrl(e)}" alt="Receipt thumbnail" onclick="openReceiptLightbox('${receiptUrl(e)}')" loading="lazy" decoding="async">`
+        ? `<img class="receipt-thumb" src="${receiptUrl(e)}" alt="${thumbAlt}" role="button" tabindex="0" aria-label="${thumbAlt}, open larger" onclick="openReceiptLightbox('${receiptUrl(e)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openReceiptLightbox('${receiptUrl(e)}');}" loading="lazy" decoding="async">`
         : '';
       html += `
         <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100);gap:10px;">
           ${thumb}
           <div style="flex:1;min-width:0;">
-            <div style="font-weight:600;">${e.date} · ${e.vendor || 'Unknown vendor'}${mixedTag}</div>
-            <div style="font-size:0.8rem;color:var(--gray-600);">${e.category||'-'} ${cardLabel?'· '+cardLabel:''} ${bizTag}</div>
+            <div style="font-weight:600;">${escapeHtml(e.date || '')} · ${escapeHtml(e.vendor || 'Unknown vendor')}${mixedTag}</div>
+            <div style="font-size:0.8rem;color:var(--gray-600);">${escapeHtml(e.category||'-')} ${cardLabel?'· '+cardLabel:''} ${bizTag}</div>
 </div>
           <div style="display:flex;gap:8px;align-items:center;">
             <div style="font-weight:700;">$${e.amount.toFixed(2)}</div>
@@ -3164,7 +3171,7 @@ async function saveExpense() {
     if (_pendingReceiptFile) {
       // Use multipart so we can include the file
       const fd = new FormData();
-      Object.entries(body).forEach(([k,v]) => fd.append(k, v == null ? '' : (typeof v === 'boolean' ? String(v) : v)));
+      Object.entries(body).forEach(([k,v]) => fd.append(k, v == null ? '' : (typeof v === 'object' ? JSON.stringify(v) : (typeof v === 'boolean' ? String(v) : v))));
       fd.append('receipt', _pendingReceiptFile);
       const url = PB_URL + '/api/collections/expenses/records' + (id ? '/'+id : '');
       const r = await fetch(url, {
@@ -3189,14 +3196,25 @@ async function saveExpense() {
   }
 }
 
+// CSV cell encoder used by the expense/income exports. Neutralizes spreadsheet
+// formula injection (a cell opening with = + - @ or a tab/CR is treated as a
+// formula by Excel/Sheets) by prefixing a literal apostrophe, then quotes and
+// doubles embedded quotes. The exports go to a third-party accountant, so an
+// AI-scanned vendor like =HYPERLINK(...) must not execute on open.
+function csvCell(v) {
+  let s = String(v == null ? '' : v);
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  return '"' + s.replace(/"/g, '""') + '"';
+}
+
 function exportExpenseCsv() {
   const inMonth = _cachedExpenses.filter(e => (e.date||'').slice(0,7) === expenseViewMonth);
   const rows = [['Date','Vendor','Amount','Category','Card','On Biz','Notes']];
   inMonth.sort((a,b) => (a.date||'').localeCompare(b.date||''));
   inMonth.forEach(e => {
-    rows.push([e.date, e.vendor, e.amount.toFixed(2), e.category, e.card, e.onBiz?'yes':'no', (e.notes||'').replace(/"/g,'""')]);
+    rows.push([e.date, e.vendor, e.amount.toFixed(2), e.category, e.card, e.onBiz?'yes':'no', e.notes||'']);
   });
-  const csv = rows.map(r => r.map(c => `"${String(c||'')}"`).join(',')).join('\n');
+  const csv = rows.map(r => r.map(csvCell).join(',')).join('\n');
   const blob = new Blob([csv], { type:'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -3954,10 +3972,10 @@ function exportIncomeCsv() {
       b.paid ? 'yes' : 'no',
       b.paymentMethod || '',
       (b.paidDate||'').slice(0,10),
-      (b.paymentNotes||'').replace(/"/g,'""')
+      b.paymentNotes||''
     ]);
   });
-  const csv = rows.map(r => r.map(c => `"${String(c)}"`).join(',')).join('\n');
+  const csv = rows.map(r => r.map(csvCell).join(',')).join('\n');
   const blob = new Blob([csv], { type:'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -4067,15 +4085,15 @@ function renderDay() {
             (b.eventType === 'morning' ? 'pollen-gold' : b.eventType === 'afternoon' ? 'petal-pink' : 'spring-sage') +
           ')"></span>' +
           '<div class="booking-card ' + b.eventType + '">' +
-          '<h3>' + b.clientName +
-            (b.recurringSeriesId ? '<span class="series-badge">' + (b.recurringFrequency || 'recurring') + '</span>' : '') +
+          '<h3>' + escapeHtml(b.clientName || '') +
+            (b.recurringSeriesId ? '<span class="series-badge">' + escapeHtml(b.recurringFrequency || 'recurring') + '</span>' : '') +
           '</h3>' +
           '<div class="booking-meta">' + EVENT_LABELS[b.eventType] + ' (' + EVENT_TIMES[b.eventType] + ')</div>' +
           '<div class="booking-client">' +
-            (b.clientPhone ? b.clientPhone : '') +
-            (b.clientAddress ? ' &middot; ' + b.clientAddress : '') +
+            (b.clientPhone ? escapeHtml(b.clientPhone) : '') +
+            (b.clientAddress ? ' &middot; ' + escapeHtml(b.clientAddress) : '') +
           '</div>' +
-          (b.gardenNotes ? '<div class="booking-meta" style="margin-top:6px;font-style:italic;">"' + b.gardenNotes + '"</div>' : '') +
+          (b.gardenNotes ? '<div class="booking-meta" style="margin-top:6px;font-style:italic;">"' + escapeHtml(b.gardenNotes) + '"</div>' : '') +
           '<div class="booking-actions">' +
             '<button class="action-btn" onclick="callClient(\'' + phoneAttr(b.clientPhone) + '\')">Call</button>' +
             '<button class="action-btn" onclick="textClient(\'' + phoneAttr(b.clientPhone) + '\')">Text</button>' +
@@ -4086,11 +4104,11 @@ function renderDay() {
       } else {
         const b = item.data;
         html += '<div class="time-marker">' +
-          '<span class="time-label">' + (b.allDay ? 'all day' : b.startTime) + '</span>' +
+          '<span class="time-label">' + (b.allDay ? 'all day' : escapeHtml(b.startTime || '')) + '</span>' +
           '<span class="time-dot" style="background: var(--gray-400)"></span>' +
           '<div class="booking-card blocked">' +
-          '<h3>Blocked: ' + (b.reason || 'Time off') + '</h3>' +
-          '<div class="booking-meta">' + (b.allDay ? 'All day' : b.startTime + ' to ' + b.endTime) + '</div>' +
+          '<h3>Blocked: ' + escapeHtml(b.reason || 'Time off') + '</h3>' +
+          '<div class="booking-meta">' + (b.allDay ? 'All day' : escapeHtml(b.startTime || '') + ' to ' + escapeHtml(b.endTime || '')) + '</div>' +
           '<div class="booking-actions">' +
             '<button class="action-btn danger" onclick="removeBlock(\'' + b.id + '\')">Remove</button>' +
           '</div></div></div>';
@@ -4218,13 +4236,13 @@ function renderUpcoming() {
     }
     const phone = b.clientPhone || '';
     html += '<div class="booking-card ' + b.eventType + '">' +
-      '<h3>' + b.clientName +
-        (b.recurringSeriesId ? '<span class="series-badge">' + (b.recurringFrequency || 'recurring') + '</span>' : '') +
+      '<h3>' + escapeHtml(b.clientName || '') +
+        (b.recurringSeriesId ? '<span class="series-badge">' + escapeHtml(b.recurringFrequency || 'recurring') + '</span>' : '') +
       '</h3>' +
-      '<div class="booking-meta">' + EVENT_LABELS[b.eventType] + ' at ' + b.time + '</div>' +
+      '<div class="booking-meta">' + EVENT_LABELS[b.eventType] + ' at ' + escapeHtml(b.time || '') + '</div>' +
       '<div class="booking-client">' +
-        (b.clientPhone ? b.clientPhone : '') +
-        (b.clientAddress ? ' &middot; ' + b.clientAddress : '') +
+        (b.clientPhone ? escapeHtml(b.clientPhone) : '') +
+        (b.clientAddress ? ' &middot; ' + escapeHtml(b.clientAddress) : '') +
       '</div>' +
       '<div class="booking-actions">' +
         (phone ? '<button class="action-btn" onclick="callClient(\'' + phoneAttr(phone) + '\')">Call</button>' : '') +
@@ -4297,8 +4315,9 @@ async function syncMoonConflicts() {
         continue;
       }
       if (withinBuffer && b.status !== 'canceled') {
-        // Auto-cancel
-        await fetch(PB_URL + '/api/collections/bookings/records/' + b.id, {
+        // Auto-cancel — only mutate local state if the PATCH actually succeeds,
+        // otherwise the UI would claim a cancellation the DB never recorded.
+        const cancelResp = await fetch(PB_URL + '/api/collections/bookings/records/' + b.id, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PB_TOKEN },
           body: JSON.stringify({
@@ -4307,8 +4326,10 @@ async function syncMoonConflicts() {
             canceled_at: new Date().toISOString(),
           }),
         });
-        b.status = 'canceled';
-        b.canceledBy = 'moon-auto';
+        if (cancelResp.ok) {
+          b.status = 'canceled';
+          b.canceledBy = 'moon-auto';
+        }
       }
       moonConflicts.push({
         booking: b,
@@ -4985,8 +5006,8 @@ function openReschedule(id) {
 
   document.getElementById('reschedule-info').innerHTML =
     '<div style="padding:10px 0; margin-bottom:12px; border-bottom:1px solid var(--gray-200);">' +
-    '<strong>' + b.clientName + '</strong><br>' +
-    '<span style="color:var(--gray-600); font-size:0.9rem;">' + b.eventName + ' on ' + b.date + ' at ' + b.time + '</span></div>';
+    '<strong>' + escapeHtml(b.clientName || '') + '</strong><br>' +
+    '<span style="color:var(--gray-600); font-size:0.9rem;">' + escapeHtml(b.eventName || '') + ' on ' + escapeHtml(b.date || '') + ' at ' + escapeHtml(b.time || '') + '</span></div>';
 
   document.getElementById('reschedule-date').value = b.date;
   document.getElementById('reschedule-slot').value = b.eventType;
@@ -5102,8 +5123,8 @@ function renderTomorrowBanner() {
 
   blocks.forEach(b => {
     html += '<div class="tomorrow-item" style="color:var(--gray-600);">' +
-      '<div>Blocked: ' + (b.reason || 'Time off') +
-        ' (' + (b.allDay ? 'all day' : b.startTime + ' to ' + b.endTime) + ')</div>' +
+      '<div>Blocked: ' + escapeHtml(b.reason || 'Time off') +
+        ' (' + (b.allDay ? 'all day' : escapeHtml(b.startTime || '') + ' to ' + escapeHtml(b.endTime || '')) + ')</div>' +
       '<div class="tomorrow-item-actions">' +
         '<button class="action-btn danger" onclick="removeBlock(\'' + b.id + '\')">Remove</button>' +
       '</div>' +
@@ -5119,7 +5140,7 @@ function renderTomorrowBanner() {
   bookings.forEach(b => {
     const phone = b.clientPhone || '';
     html += '<div class="tomorrow-item">' +
-      '<div>' + b.time + ' ' + b.clientName + ' (' + EVENT_LABELS[b.eventType] + ')</div>' +
+      '<div>' + escapeHtml(b.time || '') + ' ' + escapeHtml(b.clientName || '') + ' (' + EVENT_LABELS[b.eventType] + ')</div>' +
       '<div class="tomorrow-item-actions">' +
         (phone ? '<button class="action-btn" onclick="callClient(\'' + phoneAttr(phone) + '\')">Call</button>' : '') +
         (phone ? '<button class="action-btn" onclick="textClient(\'' + phoneAttr(phone) + '\')">Text</button>' : '') +

@@ -748,7 +748,7 @@
       const card = document.createElement('div');
       card.className = 'style-card';
       card.innerHTML = `
-        <img src="${s.hero}" alt="${s.name}" loading="lazy"
+        <img src="${s.hero}" alt="" aria-hidden="true" loading="lazy"
           onerror="this.style.background='var(--sage-light)';this.removeAttribute('src');" decoding="async">
         <div class="style-card-body">
           <div class="style-card-name">${s.name}</div>

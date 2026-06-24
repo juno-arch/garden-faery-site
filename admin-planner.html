@@ -344,9 +344,11 @@
     <h1>Planner</h1>
     <p>Garden Faery garden planner.</p>
     <div id="login-error" class="login-error"></div>
-    <input type="email" id="login-email" placeholder="Admin email" autocomplete="username">
-    <input type="password" id="login-pw" placeholder="Password" autocomplete="current-password">
-    <button class="btn" onclick="doLogin()">Sign in</button>
+    <form onsubmit="event.preventDefault();doLogin()">
+      <input type="email" id="login-email" placeholder="Admin email" autocomplete="username">
+      <input type="password" id="login-pw" placeholder="Password" autocomplete="current-password">
+      <button type="submit" class="btn">Sign in</button>
+    </form>
   </div>
 </div>
 
@@ -1044,6 +1046,7 @@ async function doLogin() {
   errEl.classList.remove('show');
   if (!email || !pw) return;
   // Try superuser first (admin), fall back to regular users (staff invited via /claim.html).
+  let networkError = false;
   for (const endpoint of ['_superusers', 'users']) {
     try {
       const resp = await fetch(PB_URL + '/api/collections/' + endpoint + '/auth-with-password', {
@@ -1056,9 +1059,14 @@ async function doLogin() {
         boot();
         return;
       }
-    } catch (_) {}
+    } catch (_) {
+      // A thrown error here is a network/CORS failure, not a rejected credential.
+      networkError = true;
+    }
   }
-  errEl.textContent = 'Sign-in failed. Check email/password.';
+  errEl.textContent = networkError
+    ? 'Could not reach the server. Check your connection and try again.'
+    : 'Sign-in failed. Check email/password.';
   errEl.classList.add('show');
 }
 function logout() {
@@ -1207,10 +1215,10 @@ function openPrintPlan() {
       return (plant ? plant.common_name : 'unknown') + ' × ' + (pt.quantity || 0);
     }).join(', ');
     return `<tr>
-      <td>${escapeHtml(o.name || o.type.replace(/_/g, ' '))}</td>
-      <td>${(o.type || '').replace(/_/g, ' ')}</td>
+      <td>${escapeHtml(o.name || (o.type || '').replace(/_/g, ' '))}</td>
+      <td>${escapeHtml((o.type || '').replace(/_/g, ' '))}</td>
       <td>${o.area_sqft ? o.area_sqft.toFixed(1) + ' sq ft' : '—'}</td>
-      <td>${o.sun_exposure ? o.sun_exposure.replace(/_/g, ' ') : '—'}</td>
+      <td>${o.sun_exposure ? escapeHtml(o.sun_exposure.replace(/_/g, ' ')) : '—'}</td>
       <td>${escapeHtml(plList || '—')}</td>
     </tr>`;
   }).join('');
@@ -1220,8 +1228,8 @@ function openPrintPlan() {
     const obj = state.objects.find(o => o.id === ce.garden_object_id);
     return `<tr>
       <td>${(ce.event_date || '').slice(0, 10)}</td>
-      <td>${(ce.event_type || '').replace(/_/g, ' ')}</td>
-      <td>${obj ? escapeHtml(obj.name || obj.type.replace(/_/g, ' ')) : '—'}</td>
+      <td>${escapeHtml((ce.event_type || '').replace(/_/g, ' '))}</td>
+      <td>${obj ? escapeHtml(obj.name || (obj.type || '').replace(/_/g, ' ')) : '—'}</td>
       <td>${escapeHtml(ce.product_used || '')}</td>
       <td>${escapeHtml(ce.notes || '')}</td>
     </tr>`;
@@ -1338,7 +1346,8 @@ function renderJournal() {
   }
   if (filter === 'all' || filter === 'harvests') {
     for (const hv of state.harvests) {
-      const planting = state.plantings.find(p => p.id === hv.planting_id);
+      // Use the unfiltered list so harvests against removed plantings still resolve.
+      const planting = (state.plantingsAll || state.plantings).find(p => p.id === hv.planting_id);
       const plant = planting ? state.plants.find(x => x.id === planting.plant_id) : null;
       events.push({
         date: (hv.harvest_date || '').slice(0, 10),
@@ -1465,8 +1474,9 @@ function renderSeasonCalendar() {
           bars.push(`<div title="Indoor seedling: ${start.toISOString().slice(0,10)} → ${end.toISOString().slice(0,10)}" style="position:absolute;top:8px;height:8px;background:#d8d2c5;left:${pctOf(start)}%;width:${pctOf(end) - pctOf(start)}%;border-radius:2px"></div>`);
         }
       }
-      // Direct sow marker.
-      if (p.direct_sow_weeks_relative_to_lastfrost !== null && p.direct_sow_weeks_relative_to_lastfrost !== undefined && !p.seed_indoor_weeks_before_lastfrost) {
+      // Direct sow marker. Show whenever a direct-sow window is set, even for
+      // dual-method crops that also start indoors (see audit) — both markers render.
+      if (p.direct_sow_weeks_relative_to_lastfrost !== null && p.direct_sow_weeks_relative_to_lastfrost !== undefined) {
         const ds = offsetDays(lastFrost, p.direct_sow_weeks_relative_to_lastfrost * 7);
         if (ds.getFullYear() === year) {
           bars.push(`<div title="Direct sow: ${ds.toISOString().slice(0,10)}" style="position:absolute;top:6px;left:calc(${pctOf(ds)}% - 5px);width:10px;height:10px;background:#6b8f5e;border-radius:50%;border:2px solid white;box-shadow:0 0 0 1px #6b8f5e"></div>`);
@@ -1537,10 +1547,13 @@ async function showDetail(gardenId) {
   renderClimateBadge();
   renderTemplateStrip();
   renderPlantList();
-  await loadObjects(gardenId);
-  await loadPlantings(gardenId);
-  await loadCareEvents(gardenId);
-  await loadHarvests(gardenId);
+  // These four loads are independent; run them in parallel to cut time-to-interactive.
+  await Promise.all([
+    loadObjects(gardenId),
+    loadPlantings(gardenId),
+    loadCareEvents(gardenId),
+    loadHarvests(gardenId),
+  ]);
   initMap();
 }
 
@@ -1601,8 +1614,12 @@ async function loadPlantings(gardenId) {
     // past ~200 objects. Paginated so >500 plantings aren't silently dropped.
     const gid = encodeURIComponent(`(garden_id="${String(gardenId).replace(/"/g, '\\"')}")`);
     const rows = await pbAll('plantings', 'filter=' + gid);
+    // Keep the unfiltered list so history (e.g. harvests against a since-removed
+    // planting) can still resolve plant names; active views use state.plantings.
+    state.plantingsAll = rows;
     state.plantings = rows.filter(p => !p.removed_date);
   } catch (err) {
+    state.plantingsAll = [];
     state.plantings = [];
   }
 }
@@ -1869,25 +1886,37 @@ function addObjectLayers() {
     const f = e.features[0];
     const p = f.properties;
     const date = (p.planted_date || '').slice(0, 10);
+    // Validate color before placing it in an inline style; fall back to a safe default.
+    const safeColor = /^#[0-9a-fA-F]{3,8}$/.test(String(p.color || '')) ? p.color : '#9bbd85';
     const html = `
       <div style="font-family: var(--font-body); color: var(--plum); min-width: 180px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-          <span style="width:14px;height:14px;border-radius:50%;background:${p.color};border:1px solid #ccc"></span>
-          <strong>${p.plant_name}</strong>
+          <span style="width:14px;height:14px;border-radius:50%;background:${safeColor};border:1px solid #ccc"></span>
+          <strong>${escapeHtml(p.plant_name)}</strong>
         </div>
         <div style="font-size:0.78rem;color:var(--gray-600);margin-bottom:8px">
-          ${p.quantity ? p.quantity + ' planted' : ''}${date ? ' · ' + date : ''}
+          ${p.quantity ? escapeHtml(p.quantity) + ' planted' : ''}${date ? ' · ' + escapeHtml(date) : ''}
         </div>
         <div style="display:flex;gap:6px">
-          <button class="btn btn-sm" style="padding:4px 8px;font-size:0.74rem" onclick="openHarvestModal('${p.planting_id}'); document.querySelectorAll('.maplibregl-popup').forEach(p=>p.remove())">+ Harvest</button>
-          <button class="ghost-btn btn-sm" style="padding:4px 8px;font-size:0.74rem;background:transparent;border:1px solid var(--gray-200)" onclick="removePlanting('${p.planting_id}'); document.querySelectorAll('.maplibregl-popup').forEach(p=>p.remove())">Remove</button>
+          <button class="btn btn-sm" data-pop-harvest style="padding:4px 8px;font-size:0.74rem">+ Harvest</button>
+          <button class="ghost-btn btn-sm" data-pop-remove style="padding:4px 8px;font-size:0.74rem;background:transparent;border:1px solid var(--gray-200)">Remove</button>
         </div>
       </div>
     `;
-    new maplibregl.Popup({ closeOnClick: true, maxWidth: '300px' })
+    const popup = new maplibregl.Popup({ closeOnClick: true, maxWidth: '300px' })
       .setLngLat(e.lngLat)
       .setHTML(html)
       .addTo(state.map);
+    // Attach listeners after setHTML so the planting id is never interpolated
+    // into an inline onclick JS string (see audit).
+    const popEl = popup.getElement();
+    if (popEl) {
+      const closeAll = () => document.querySelectorAll('.maplibregl-popup').forEach(pop => pop.remove());
+      const hb = popEl.querySelector('[data-pop-harvest]');
+      const rb = popEl.querySelector('[data-pop-remove]');
+      if (hb) hb.addEventListener('click', () => { openHarvestModal(p.planting_id); closeAll(); });
+      if (rb) rb.addEventListener('click', () => { removePlanting(p.planting_id); closeAll(); });
+    }
   });
   map.on('mouseenter', 'plantings-circle', () => { if (state.tool === 'select') map.getCanvas().style.cursor = 'pointer'; });
   map.on('mouseleave', 'plantings-circle', () => { map.getCanvas().style.cursor = ''; });
@@ -2410,7 +2439,7 @@ async function saveCareEvent() {
         event_date: eventDate,
         event_type: eventType,
         product_used: document.getElementById('ce-product').value.trim(),
-        quantity: parseFloat(document.getElementById('ce-qty').value) || null,
+        quantity: (() => { const q = parseFloat(document.getElementById('ce-qty').value); return isNaN(q) ? null : q; })(),
         units: document.getElementById('ce-units').value.trim(),
         notes: document.getElementById('ce-notes').value.trim(),
         photo_urls: document.getElementById('ce-photos').value.trim(),
@@ -2846,6 +2875,20 @@ function openSuggestions() {
   const existingPlantings = state.plantings.filter(pt => pt.garden_object_id === obj.id);
   const existingPlantIds = new Set(existingPlantings.map(p => p.plant_id));
 
+  // Resolve each existing plant once and pre-parse its companion/antagonist id
+  // arrays, so the per-candidate inner loop doesn't .find() + parseIds() repeatedly.
+  const existingResolved = [];
+  for (const otherId of existingPlantIds) {
+    const other = state.plantsById ? state.plantsById.get(otherId) : state.plants.find(x => x.id === otherId);
+    if (!other) continue;
+    existingResolved.push({
+      id: otherId,
+      other,
+      comp: parseIds(other.companion_plant_ids),
+      ant: parseIds(other.antagonist_plant_ids),
+    });
+  }
+
   const scored = state.plants.filter(p => p.in_planner_catalog && !existingPlantIds.has(p.id)).map(p => {
     let score = 0;
     const reasons = [];
@@ -2885,11 +2928,9 @@ function openSuggestions() {
     // Companion bonus / antagonist penalty.
     const myComp = parseIds(p.companion_plant_ids);
     const myAnt  = parseIds(p.antagonist_plant_ids);
-    for (const otherId of existingPlantIds) {
-      const other = state.plants.find(x => x.id === otherId);
-      if (!other) continue;
-      if (myComp.includes(otherId) || parseIds(other.companion_plant_ids).includes(p.id)) { score += 2; reasons.push('companion to ' + other.common_name); }
-      if (myAnt.includes(otherId)  || parseIds(other.antagonist_plant_ids).includes(p.id)) { score -= 5; reasons.push('antagonist of ' + other.common_name); }
+    for (const { id: otherId, other, comp, ant } of existingResolved) {
+      if (myComp.includes(otherId) || comp.includes(p.id)) { score += 2; reasons.push('companion to ' + other.common_name); }
+      if (myAnt.includes(otherId)  || ant.includes(p.id))  { score -= 5; reasons.push('antagonist of ' + other.common_name); }
     }
     return { plant: p, score, reasons };
   }).filter(Boolean);
@@ -2958,7 +2999,11 @@ function renderForecast(plantings) {
       harvestDate.setDate(harvestDate.getDate() + plant.days_to_maturity_max);
     } else if (plant.lifecycle === 'perennial' || plant.lifecycle === 'tender_perennial') {
       // Perennials produce in their natural season — assume mid-summer here for forecast simplicity.
+      // If this year's window has already passed, roll to next year's season
+      // rather than clamping to today (keeps the perennial forecast meaningful
+      // after mid-August).
       harvestDate = new Date(year, 7, 15);  // Aug 15
+      if (harvestDate < today) harvestDate = new Date(year + 1, 7, 15);
     } else {
       continue;
     }
@@ -3429,11 +3474,13 @@ async function saveQuickPlant() {
   const name = document.getElementById('qp-name').value.trim();
   if (!name) { toast('Common name required'); return; }
   const spacingIn = parseFloat(document.getElementById('qp-spacing').value);
-  const dtmMin = parseInt(document.getElementById('qp-dtm').value, 10);
+  let dtmMin = parseInt(document.getElementById('qp-dtm').value, 10);
   let dtmMax = parseInt(document.getElementById('qp-dtm-max').value, 10);
-  // If only one of the two is filled, mirror it so the range is valid.
+  // If only one of the two is filled, mirror it so the range always has a lower
+  // bound (forecast/scoring rely on min). Swap if entered out of order.
   if (isNaN(dtmMax)) dtmMax = dtmMin;
-  if (isNaN(dtmMin) && !isNaN(dtmMax)) { /* min blank, max set — leave min null */ }
+  if (isNaN(dtmMin)) dtmMin = dtmMax;
+  if (!isNaN(dtmMin) && !isNaN(dtmMax) && dtmMin > dtmMax) { const t = dtmMin; dtmMin = dtmMax; dtmMax = t; }
   const body = {
     common_name: name,
     scientific_name: document.getElementById('qp-sci').value.trim(),
@@ -3776,9 +3823,11 @@ function renderSfgEditor(obj) {
       const plant = pid ? state.plantsById.get(pid) : null;
       const col = plant ? (plant.color_hex || '#9bbd85') : 'var(--cream)';
       const per = plant ? plantsPerSquare(plant) : 0;
-      const letter = plant ? (per > 1 ? per : plant.common_name.slice(0, 1)) : '';
-      const title = plant ? escapeHtml(plant.common_name + ' (' + per + '/sq)') : 'empty';
-      html += `<div onclick="sfgCellClick('${obj.id}',${r},${c})" title="${title}" style="aspect-ratio:1;border:1px solid var(--gray-200);border-radius:3px;background:${col};display:flex;align-items:center;justify-content:center;font-size:0.62rem;font-weight:700;color:${plant ? '#fff' : 'var(--gray-400)'};cursor:pointer">${letter}</div>`;
+      const nm = (plant && plant.common_name) ? String(plant.common_name) : 'Unknown';
+      const letter = plant ? (per > 1 ? per : nm.slice(0, 1)) : '';
+      const title = plant ? escapeHtml(nm + ' (' + per + '/sq)') : 'empty';
+      const aria = plant ? `${nm}, ${per} per square` : 'empty square';
+      html += `<div role="button" tabindex="0" aria-label="${escapeHtml(aria)}" onclick="sfgCellClick('${obj.id}',${r},${c})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();sfgCellClick('${obj.id}',${r},${c})}" title="${title}" style="aspect-ratio:1;border:1px solid var(--gray-200);border-radius:3px;background:${col};display:flex;align-items:center;justify-content:center;font-size:0.62rem;font-weight:700;color:${plant ? '#fff' : 'var(--gray-400)'};cursor:pointer">${letter}</div>`;
     }
   }
   html += '</div>';
@@ -3938,6 +3987,7 @@ function renderBedLabels() {
     const geom = typeof o.shape_geojson === 'string' ? safeJSON(o.shape_geojson) : o.shape_geojson;
     if (!geom || geom.type !== 'Polygon') continue;
     const ring = geom.coordinates[0];
+    if (!ring || ring.length < 4) continue;  // need a real closed ring or n=0 → NaN
     let cx = 0, cy = 0; for (let i = 0; i < ring.length - 1; i++) { cx += ring[i][0]; cy += ring[i][1]; }
     const n = ring.length - 1; cx /= n; cy /= n;
     const grid = computeBedGrid(o);
@@ -3988,7 +4038,7 @@ function renderPortalLink() {
     const base = (location.protocol === 'file:' ? 'http://localhost' : location.origin);
     const url = base + '/garden-portal.html?token=' + state._portalToken;
     el.innerHTML = `<div style="margin-bottom:4px"><strong>Share link:</strong></div>
-      <div style="background:var(--white);padding:6px;border-radius:4px;font-family:monospace;font-size:0.74rem;cursor:pointer" onclick="copyToClipboard('${url}')" title="Click to copy">${escapeHtml(url)}</div>
+      <div class="portal-copy-link" style="background:var(--white);padding:6px;border-radius:4px;font-family:monospace;font-size:0.74rem;cursor:pointer" data-copy-url="${escapeHtml(url)}" title="Click to copy">${escapeHtml(url)}</div>
       <div style="margin-top:4px;font-size:0.72rem">Anyone with this link can view (not edit) this garden. Disable to revoke.</div>`;
     el.style.display = 'block';
   } else {
@@ -4339,6 +4389,13 @@ async function downscaleImage(file, maxDim, quality) {
 document.addEventListener('click', e => {
   const thumb = e.target.closest && e.target.closest('.ce-thumb');
   if (thumb && thumb.dataset.full) window.open(thumb.dataset.full, '_blank', 'noopener');
+});
+
+// Copy the portal share link via delegation (avoids interpolating the token-
+// bearing URL into an inline onclick JS string — see audit).
+document.addEventListener('click', e => {
+  const link = e.target.closest && e.target.closest('.portal-copy-link');
+  if (link && link.dataset.copyUrl) copyToClipboard(link.dataset.copyUrl);
 });
 
 // Double-click on map finishes draft drawing.

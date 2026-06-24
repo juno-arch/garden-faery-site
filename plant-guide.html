@@ -4169,7 +4169,7 @@
       out.size = new Set(bucket ? [bucket] : []);
       // Type override: tree category implies tree; pollinator/native/herbs/flowers/ornamentals fallback to perennial if no match
       if (!out.type.size) {
-        if (plant.category === 'trees') out.type.add('tree');
+        out.type.add(plant.category === 'trees' ? 'tree' : 'perennial');
       }
       // If "bulb" keyword missing but name hints
       const nameLc = String(plant.name || '').toLowerCase();

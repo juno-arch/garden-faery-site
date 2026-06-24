@@ -106,7 +106,7 @@
     <div id="login-error" class="login-error"></div>
     <input type="email" id="login-email" placeholder="Admin email" autocomplete="username">
     <input type="password" id="login-pw" placeholder="Password" autocomplete="current-password">
-    <button class="btn" onclick="doLogin()">Sign in</button>
+    <button class="btn" id="login-btn" onclick="doLogin()">Sign in</button>
   </div>
 </div>
 
@@ -288,23 +288,37 @@ async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
   const pw = document.getElementById('login-pw').value;
   const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
   errEl.classList.remove('show');
   if (!email || !pw) return;
-  for (const endpoint of ['_superusers', 'users']) {
-    try {
-      const resp = await fetch(PB_URL + '/api/collections/' + endpoint + '/auth-with-password', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identity: email, password: pw }),
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        PB_TOKEN = data.token; localStorage.setItem(PB_TOKEN_KEY, PB_TOKEN);
-        boot();
-        return;
+  btn.disabled = true;
+  let networkError = false;
+  try {
+    for (const endpoint of ['_superusers', 'users']) {
+      try {
+        const resp = await fetch(PB_URL + '/api/collections/' + endpoint + '/auth-with-password', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identity: email, password: pw }),
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          PB_TOKEN = data.token; localStorage.setItem(PB_TOKEN_KEY, PB_TOKEN);
+          boot();
+          return;
+        }
+        // non-ok HTTP = server reachable but credentials rejected
+      } catch (_) {
+        // thrown = network/connectivity failure, not a credential rejection
+        networkError = true;
       }
-    } catch (_) {}
+    }
+    errEl.textContent = networkError
+      ? 'Could not reach the server. Check your connection and try again.'
+      : 'Sign-in failed. Check your email and password.';
+    errEl.classList.add('show');
+  } finally {
+    btn.disabled = false;
   }
-  errEl.textContent = 'Sign-in failed.'; errEl.classList.add('show');
 }
 function logout() {
   PB_TOKEN = ''; localStorage.removeItem(PB_TOKEN_KEY);
@@ -393,14 +407,14 @@ function renderItems() {
   tbody.innerHTML = rows.map(i => {
     const low = i.reorder_threshold && i.current_qty <= i.reorder_threshold && i.status === 'active';
     const stockPill = low ? '<span class="pill pill-low">low</span>' : (i.status === 'used_up' ? '<span class="pill pill-low">used up</span>' : '<span class="pill pill-ok">ok</span>');
-    return `<tr onclick="openItemModal('${i.id}')">
+    return `<tr data-open-item="${escapeHtml(i.id)}">
       <td><strong>${escapeHtml(i.name||'')}</strong>${i.brand ? '<div style="font-size:0.74rem;color:var(--gray-600)">'+escapeHtml(i.brand)+'</div>' : ''}</td>
-      <td><span class="pill pill-cat">${(i.category||'').replace(/_/g,' ')}</span></td>
-      <td>${stockPill} ${i.current_qty != null ? (i.current_qty + ' ' + (i.units||'')) : '—'}</td>
-      <td>${i.reorder_threshold ? i.reorder_threshold + ' ' + (i.units||'') : '—'}</td>
+      <td><span class="pill pill-cat">${escapeHtml((i.category||'').replace(/_/g,' '))}</span></td>
+      <td>${stockPill} ${i.current_qty != null ? (i.current_qty + ' ' + escapeHtml(i.units||'')) : '—'}</td>
+      <td>${i.reorder_threshold ? i.reorder_threshold + ' ' + escapeHtml(i.units||'') : '—'}</td>
       <td>${escapeHtml(i.location||'—')}</td>
       <td>${(i.last_purchased||'—').slice(0,10)}</td>
-      <td><button class="btn-ghost btn-sm" onclick="event.stopPropagation(); openTxnModal('${i.id}')">Log</button></td>
+      <td><button class="btn-ghost btn-sm" data-log-txn="${escapeHtml(i.id)}">Log</button></td>
     </tr>`;
   }).join('');
 }
@@ -488,7 +502,7 @@ function openTxnModal(itemId) {
   document.getElementById('tx-item-id').value = itemId;
   document.getElementById('tx-item-name').textContent = item.name;
   document.getElementById('tx-current').textContent = (item.current_qty || 0) + ' ' + (item.units || '');
-  document.getElementById('tx-date').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('tx-date').value = new Date().toLocaleDateString('en-CA');
   document.getElementById('tx-qty').value = '';
   document.getElementById('tx-cost').value = '';
   document.getElementById('tx-notes').value = '';
@@ -538,10 +552,14 @@ async function saveTxn() {
       transaction_date: document.getElementById('tx-date').value,
       quantity_delta: delta,
       garden_id: document.getElementById('tx-garden').value || null,
-      cost_cents: Math.round((parseFloat(document.getElementById('tx-cost').value) || 0) * 100) || null,
       notes: document.getElementById('tx-notes').value.trim(),
       created: new Date().toISOString(),
     };
+    // cost_cents is a purchase-only field; including it on use/gift/spoilage/etc.
+    // rows pollutes cost reporting.
+    if (state._txType === 'purchase') {
+      body.cost_cents = Math.round((parseFloat(document.getElementById('tx-cost').value) || 0) * 100) || null;
+    }
     const r = await pb('POST', '/api/collections/inventory_transactions/records', body);
     state.txns.unshift(r);
     // current_qty + status are now SERVER-DERIVED by the inventory-qty hook.
@@ -578,6 +596,15 @@ function escapeHtml(s) {
 
 ['filter-search', 'filter-cat', 'filter-stock'].forEach(id => {
   document.getElementById(id).addEventListener('input', renderItems);
+});
+
+// Delegated row actions. Using data attributes + dataset reads avoids
+// interpolating record ids into onclick JS strings.
+document.querySelector('#items-table tbody').addEventListener('click', e => {
+  const logBtn = e.target.closest('[data-log-txn]');
+  if (logBtn) { e.stopPropagation(); openTxnModal(logBtn.dataset.logTxn); return; }
+  const row = e.target.closest('[data-open-item]');
+  if (row) openItemModal(row.dataset.openItem);
 });
 
 (function init() {
