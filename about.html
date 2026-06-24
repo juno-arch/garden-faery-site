@@ -170,6 +170,31 @@
     }
     .about-list li strong { color: var(--text-primary); }
 
+    /* Journey timeline — vertical, accent-dot nodes on a soft line */
+    .timeline { position: relative; margin: 10px 0 2px; padding-left: 30px; }
+    .timeline::before {
+      content: ''; position: absolute; left: 7px; top: 8px; bottom: 8px;
+      width: 2px; background: var(--accent-2); opacity: 0.45;
+    }
+    .timeline-item { position: relative; margin-bottom: 20px; }
+    .timeline-item:last-child { margin-bottom: 0; }
+    .timeline-item::before {
+      content: ''; position: absolute; left: -30px; top: 3px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--bg); border: 3px solid var(--accent-1);
+    }
+    .timeline-item.bloom::before {
+      background: var(--accent-1);
+      box-shadow: 0 0 0 4px rgba(194, 85, 122, 0.18);
+    }
+    .timeline-item .when {
+      font-size: 12px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--accent-1);
+    }
+    .timeline-item h3 { font-size: 16px; margin: 1px 0 3px; }
+    .timeline-item p { font-size: 14px; color: var(--text-secondary); margin: 0; line-height: 1.5; }
+    .timeline-item.bloom h3 { color: var(--accent-1); }
+
     /* Photo row */
     .photo-row {
       display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
@@ -251,13 +276,34 @@
   <p class="page-subtitle">The Garden Faery &middot; Arcata &amp; Humboldt County, CA</p>
 
   <div class="about-section">
-    <h2>How I got here</h2>
-    <ul class="about-list">
-      <li>A Florida kid happiest barefoot in the dirt &mdash; mud pies, bug-catching, always outside.</li>
-      <li><strong>Permaculture trained</strong> at Verde Energia, Costa Rica &mdash; soil health, water flow, whole-systems growing.</li>
-      <li><strong>Specialty Farm Manager</strong> at Mystic Roots Farm (NC) &mdash; built a mushroom grow + microgreens operation from scratch.</li>
-      <li>Learning <strong>gentle, chemical-free beekeeping</strong> under Missy Bee.</li>
-    </ul>
+    <h2>My path here</h2>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="when">Florida</div>
+        <h3>A barefoot kid in the dirt</h3>
+        <p>Mud pies, bug-catching, always outside.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="when">Costa Rica</div>
+        <h3>Permaculture at Verde Energia</h3>
+        <p>Soil health, water flow, whole-systems growing.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="when">North Carolina</div>
+        <h3>Specialty Farm Manager, Mystic Roots Farm</h3>
+        <p>Built a mushroom grow + microgreens operation from scratch.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="when">Humboldt County</div>
+        <h3>Gentle beekeeping with Missy Bee</h3>
+        <p>Came for the redwoods, stayed for the people &mdash; and put down roots.</p>
+      </div>
+      <div class="timeline-item bloom">
+        <div class="when">Spring 2026</div>
+        <h3>Garden Faery blooms</h3>
+        <p>Hands-on, organic garden care across Arcata, McKinleyville &amp; Eureka.</p>
+      </div>
+    </div>
   </div>
 
   <div class="photo-row">
