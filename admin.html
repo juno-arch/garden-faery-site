@@ -1622,14 +1622,19 @@ const DB = {
       localStorage.setItem('gf_bookings_v1', JSON.stringify(bookings));
       return;
     }
-    // For PocketBase, batch update each changed record
-    for (const b of bookings) {
-      if (b._dirty && b.id) {
-        await this._pb('PATCH', 'bookings/records/' + b.id, {
-          status: b.status,
-          canceled_at: b.canceledAt,
-        });
-      }
+    // PATCH each changed record. Use allSettled so one failure doesn't abort
+    // the rest, and clear _dirty per success so a clean record isn't re-sent
+    // on every save pass.
+    const dirty = bookings.filter(b => b._dirty && b.id);
+    const results = await Promise.allSettled(dirty.map(b =>
+      this._pb('PATCH', 'bookings/records/' + b.id, {
+        status: b.status,
+        canceled_at: b.canceledAt,
+      }).then(() => { b._dirty = false; })
+    ));
+    const failed = results.filter(r => r.status === 'rejected');
+    if (failed.length) {
+      throw new Error(failed.length + ' booking change' + (failed.length === 1 ? '' : 's') + ' failed to save: ' + (failed[0].reason && failed[0].reason.message || failed[0].reason));
     }
   },
 
@@ -1739,14 +1744,37 @@ const DB = {
 let _cachedBookings = [];
 let _cachedBlocks = [];
 
+let _dataLoadError = false;
 async function refreshData() {
   try {
     _cachedBookings = await DB.getBookings();
     _cachedBlocks = await DB.getBlocks();
     await loadClientsRecords();
+    _dataLoadError = false;
+    hideDataErrorBanner();
   } catch (err) {
+    // Surface the failure: the app keeps the last-good cache, but the user must
+    // know it's stale (a silently-empty calendar invites double-booking).
     console.log('Data refresh error:', err);
+    _dataLoadError = true;
+    showDataErrorBanner();
   }
+}
+
+// Lightweight top banner shown only when a data refresh fails.
+function showDataErrorBanner() {
+  let el = document.getElementById('data-error-banner');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'data-error-banner';
+    el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#a03020;color:#fff;font:600 13px/1.4 var(--font-body,sans-serif);text-align:center;padding:8px 14px;box-shadow:0 2px 8px rgba(0,0,0,0.2);';
+    el.textContent = "Couldn't reach the server — showing the last data I loaded. Check your connection and refresh.";
+    document.body.appendChild(el);
+  }
+}
+function hideDataErrorBanner() {
+  const el = document.getElementById('data-error-banner');
+  if (el) el.remove();
 }
 
 function getBookings() { return _cachedBookings; }
@@ -1893,6 +1921,9 @@ function renderObOAvailability() {
   let allBookings = [];
   try { allBookings = (typeof getBookings === 'function' ? getBookings() : []) || []; } catch(_) {}
   const bookings = allBookings.filter(b => b && b.status !== 'canceled');
+  // Index by date once (was O(days × bookings) re-filtering inside the day loop).
+  const bookingsByDate = {};
+  for (const b of bookings) { (bookingsByDate[b.date] = bookingsByDate[b.date] || []).push(b); }
 
   const today = new Date(); today.setHours(0,0,0,0);
 
@@ -1929,7 +1960,7 @@ function renderObOAvailability() {
     const ds = formatDate(d);
     const label = OBO_DAY_NAMES[d.getDay()] + ' ' + OBO_MONTH_NAMES[d.getMonth()] + ' ' + d.getDate();
 
-    const dayBookings = bookings.filter(b => b.date === ds);
+    const dayBookings = bookingsByDate[ds] || [];
     const anyAddedToday = oboDates.some(o => o.date === ds);
     const rowBg = anyAddedToday ? 'rgba(155,189,133,0.12)' : 'var(--white)';
 
@@ -7310,7 +7341,7 @@ function renderLineItems(items) {
       '<input class="li-amt" type="number" step="0.01" value="' + amt + '" style="padding:4px 6px;font-size:0.8rem;width:100%;">' +
       '<select class="li-cat" style="padding:4px 6px;font-size:0.8rem;width:100%;">' + opts(cat) + '</select>' +
       '<label class="li-personal-label" title="Mark this line as a personal purchase. It stays in the record for audit proof but is excluded from the expense total." style="display:flex;align-items:center;justify-content:center;cursor:pointer;">' +
-        '<input type="checkbox" class="li-personal-cb"' + (personal ? ' checked' : '') + '>' +
+        '<input type="checkbox" class="li-personal-cb" aria-label="Mark line item as personal (exclude from business expense)"' + (personal ? ' checked' : '') + '>' +
       '</label>' +
     '</div>';
   });
@@ -8740,7 +8771,7 @@ async function renderBank() {
     chip('income', 'Income', credits) +
     chip('expense', 'Expense', debits) +
     chip('categorized', 'Done', _bankTransactions.length - uncatCount) +
-    '<input type="text" placeholder="Search vendor or memo…" value="' + escapeHtml(_bankSearch) + '" oninput="setBankSearch(this.value)" style="padding:6px 10px;border:1px solid var(--gray-200);border-radius:6px;flex:1;min-width:160px;max-width:240px;font-size:0.85rem;background:var(--white);color:var(--plum);">' +
+    '<input type="text" aria-label="Search transactions" placeholder="Search vendor or memo…" value="' + escapeHtml(_bankSearch) + '" oninput="setBankSearch(this.value)" style="padding:6px 10px;border:1px solid var(--gray-200);border-radius:6px;flex:1;min-width:160px;max-width:240px;font-size:0.85rem;background:var(--white);color:var(--plum);">' +
     '</div>';
 
   // --- Apply filter + search ---
@@ -8846,7 +8877,7 @@ function bankTxTableRow(t) {
     '</td>' +
     '<td style="padding:7px 4px;text-align:right;white-space:nowrap;font-weight:700;color:' + amtColor + ';font-variant-numeric:tabular-nums;vertical-align:top;">' + amt + '</td>' +
     '<td style="padding:7px 4px;vertical-align:top;">' +
-      '<input list="bank-cat-dl" value="' + escAttr(curLabel) + '" placeholder="' + escAttr(placeholder) + '" ' +
+      '<input list="bank-cat-dl" aria-label="Category" value="' + escAttr(curLabel) + '" placeholder="' + escAttr(placeholder) + '" ' +
         'onchange="setBankCatInline(\'' + escAttr(t.id) + '\', this.value)" onfocus="this.select()" ' +
         'style="width:100%;min-width:90px;padding:4px 6px;font-size:0.76rem;border:1px solid ' + catBorder + ';border-radius:5px;background:var(--white);color:var(--plum);box-sizing:border-box;">' +
     '</td>' +
