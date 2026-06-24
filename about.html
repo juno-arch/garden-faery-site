@@ -158,6 +158,18 @@
       margin-bottom: 12px; line-height: 1.7;
     }
 
+    /* Bulleted lists — accent-dot markers, on-brand */
+    .about-list { list-style: none; margin: 4px 0 0; padding: 0; }
+    .about-list li {
+      position: relative; padding-left: 22px; margin-bottom: 11px;
+      font-size: 15px; color: var(--text-secondary); line-height: 1.5;
+    }
+    .about-list li::before {
+      content: ''; position: absolute; left: 2px; top: 8px;
+      width: 8px; height: 8px; border-radius: 50%; background: var(--accent-1);
+    }
+    .about-list li strong { color: var(--text-primary); }
+
     /* Photo row */
     .photo-row {
       display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
@@ -239,38 +251,28 @@
   <p class="page-subtitle">The Garden Faery &middot; Arcata &amp; Humboldt County, CA</p>
 
   <div class="about-section">
-    <h2>The Mud Pie Kid</h2>
-    <p>I grew up in Florida making mud pies in the backyard and catching bugs before I could spell my own name. While other kids were inside, I was outside. Digging in the dirt, climbing trees, getting as dirty as possible and loving every second of it. That never changed. It just grew into something bigger.</p>
-  </div>
-
-  <div class="about-section">
-    <h2>Costa Rica and Permaculture</h2>
-    <p>I studied permaculture at Verde Energia in Costa Rica, where I got to learn how food systems work from the ground up. Living and working on a tropical farm taught me how to think in whole systems. Soil health, water flow, companion planting, composting, all of it connected. It changed the way I see every garden I touch.</p>
-  </div>
-
-  <div class="photo-row">
-    <img src="gallery/costa-rica-bananas.jpg" alt="Taya at Verde Energia permaculture farm in Costa Rica, standing among banana trees" loading="lazy" decoding="async">
-    <img src="gallery/costa-rica-turmeric.jpg" alt="Taya with a massive turmeric harvest at Verde Energia, Costa Rica" loading="lazy" decoding="async">
-  </div>
-
-  <div class="about-section">
-    <h2>Mystic Roots Farm</h2>
-    <p>I worked as the Specialty Farm Manager at Mystic Roots Farm in North Carolina, where I built out a mushroom grow and a microgreens operation from the ground up. I designed the grow spaces, dialed in the systems, and ran both programs while they got established. On the days I wasn't working mushrooms and micros, I was in the market garden greenhouses and out in the medicinal herb fields two to three days a week. It was a lot of hats, but that's how I like it.</p>
+    <h2>How I got here</h2>
+    <ul class="about-list">
+      <li>A Florida kid happiest barefoot in the dirt &mdash; mud pies, bug-catching, always outside.</li>
+      <li><strong>Permaculture trained</strong> at Verde Energia, Costa Rica &mdash; soil health, water flow, whole-systems growing.</li>
+      <li><strong>Specialty Farm Manager</strong> at Mystic Roots Farm (NC) &mdash; built a mushroom grow + microgreens operation from scratch.</li>
+      <li>Learning <strong>gentle, chemical-free beekeeping</strong> under Missy Bee.</li>
+    </ul>
   </div>
 
   <div class="photo-row">
-    <img src="gallery/taya-lions-mane-greenhouse.jpg" alt="Taya growing lion's mane mushrooms in the greenhouse at Mystic Roots Farm" loading="lazy" decoding="async">
-    <img src="gallery/taya-with-microgreens.jpg" alt="Taya with fresh microgreens trays, specialty crop production in Humboldt County" loading="lazy" decoding="async">
-  </div>
-
-  <div class="about-section">
-    <h2>Bees with Missy Bee</h2>
-    <p>I'm learning beekeeping under Missy Bee, and it's changing everything for me. She's teaching me how to work with hives gently, how to read what the bees are telling you, and how to relocate swarms without chemicals or harm. I keep my own hives, do gentle swarm relocation, and sit bees for other keepers when they travel. Pollinators are the quiet engine behind everything that grows, and they deserve someone in their corner.</p>
+    <img src="gallery/costa-rica-bananas.jpg" alt="Taya at Verde Energia permaculture farm in Costa Rica, among banana trees" loading="lazy" decoding="async">
+    <img src="gallery/costa-rica-turmeric.jpg" alt="Taya with a turmeric harvest at Verde Energia, Costa Rica" loading="lazy" decoding="async">
   </div>
 
   <div class="photo-row">
-    <img src="gallery/honeybee-on-finger.jpg" alt="Honey bee resting on Taya's finger, gentle bee care in Humboldt County" loading="lazy" decoding="async">
-    <img src="gallery/honeybees-hive-frame.jpg" alt="Healthy honeybee hive frame, bee services by Garden Faery in Arcata" loading="lazy" decoding="async">
+    <img src="gallery/taya-lions-mane-greenhouse.jpg" alt="Taya growing lion's mane mushrooms at Mystic Roots Farm" loading="lazy" decoding="async">
+    <img src="gallery/taya-with-microgreens.jpg" alt="Taya with fresh microgreens trays" loading="lazy" decoding="async">
+  </div>
+
+  <div class="photo-row">
+    <img src="gallery/honeybee-on-finger.jpg" alt="Honey bee resting on Taya's finger" loading="lazy" decoding="async">
+    <img src="gallery/honeybees-hive-frame.jpg" alt="A healthy honeybee hive frame" loading="lazy" decoding="async">
   </div>
 
   <div class="section-divider">
@@ -278,18 +280,22 @@
   </div>
 
   <div class="about-section">
-    <h2>Why Humboldt</h2>
-    <p>I came to Humboldt County for the redwoods and stayed for the people. There's a community here that genuinely cares about the land, about growing things the right way, and about looking out for each other. The growing conditions don't hurt either. Between the coastal fog, the rain, and the mild seasons, this place wants to grow things. I just help it along.</p>
+    <h2>How I work</h2>
+    <ul class="about-list">
+      <li><strong>Always organic</strong> &mdash; no synthetic fertilizers, no chemical pesticides, ever.</li>
+      <li>Work <em>with</em> the soil: compost, cover crops, companion planting.</li>
+      <li>Build gardens that learn to take care of themselves over time.</li>
+      <li>Rooted in Humboldt for the redwoods, the people, and growing weather that does half the work.</li>
+    </ul>
+  </div>
+
+  <div class="photo-row">
+    <img src="hero-garden-new.jpg" alt="A thriving Humboldt County garden bed tended by Garden Faery" loading="lazy" decoding="async">
+    <img src="hero-zinnias.jpg" alt="A bright cut-flower garden of zinnias" loading="lazy" decoding="async">
   </div>
 
   <div class="about-section">
-    <h2>Always Organic</h2>
-    <p>Everything I do is organic. No synthetic fertilizers, no chemical pesticides, no shortcuts. I work with the soil, not against it. That means compost, cover crops, companion planting, and building up the ecosystem in your garden so it can take care of itself over time. It's the way I learned, it's the way I believe in, and it's the only way I work.</p>
-  </div>
-
-  <div class="about-section">
-    <h2>What I Do Now</h2>
-    <p>Garden Faery is where all of that experience comes together. I'm a hands-on gardener serving Arcata, McKinleyville, and Eureka.</p>
+    <h2>What I do</h2>
     <div class="what-i-do">
       <div class="item">
         <strong>Garden Care</strong>
