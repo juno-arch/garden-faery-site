@@ -4319,7 +4319,7 @@ function drawCoupons() {
   const controls =
     '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px;">' +
       chip('all', 'All') + chip('active', 'Active') + chip('inactive', 'Off') + chip('expired', 'Expired') +
-      '<input type="text" placeholder="Search code or description…" value="' + escAttr(_couponsSearch) + '" oninput="setCouponSearch(this.value)" style="padding:6px 10px;border:1px solid var(--gray-200);border-radius:4px;flex:1;min-width:200px;max-width:280px;font-size:0.85rem;">' +
+      '<input type="text" id="coupon-search" placeholder="Search code or description…" value="' + escAttr(_couponsSearch) + '" oninput="setCouponSearch(this.value)" style="padding:6px 10px;border:1px solid var(--gray-200);border-radius:4px;flex:1;min-width:200px;max-width:280px;font-size:0.85rem;">' +
       '<button class="modal-btn primary" style="margin-left:auto;" onclick="openCouponCreateModal()">+ New code</button>' +
     '</div>';
 
@@ -4347,7 +4347,11 @@ function drawCoupons() {
 }
 
 function setCouponFilter(f) { _couponsFilter = f; drawCoupons(); }
-function setCouponSearch(v) { _couponsSearch = v; drawCoupons(); }
+function setCouponSearch(v) {
+  _couponsSearch = v; drawCoupons();
+  const el = document.getElementById('coupon-search');
+  if (el) { el.focus(); try { el.setSelectionRange(el.value.length, el.value.length); } catch (_) {} }
+}
 
 function couponRow(c) {
   const today = formatDate(new Date());
@@ -4692,7 +4696,12 @@ function escHtml(s) {
 }
 
 function setInvoiceFilter(f) { _invoicesFilter = f; drawInvoices(); }
-function setInvoiceSearch(v) { _invoicesSearch = v; drawInvoices(); }
+function setInvoiceSearch(v) {
+  _invoicesSearch = v; drawInvoices();
+  // drawInvoices rebuilds the panel (and the input), so refocus + restore caret.
+  const el = document.getElementById('inv-search');
+  if (el) { el.focus(); try { el.setSelectionRange(el.value.length, el.value.length); } catch (_) {} }
+}
 
 function invoiceStatusPill(inv) {
   const today = formatDate(new Date());
@@ -4848,6 +4857,16 @@ function invPickClient(sel) {
   if (ad && addr) ad.value = addr;
 }
 
+// Tax %/Discount $ edits rebuild the whole invoice modal (to recompute totals),
+// which drops focus. These wrappers re-focus the field so you can type a
+// multi-character value like "12.5" without re-clicking after each keystroke.
+function _refocusInvField(id) {
+  const el = document.getElementById(id);
+  if (el) { el.focus(); try { el.setSelectionRange(el.value.length, el.value.length); } catch (_) {} }
+}
+function invTaxInput(v) { _invDraftState.tax_pct = parseFloat(v || 0); showInvoiceModal(); _refocusInvField('inv-tax'); }
+function invDiscInput(v) { _invDraftState.discount_cents = Math.round(parseFloat(v || 0) * 100); showInvoiceModal(); _refocusInvField('inv-disc'); }
+
 function showInvoiceModal() {
   const s = _invDraftState;
   let modal = document.getElementById('inv-modal');
@@ -4903,12 +4922,12 @@ function showInvoiceModal() {
       '</div>' +
 
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px;">' +
-        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Tax %</label><input type="number" step="0.01" id="inv-tax" value="' + (s.tax_pct||0) + '" oninput="_invDraftState.tax_pct=parseFloat(this.value||0);showInvoiceModal();" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
+        '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Tax %</label><input type="number" step="0.01" id="inv-tax" value="' + (s.tax_pct||0) + '" oninput="invTaxInput(this.value)" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
         '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Discount $' + (s.coupon_code ? ' <span style="font-weight:600;color:var(--green,#0a7a3a);">(from ' + escHtml(s.coupon_code) + ')</span>' : '') + '</label>' +
           '<input type="number" step="0.01" id="inv-disc" value="' + (((s.discount_cents)||0)/100).toFixed(2) + '" ' +
             (s.coupon_code
               ? 'disabled title="Locked while a coupon is applied — clear the coupon to edit." style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);background:var(--gray-100);border-radius:4px;cursor:not-allowed;"'
-              : 'oninput="_invDraftState.discount_cents=Math.round(parseFloat(this.value||0)*100);showInvoiceModal();" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"'
+              : 'oninput="invDiscInput(this.value)" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"'
             ) + '>' +
         '</div>' +
         '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Terms</label><input type="text" id="inv-terms" value="' + escAttr(s.terms) + '" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
