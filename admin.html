@@ -1534,7 +1534,12 @@ const DB = {
     if (PB_TOKEN) opts.headers['Authorization'] = 'Bearer ' + PB_TOKEN;
     if (body) opts.body = JSON.stringify(body);
     const resp = await fetch(PB_URL + '/api/collections/' + path, opts);
-    if (!resp.ok) throw new Error('PocketBase error: ' + resp.status);
+    if (!resp.ok) {
+      // Surface PocketBase's field-level message/data instead of a bare status.
+      const detail = await resp.json().catch(() => null);
+      const msg = detail && (detail.message || (detail.data && JSON.stringify(detail.data)));
+      throw new Error('PocketBase error ' + resp.status + (msg ? ': ' + msg : ''));
+    }
     return resp.json();
   },
 
@@ -2145,9 +2150,10 @@ const EMPTY_DAY_BLURBS = [
 // Returns { html, isHtml } so the riddle variant can render a tap-to-reveal
 // answer while regular puns/jokes stay plain text.
 function emptyDayBlurb(isoDate) {
-  const d = new Date(isoDate || new Date().toISOString().slice(0,10));
-  const start = new Date(d.getFullYear(), 0, 0);
-  const dayOfYear = Math.floor((d - start) / (24*3600*1000));
+  const iso = isoDate || new Date().toISOString().slice(0,10);
+  const d = new Date(iso + 'T00:00:00Z');
+  const start = Date.UTC(d.getUTCFullYear(), 0, 0);
+  const dayOfYear = Math.floor((d.getTime() - start) / (24*3600*1000));
   const pick = EMPTY_DAY_BLURBS[dayOfYear % EMPTY_DAY_BLURBS.length];
   if (pick.kind === 'riddle') {
     return {
@@ -3536,12 +3542,12 @@ function exportAccountantCsv() {
   bookings.forEach(b => {
     const svc = EVENT_LABELS[b.eventType] || b.eventType || '';
     lines.push([
-      b.date || '',
+      esc(b.date || ''),
       esc(b.clientName || ''),
       esc(svc),
       (Number(b.price)||0).toFixed(2),
       b.paid ? 'yes' : 'no',
-      b.paidDate || '',
+      esc(b.paidDate || ''),
       esc(b.paymentMethod || ''),
       esc(b.paymentNotes || '')
     ].join(','));
@@ -3555,7 +3561,7 @@ function exportAccountantCsv() {
   expenses.forEach(e => {
     const m = SCHEDULE_C[e.category] || SCHEDULE_C.other;
     lines.push([
-      e.date || '',
+      esc(e.date || ''),
       esc(e.vendor || ''),
       esc(e.category || ''),
       esc(m.name),
@@ -3579,7 +3585,7 @@ function exportAccountantCsv() {
     items.forEach(i => {
       const m = SCHEDULE_C[i.category] || SCHEDULE_C.other;
       lines.push([
-        e.date || '',
+        esc(e.date || ''),
         esc(e.vendor || ''),
         esc(i.description || ''),
         (Number(i.amount)||0).toFixed(2),
@@ -5223,7 +5229,10 @@ function readyToBillData() {
     const ck = String(b.clientEmail || b.clientName || '').toLowerCase().trim();
     const dateKey = ck + '|' + (b.date || '');
     // Authoritative: a booking stamped with a non-void invoice_id is billed.
-    if (b.invoiceId && invStatusById[b.invoiceId] !== 'void') return;
+    // Only skip if the invoice still EXISTS and isn't void — a deleted invoice
+    // id reads back undefined and must not hide the booking from Ready-to-bill.
+    const _invSt = invStatusById[b.invoiceId];
+    if (b.invoiceId && _invSt && _invSt !== 'void') return;
     if (coveredIds[b.id] || coveredDates[dateKey] || dismissed[dateKey]) return;
     let g = groups[ck];
     if (!g) g = groups[ck] = { _key: ck, clientName: b.clientName || 'Client', clientEmail: b.clientEmail || '', clientAddress: b.clientAddress || '', visits: [], total: 0 };
@@ -6271,7 +6280,7 @@ const PRIORITY_OPTIONS = [
 let _editingComplianceId = null;
 async function openComplianceItemModal(id) {
   _editingComplianceId = id || null;
-  const item = id ? _complianceItems.find(x => x.id === id) : {};
+  const item = (id ? _complianceItems.find(x => x.id === id) : null) || {};
   const name = prompt('Item name:', item.name || '');
   if (!name) return;
   const entity = await pickOption('Entity', ENTITY_OPTIONS, item.entity || 'FYHF');
@@ -6306,7 +6315,7 @@ async function openComplianceItemModal(id) {
 let _editingTodoId = null;
 async function openTodoModal(id) {
   _editingTodoId = id || null;
-  const t = id ? _todos.find(x => x.id === id) : {};
+  const t = (id ? _todos.find(x => x.id === id) : null) || {};
   const title = prompt('Todo title:', t.title || '');
   if (!title) return;
   const description = prompt('Description (optional):', t.description || '') || '';
@@ -9891,7 +9900,7 @@ function buildIncomeReportBody(d) {
     const gg = (p.amountCents || 0) / 100, ff = (p.feeCents || 0) / 100, nn = _reportNetOf(p);
     g += gg; f += ff; net += nn;
     (byMonth[m] = byMonth[m] || { n: 0, g: 0, f: 0, net: 0 }); byMonth[m].n++; byMonth[m].g += gg; byMonth[m].f += ff; byMonth[m].net += nn;
-    const meth = (p.paymentMethod || 'other'); (byMethod[meth] = byMethod[meth] || { n: 0, g: 0 }); byMethod[meth].n++; byMethod[meth].g += gg;
+    const meth = (p.processor || p.paymentMethod || 'other'); (byMethod[meth] = byMethod[meth] || { n: 0, g: 0 }); byMethod[meth].n++; byMethod[meth].g += gg;
   });
   const monthName = (m) => { const a = m.split('-'); return new Date(a[0], a[1] - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }); };
   let cards = '<div class="cards">' +
@@ -9907,7 +9916,7 @@ function buildIncomeReportBody(d) {
   methtbl += '</tbody></table>';
   let det = '<h2>Transaction detail</h2><table><thead><tr><th>Date</th><th>Client</th><th>Method</th><th class="num">Amount</th></tr></thead><tbody>';
   if (!sorted.length) det += '<tr><td colspan="4" style="text-align:center;color:#9a8896;padding:16px;">No payments in this period.</td></tr>';
-  sorted.forEach(p => { det += '<tr><td>' + (p.capturedAt || '').slice(0, 10) + '</td><td>' + escapeHtml(p.customerName || '(no name)') + '</td><td>' + escapeHtml(_reportCap(p.paymentMethod)) + '</td><td class="num">' + _reportMoney((p.amountCents || 0) / 100) + '</td></tr>'; });
+  sorted.forEach(p => { det += '<tr><td>' + (p.capturedAt || '').slice(0, 10) + '</td><td>' + escapeHtml(p.customerName || '(no name)') + '</td><td>' + escapeHtml(_reportCap(p.processor || p.paymentMethod || 'other')) + '</td><td class="num">' + _reportMoney((p.amountCents || 0) / 100) + '</td></tr>'; });
   det += '</tbody></table>';
   return '<div class="rpt">' + cards + mtbl + methtbl + det + '<div class="foot">Cash basis &mdash; payments actually collected during the period, per Garden Faery records. Net of recorded processor fees. For bookkeeping use.</div></div>';
 }
