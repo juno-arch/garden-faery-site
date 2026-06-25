@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#5a1230">
+  <meta name="theme-color" content="#3B2A40">
   <meta name="apple-mobile-web-app-title" content="Garden Faery">
   <meta name="description" content="Book a garden care visit with Garden Faery in Arcata & Humboldt County, CA. Send a quick note and I'll find you a time.">
   <meta property="og:title" content="Book a Visit | Garden Faery">
@@ -27,7 +27,7 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Fraunces:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Fraunces:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Fraunces:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"></noscript>
-  <link rel="stylesheet" href="shared.css?v=2026-05-02b">
+  <link rel="stylesheet" href="shared.css?v=2026-06-24-dusk">
   <script src="shared.js?v=2026-05-02" defer></script>
   <title>Book a Visit | Garden Faery</title>
   <style>
@@ -45,10 +45,10 @@
     .nav-group { position: relative; }
     .nav-group-toggle .caret { display: inline-block; margin-left: 4px; font-size: 10px; transition: transform 0.2s; }
     .nav-group:hover .caret, .nav-group.open .caret { transform: rotate(180deg); }
-    .nav-group-menu { display: none; position: absolute; top: 100%; right: 0; left: auto; background: var(--bg); border: 1px solid var(--accent-1); border-radius: 10px; padding: 4px 0; min-width: 200px; box-shadow: 0 8px 20px rgba(90, 18, 48,0.15); z-index: 101; margin-top: 2px; }
+    .nav-group-menu { display: none; position: absolute; top: 100%; right: 0; left: auto; background: var(--bg); border: 1px solid var(--accent-1); border-radius: 10px; padding: 4px 0; min-width: 200px; box-shadow: 0 8px 20px rgba(59, 42, 64,0.15); z-index: 101; margin-top: 2px; }
     .nav-group:hover .nav-group-menu, .nav-group.open .nav-group-menu, .nav-group:focus-within .nav-group-menu { display: block; }
     .nav-group-menu a { display: block; padding: 9px 18px; border-bottom: none !important; white-space: nowrap; }
-    .nav-group-menu a:hover { background: rgba(194, 85, 122,0.12); color: var(--text-primary); }
+    .nav-group-menu a:hover { background: rgba(156, 90, 142,0.12); color: var(--text-primary); }
     .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 4px; }
     .hamburger svg { width: 26px; height: 26px; stroke: var(--text-primary); }
     @media (max-width: 600px) {
@@ -69,7 +69,7 @@
 
     .page-hero { position: relative; height: 260px; overflow: hidden; background: #2a1a26; }
     .page-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 45%; filter: brightness(0.72) saturate(1.05); }
-    .page-hero .hero-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; background: linear-gradient(to bottom, rgba(90, 18, 48,0.15), rgba(90, 18, 48,0.6)); }
+    .page-hero .hero-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; background: linear-gradient(to bottom, rgba(59, 42, 64,0.15), rgba(59, 42, 64,0.6)); }
     .page-hero h1 { font-size: 42px; font-weight: 900; color: #fff; margin-bottom: 8px; text-shadow: 0 2px 16px rgba(0,0,0,0.4); }
     .page-hero p { font-size: 16px; color: rgba(255,255,255,0.95); max-width: 480px; text-shadow: 0 1px 8px rgba(0,0,0,0.35); }
     @media (max-width: 600px) { .page-hero { height: 200px; } .page-hero h1 { font-size: 32px; } .page-hero p { font-size: 14px; } }
@@ -85,7 +85,7 @@
 
     .form-section input, .form-section textarea { width: 100%; padding: 13px 15px; border: 1px solid var(--gray-200); border-radius: 11px; font-family: inherit; font-size: 15px; background: var(--cream); color: var(--text-primary); margin-bottom: 11px; transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; }
     .form-section textarea { height: 122px; resize: vertical; }
-    .form-section input:focus, .form-section textarea:focus { outline: none; border-color: var(--coral); box-shadow: 0 0 0 3px rgba(232, 137, 111, 0.22); background: var(--white); }
+    .form-section input:focus, .form-section textarea:focus { outline: none; border-color: var(--coral); box-shadow: 0 0 0 3px rgba(200, 162, 76, 0.22); background: var(--white); }
     /* Full-width brand pill button inside cards. */
     .book-card .btn { width: 100%; margin-top: 2px; }
     .book-card .btn[disabled] { opacity: 0.6; cursor: default; box-shadow: none; transform: none; }
@@ -169,7 +169,7 @@
       var month = new Date().getMonth();
       var root = document.documentElement;
       var palettes = {
-        spring: { bg: '#faf5ee', a1: '#c2557a', a2: '#9bbd85', hl: '#f0c878' },
+        spring: { bg: '#F2EDE8', a1: '#9C5A8E', a2: '#B6A6CE', hl: '#C8A24C' },
         summer: { bg: '#faf6f1', a1: '#e8b828', a2: '#b5c99a', hl: '#7b2d6e' },
         autumn: { bg: '#faf3ea', a1: '#d4943a', a2: '#a67c52', hl: '#7a3b4e' },
         winter: { bg: '#f5f3f0', a1: '#8fb0a5', a2: '#506a6e', hl: '#c4b5a0' }

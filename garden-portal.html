@@ -198,12 +198,12 @@ function render(data) {
   map.on('load', () => {
     // Object polygons / lines / points.
     map.addSource('objects', { type: 'geojson', data: { type: 'FeatureCollection', features:
-      data.objects.map(o => ({ type: 'Feature', geometry: parseGeo(o.shape_geojson), properties: { id: o.id, name: o.name || '', color: o.fill_color || '#9bbd85' } })).filter(f => f.geometry)
+      data.objects.map(o => ({ type: 'Feature', geometry: parseGeo(o.shape_geojson), properties: { id: o.id, name: o.name || '', color: o.fill_color || '#B6A6CE' } })).filter(f => f.geometry)
     }});
     map.addLayer({ id: 'obj-fill', type: 'fill', source: 'objects', filter: ['==', ['geometry-type'], 'Polygon'], paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.42 } });
     map.addLayer({ id: 'obj-out',  type: 'line', source: 'objects', filter: ['==', ['geometry-type'], 'Polygon'], paint: { 'line-color': ['get', 'color'], 'line-width': 1.6 } });
     map.addLayer({ id: 'obj-line', type: 'line', source: 'objects', filter: ['==', ['geometry-type'], 'LineString'], paint: { 'line-color': '#6b8f5e', 'line-width': 3 } });
-    map.addLayer({ id: 'obj-pt',   type: 'circle', source: 'objects', filter: ['==', ['geometry-type'], 'Point'], paint: { 'circle-radius': 7, 'circle-color': ['get', 'color'], 'circle-stroke-color': '#5a1230', 'circle-stroke-width': 1.5 } });
+    map.addLayer({ id: 'obj-pt',   type: 'circle', source: 'objects', filter: ['==', ['geometry-type'], 'Point'], paint: { 'circle-radius': 7, 'circle-color': ['get', 'color'], 'circle-stroke-color': '#3B2A40', 'circle-stroke-width': 1.5 } });
 
     // Plantings.
     const features = [];
@@ -225,7 +225,7 @@ function render(data) {
     }});
     map.addLayer({ id: 'pl-l', type: 'symbol', source: 'plantings', minzoom: 19,
       layout: { 'text-field': ['get', 'label'], 'text-size': 10, 'text-anchor': 'center' },
-      paint: { 'text-color': '#ffffff', 'text-halo-color': '#5a1230', 'text-halo-width': 1.2 },
+      paint: { 'text-color': '#ffffff', 'text-halo-color': '#3B2A40', 'text-halo-width': 1.2 },
     });
   });
 }

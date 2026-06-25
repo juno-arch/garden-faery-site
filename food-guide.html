@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#5a1230">
+  <meta name="theme-color" content="#3B2A40">
   <meta name="apple-mobile-web-app-title" content="Garden Faery">
   <meta name="description" content="Food growing guide for Arcata and Humboldt County's coastal climate. Vegetables, fruits, and staple crops for Zone 9b, by your local gardener in Humboldt County, CA.">
   <meta property="og:title" content="Succession Planting | Garden Faery, Arcata, CA">
@@ -44,7 +44,7 @@
     "priceRange": "$30/hr"
   }
   </script>
-  <link rel="stylesheet" href="shared.css?v=2026-05-02b">
+  <link rel="stylesheet" href="shared.css?v=2026-06-24-dusk">
   <script src="shared.js?v=2026-05-02" defer></script>
   <style>
     html {
@@ -98,17 +98,17 @@
     .nav-logo-img { height: 32px; width: auto; flex-shrink: 0; }
 
     .nav-links { display: flex; gap: 6px; align-items: center; }
-    .nav-links a, .nav-group-toggle { font-family: var(--font-body); font-size: 14px; font-weight: 600; color: rgba(90, 18, 48, 0.78); text-decoration: none; padding: 6px 14px; border: none; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; background: none; cursor: pointer; line-height: 1.4; }
+    .nav-links a, .nav-group-toggle { font-family: var(--font-body); font-size: 14px; font-weight: 600; color: rgba(59, 42, 64, 0.78); text-decoration: none; padding: 6px 14px; border: none; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; background: none; cursor: pointer; line-height: 1.4; }
     .nav-links a:hover, .nav-group-toggle:hover { color: var(--text-primary); }
     .nav-links a.active, .nav-group.active > .nav-group-toggle { color: var(--text-primary); border-bottom-color: var(--accent-1); }
     .nav-group { position: relative; }
     .nav-group-toggle .caret { display: inline-block; margin-left: 4px; font-size: 10px; transition: transform 0.2s; }
     .nav-group:hover .caret, .nav-group.open .caret { transform: rotate(180deg); }
-    .nav-group-menu { display: none; position: absolute; top: 100%; right: 0; left: auto; background: var(--bg); border: 1px solid var(--accent-1); border-radius: 10px; padding: 4px 0; min-width: 200px; box-shadow: 0 8px 20px rgba(90, 18, 48,0.15); z-index: 101; margin-top: 2px; }
+    .nav-group-menu { display: none; position: absolute; top: 100%; right: 0; left: auto; background: var(--bg); border: 1px solid var(--accent-1); border-radius: 10px; padding: 4px 0; min-width: 200px; box-shadow: 0 8px 20px rgba(59, 42, 64,0.15); z-index: 101; margin-top: 2px; }
     .nav-group:hover .nav-group-menu, .nav-group.open .nav-group-menu, .nav-group:focus-within .nav-group-menu { display: block; }
     .nav-group-menu a { display: block; padding: 9px 18px; border-bottom: none !important; white-space: nowrap; }
-    .nav-group-menu a:hover { background: rgba(194, 85, 122,0.12); color: var(--text-primary); }
-    .nav-group-menu a.active { color: var(--text-primary); background: rgba(194, 85, 122,0.08); border-bottom: none; }
+    .nav-group-menu a:hover { background: rgba(156, 90, 142,0.12); color: var(--text-primary); }
+    .nav-group-menu a.active { color: var(--text-primary); background: rgba(156, 90, 142,0.08); border-bottom: none; }
     .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 4px; }
     .hamburger svg { width: 26px; height: 26px; stroke: var(--text-primary); }
     @media (max-width: 600px) {
@@ -116,14 +116,14 @@
       .nav-links { display: none; position: absolute; top: 54px; left: 0; right: 0; flex-direction: column; background: var(--bg); border-bottom: 2px solid var(--accent-1); padding: 8px 0; gap: 0; align-items: stretch; }
       .nav-links.open { display: flex; }
       .nav-links a { padding: 12px 24px; font-size: 15px; border-bottom: none; }
-      .nav-links a.active { border-bottom: none; color: var(--text-primary); background: rgba(194, 85, 122, 0.1); }
+      .nav-links a.active { border-bottom: none; color: var(--text-primary); background: rgba(156, 90, 142, 0.1); }
       .nav-group { width: 100%; display: flex; flex-direction: column; }
-      .nav-group-toggle { padding: 14px 24px 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: rgba(90, 18, 48, 0.55); opacity: 1; cursor: default; pointer-events: none; text-align: left; width: 100%; border-bottom: none; }
+      .nav-group-toggle { padding: 14px 24px 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: rgba(59, 42, 64, 0.55); opacity: 1; cursor: default; pointer-events: none; text-align: left; width: 100%; border-bottom: none; }
       .nav-group-toggle .caret { display: none; }
-      .nav-group.active > .nav-group-toggle { background: none; border: none; color: rgba(90, 18, 48, 0.55); }
+      .nav-group.active > .nav-group-toggle { background: none; border: none; color: rgba(59, 42, 64, 0.55); }
       .nav-group-menu { display: block; position: static; background: none; border: none; padding: 0 0 6px; box-shadow: none; min-width: 0; margin: 0; }
       .nav-group-menu a { padding: 10px 36px; font-size: 14px; }
-      .nav-group-menu a.active { background: rgba(194, 85, 122,0.1); }
+      .nav-group-menu a.active { background: rgba(156, 90, 142,0.1); }
     }
 
     /* Hero Section */
@@ -169,7 +169,7 @@
     .back-link-section {
       padding: 20px 24px;
       background: var(--bg);
-      border-bottom: 1px solid rgba(194, 85, 122, 0.2);
+      border-bottom: 1px solid rgba(156, 90, 142, 0.2);
     }
 
     .back-link {
@@ -344,10 +344,10 @@
     /* Succession Planting Calendar */
     .succession-calendar {
       margin-bottom: 28px;
-      background: rgba(90, 18, 48, 0.04);
+      background: rgba(59, 42, 64, 0.04);
       border-radius: 12px;
       padding: 20px;
-      border: 2px solid rgba(194, 85, 122, 0.2);
+      border: 2px solid rgba(156, 90, 142, 0.2);
     }
 
     .succession-intro {
@@ -476,7 +476,7 @@
 
     .food-card:hover {
       border-color: var(--food-rose);
-      box-shadow: 0 2px 12px rgba(90, 18, 48, 0.08);
+      box-shadow: 0 2px 12px rgba(59, 42, 64, 0.08);
     }
 
     .food-card:focus-within {
@@ -487,7 +487,7 @@
     .plant-image {
       width: 100%;
       height: 200px;
-      background: #f7d5b9;
+      background: #D9CEE6;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -507,7 +507,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #f7d5b9;
+      background: #D9CEE6;
     }
 
     .card-content {
@@ -578,7 +578,7 @@
     }
 
     .detail-sections {
-      border-top: 1px solid #f7d5b9;
+      border-top: 1px solid #D9CEE6;
       padding-top: 12px;
       margin-top: 12px;
     }
@@ -712,7 +712,7 @@
 
     /* Seasonal color override */
     .seasonal-color {
-      --highlight: #f0c878;
+      --highlight: #C8A24C;
     }
 
     .seasonal-color.spring {
@@ -720,7 +720,7 @@
     }
 
     .seasonal-color.summer {
-      --highlight: #c2557a;
+      --highlight: #9C5A8E;
     }
 
     .seasonal-color.fall {
@@ -728,7 +728,7 @@
     }
 
     .seasonal-color.winter {
-      --highlight: #9bbd85;
+      --highlight: #B6A6CE;
     }
 
     /* Responsive */
@@ -775,7 +775,7 @@
       align-items: center;
       justify-content: center;
       transition: transform 0.15s, background 0.15s, color 0.15s;
-      color: rgba(90, 18, 48, 0.45);
+      color: rgba(59, 42, 64, 0.45);
       padding: 0;
     }
     .fav-heart svg { width: 20px; height: 20px; pointer-events: none; }
@@ -813,12 +813,12 @@
       font-size: 14px;
       font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 4px 16px rgba(90, 18, 48, 0.3);
+      box-shadow: 0 4px 16px rgba(59, 42, 64, 0.3);
       transition: transform 0.15s, box-shadow 0.15s;
     }
     .my-garden-fab:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(90, 18, 48, 0.4);
+      box-shadow: 0 6px 20px rgba(59, 42, 64, 0.4);
     }
     .my-garden-fab svg { width: 18px; height: 18px; fill: var(--accent-1); }
     .my-garden-fab .count-badge {
@@ -868,7 +868,7 @@
       transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
       flex-direction: column;
-      box-shadow: -8px 0 24px rgba(90, 18, 48, 0.15);
+      box-shadow: -8px 0 24px rgba(59, 42, 64, 0.15);
     }
     .drawer.open { transform: translateX(0); }
     .drawer-header {
@@ -889,7 +889,7 @@
     .drawer-body { flex: 1; overflow-y: auto; padding: 16px 24px; }
     .drawer-footer {
       padding: 14px 20px 18px;
-      border-top: 1px solid rgba(90, 18, 48, 0.12);
+      border-top: 1px solid rgba(59, 42, 64, 0.12);
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -904,7 +904,7 @@
       padding: 6px 10px;
       border-radius: 50%;
     }
-    .drawer-close:hover { background: rgba(90, 18, 48, 0.08); }
+    .drawer-close:hover { background: rgba(59, 42, 64, 0.08); }
 
     .fav-group { margin-bottom: 18px; }
     .fav-group-title {
@@ -950,31 +950,31 @@
     .fav-item-scientific {
       font-size: 11px;
       font-style: italic;
-      color: rgba(90, 18, 48, 0.78);
+      color: rgba(59, 42, 64, 0.78);
       margin-top: 2px;
     }
     .fav-remove {
       background: none;
       border: none;
-      color: rgba(90, 18, 48, 0.5);
+      color: rgba(59, 42, 64, 0.5);
       cursor: pointer;
       font-size: 18px;
       padding: 6px 10px;
       border-radius: 6px;
       line-height: 1;
     }
-    .fav-remove:hover { color: var(--text-primary); background: rgba(90, 18, 48, 0.06); }
+    .fav-remove:hover { color: var(--text-primary); background: rgba(59, 42, 64, 0.06); }
     .fav-empty {
       text-align: center;
       padding: 50px 16px;
-      color: rgba(90, 18, 48, 0.78);
+      color: rgba(59, 42, 64, 0.78);
     }
     .fav-empty svg {
       width: 56px;
       height: 56px;
       margin: 0 auto 14px;
       display: block;
-      color: rgba(90, 18, 48, 0.2);
+      color: rgba(59, 42, 64, 0.2);
     }
     .fav-empty p { font-size: 14px; line-height: 1.6; }
 
@@ -1004,16 +1004,16 @@
       color: white;
     }
     .fav-action-btn.ghost {
-      border-color: rgba(90, 18, 48, 0.15);
-      color: rgba(90, 18, 48, 0.65);
+      border-color: rgba(59, 42, 64, 0.15);
+      color: rgba(59, 42, 64, 0.65);
       font-size: 12px;
       padding: 8px;
       font-weight: 600;
     }
     .fav-action-btn.ghost:hover {
-      background: rgba(90, 18, 48, 0.05);
+      background: rgba(59, 42, 64, 0.05);
       color: var(--text-primary);
-      border-color: rgba(90, 18, 48, 0.3);
+      border-color: rgba(59, 42, 64, 0.3);
     }
 
     @media (max-width: 600px) {
@@ -1039,7 +1039,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      box-shadow: 0 24px 60px rgba(90, 18, 48, 0.35);
+      box-shadow: 0 24px 60px rgba(59, 42, 64, 0.35);
     }
     .modal.open {
       transform: translate(-50%, -50%) scale(1);
@@ -1049,7 +1049,7 @@
     .modal-image {
       width: 100%;
       height: 280px;
-      background: #f7d5b9;
+      background: #D9CEE6;
       position: relative;
       overflow: hidden;
       flex-shrink: 0;
@@ -1098,7 +1098,7 @@
     .modal-scientific {
       font-size: 13px;
       font-style: italic;
-      color: rgba(90, 18, 48, 0.65);
+      color: rgba(59, 42, 64, 0.65);
       margin-bottom: 12px;
     }
     .modal-tags {
@@ -1120,7 +1120,7 @@
       grid-template-columns: 1fr 1fr;
       gap: 8px 18px;
       padding: 12px 14px;
-      background: rgba(194, 85, 122, 0.08);
+      background: rgba(156, 90, 142, 0.08);
       border-radius: 8px;
       margin-bottom: 18px;
       font-size: 13px;
@@ -1149,7 +1149,7 @@
     }
     .modal-footer {
       padding: 14px 20px;
-      border-top: 1px solid rgba(90, 18, 48, 0.1);
+      border-top: 1px solid rgba(59, 42, 64, 0.1);
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
@@ -1180,7 +1180,7 @@
     .tag-toggle {
       padding: 7px 13px;
       min-height: 34px;
-      border: 1.5px solid rgba(90, 18, 48, 0.22);
+      border: 1.5px solid rgba(59, 42, 64, 0.22);
       background: transparent;
       border-radius: 17px;
       font-family: var(--font-body);
@@ -1201,11 +1201,11 @@
       align-items: center;
       gap: 6px;
       font-size: 12.5px;
-      color: rgba(90, 18, 48, 0.7);
+      color: rgba(59, 42, 64, 0.7);
     }
     .sort-select {
       padding: 7px 30px 7px 12px;
-      border: 1.5px solid rgba(90, 18, 48, 0.22);
+      border: 1.5px solid rgba(59, 42, 64, 0.22);
       border-radius: 17px;
       background: white;
       font-family: var(--font-body);
@@ -1226,22 +1226,22 @@
     .result-count {
       text-align: center;
       font-size: 13px;
-      color: rgba(90, 18, 48, 0.65);
+      color: rgba(59, 42, 64, 0.65);
       margin: 4px 0 16px;
     }
 
     .no-results {
       text-align: center;
       padding: 50px 24px;
-      color: rgba(90, 18, 48, 0.55);
+      color: rgba(59, 42, 64, 0.55);
       font-size: 15px;
       grid-column: 1 / -1;
     }
 
     /* This Month panel */
     .this-month {
-      background: linear-gradient(135deg, rgba(194, 85, 122, 0.12), rgba(211, 194, 122, 0.12));
-      border: 2px solid rgba(194, 85, 122, 0.25);
+      background: linear-gradient(135deg, rgba(156, 90, 142, 0.12), rgba(211, 194, 122, 0.12));
+      border: 2px solid rgba(156, 90, 142, 0.25);
       border-radius: 14px;
       padding: 20px 22px;
       margin-bottom: 24px;
@@ -1256,7 +1256,7 @@
     }
     .this-month-subtitle {
       font-size: 13px;
-      color: rgba(90, 18, 48, 0.7);
+      color: rgba(59, 42, 64, 0.7);
       margin-bottom: 16px;
     }
     .this-month-grid {
@@ -1292,7 +1292,7 @@
     .this-month-col li { display: inline-block; }
     .this-month-col button {
       background: white;
-      border: 1px solid rgba(90, 18, 48, 0.15);
+      border: 1px solid rgba(59, 42, 64, 0.15);
       border-radius: 14px;
       padding: 4px 11px;
       font-size: 12.5px;
@@ -1309,7 +1309,7 @@
     }
     .this-month-col .empty-note {
       font-size: 12.5px;
-      color: rgba(90, 18, 48, 0.5);
+      color: rgba(59, 42, 64, 0.5);
       font-style: italic;
     }
 
@@ -1329,7 +1329,7 @@
       pointer-events: none;
       transition: opacity 0.25s, transform 0.25s;
       z-index: 200;
-      box-shadow: 0 4px 16px rgba(90, 18, 48, 0.25);
+      box-shadow: 0 4px 16px rgba(59, 42, 64, 0.25);
     }
     .toast.show {
       opacity: 1;
@@ -1393,8 +1393,8 @@
       border-color: #b8622e;
     }
     .companion-chip.unknown {
-      border-color: rgba(90, 18, 48, 0.12);
-      color: rgba(90, 18, 48, 0.5);
+      border-color: rgba(59, 42, 64, 0.12);
+      color: rgba(59, 42, 64, 0.5);
       cursor: default;
       font-weight: 500;
     }
@@ -1411,8 +1411,8 @@
         box-shadow: none;
         background: white;
       }
-      .drawer-header { border-bottom: 2px solid #5a1230; }
-      .fav-item { box-shadow: none; border: 1px solid rgba(90, 18, 48,0.2); }
+      .drawer-header { border-bottom: 2px solid #3B2A40; }
+      .fav-item { box-shadow: none; border: 1px solid rgba(59, 42, 64,0.2); }
       body { background: white; }
     }
   </style>
@@ -2185,7 +2185,7 @@
         card.dataset.slug = plant.slug;
         card.innerHTML = `
           <div class="plant-image">
-            <div class="plant-image-fallback"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:60px;height:60px;"><circle cx="50" cy="50" r="45" fill="#c2557a" opacity="0.15"/><path d="M50 20 Q60 35 55 50 Q65 60 50 75 Q35 60 45 50 Q40 35 50 20" fill="#c2557a" opacity="0.3"/></svg></div>
+            <div class="plant-image-fallback"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:60px;height:60px;"><circle cx="50" cy="50" r="45" fill="#9C5A8E" opacity="0.15"/><path d="M50 20 Q60 35 55 50 Q65 60 50 75 Q35 60 45 50 Q40 35 50 20" fill="#9C5A8E" opacity="0.3"/></svg></div>
           </div>
           <div class="card-content">
             <div class="card-titles">
@@ -2272,9 +2272,9 @@
 
       const colorMap = {
         spring: '#d4a04a',
-        summer: '#c2557a',
+        summer: '#9C5A8E',
         fall: '#d4a04a',
-        winter: '#9bbd85'
+        winter: '#B6A6CE'
       };
 
       document.documentElement.style.setProperty('--highlight', colorMap[season]);
@@ -2395,7 +2395,7 @@
     const STORAGE_KEY = 'gf_favorites_v1';
     const PAGE_KEY = 'food';
     const SUB_LABELS = { vegetables: 'Vegetables', fruits: 'Fruits & Berries', staples: 'Root Crops & Staples' };
-    const SUB_COLORS = { vegetables: '#9bbd85', fruits: '#c2557a', staples: '#d4a04a' };
+    const SUB_COLORS = { vegetables: '#B6A6CE', fruits: '#9C5A8E', staples: '#d4a04a' };
     const LIFECYCLE_LABELS = { perennial: 'Perennial', annual: 'Annual', semi: 'Semi-Perennial' };
     const LIFECYCLE_COLORS = { perennial: '#6b8f5e', annual: '#c9873a', semi: '#7a92a5' };
 
@@ -2660,7 +2660,7 @@
       fb.innerHTML = '<svg viewBox="0 0 100 100" style="width:100px;height:100px;opacity:0.3;"><circle cx="50" cy="50" r="45" fill="#c48bb0" opacity="0.3"/></svg>';
       imgWrap.appendChild(fb);
 
-      const subColor = SUB_COLORS[p.sub] || '#c2557a';
+      const subColor = SUB_COLORS[p.sub] || '#9C5A8E';
       const lifecycleColor = LIFECYCLE_COLORS[p.lifecycle] || '#7a92a5';
 
       body.innerHTML =
