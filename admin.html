@@ -1534,6 +1534,7 @@ const DB = {
     if (PB_TOKEN) opts.headers['Authorization'] = 'Bearer ' + PB_TOKEN;
     if (body) opts.body = JSON.stringify(body);
     const resp = await fetch(PB_URL + '/api/collections/' + path, opts);
+    if (resp.status === 401 && PB_TOKEN) { handleSessionExpired(); throw new Error('Session expired'); }
     if (!resp.ok) {
       // Surface PocketBase's field-level message/data instead of a bare status.
       const detail = await resp.json().catch(() => null);
@@ -12707,6 +12708,40 @@ function logout() {
   const pin = document.getElementById('login-pin'); if (pin) pin.value = '';
 }
 
+// Token expired or rejected mid-session: drop to the login screen with a clear,
+// reassuring message instead of showing empty lists (which looks like data loss).
+let _sessionExpiredShown = false;
+function handleSessionExpired() {
+  if (_sessionExpiredShown) return;
+  _sessionExpiredShown = true;
+  PB_TOKEN = '';
+  try { localStorage.removeItem(PB_TOKEN_KEY); } catch (_) {}
+  const app = document.getElementById('app-wrap'); if (app) app.style.display = 'none';
+  const login = document.getElementById('login-screen'); if (login) login.style.display = 'flex';
+  const pin = document.getElementById('login-pin'); if (pin) pin.value = '';
+  const err = document.getElementById('login-error');
+  if (err) { err.textContent = 'Your session timed out — please log in again. Your data is safe.'; err.style.display = 'block'; }
+}
+
+// Refresh the admin token so an active user effectively never gets logged out.
+// Runs on open and periodically; if the server rejects it, the session is truly
+// over and the login screen shows.
+async function refreshAuthToken() {
+  if (!PB_TOKEN || !PB_URL) return;
+  try {
+    const r = await fetch(PB_URL + '/api/collections/_superusers/auth-refresh', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + PB_TOKEN },
+    });
+    if (r.ok) {
+      const d = await r.json().catch(() => null);
+      if (d && d.token) { PB_TOKEN = d.token; try { localStorage.setItem(PB_TOKEN_KEY, d.token); } catch (_) {} }
+    } else if (r.status === 401) {
+      handleSessionExpired();
+    }
+  } catch (_) { /* offline — keep using the current token */ }
+}
+
 function showApp() {
   const login = document.getElementById('login-screen'); if (login) login.style.display = 'none';
   const w = document.getElementById('app-wrap');
@@ -12738,6 +12773,7 @@ async function doLogin() {
   if (!pin) return;
   btn.disabled = true;
   err.style.display = 'none';
+  _sessionExpiredShown = false;
 
   if (PB_URL) {
     // Authenticate with PocketBase admin API
@@ -12755,6 +12791,7 @@ async function doLogin() {
       showApp();
       return;
     } catch (e) {
+      err.textContent = 'Wrong password. Try again.';
       err.style.display = 'block';
       btn.disabled = false;
       return;
@@ -12817,6 +12854,10 @@ if (!PB_TOKEN) {
 }
 
 if (isLoggedIn()) {
+  // Extend the session on every open so an active user effectively never gets
+  // logged out, and keep a long-open tab alive with a periodic refresh.
+  refreshAuthToken();
+  setInterval(function () { if (PB_TOKEN) refreshAuthToken(); }, 6 * 60 * 60 * 1000);
   showApp();
 } else {
   document.getElementById('login-screen').style.display = 'flex';
