@@ -366,6 +366,11 @@ html[data-theme="dark"] .week-day.active { background: var(--sage-light); }
 .booking-card.afternoon { border-left-color: var(--petal-pink); }
 .booking-card.monday { border-left-color: var(--spring-sage); }
 .booking-card.blocked { border-left-color: var(--gray-400); background: var(--gray-100); }
+/* Canceled visits stay on the calendar but read clearly as canceled (red). */
+.booking-card.canceled { border-left-color: var(--red, #a03020); background: #f7e3de; }
+.booking-card.canceled h3 { text-decoration: line-through; opacity: 0.8; }
+.cancel-badge { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 99px; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; background: var(--red, #a03020); color: #fff; vertical-align: middle; }
+.mc-evt.canceled { background: #f7e3de; color: var(--red, #a03020); text-decoration: line-through; }
 .series-badge {
   display: inline-block;
   padding: 2px 8px;
@@ -11202,7 +11207,7 @@ function goToday() {
 function renderDay() {
   const container = document.getElementById('day-content');
   const ds = formatDate(viewDate);
-  const bookings = getBookings().filter(b => b.date === ds && b.status !== 'canceled');
+  const bookings = getBookings().filter(b => b.date === ds);  // include canceled — shown in red below
   const blocks = getBlocks().filter(b => b.date === ds);
   const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -11242,14 +11247,16 @@ function renderDay() {
     allItems.forEach(item => {
       if (item.type === 'booking') {
         const b = item.data;
+        const isCanceled = b.status === 'canceled';
         html += '<div class="time-marker">' +
           '<span class="time-label">' + b.time + '</span>' +
           '<span class="time-dot" style="background: var(--' +
-            (b.eventType === 'morning' ? 'pollen-gold' : b.eventType === 'afternoon' ? 'petal-pink' : 'spring-sage') +
+            (isCanceled ? 'red' : (b.eventType === 'morning' ? 'pollen-gold' : b.eventType === 'afternoon' ? 'petal-pink' : 'spring-sage')) +
           ')"></span>' +
-          '<div class="booking-card ' + b.eventType + '">' +
+          '<div class="booking-card ' + b.eventType + (isCanceled ? ' canceled' : '') + '">' +
           '<h3>' + escapeHtml(b.clientName) +
-            (b.recurringSeriesId ? '<span class="series-badge">' + escapeHtml(b.recurringFrequency || 'recurring') + '</span>' : '') +
+            (isCanceled ? '<span class="cancel-badge">Canceled</span>'
+                        : (b.recurringSeriesId ? '<span class="series-badge">' + escapeHtml(b.recurringFrequency || 'recurring') + '</span>' : '')) +
           '</h3>' +
           '<div class="booking-meta">' + escapeHtml(EVENT_LABELS[b.eventType] || b.eventName || 'Visit') + ' (' + escapeHtml(bookingDisplayTime(b)) + ')</div>' +
           '<div class="booking-client">' +
@@ -11257,13 +11264,16 @@ function renderDay() {
             (b.clientAddress ? ' &middot; ' + escapeHtml(b.clientAddress) : '') +
           '</div>' +
           (b.gardenNotes ? '<div class="booking-meta" style="margin-top:6px;font-style:italic;">"' + escapeHtml(b.gardenNotes) + '"</div>' : '') +
-          '<div class="booking-actions">' +
-            '<button class="action-btn" onclick="callClient(\'' + phoneAttr(b.clientPhone) + '\')">Call</button>' +
-            '<button class="action-btn" onclick="textClient(\'' + phoneAttr(b.clientPhone) + '\')">Text</button>' +
-            '<button class="action-btn" onclick="openReschedule(\'' + escAttr(b.id) + '\')">Reschedule</button>' +
-            '<button class="action-btn danger" onclick="cancelBooking(\'' + escAttr(b.id) + '\')">Cancel</button>' +
-            (b.recurringSeriesId && String(b.recurringSeriesId).startsWith('rec_') ? '<button class="action-btn danger" onclick="cancelSeries(\'' + escAttr(b.recurringSeriesId) + '\')">Cancel Series</button>' : '') +
-          '</div></div></div>';
+          (isCanceled
+            ? '<div class="booking-meta" style="margin-top:6px;color:var(--red,#a03020);font-weight:600;">Canceled' + (b.canceledAt ? ' &middot; ' + escapeHtml(String(b.canceledAt).slice(0,10)) : '') + '</div>'
+            : '<div class="booking-actions">' +
+                '<button class="action-btn" onclick="callClient(\'' + phoneAttr(b.clientPhone) + '\')">Call</button>' +
+                '<button class="action-btn" onclick="textClient(\'' + phoneAttr(b.clientPhone) + '\')">Text</button>' +
+                '<button class="action-btn" onclick="openReschedule(\'' + escAttr(b.id) + '\')">Reschedule</button>' +
+                '<button class="action-btn danger" onclick="cancelBooking(\'' + escAttr(b.id) + '\')">Cancel</button>' +
+                (b.recurringSeriesId && String(b.recurringSeriesId).startsWith('rec_') ? '<button class="action-btn danger" onclick="cancelSeries(\'' + escAttr(b.recurringSeriesId) + '\')">Cancel Series</button>' : '') +
+              '</div>') +
+          '</div></div>';
       } else {
         const b = item.data;
         html += '<div class="time-marker">' +
@@ -11310,7 +11320,7 @@ function renderMonth() {
   const totalDays = lastDay.getDate();
   const today = formatDate(new Date());
 
-  const bookings = getBookings().filter(b => b.status !== 'canceled' && (b.date || '').startsWith(y + '-' + String(m+1).padStart(2,'0')));
+  const bookings = getBookings().filter(b => (b.date || '').startsWith(y + '-' + String(m+1).padStart(2,'0')));  // include canceled — shown red
   const blocks = getBlocks().filter(b => (b.date || '').startsWith(y + '-' + String(m+1).padStart(2,'0')));
 
   let html = '<div class="month-nav">' +
@@ -11337,7 +11347,7 @@ function renderMonth() {
     dayBookings.forEach(b => {
       const type = b.eventType || 'afternoon';
       const label = (b.clientName || '').split(' ')[0] || '·';
-      items.push({cls: type, label: label});
+      items.push({cls: type + (b.status === 'canceled' ? ' canceled' : ''), label: label});
     });
     dayBlocks.forEach(b => items.push({cls: 'blocked', label: b.reason || 'Blocked'}));
 
