@@ -114,8 +114,17 @@
     .social-links a:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
     .social-links svg { width: 18px !important; height: 18px !important; fill: var(--accent-1); display: block; }
 
-    /* Page content */
-    .page-content { max-width: 620px; margin: 0 auto; padding: 40px 20px 20px; }
+    /* Page content — widened so each timeline milestone's two photos render large */
+    .page-content { max-width: 1040px; margin: 0 auto; padding: 40px 20px 20px; }
+    /* Keep the short prose blocks readable at a comfortable measure even though
+       the page column is now wide enough for big side-by-side photos. The
+       journey section opts OUT of this so its heading lines up with the wide,
+       photo-bearing timeline below it. */
+    .page-title, .page-subtitle,
+    .about-section:not(.journey) h2, .about-section:not(.journey) > p,
+    .about-list, .what-i-do, .cta-box { max-width: 620px; margin-left: auto; margin-right: auto; }
+    /* Journey heading aligns with the timeline's text column (rail + 30px gutter). */
+    .about-section.journey h2 { padding-left: 30px; }
 
     /* Hero photo */
     .about-hero {
@@ -195,29 +204,11 @@
     .timeline-item p { font-size: 14px; color: var(--text-secondary); margin: 0; line-height: 1.5; }
     .timeline-item.bloom h3 { color: var(--accent-1); }
 
-    /* Full-width photo journey — breaks OUT of the narrow .page-content column
-       (full-bleed technique) then re-centers its own ~1180px inner width. */
-    .photo-journey {
-      width: 100vw;
-      position: relative;
-      left: 50%;
-      transform: translateX(-50%);
-      box-sizing: border-box;
-      max-width: 1180px;
-      margin: 12px auto 36px;
-      padding: 0 24px;
-    }
-    .photo-group { margin-bottom: 40px; }
-    .photo-group:last-child { margin-bottom: 8px; }
-    .photo-group-label {
-      display: block;
-      text-transform: uppercase; letter-spacing: 0.18em;
-      font-family: var(--font-body); font-weight: 700;
-      font-size: 13px; color: var(--accent-1);
-      text-align: center; margin-bottom: 18px;
-    }
-    .photo-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 28px;
+    /* Photos that belong to a single milestone — sit just under that
+       milestone's text, two side-by-side on desktop, one column on mobile. */
+    .timeline-photos {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+      margin: 14px 0 2px;
     }
     .photo-card { margin: 0; }
     .photo-card img {
@@ -232,9 +223,7 @@
       text-align: center; line-height: 1.45;
     }
     @media (max-width: 600px) {
-      .photo-journey { padding: 0 18px; }
-      .photo-grid { grid-template-columns: 1fr; gap: 22px; }
-      .photo-group { margin-bottom: 32px; }
+      .timeline-photos { grid-template-columns: 1fr; gap: 18px; }
     }
 
     /* What I do list */
@@ -304,7 +293,7 @@
   <h1 class="page-title">Hey, I'm Taya</h1>
   <p class="page-subtitle">The Garden Faery &middot; Arcata &amp; Humboldt County, CA</p>
 
-  <div class="about-section">
+  <div class="about-section journey">
     <h2>My path here</h2>
     <div class="timeline">
       <div class="timeline-item">
@@ -316,16 +305,46 @@
         <div class="when">Costa Rica</div>
         <h3>Permaculture at Verde Energia</h3>
         <p>Soil health, water flow, whole-systems growing.</p>
+        <div class="timeline-photos">
+          <figure class="photo-card">
+            <img src="gallery/costa-rica-turmeric.jpg" alt="Taya standing in a pool full of freshly harvested turmeric at Verde Energia, Costa Rica" loading="lazy" decoding="async">
+            <figcaption>Washing a fresh turmeric harvest at Verde Energia</figcaption>
+          </figure>
+          <figure class="photo-card">
+            <img src="gallery/costa-rica-bananas.jpg" alt="Taya cutting down a banana tree at Verde Energia permaculture farm, Costa Rica" loading="lazy" decoding="async">
+            <figcaption>Cutting down my first banana tree</figcaption>
+          </figure>
+        </div>
       </div>
       <div class="timeline-item">
         <div class="when">North Carolina</div>
         <h3>Specialty Farm Manager, Mystic Roots Farm</h3>
         <p>Built a mushroom grow + microgreens operation from scratch.</p>
+        <div class="timeline-photos">
+          <figure class="photo-card">
+            <img src="gallery/taya-with-microgreens.jpg" alt="Taya beside a lush flat of pea microgreens she grew at Mystic Roots Farm" loading="lazy" decoding="async">
+            <figcaption>Pea microgreens I grew at Mystic Roots</figcaption>
+          </figure>
+          <figure class="photo-card">
+            <img src="gallery/taya-lions-mane-greenhouse.jpg" alt="Taya holding a large cluster of oyster mushrooms in front of the Fungi Fortress grow tent at Mystic Roots Farm" loading="lazy" decoding="async">
+            <figcaption>A mushroom flush from my Mystic Roots grow</figcaption>
+          </figure>
+        </div>
       </div>
       <div class="timeline-item">
         <div class="when">Humboldt County</div>
         <h3>Gentle beekeeping with Missy Bee</h3>
         <p>Came for the redwoods, stayed for the people &mdash; and put down roots.</p>
+        <div class="timeline-photos">
+          <figure class="photo-card">
+            <img src="gallery/honeybee-on-finger.jpg" alt="A honeybee resting on Taya's fingertip in Humboldt County" loading="lazy" decoding="async">
+            <figcaption>One of my honeybees, resting on my finger</figcaption>
+          </figure>
+          <figure class="photo-card">
+            <img src="gallery/honeybees-hive-frame.jpg" alt="A top-down view of a healthy honeybee hive with bees drawing fresh white comb" loading="lazy" decoding="async">
+            <figcaption>Fresh comb on a frame from a healthy hive</figcaption>
+          </figure>
+        </div>
       </div>
       <div class="timeline-item bloom">
         <div class="when">Spring 2026</div>
@@ -334,64 +353,6 @@
       </div>
     </div>
   </div>
-
-  <section class="photo-journey" aria-label="Photos from my path">
-  <div class="photo-group">
-    <span class="photo-group-label">Costa Rica</span>
-    <div class="photo-grid">
-      <figure class="photo-card">
-        <img src="gallery/costa-rica-turmeric.jpg" alt="Taya standing in a pool full of freshly harvested turmeric at Verde Energia, Costa Rica" loading="lazy" decoding="async">
-        <figcaption>Washing a fresh turmeric harvest at Verde Energia</figcaption>
-      </figure>
-      <figure class="photo-card">
-        <img src="gallery/costa-rica-bananas.jpg" alt="Taya cutting down a banana tree at Verde Energia permaculture farm, Costa Rica" loading="lazy" decoding="async">
-        <figcaption>Cutting down my first banana tree</figcaption>
-      </figure>
-    </div>
-  </div>
-
-  <div class="photo-group">
-    <span class="photo-group-label">Mystic Roots Farm</span>
-    <div class="photo-grid">
-      <figure class="photo-card">
-        <img src="gallery/taya-with-microgreens.jpg" alt="Taya beside a lush flat of pea microgreens she grew at Mystic Roots Farm" loading="lazy" decoding="async">
-        <figcaption>Pea microgreens I grew at Mystic Roots</figcaption>
-      </figure>
-      <figure class="photo-card">
-        <img src="gallery/taya-lions-mane-greenhouse.jpg" alt="Taya holding a large cluster of oyster mushrooms in front of the Fungi Fortress grow tent at Mystic Roots Farm" loading="lazy" decoding="async">
-        <figcaption>A mushroom flush from my Mystic Roots grow</figcaption>
-      </figure>
-    </div>
-  </div>
-
-  <div class="photo-group">
-    <span class="photo-group-label">My bees</span>
-    <div class="photo-grid">
-      <figure class="photo-card">
-        <img src="gallery/honeybee-on-finger.jpg" alt="A honeybee resting on Taya's fingertip in Humboldt County" loading="lazy" decoding="async">
-        <figcaption>One of my honeybees, resting on my finger</figcaption>
-      </figure>
-      <figure class="photo-card">
-        <img src="gallery/honeybees-hive-frame.jpg" alt="A top-down view of a healthy honeybee hive with bees drawing fresh white comb" loading="lazy" decoding="async">
-        <figcaption>Fresh comb on a frame from a healthy hive</figcaption>
-      </figure>
-    </div>
-  </div>
-
-  <div class="photo-group">
-    <span class="photo-group-label">What I grow now</span>
-    <div class="photo-grid">
-      <figure class="photo-card">
-        <img src="gallery/tomato-tomatillo-harvest.jpg" alt="A basket of just-picked cherry tomatoes and husked tomatillos" loading="lazy" decoding="async">
-        <figcaption>Cherry tomatoes and tomatillos, just picked</figcaption>
-      </figure>
-      <figure class="photo-card">
-        <img src="gallery/fresh-carrot-harvest.jpg" alt="A soil-dusted hand holding freshly pulled carrots over a garden bed with snapdragons" loading="lazy" decoding="async">
-        <figcaption>Carrots straight from a bed I tend</figcaption>
-      </figure>
-    </div>
-  </div>
-  </section>
 
   <div class="section-divider">
     <img src="garden-faery-logo-alt.png" alt="Garden Faery logo" loading="lazy" decoding="async">
