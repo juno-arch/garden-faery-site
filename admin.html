@@ -1671,6 +1671,7 @@ const DB = {
     if (updates.clientPhone !== undefined) pbUpdates.client_phone = updates.clientPhone;
     if (updates.clientAddress !== undefined) pbUpdates.client_address = updates.clientAddress;
     if (updates.invoiceId !== undefined) pbUpdates.invoice_id = updates.invoiceId;
+    if (updates.actualHours !== undefined) pbUpdates.actual_hours = updates.actualHours;
     return this._pb('PATCH', 'bookings/records/' + id, pbUpdates);
   },
 
@@ -4667,6 +4668,7 @@ function showInvoiceModal() {
         '<button class="modal-btn secondary" style="padding:5px 10px;font-size:0.78rem;" onclick="invItemAdd()">+ Add item</button>' +
         '<button class="modal-btn secondary" style="padding:5px 10px;font-size:0.78rem;background:var(--spring-sage);color:var(--plum);border-color:var(--spring-sage);" onclick="openInvoiceVisitPicker()">+ Pull from visits</button>' +
       '</div>' +
+      '<div style="font-size:0.72rem;color:var(--gray-600);margin-top:6px;">Hours are your record of time worked — saving updates each pulled-in visit’s logged hours, so your Hours tab follows the invoice.</div>' +
 
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px;">' +
         '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Tax %</label><input type="number" step="0.01" id="inv-tax" value="' + (s.tax_pct||0) + '" oninput="invTaxInput(this.value)" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
@@ -4957,11 +4959,11 @@ function addSelectedVisitsToInvoice() {
     const hours = bookingHours(b);
     if (hours > 0) {
       const unit_cents = set > 0 ? Math.round((set * 100) / hours) : clientHourlyRateCents(b);
-      return { description: desc, qty: hours, unit_cents: unit_cents };
+      return { description: desc, qty: hours, unit_cents: unit_cents, booking_id: b.id };
     }
     // Unknown duration (un-priceable event type): keep the old flat 1 × price line.
     const cents = Math.round((set > 0 ? set : expectedPriceForBooking(b)) * 100);
-    return { description: desc, qty: 1, unit_cents: cents };
+    return { description: desc, qty: 1, unit_cents: cents, booking_id: b.id };
   });
 
   // If the only existing line is the empty starter row, replace it.
@@ -5166,6 +5168,19 @@ async function saveInvoice(asSent) {
           if (_cb) _cb.invoiceId = invoiceId;
         } catch (err) { console.warn('[invoice] could not stamp booking ' + _bid + ':', err && err.message); }
       }
+    }
+
+    // Invoice = source of truth for hours worked: push each visit line's (possibly
+    // edited) hours onto that booking's actual_hours, which the Hours tab reads via
+    // bookingHours(). Only line items tied to a visit (booking_id) are touched, and
+    // we update the local cache so the Hours tab reflects it without a reload.
+    const _hourLines = (_invDraftItems || []).filter(it => it && it.booking_id && Number(it.qty) > 0);
+    for (const _it of _hourLines) {
+      try {
+        await DB.updateBooking(_it.booking_id, { actualHours: Number(_it.qty) });
+        const _hb = (typeof _cachedBookings !== 'undefined' && _cachedBookings) ? _cachedBookings.find(x => x.id === _it.booking_id) : null;
+        if (_hb) _hb.actualHours = Number(_it.qty);
+      } catch (err) { console.warn('[invoice] could not write actual hours to booking ' + _it.booking_id + ':', err && err.message); }
     }
 
     // Record redemption (idempotent on coupon_id+invoice_id). Coupon fields
