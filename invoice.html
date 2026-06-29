@@ -132,18 +132,20 @@ async function loadInvoice() {
 
 function fmt(c) { return '$' + ((c || 0) / 100).toFixed(2); }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmt12h(hhmm) { if (!hhmm) return ''; const p = String(hhmm).split(':'); let h = parseInt(p[0], 10); const m = p[1] || '00'; if (isNaN(h)) return hhmm; const ap = h >= 12 ? 'pm' : 'am'; if (h === 0) h = 12; else if (h > 12) h -= 12; return h + ':' + m + ap; }
 
 function render(inv) {
   const today = new Date().toISOString().slice(0, 10);
   let status = inv.status;
   if (['sent','viewed','partial'].includes(status) && inv.due_date && inv.due_date < today) status = 'overdue';
 
-  const lineRows = (inv.line_items || []).map(it =>
-    '<tr><td>' + esc(it.description) + '</td>' +
-    '<td class="r">' + (it.qty || 0) + '</td>' +
-    '<td class="r">' + fmt(it.unit_cents) + '</td>' +
-    '<td class="r">' + fmt(it.line_cents) + '</td></tr>'
-  ).join('');
+  const lineRows = (inv.line_items || []).map(it => {
+    const when = (it.start && it.end) ? '<div style="font-size:0.8rem;color:var(--gray-600);margin-top:2px;">' + esc(fmt12h(it.start)) + ' &ndash; ' + esc(fmt12h(it.end)) + '</div>' : '';
+    return '<tr><td>' + esc(it.description) + when + '</td>' +
+      '<td class="r">' + (it.qty || 0) + '</td>' +
+      '<td class="r">' + fmt(it.unit_cents) + '</td>' +
+      '<td class="r">' + fmt(it.line_cents) + '</td></tr>';
+  }).join('');
 
   const rawBalance = (inv.total_cents || 0) - (inv.paid_cents || 0);
   const overpaid = rawBalance < 0;

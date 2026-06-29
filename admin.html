@@ -4626,15 +4626,26 @@ function showInvoiceModal() {
     document.body.appendChild(modal);
   }
 
-  const itemRows = _invDraftItems.map((it, i) =>
-    '<tr>' +
+  const tIn = 'font-size:16px;padding:7px 8px;border:1px solid #bdb4a8;border-radius:7px;background:#fff;color:var(--plum);';
+  const itemRows = _invDraftItems.map((it, i) => {
+    const rangeHrs = (it.start && it.end) ? hoursFromRange(it.start, it.end) : 0;
+    return '<tr data-li="' + i + '">' +
       '<td><input type="text" value="' + escAttr(it.description) + '" placeholder="Description" style="width:100%;font-size:16px;min-height:40px;padding:8px 9px;border:1px solid #bdb4a8;border-radius:7px;" oninput="invItemSet(' + i + ',\'description\',this.value)"></td>' +
-      '<td><input type="number" inputmode="decimal" step="0.25" min="0" value="' + (it.qty||0) + '" title="Hours worked — tap to change" aria-label="Hours" style="width:100%;font-size:16px;min-height:40px;padding:8px 9px;border:1.5px solid #c9a84a;background:#fbf6e6;font-weight:600;border-radius:7px;text-align:right;" oninput="invItemSet(' + i + ',\'qty\',this.value)"></td>' +
+      '<td><input type="number" data-li="' + i + '" data-k="qty" inputmode="decimal" step="0.25" min="0" value="' + (it.qty||0) + '" title="Hours worked" aria-label="Hours" style="width:100%;font-size:16px;min-height:40px;padding:8px 9px;border:1.5px solid #c9a84a;background:#fbf6e6;font-weight:600;border-radius:7px;text-align:right;" oninput="invItemSet(' + i + ',\'qty\',this.value)"></td>' +
       '<td><input type="number" inputmode="decimal" step="0.01" min="0" value="' + ((it.unit_cents||0)/100).toFixed(2) + '" title="Hourly rate" style="width:100%;font-size:16px;min-height:40px;padding:8px 9px;border:1px solid #bdb4a8;border-radius:7px;text-align:right;" oninput="invItemSet(' + i + ',\'unit_cents\',Math.round(parseFloat(this.value||0)*100))"></td>' +
-      '<td style="text-align:right;padding-right:8px;">$' + (((it.qty||0)*(it.unit_cents||0))/100).toFixed(2) + '</td>' +
+      '<td data-total="' + i + '" style="text-align:right;padding-right:8px;">$' + (((it.qty||0)*(it.unit_cents||0))/100).toFixed(2) + '</td>' +
       '<td><button type="button" onclick="invItemRemove(' + i + ')" style="background:transparent;border:none;color:#b91c1c;cursor:pointer;font-size:1.1rem;">&times;</button></td>' +
-    '</tr>'
-  ).join('');
+    '</tr>' +
+    '<tr data-litime="' + i + '"><td colspan="5" style="padding:0 2px 12px;">' +
+      '<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;background:#f3efe6;border-radius:8px;padding:8px 10px;font-size:13px;color:var(--gray-600);">' +
+        '<span style="font-weight:600;color:var(--plum);">Time worked</span>' +
+        '<input type="time" value="' + (it.start||'') + '" aria-label="Start time" onchange="invItemTime(' + i + ',\'start\',this.value)" style="' + tIn + '">' +
+        '<span>to</span>' +
+        '<input type="time" value="' + (it.end||'') + '" aria-label="End time" onchange="invItemTime(' + i + ',\'end\',this.value)" style="' + tIn + '">' +
+        '<span data-hrs="' + i + '" style="font-weight:700;color:#0a7a3a;">' + (rangeHrs > 0 ? '= ' + rangeHrs + ' hrs' : '') + '</span>' +
+      '</div>' +
+    '</td></tr>';
+  }).join('');
 
   let subtotal = 0;
   _invDraftItems.forEach(it => { subtotal += (Number(it.qty)||0) * (Number(it.unit_cents)||0); });
@@ -4668,7 +4679,7 @@ function showInvoiceModal() {
         '<button class="modal-btn secondary" style="padding:5px 10px;font-size:0.78rem;" onclick="invItemAdd()">+ Add item</button>' +
         '<button class="modal-btn secondary" style="padding:5px 10px;font-size:0.78rem;background:var(--spring-sage);color:var(--plum);border-color:var(--spring-sage);" onclick="openInvoiceVisitPicker()">+ Pull from visits</button>' +
       '</div>' +
-      '<div style="font-size:0.72rem;color:var(--gray-600);margin-top:6px;"><strong style="color:var(--plum);">Tap the gold Hours box to change it</strong> — the Total updates as you type. Hours are your record of time worked, so saving updates each pulled-in visit’s logged hours and your Hours tab follows the invoice.</div>' +
+      '<div style="font-size:0.72rem;color:var(--gray-600);margin-top:6px;"><strong style="color:var(--plum);">Set the times you worked</strong> under each line (or just type the Hours) — the hours and Total update automatically. The invoice is your record of hours worked, so saving updates each pulled-in visit’s logged hours and your Hours tab follows.</div>' +
 
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px;">' +
         '<div><label style="font-size:0.8rem;opacity:0.7;display:block;">Tax %</label><input type="number" step="0.01" id="inv-tax" value="' + (s.tax_pct||0) + '" oninput="invTaxInput(this.value)" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;"></div>' +
@@ -4746,12 +4757,10 @@ function invItemSet(i, key, val) {
     _invDraftItems[i][key] = val;
   }
   _flagCouponStaleAfterLineChange();
-  // Update line-total cell for this row (preserves input focus).
-  const rows = document.querySelectorAll('#inv-modal tbody tr');
-  if (rows[i]) {
-    const cells = rows[i].querySelectorAll('td');
-    if (cells[3]) cells[3].textContent = '$' + ((_invDraftItems[i].qty||0)*(_invDraftItems[i].unit_cents||0)/100).toFixed(2);
-  }
+  // Update this line's total cell in place (preserves input focus). Target by
+  // data-attr, not row index — each item now spans two <tr>s (main + time row).
+  const cell = document.querySelector('#inv-modal [data-total="' + i + '"]');
+  if (cell) cell.textContent = '$' + ((_invDraftItems[i].qty||0)*(_invDraftItems[i].unit_cents||0)/100).toFixed(2);
   // Recompute and update totals box in-place.
   const subtotal = _invDraftItems.reduce((s,it)=>s+((+it.qty||0)*(+it.unit_cents||0)),0);
   const discount = Number(_invDraftState.discount_cents) || 0;
@@ -4760,6 +4769,50 @@ function invItemSet(i, key, val) {
   const total = taxable + tax;
   const totalsBox = document.querySelector('#inv-modal [data-totals]');
   if (totalsBox) totalsBox.innerHTML = invoiceTotalsRowsHtml(subtotal, discount, tax, total, _invDraftState.tax_pct||0);
+}
+
+// ----- Time-worked entry: enter the clock times, the Hours follow -----
+// 24h scheduled window per event type, used to prefill the time pickers.
+const EVENT_HHMM = {
+  morning:   { start: '09:00', end: '14:00' },
+  afternoon: { start: '14:30', end: '16:30' },
+  monday:    { start: '13:00', end: '16:30' },
+};
+// "9:00am" / "9:00" -> "09:00" (24h) for an <input type="time"> value.
+function to24h(t) {
+  if (!t) return '';
+  const m = String(t).trim().match(/^(\d{1,2}):(\d{2})\s*([ap]m)?$/i);
+  if (!m) return '';
+  let h = parseInt(m[1], 10); const min = m[2]; const ap = (m[3] || '').toLowerCase();
+  if (ap === 'pm' && h < 12) h += 12;
+  if (ap === 'am' && h === 12) h = 0;
+  return String(h).padStart(2, '0') + ':' + min;
+}
+// Hours between two "HH:MM" times (24h). 0 if unset or end<=start.
+function hoursFromRange(start, end) {
+  const toMin = t => { const p = String(t || '').split(':'); return (parseInt(p[0],10)||0)*60 + (parseInt(p[1],10)||0); };
+  if (!start || !end) return 0;
+  const d = toMin(end) - toMin(start);
+  return d > 0 ? Math.round((d/60)*100)/100 : 0;
+}
+// A line item's start/end clock times drive its Hours: set both and Hours = the
+// span between them (and the amount follows). Updates the row in place.
+function invItemTime(i, which, value) {
+  _invDraftItems[i][which] = value;
+  const it = _invDraftItems[i];
+  if (it.start && it.end) {
+    const h = hoursFromRange(it.start, it.end);
+    if (h > 0) {
+      const qtyInput = document.querySelector('#inv-modal input[data-li="' + i + '"][data-k="qty"]');
+      if (qtyInput) qtyInput.value = h;
+      invItemSet(i, 'qty', h);   // sets qty + updates the total cell + totals box
+    }
+  }
+  const readout = document.querySelector('#inv-modal [data-hrs="' + i + '"]');
+  if (readout) {
+    const h2 = hoursFromRange(it.start, it.end);
+    readout.textContent = h2 > 0 ? ('= ' + h2 + ' hrs') : ((it.start && it.end) ? 'end must be after start' : '');
+  }
 }
 
 async function applyCouponToInvoiceDraft() {
@@ -4956,14 +5009,19 @@ function addSelectedVisitsToInvoice() {
     const set = Number(b.price) || 0;
     const label = (EVENT_LABELS[b.eventType] || b.eventName || 'Garden visit');
     const desc = label + ' — ' + formatDisplayDate(b.date);
-    const hours = bookingHours(b);
+    // Prefill the scheduled clock window so she can adjust to the actual times worked.
+    let start = '', end = '';
+    if (EVENT_HHMM[b.eventType]) { start = EVENT_HHMM[b.eventType].start; end = EVENT_HHMM[b.eventType].end; }
+    else if (b.eventType === 'custom') { start = to24h(b.time); end = to24h(b.endTime || b.end_time); }
+    const rangeHrs = hoursFromRange(start, end);
+    const hours = rangeHrs > 0 ? rangeHrs : bookingHours(b);
     if (hours > 0) {
       const unit_cents = set > 0 ? Math.round((set * 100) / hours) : clientHourlyRateCents(b);
-      return { description: desc, qty: hours, unit_cents: unit_cents, booking_id: b.id };
+      return { description: desc, qty: hours, unit_cents: unit_cents, booking_id: b.id, start: start, end: end };
     }
     // Unknown duration (un-priceable event type): keep the old flat 1 × price line.
     const cents = Math.round((set > 0 ? set : expectedPriceForBooking(b)) * 100);
-    return { description: desc, qty: 1, unit_cents: cents, booking_id: b.id };
+    return { description: desc, qty: 1, unit_cents: cents, booking_id: b.id, start: start, end: end };
   });
 
   // If the only existing line is the empty starter row, replace it.
