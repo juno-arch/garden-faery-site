@@ -4710,13 +4710,14 @@ function showInvoiceModal() {
       '<div style="margin-top:14px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Notes (visible to client)</label><textarea id="inv-notes" rows="2" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;">' + escHtml(s.notes) + '</textarea></div>' +
       '<div style="margin-top:8px;"><label style="font-size:0.8rem;opacity:0.7;display:block;">Internal notes</label><textarea id="inv-inotes" rows="2" style="width:100%;padding:6px 8px;border:1px solid var(--gray-200);border-radius:4px;">' + escHtml(s.internal_notes) + '</textarea></div>' +
 
-      '<div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;">' +
+      '<div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">' +
         '<button class="modal-btn secondary" onclick="closeInvoiceModal()">Cancel</button>' +
         (s.id
           ? '<button class="modal-btn primary" onclick="saveInvoice(false)">Save changes</button>'
           : '<button class="modal-btn secondary" onclick="saveInvoice(false)">Save as draft</button>' +
             '<button class="modal-btn primary" onclick="saveInvoice(true)">Save &amp; mark sent</button>'
         ) +
+        '<button class="modal-btn primary" style="background:#0a7a3a;border-color:#0a7a3a;" onclick="saveInvoice(true,true)" title="Save, then open Messages pre-filled to the number on file">Save &amp; text</button>' +
       '</div>' +
     '</div>';
 }
@@ -5168,7 +5169,7 @@ function _rerenderBillingViews() {
   else if (dash && dash.offsetParent !== null && typeof renderDashboard === 'function') { renderDashboard(); }
 }
 
-async function saveInvoice(asSent) {
+async function saveInvoice(asSent, thenText) {
   // Pull live field values (in case inputs changed without triggering oninput updates).
   _invDraftState.client_name = document.getElementById('inv-name').value.trim();
   _invDraftState.client_email = document.getElementById('inv-email').value.trim();
@@ -5272,6 +5273,9 @@ async function saveInvoice(asSent) {
     closeInvoiceModal();
     _invoicesLoaded = false;
     await renderInvoices();
+    // "Save & text": the list is now reloaded (so the saved invoice + its
+    // view_token exist), so open Messages pre-addressed to the number on file.
+    if (thenText && invoiceId) { try { invoiceSendSms(invoiceId); } catch (_) {} }
   } catch (err) {
     alert('Save error: ' + err.message);
   }
