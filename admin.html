@@ -2293,9 +2293,9 @@ function renderTodayCard() {
       payEl.innerHTML = '<button class="today-pay-btn paid" onclick="openPayment(\'' + escAttr(focused.id) + '\')">✓ Paid $' + setPrice.toFixed(0) + meth + ' (edit)</button>';
     } else if (suggested > 0) {
       const label2 = suggestedFromHistory ? '~$' + suggested.toFixed(0) : '$' + suggested.toFixed(0);
-      payEl.innerHTML = '<button class="today-pay-btn" onclick="openPayment(\'' + escAttr(focused.id) + '\')">Log ' + label2 + ' payment</button>';
+      payEl.innerHTML = '<button class="today-pay-btn" onclick="invoiceVisit(\'' + escAttr(focused.id) + '\')">Invoice ' + label2 + '</button>';
     } else {
-      payEl.innerHTML = '<button class="today-pay-btn" onclick="openPayment(\'' + escAttr(focused.id) + '\')">Set price + log payment</button>';
+      payEl.innerHTML = '<button class="today-pay-btn" onclick="invoiceVisit(\'' + escAttr(focused.id) + '\')">Create invoice</button>';
     }
   }
 
@@ -5051,6 +5051,28 @@ function addSelectedVisitsToInvoice() {
 
   closeInvoiceVisitPicker();
   showInvoiceModal();
+}
+
+// Today card → "Invoice" action: draft an invoice for a single visit, billed as
+// hours × rate (same logic as "Pull from visits"), prefilled with the client and
+// linked to the booking so the hours write back. Replaces the old "Log payment"
+// quick-action now that invoicing is the way she bills.
+function invoiceVisit(bookingId){
+  const b = getBookings().find(x => x.id === bookingId);
+  if(!b){ alert('Could not find that visit.'); return; }
+  const set = Number(b.price) || 0;
+  const label = (EVENT_LABELS[b.eventType] || b.eventName || 'Garden visit');
+  const desc = label + ' — ' + formatDisplayDate(b.date);
+  const hours = bookingHours(b);
+  let item;
+  if(hours > 0){
+    const unit = set > 0 ? Math.round((set * 100) / hours) : clientHourlyRateCents(b);
+    item = { description: desc, qty: hours, unit_cents: unit, booking_id: b.id };
+  } else {
+    item = { description: desc, qty: 1, unit_cents: Math.round((set > 0 ? set : expectedPriceForBooking(b)) * 100), booking_id: b.id };
+  }
+  openInvoiceCreateModal({ client_name: b.clientName||'', client_email: b.clientEmail||'', client_address: b.clientAddress||'', booking_id: b.id, items: [item], internal_notes: 'Covers visits: ' + b.date });
+  _invDraftState._coveredBookingIds = [b.id];
 }
 
 // =============================================================
