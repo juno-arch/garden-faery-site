@@ -326,6 +326,19 @@ footer a:hover { text-decoration: underline; }
 .gf-bee-wrap.wiggling {
   animation: gf-bee-wiggle 0.6s cubic-bezier(0.36, 0, 0.32, 1.4);
 }
+/* While the garden song is playing (body class set by the SoundCloud widget
+   hook on index.html), the bee bobs along to the music. The one-shot wiggle
+   still wins when both apply, since it's declared after in the cascade. */
+body.gf-song-playing .gf-bee-wrap {
+  animation: gf-bee-bob 1.7s ease-in-out infinite;
+}
+body.gf-song-playing .gf-bee-wrap.wiggling {
+  animation: gf-bee-wiggle 0.6s cubic-bezier(0.36, 0, 0.32, 1.4);
+}
+@keyframes gf-bee-bob {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50%      { transform: translateY(-7px) rotate(4deg); }
+}
 .gf-bee svg {
   display: block;
   width: 100%;

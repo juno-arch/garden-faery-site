@@ -326,8 +326,16 @@
     function onBeeClick(e) {
       e.preventDefault();
       e.stopPropagation();
-      showBeeTip(beeMessages[beeMsgIdx % beeMessages.length]);
-      beeMsgIdx++;
+      // On pages with the garden song (the homepage), the bee is also the DJ:
+      // a click toggles "come sit by my garden" via window.gfSongToggle
+      // (defined next to the SoundCloud embed in index.html).
+      if (typeof window.gfSongToggle === 'function') {
+        const started = window.gfSongToggle();
+        showBeeTip(started ? 'a song for you!' : 'shh… paused');
+      } else {
+        showBeeTip(beeMessages[beeMsgIdx % beeMessages.length]);
+        beeMsgIdx++;
+      }
       spawnPetals();
       // retrigger the wiggle animation
       beeWrap.classList.remove('wiggling');

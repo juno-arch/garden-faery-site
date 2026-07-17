@@ -30,7 +30,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Fraunces:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Fraunces:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="shared.css?v=2026-06-25b">
-  <script src="shared.js?v=2026-05-02" defer></script>
+  <script src="shared.js?v=2026-07-17" defer></script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -343,14 +343,32 @@
 </div>
 </div>
 
-    <!-- Garden radio — the old-web music corner. Official Bandcamp embed:
-         the full song streams from the artists' own page, so plays (and any
-         purchases) go to Emory & Trevor. -->
+    <!-- Garden radio — the old-web music corner. Official SoundCloud embed
+         (Emory Hall's own upload) so the widget API can start it when the
+         bee is clicked (shared.js?v=2026-07-17 calls window.gfSongToggle). allow=autoplay
+         delegates play permission to the widget so the bee tap works. -->
     <div style="text-align:center; margin:48px auto 8px; max-width:420px; padding:0 16px;">
-      <p style="font-size:14px; color:var(--gray-600); font-style:italic; margin:0 0 10px;">a song for you, while you wander the garden</p>
-      <iframe title="come sit by my garden — Emory Hall and Trevor Hall (Bandcamp player)" style="border:0; width:100%; height:42px; border-radius:8px;" src="https://bandcamp.com/EmbeddedPlayer/v=2/track=37807087/size=small/bgcol=F2EDE8/linkcol=9C5A8E/transparent=true/" seamless loading="lazy"></iframe>
-      <p style="font-size:12px; color:var(--gray-400); margin:8px 0 0;">&ldquo;come sit by my garden&rdquo; &mdash; Emory Hall &amp; Trevor Hall</p>
+      <p style="font-size:14px; color:var(--gray-600); font-style:italic; margin:0 0 10px;">a song for you, while you wander the garden &mdash; press play, or ask the bee</p>
+      <iframe id="gf-song" title="come sit by my garden — Emory Hall (SoundCloud player)" allow="autoplay" style="border:0; width:100%; height:166px; border-radius:10px;" src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Femoryhall%2Fcome-sit-by-my-garden&color=%239C5A8E&auto_play=false&hide_related=true&show_comments=false&show_reposts=false&show_teaser=false&visual=false"></iframe>
+      <p style="font-size:12px; color:var(--gray-400); margin:8px 0 0;">&ldquo;come sit by my garden&rdquo; &mdash; Emory Hall &amp; Trevor Hall &middot; <a href="https://trevorhallmusic.bandcamp.com/track/come-sit-by-my-garden" target="_blank" rel="noopener" style="color:var(--rose, #9C5A8E);">on Bandcamp</a></p>
     </div>
+    <script src="https://w.soundcloud.com/player/api.js"></script>
+    <script>
+      (function(){
+        var iframe = document.getElementById('gf-song');
+        if (!iframe || !window.SC) return;
+        var widget = SC.Widget(iframe);
+        var playing = false;
+        widget.bind(SC.Widget.Events.PLAY,   function(){ playing = true;  document.body.classList.add('gf-song-playing'); });
+        widget.bind(SC.Widget.Events.PAUSE,  function(){ playing = false; document.body.classList.remove('gf-song-playing'); });
+        widget.bind(SC.Widget.Events.FINISH, function(){ playing = false; document.body.classList.remove('gf-song-playing'); });
+        // The bee is the DJ — shared.js?v=2026-07-17 calls this on bee click when present.
+        window.gfSongToggle = function(){
+          if (playing) { widget.pause(); return false; }
+          widget.play(); return true;
+        };
+      })();
+    </script>
 </main>
 
   <footer>
