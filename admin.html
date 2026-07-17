@@ -11404,6 +11404,7 @@ async function keepMoonBooking(bookingId) {
         status: 'confirmed',
         canceled_by: null,
         canceled_at: null,
+        canceled_note: null,
         moon_exempt: true,
       }),
     });
@@ -11708,7 +11709,7 @@ async function cancelBooking(id) {
   const why = prompt('Cancel this visit?\n\nJot why (who canceled, what happened) — it stays on the booking so you can look back. OK cancels the visit (blank note is fine); Cancel keeps it.\n\nThe client won\'t be notified automatically, so you\'ll want to text them.');
   if (why === null) return;
   try {
-    await DB.updateBooking(id, { status: 'canceled', canceledAt: new Date().toISOString(), canceledBy: 'admin', canceledNote: why.trim() });
+    await DB.updateBooking(id, { status: 'canceled', canceledAt: new Date().toISOString(), canceledBy: 'admin', canceledNote: why.trim().slice(0, 500) });
     await refreshData();
     renderAll();
   } catch (err) {
@@ -11729,7 +11730,7 @@ async function cancelSeries(seriesId) {
   try {
     const canceledAt = new Date().toISOString();
     for (const b of futureInSeries) {
-      await DB.updateBooking(b.id, { status: 'canceled', canceledAt, canceledBy: 'admin', canceledNote: why.trim() });
+      await DB.updateBooking(b.id, { status: 'canceled', canceledAt, canceledBy: 'admin', canceledNote: why.trim().slice(0, 500) });
     }
     await refreshData();
     renderAll();
