@@ -1574,6 +1574,7 @@ const DB = {
       rescheduledAt: r.rescheduled_at,
       canceledAt: r.canceled_at,
       canceledBy: r.canceled_by,
+      canceledNote: r.canceled_note,
       recurringSeriesId: r.recurring_series_id,
       recurringFrequency: r.recurring_frequency,
       price: r.price,
@@ -1660,6 +1661,9 @@ const DB = {
     if (updates.eventName !== undefined) pbUpdates.event_name = updates.eventName;
     if (updates.time !== undefined) pbUpdates.time = updates.time;
     if (updates.status !== undefined) pbUpdates.status = updates.status;
+    if (updates.canceledAt !== undefined) pbUpdates.canceled_at = updates.canceledAt;
+    if (updates.canceledBy !== undefined) pbUpdates.canceled_by = updates.canceledBy;
+    if (updates.canceledNote !== undefined) pbUpdates.canceled_note = updates.canceledNote;
     if (updates.rescheduledAt !== undefined) pbUpdates.rescheduled_at = updates.rescheduledAt;
     if (updates.price !== undefined) pbUpdates.price = updates.price;
     if (updates.paid !== undefined) pbUpdates.paid = updates.paid;
@@ -11110,7 +11114,7 @@ function renderDay() {
           '</div>' +
           (b.gardenNotes ? '<div class="booking-meta" style="margin-top:6px;font-style:italic;">"' + escapeHtml(b.gardenNotes) + '"</div>' : '') +
           (isCanceled
-            ? '<div class="booking-meta" style="margin-top:6px;color:var(--red,#a03020);font-weight:600;">Canceled' + (b.canceledAt ? ' &middot; ' + escapeHtml(String(b.canceledAt).slice(0,10)) : '') + '</div>'
+            ? '<div class="booking-meta" style="margin-top:6px;color:var(--red,#a03020);font-weight:600;">Canceled' + (b.canceledAt ? ' &middot; ' + escapeHtml(String(b.canceledAt).slice(0,10)) : '') + (b.canceledNote ? ' — ' + escapeHtml(b.canceledNote) : '') + '</div>'
             : '<div class="booking-actions">' +
                 '<button class="action-btn" onclick="callClient(\'' + phoneAttr(b.clientPhone) + '\')">Call</button>' +
                 '<button class="action-btn" onclick="textClient(\'' + phoneAttr(b.clientPhone) + '\')">Text</button>' +
@@ -11699,9 +11703,12 @@ function textClient(phone) {
 }
 
 async function cancelBooking(id) {
-  if (!confirm('Cancel this booking? The client won\'t be notified automatically, so you\'ll want to text them.')) return;
+  // Prompt doubles as the confirm: Cancel/Esc keeps the booking, OK cancels it.
+  // The why-note stays on the record so she can look back later.
+  const why = prompt('Cancel this visit?\n\nJot why (who canceled, what happened) — it stays on the booking so you can look back. OK cancels the visit (blank note is fine); Cancel keeps it.\n\nThe client won\'t be notified automatically, so you\'ll want to text them.');
+  if (why === null) return;
   try {
-    await DB.updateBooking(id, { status: 'canceled' });
+    await DB.updateBooking(id, { status: 'canceled', canceledAt: new Date().toISOString(), canceledBy: 'admin', canceledNote: why.trim() });
     await refreshData();
     renderAll();
   } catch (err) {
@@ -11716,11 +11723,13 @@ async function cancelSeries(seriesId) {
     b.recurringSeriesId === seriesId && b.status !== 'canceled' && b.date >= today
   );
 
-  if (!confirm('Cancel all ' + futureInSeries.length + ' upcoming visits in this series? Past visits stay on record. You\'ll want to text the client.')) return;
+  const why = prompt('Cancel all ' + futureInSeries.length + ' upcoming visits in this series? Past visits stay on record.\n\nJot why — it stays on each canceled visit so you can look back. OK cancels them (blank note is fine); Cancel keeps the series.\n\nYou\'ll want to text the client.');
+  if (why === null) return;
 
   try {
+    const canceledAt = new Date().toISOString();
     for (const b of futureInSeries) {
-      await DB.updateBooking(b.id, { status: 'canceled' });
+      await DB.updateBooking(b.id, { status: 'canceled', canceledAt, canceledBy: 'admin', canceledNote: why.trim() });
     }
     await refreshData();
     renderAll();
