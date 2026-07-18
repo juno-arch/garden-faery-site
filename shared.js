@@ -510,6 +510,7 @@
   // The garden set, in order. Both are the artists' own official uploads.
   const SONGS = [
     'https://soundcloud.com/emoryhall/come-sit-by-my-garden',
+    'https://soundcloud.com/mamabirdrecordingco/haley-heynderickx-oom-sha-la-la',
     'https://soundcloud.com/courtney-barnett-milk/courtney-barnett-avant'
   ];
   const SONG_OPTS = { color: '#9C5A8E', hide_related: true, show_comments: false, show_reposts: false, show_teaser: false, visual: false };
@@ -523,7 +524,7 @@
         '<div class="gf-radio-panel" hidden>'
       +   '<p class="gf-radio-note">a song for you, while you wander</p>'
       +   '<iframe class="gf-radio-frame" title="come sit by my garden — Emory Hall (SoundCloud player)" allow="autoplay" src="' + SONG_EMBED + '"></iframe>'
-      +   '<p class="gf-radio-credit"><a href="https://trevorhallmusic.bandcamp.com/track/come-sit-by-my-garden" target="_blank" rel="noopener">&ldquo;come sit by my garden&rdquo;</a> &mdash; Emory Hall &amp; Trevor Hall, then <a href="https://courtneybarnett.bandcamp.com" target="_blank" rel="noopener">&ldquo;Avant Gardener&rdquo;</a> &mdash; Courtney Barnett</p>'
+      +   '<p class="gf-radio-credit">the set: <a href="https://trevorhallmusic.bandcamp.com/track/come-sit-by-my-garden" target="_blank" rel="noopener">&ldquo;come sit by my garden&rdquo;</a> &mdash; Emory Hall &amp; Trevor Hall &middot; <a href="https://haleyheynderickx.bandcamp.com/track/oom-sha-la-la" target="_blank" rel="noopener">&ldquo;Oom Sha La La&rdquo;</a> &mdash; Haley Heynderickx &middot; <a href="https://courtneybarnett.bandcamp.com" target="_blank" rel="noopener">&ldquo;Avant Gardener&rdquo;</a> &mdash; Courtney Barnett</p>'
       + '</div>'
       + '<button type="button" class="gf-radio-toggle" aria-expanded="false" aria-label="Garden song — open the player">'
       +   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18.5a2.8 2.8 0 1 1-1.8-2.62V6.2a1 1 0 0 1 .76-.97l8-2a1 1 0 0 1 1.24.97v10.3a2.8 2.8 0 1 1-1.8-2.62V7.28l-6.4 1.6z" fill="currentColor"/></svg>'
