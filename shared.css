@@ -454,3 +454,55 @@ body.gf-song-playing .gf-bee-wrap.wiggling {
   .gf-bee-tip,
   .gf-bee-particle { display: none !important; }
 }
+
+/* --- Garden radio: floating corner player (chat-box style), every page.
+   Injected by shared.js. Collapsed round launcher; panel opens above it.
+   Launcher pulses rose while the song plays (body.gf-song-playing is also
+   what makes the bee bob). --- */
+.gf-radio {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  font-family: var(--font-body, 'Inter', sans-serif);
+}
+.gf-radio-toggle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: var(--wine, #3B2A40);
+  color: var(--cream, #F2EDE8);
+  box-shadow: 0 4px 16px rgba(59, 42, 64, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.gf-radio-toggle:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(59, 42, 64, 0.45); }
+.gf-radio-toggle svg { width: 24px; height: 24px; }
+.gf-radio.playing .gf-radio-toggle { animation: gf-radio-pulse 1.7s ease-in-out infinite; }
+@keyframes gf-radio-pulse {
+  0%, 100% { box-shadow: 0 4px 16px rgba(59, 42, 64, 0.35); }
+  50%      { box-shadow: 0 4px 24px rgba(156, 90, 142, 0.7); }
+}
+.gf-radio-panel {
+  width: min(330px, calc(100vw - 32px));
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid rgba(59, 42, 64, 0.08);
+  box-shadow: 0 8px 30px rgba(59, 42, 64, 0.18);
+  padding: 12px 12px 10px;
+}
+.gf-radio-note { font-size: 13px; font-style: italic; color: var(--gray-600, #6e5f55); margin: 0 0 8px; text-align: center; }
+.gf-radio-frame { border: 0; width: 100%; height: 166px; border-radius: 8px; display: block; }
+.gf-radio-credit { font-size: 11px; color: var(--gray-400, #a89c91); margin: 8px 0 0; text-align: center; }
+.gf-radio-credit a { color: var(--rose, #9C5A8E); }
+@media (max-width: 480px) {
+  .gf-radio { right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+}

@@ -502,12 +502,76 @@
     // is fine because we recompute each flight — nothing to do here.
   }
 
+  // --- 4. Garden radio: floating corner player (chat-box style), every page.
+  // "come sit by my garden" (Emory Hall & Trevor Hall) in a dock, bottom
+  // right, collapsed to a round launcher until tapped. The official
+  // SoundCloud embed streams from Emory's account; its widget API lets the
+  // bee toggle the song (window.gfSongToggle, called by onBeeClick).
+  const SONG_EMBED = 'https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Femoryhall%2Fcome-sit-by-my-garden&color=%239C5A8E&auto_play=false&hide_related=true&show_comments=false&show_reposts=false&show_teaser=false&visual=false';
+
+  function injectGardenRadio() {
+    if (document.querySelector('.gf-radio')) return;
+    const dock = document.createElement('div');
+    dock.className = 'gf-radio';
+    dock.innerHTML =
+        '<div class="gf-radio-panel" hidden>'
+      +   '<p class="gf-radio-note">a song for you, while you wander</p>'
+      +   '<iframe class="gf-radio-frame" title="come sit by my garden — Emory Hall (SoundCloud player)" allow="autoplay" src="' + SONG_EMBED + '"></iframe>'
+      +   '<p class="gf-radio-credit">&ldquo;come sit by my garden&rdquo; &mdash; Emory Hall &amp; Trevor Hall &middot; <a href="https://trevorhallmusic.bandcamp.com/track/come-sit-by-my-garden" target="_blank" rel="noopener">on Bandcamp</a></p>'
+      + '</div>'
+      + '<button type="button" class="gf-radio-toggle" aria-expanded="false" aria-label="Garden song — open the player">'
+      +   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18.5a2.8 2.8 0 1 1-1.8-2.62V6.2a1 1 0 0 1 .76-.97l8-2a1 1 0 0 1 1.24.97v10.3a2.8 2.8 0 1 1-1.8-2.62V7.28l-6.4 1.6z" fill="currentColor"/></svg>'
+      + '</button>';
+    document.body.appendChild(dock);
+
+    const btn = dock.querySelector('.gf-radio-toggle');
+    const panel = dock.querySelector('.gf-radio-panel');
+    const OPEN_KEY = 'gf_radio_open';
+    function setOpen(open) {
+      panel.hidden = !open;
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.setAttribute('aria-label', open ? 'Garden song — close the player' : 'Garden song — open the player');
+      try { localStorage.setItem(OPEN_KEY, open ? '1' : ''); } catch (e) {}
+    }
+    btn.addEventListener('click', () => setOpen(panel.hidden));
+    let openPref = false;
+    try { openPref = localStorage.getItem(OPEN_KEY) === '1'; } catch (e) {}
+    if (openPref) setOpen(true);
+
+    // SoundCloud widget API — loaded on demand, then the bee can be the DJ.
+    function wireWidget() {
+      if (!window.SC || !window.SC.Widget) return;
+      const widget = SC.Widget(dock.querySelector('.gf-radio-frame'));
+      let playing = false;
+      const mark = (on) => {
+        playing = on;
+        document.body.classList.toggle('gf-song-playing', on);
+        dock.classList.toggle('playing', on);
+      };
+      widget.bind(SC.Widget.Events.PLAY,   () => mark(true));
+      widget.bind(SC.Widget.Events.PAUSE,  () => mark(false));
+      widget.bind(SC.Widget.Events.FINISH, () => mark(false));
+      window.gfSongToggle = function () {
+        if (playing) { widget.pause(); return false; }
+        widget.play(); return true;
+      };
+    }
+    if (window.SC && window.SC.Widget) wireWidget();
+    else {
+      const s = document.createElement('script');
+      s.src = 'https://w.soundcloud.com/player/api.js';
+      s.onload = wireWidget;
+      document.head.appendChild(s);
+    }
+  }
+
   ready(() => {
     injectBotanicals();
     // Meadow retired in the 2026 brand refresh — see injectMeadow() above
     // for the implementation, kept for reference. The bee now cruises
     // without a meadow but still uses [data-bee-landing] for its opening
     // act on pages that nominate a CTA.
+    injectGardenRadio();
     injectBee(null);
   });
 })();
