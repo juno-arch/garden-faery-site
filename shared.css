@@ -501,6 +501,18 @@ body.gf-song-playing .gf-bee-wrap.wiggling {
 }
 .gf-radio-note { font-size: 13px; font-style: italic; color: var(--gray-600, #6e5f55); margin: 0 0 8px; text-align: center; }
 .gf-radio-frame { border: 0; width: 100%; height: 166px; border-radius: 8px; display: block; }
+.gf-radio-row { text-align: center; margin: 8px 0 0; }
+.gf-radio-next {
+  border: 1px solid rgba(156, 90, 142, 0.35);
+  background: transparent;
+  color: var(--rose, #9C5A8E);
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.gf-radio-next:hover { background: rgba(156, 90, 142, 0.08); }
 .gf-radio-credit { font-size: 11px; color: var(--gray-400, #a89c91); margin: 8px 0 0; text-align: center; }
 .gf-radio-credit a { color: var(--rose, #9C5A8E); }
 @media (max-width: 480px) {

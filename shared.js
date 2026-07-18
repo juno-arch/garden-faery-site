@@ -525,6 +525,7 @@
         '<div class="gf-radio-panel" hidden>'
       +   '<p class="gf-radio-note">a song for you, while you wander</p>'
       +   '<iframe class="gf-radio-frame" title="come sit by my garden — Emory Hall (SoundCloud player)" allow="autoplay" src="' + SONG_EMBED + '"></iframe>'
+      +   '<div class="gf-radio-row"><button type="button" class="gf-radio-next" aria-label="Skip to the next song">next song &rsaquo;</button></div>'
       +   '<p class="gf-radio-credit">the set: <a href="https://haleyheynderickx.bandcamp.com/track/oom-sha-la-la" target="_blank" rel="noopener">&ldquo;Oom Sha La La&rdquo;</a> &mdash; Haley Heynderickx &middot; <a href="https://trevorhallmusic.bandcamp.com/track/come-sit-by-my-garden" target="_blank" rel="noopener">&ldquo;come sit by my garden&rdquo;</a> &mdash; Emory Hall &amp; Trevor Hall &middot; <a href="https://courtneybarnett.bandcamp.com" target="_blank" rel="noopener">&ldquo;Avant Gardener&rdquo;</a> &mdash; Courtney Barnett</p>'
       + '</div>'
       + '<button type="button" class="gf-radio-toggle" aria-expanded="false" aria-label="Garden song — open the player">'
@@ -553,46 +554,98 @@
     let pendingPlay = false;
     window.gfSongToggle = function () { pendingPlay = !pendingPlay; return pendingPlay; };
 
+    // Cross-page play-through: while the song plays we remember which track
+    // and where in it (sessionStorage, this tab only). The next page picks
+    // up from there — auto-resuming where the browser allows it, and
+    // otherwise on the visitor's first tap/click anywhere on the page.
+    const STATE_KEY = 'gf_radio_state';
+    const saveState = (st) => { try { sessionStorage.setItem(STATE_KEY, JSON.stringify(st)); } catch (e) {} };
+    const loadState = () => { try { return JSON.parse(sessionStorage.getItem(STATE_KEY) || 'null'); } catch (e) { return null; } };
+
     function wireWidget() {
       if (!window.SC || !window.SC.Widget) return;
       const widget = SC.Widget(dock.querySelector('.gf-radio-frame'));
       let playing = false;
       let isReady = false;
+      let songIdx = 0;
+      let lastPos = 0;
+      let posTimer = null;
+
+      const snapshot = () => saveState({ idx: songIdx, pos: lastPos, playing: playing, t: Date.now() });
+      const trackPos = (on) => {
+        clearInterval(posTimer);
+        if (on) posTimer = setInterval(() => { widget.getPosition((ms) => { lastPos = ms || 0; snapshot(); }); }, 2000);
+      };
+      const mark = (on) => {
+        playing = on;
+        document.body.classList.toggle('gf-song-playing', on);
+        dock.classList.toggle('playing', on);
+        trackPos(on);
+        snapshot();
+      };
+
+      const loadSong = (idx, autoPlay, seekMs) => {
+        songIdx = ((idx % SONGS.length) + SONGS.length) % SONGS.length;
+        lastPos = seekMs || 0;
+        widget.load(SONGS[songIdx], Object.assign({ auto_play: !!autoPlay, callback: () => {
+          if (seekMs) widget.seekTo(seekMs);
+        } }, SONG_OPTS));
+        snapshot();
+      };
+
       const onReady = () => {
         if (isReady) return;
         isReady = true;
-        if (pendingPlay) { pendingPlay = false; widget.play(); }
+        // Restore where the last page left off (same tab, recent).
+        const st = loadState();
+        const fresh = st && (Date.now() - (st.t || 0)) < 10 * 60 * 1000;
+        if (fresh && (st.idx || st.pos)) {
+          const resume = !!st.playing && !pendingPlay;
+          if (st.idx !== 0 || st.pos > 1500) loadSong(st.idx || 0, resume || pendingPlay, st.pos || 0);
+          else if (resume || pendingPlay) widget.play();
+          if (resume) {
+            // If the browser blocks the automatic hand-off, the visitor's
+            // first tap anywhere picks the song back up where it was.
+            const resumeTouch = () => {
+              document.removeEventListener('pointerdown', resumeTouch, true);
+              setTimeout(() => { if (!playing) widget.play(); }, 80);
+            };
+            document.addEventListener('pointerdown', resumeTouch, true);
+            setTimeout(() => { if (playing) document.removeEventListener('pointerdown', resumeTouch, true); }, 4000);
+          }
+          pendingPlay = false;
+        } else if (pendingPlay) {
+          pendingPlay = false;
+          widget.play();
+        }
       };
       widget.bind(SC.Widget.Events.READY, onReady);
       // Ready-probe fallback: if READY already fired before we bound (slow
       // script, fast widget), any responding callback proves readiness.
       widget.isPaused(onReady);
-      const mark = (on) => {
-        playing = on;
-        document.body.classList.toggle('gf-song-playing', on);
-        dock.classList.toggle('playing', on);
-      };
-      let songIdx = 0;
+
       widget.bind(SC.Widget.Events.PLAY,   () => mark(true));
       widget.bind(SC.Widget.Events.PAUSE,  () => mark(false));
       widget.bind(SC.Widget.Events.FINISH, () => {
-        songIdx++;
-        if (songIdx < SONGS.length) {
+        if (songIdx + 1 < SONGS.length) {
           // Next song in the set — keep the music (and the bee's bob) going.
-          widget.load(SONGS[songIdx], Object.assign({ auto_play: true }, SONG_OPTS));
+          loadSong(songIdx + 1, true, 0);
         } else {
           // Set's over: rest the needle back on track one for next time.
-          songIdx = 0;
           mark(false);
-          widget.load(SONGS[0], Object.assign({ auto_play: false }, SONG_OPTS));
+          loadSong(0, false, 0);
         }
       });
+
       window.gfSongToggle = function () {
         if (playing) { widget.pause(); return false; }
         if (isReady) widget.play();
         else pendingPlay = true;
         return true;
       };
+      // The next-song button — skips ahead (wraps around the set) and plays.
+      window.gfSongNext = function () { loadSong(songIdx + 1, true, 0); };
+      dock.querySelector('.gf-radio-next')?.addEventListener('click', () => window.gfSongNext());
     }
     if (window.SC && window.SC.Widget) wireWidget();
     else {
