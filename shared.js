@@ -507,7 +507,13 @@
   // right, collapsed to a round launcher until tapped. The official
   // SoundCloud embed streams from Emory's account; its widget API lets the
   // bee toggle the song (window.gfSongToggle, called by onBeeClick).
-  const SONG_EMBED = 'https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Femoryhall%2Fcome-sit-by-my-garden&color=%239C5A8E&auto_play=false&hide_related=true&show_comments=false&show_reposts=false&show_teaser=false&visual=false';
+  // The garden set, in order. Both are the artists' own official uploads.
+  const SONGS = [
+    'https://soundcloud.com/emoryhall/come-sit-by-my-garden',
+    'https://soundcloud.com/courtney-barnett-milk/courtney-barnett-avant'
+  ];
+  const SONG_OPTS = { color: '#9C5A8E', hide_related: true, show_comments: false, show_reposts: false, show_teaser: false, visual: false };
+  const SONG_EMBED = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(SONGS[0]) + '&color=%239C5A8E&auto_play=false&hide_related=true&show_comments=false&show_reposts=false&show_teaser=false&visual=false';
 
   function injectGardenRadio() {
     if (document.querySelector('.gf-radio')) return;
@@ -517,7 +523,7 @@
         '<div class="gf-radio-panel" hidden>'
       +   '<p class="gf-radio-note">a song for you, while you wander</p>'
       +   '<iframe class="gf-radio-frame" title="come sit by my garden — Emory Hall (SoundCloud player)" allow="autoplay" src="' + SONG_EMBED + '"></iframe>'
-      +   '<p class="gf-radio-credit">&ldquo;come sit by my garden&rdquo; &mdash; Emory Hall &amp; Trevor Hall &middot; <a href="https://trevorhallmusic.bandcamp.com/track/come-sit-by-my-garden" target="_blank" rel="noopener">on Bandcamp</a></p>'
+      +   '<p class="gf-radio-credit"><a href="https://trevorhallmusic.bandcamp.com/track/come-sit-by-my-garden" target="_blank" rel="noopener">&ldquo;come sit by my garden&rdquo;</a> &mdash; Emory Hall &amp; Trevor Hall, then <a href="https://courtneybarnett.bandcamp.com" target="_blank" rel="noopener">&ldquo;Avant Gardener&rdquo;</a> &mdash; Courtney Barnett</p>'
       + '</div>'
       + '<button type="button" class="gf-radio-toggle" aria-expanded="false" aria-label="Garden song — open the player">'
       +   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18.5a2.8 2.8 0 1 1-1.8-2.62V6.2a1 1 0 0 1 .76-.97l8-2a1 1 0 0 1 1.24.97v10.3a2.8 2.8 0 1 1-1.8-2.62V7.28l-6.4 1.6z" fill="currentColor"/></svg>'
@@ -548,9 +554,21 @@
         document.body.classList.toggle('gf-song-playing', on);
         dock.classList.toggle('playing', on);
       };
+      let songIdx = 0;
       widget.bind(SC.Widget.Events.PLAY,   () => mark(true));
       widget.bind(SC.Widget.Events.PAUSE,  () => mark(false));
-      widget.bind(SC.Widget.Events.FINISH, () => mark(false));
+      widget.bind(SC.Widget.Events.FINISH, () => {
+        songIdx++;
+        if (songIdx < SONGS.length) {
+          // Next song in the set — keep the music (and the bee's bob) going.
+          widget.load(SONGS[songIdx], Object.assign({ auto_play: true }, SONG_OPTS));
+        } else {
+          // Set's over: rest the needle back on track one for next time.
+          songIdx = 0;
+          mark(false);
+          widget.load(SONGS[0], Object.assign({ auto_play: false }, SONG_OPTS));
+        }
+      });
       window.gfSongToggle = function () {
         if (playing) { widget.pause(); return false; }
         widget.play(); return true;
