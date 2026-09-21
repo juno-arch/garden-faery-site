@@ -71,6 +71,7 @@
       --band-dark-2: #533B59;
       --hairline: rgba(59, 42, 64, 0.14);
       --card-soft: #FBF8F4;
+      --coral-light: #F3DFA0; /* coral lifted for legibility on dark photos */
     }
     html { scroll-behavior: smooth; }
     body { font-size: 17px; line-height: 1.7; }
@@ -146,7 +147,7 @@
     }
     .hero-eyebrow {
       font-size: 12.5px; letter-spacing: 0.3em; text-transform: uppercase;
-      color: #F3DFA0; font-weight: 600; margin-bottom: 22px;
+      color: var(--coral-light); font-weight: 600; margin-bottom: 22px;
       text-shadow: 0 1px 8px rgba(0,0,0,0.4);
     }
     .hero-band h1 {
@@ -175,11 +176,6 @@
       box-shadow: 0 4px 18px rgba(200, 162, 76, 0.45);
     }
     .btn-pill:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(200, 162, 76, 0.55); }
-    .btn-pill.ghost {
-      background: transparent; color: #fff; border-color: rgba(255,255,255,0.75);
-      box-shadow: none;
-    }
-    .btn-pill.ghost:hover { background: rgba(255,255,255,0.14); }
 
     /* ---------- section shells ---------- */
     section.page-band { padding-block: 96px; }
@@ -208,7 +204,6 @@
       box-shadow: 0 18px 50px rgba(59, 42, 64, 0.18);
     }
     .photo-block img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-    .photo-block.short { aspect-ratio: 4 / 3.4; }
     .photo-block figcaption {
       position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%);
       z-index: 1; white-space: nowrap; max-width: 86%; overflow: hidden; text-overflow: ellipsis;
@@ -348,7 +343,7 @@
       display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap;
       font-size: 16px;
     }
-    .avg { color: var(--coral); font-size: 1.15rem; letter-spacing: 3px; }
+    .avg { color: var(--coral); font-size: 18px; letter-spacing: 0.3em; }
     .quotes { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 40px; align-items: start; }
     .quote { background: var(--card-soft); border: 1px solid var(--hairline); border-radius: 22px; padding: 32px 30px 28px; margin: 0; }
     .quote.feature { background: var(--peach); border-color: transparent; margin-top: 26px; }
@@ -382,7 +377,7 @@
     }
     .form-btn {
       width: 100%; padding: 15px; border: none; cursor: pointer;
-      background: var(--rose); color: white;
+      background: var(--rose); color: #fff;
       border-radius: 999px; font-size: 16px; font-weight: 700;
       font-family: var(--font-body);
       transition: background 0.2s, transform 0.2s;
@@ -411,7 +406,7 @@
       background: var(--cream); color: var(--wine);
     }
     .newsletter-input:focus { outline: none; border-color: var(--rose); box-shadow: 0 0 0 3px rgba(156, 90, 142,0.18); }
-    .newsletter-btn { padding: 12px 22px; background: var(--rose); color: white; border: none; border-radius: 999px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: var(--font-body); white-space: nowrap; transition: background 0.2s; }
+    .newsletter-btn { padding: 12px 22px; background: var(--rose); color: #fff; border: none; border-radius: 999px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: var(--font-body); white-space: nowrap; transition: background 0.2s; }
     .newsletter-btn:hover { background: var(--wine); }
 
     /* admin login (footer, discreet) */
@@ -419,12 +414,12 @@
     .admin-login-trigger { background: none; border: none; color: inherit; font: inherit; cursor: pointer; padding: 0 6px; opacity: inherit; }
     .admin-login-trigger:hover { text-decoration: underline; }
     .admin-login-form { display: inline-flex; gap: 4px; align-items: center; flex-wrap: wrap; justify-content: center; margin-left: 4px; }
-    .admin-login-form input { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25); color: var(--accent-1); padding: 3px 8px; border-radius: 4px; font: inherit; font-size: 11px; width: 72px; }
-    .admin-login-form input:focus { outline: none; border-color: var(--accent-1); }
-    .admin-login-form input::placeholder { color: var(--accent-1); opacity: 0.6; }
-    .admin-login-form button { background: var(--accent-1); color: var(--text-primary); border: none; padding: 3px 9px; border-radius: 4px; cursor: pointer; font: inherit; font-size: 11px; font-weight: 700; }
+    .admin-login-form input { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25); color: var(--rose); padding: 3px 8px; border-radius: 4px; font: inherit; font-size: 11px; width: 72px; }
+    .admin-login-form input:focus { outline: none; border-color: var(--rose); }
+    .admin-login-form input::placeholder { color: var(--rose); opacity: 0.6; }
+    .admin-login-form button { background: var(--rose); color: var(--wine); border: none; padding: 3px 9px; border-radius: 4px; cursor: pointer; font: inherit; font-size: 11px; font-weight: 700; }
     .admin-login-form button:disabled { opacity: 0.5; cursor: wait; }
-    .admin-login-toggle { background: none; color: var(--accent-1); font-weight: normal; font-size: 13px; padding: 2px 4px; line-height: 1; }
+    .admin-login-toggle { background: none; color: var(--rose); font-weight: normal; font-size: 13px; padding: 2px 4px; line-height: 1; }
     .admin-login-toggle:hover { opacity: 0.75; }
     .admin-login-err { color: #f0c4c4; font-size: 11px; }
 
@@ -444,7 +439,6 @@
       .hero-center { padding: 90px 20px 70px; }
     }
     @media (max-width: 430px) {
-      .gallery-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
       .hero-cta-row .btn-pill { flex: 1 1 100%; }
     }
 </style>
@@ -467,7 +461,7 @@
 
   <main id="top">
 
-  <!-- HERO — full-bleed zinnia band -->
+  <!-- HERO — full-bleed wheelbarrow-of-blooms band -->
   <div class="hero-band">
     <div class="hero-center">
       <p class="hero-eyebrow">Organic garden care &middot; Arcata &amp; Humboldt County</p>
@@ -701,7 +695,7 @@
   <footer>
     <div style="margin:0 0 12px;"><span class="gf-mark" style="display:inline-block;width:46px;height:46px;color:#f7d5b9;opacity:0.92;" aria-hidden="true"></span></div>
     <a href="mailto:taya@gardenfaery.love">taya@gardenfaery.love</a> &middot; Arcata, CA
-    <div style="margin-top:6px;"><a href="https://gardenfaery.love" style="color:var(--accent-1); text-decoration:none; font-size:13px;">gardenfaery.love</a></div>
+    <div style="margin-top:6px;"><a href="https://gardenfaery.love" style="color:var(--accent-2); text-decoration:none; font-size:13px;">gardenfaery.love</a></div>
     <div class="social-links">
       <a href="https://www.facebook.com/profile.php?id=61578540137419" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
       <a href="https://www.instagram.com/gardenfaery__/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
