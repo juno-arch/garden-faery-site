@@ -94,18 +94,32 @@
     .email-alt { text-align: center; font-size: 13.5px; color: var(--text-secondary); margin: 16px 0 0; }
     .email-alt a { color: var(--wine); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
     .fine { font-size: 13px; color: var(--text-secondary); line-height: 1.5; text-align: center; margin-top: 6px; }
-  </style>
+  
+    /* nav: tinted wine bar with cream links — matches the homepage */
+    .site-nav { background: rgba(48, 33, 53, 0.88); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1px solid rgba(255,255,255,0.14); }
+    .site-nav .nav-logo { color: var(--cream); }
+    .site-nav .nav-logo-img { filter: brightness(0) invert(1); opacity: 0.92; }
+    .site-nav .nav-links a { color: rgba(242, 237, 232, 0.78); }
+    .site-nav .nav-links a:hover { color: var(--cream); }
+    .site-nav .nav-links a.active { color: var(--cream); border-bottom-color: var(--coral); }
+    .site-nav .hamburger svg { stroke: var(--cream); }
+    @media (max-width: 600px) {
+      .site-nav .nav-links { background: rgba(48, 33, 53, 0.97); border-bottom: 1px solid rgba(255,255,255,0.14); }
+      .site-nav .nav-links a.active { background: rgba(255,255,255,0.08); }
+    }
+</style>
 </head>
 <body>
   <nav class="site-nav">
     <a href="index.html" class="nav-logo"><img src="garden-faery-logo.svg" alt="" class="nav-logo-img" aria-hidden="true" decoding="async">Garden Faery</a>
     <button class="hamburger" onclick="var m=document.querySelector('.nav-links');m.classList.toggle('open');this.setAttribute('aria-expanded',m.classList.contains('open'))" aria-label="Menu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div class="nav-links">
-      <a href="index.html">Home</a>
-      <a href="about.html">About Me</a>
-      <a href="book.html" class="active">Book</a>
-      <a href="portal.html">Sign in</a>
-    </div>
+    <a href="index.html">Home</a>
+    <a href="index.html#about">About Me</a>
+    <a href="index.html#reviews">Reviews</a>
+    <a href="index.html#contact">Contact</a>
+    <a href="portal.html">Sign in</a>
+</div>
   </nav>
 
   <main>

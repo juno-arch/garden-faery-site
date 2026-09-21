@@ -392,6 +392,19 @@ body {
   color: #fff;
   border-color: var(--plum);
 }
+
+    /* nav: tinted wine bar with cream links — matches the homepage */
+    .site-nav { background: rgba(48, 33, 53, 0.88); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1px solid rgba(255,255,255,0.14); }
+    .site-nav .nav-logo { color: var(--cream); }
+    .site-nav .nav-logo-img { filter: brightness(0) invert(1); opacity: 0.92; }
+    .site-nav .nav-links a { color: rgba(242, 237, 232, 0.78); }
+    .site-nav .nav-links a:hover { color: var(--cream); }
+    .site-nav .nav-links a.active { color: var(--cream); border-bottom-color: var(--coral); }
+    .site-nav .hamburger svg { stroke: var(--cream); }
+    @media (max-width: 600px) {
+      .site-nav .nav-links { background: rgba(48, 33, 53, 0.97); border-bottom: 1px solid rgba(255,255,255,0.14); }
+      .site-nav .nav-links a.active { background: rgba(255,255,255,0.08); }
+    }
 </style>
 </head>
 <body>
@@ -404,8 +417,9 @@ body {
 </button>
   <div class="nav-links">
     <a href="index.html">Home</a>
-    <a href="about.html">About Me</a>
-    <a href="book.html">Book</a>
+    <a href="index.html#about">About Me</a>
+    <a href="index.html#reviews">Reviews</a>
+    <a href="index.html#contact">Contact</a>
     <a href="portal.html" class="active">Sign in</a>
 </div>
 </nav>
