@@ -300,37 +300,22 @@
     .how-grid .soil p { color: var(--gray-600); }
     .how-grid .soil p strong { color: var(--wine); }
 
-    /* sow this week */
-    .sow-week { max-width: 780px; margin: 44px auto 0; }
+    /* sow this week — a fourth tile in the stats family: peach ground,
+       letterspaced eyebrow, italic Fraunces theme line */
+    .sow-week { margin-top: 18px; }
     .sow-week-card {
-      display: grid;
-      grid-template-columns: 86px 1fr;
-      gap: 18px;
-      align-items: center;
-      background: linear-gradient(135deg, rgba(200,162,76,0.16) 0%, rgba(156,90,142,0.12) 100%);
-      border: 1.5px solid var(--hairline);
-      border-radius: 18px;
-      padding: 18px 20px;
-      text-decoration: none;
-      color: var(--text-primary);
-      transition: transform 0.2s, box-shadow 0.2s;
+      background: var(--peach); border-radius: 18px; padding: 26px 28px;
+      display: grid; gap: 7px;
     }
-    .sow-week-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
-    .sow-week-date { text-align: center; background: var(--white); border-radius: 12px; padding: 10px 6px; }
-    .sow-week-date-month { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--rose); }
-    .sow-week-date-num { font-family: 'Elsie Swash Caps', serif; font-size: 28px; font-weight: 900; color: var(--text-primary); line-height: 1; margin: 2px 0 4px; }
-    .sow-week-date-case { font-size: 9px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; color: var(--gray-600); }
-    .sow-week-body { display: flex; flex-direction: column; gap: 4px; }
-    .sow-week-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; color: var(--rose); }
-    .sow-week-title { font-family: var(--font-heading); font-size: 20px; font-weight: 600; color: var(--text-primary); line-height: 1.2; }
-    .sow-week-crops { font-size: 13px; color: var(--text-secondary); line-height: 1.45; }
-    .sow-week-cta { font-size: 12px; font-weight: 700; color: var(--rose); margin-top: 4px; }
-    .sow-week-card.off-season .sow-week-date { background: var(--gray-100); }
-    @media (max-width: 480px) {
-      .sow-week-card { grid-template-columns: 70px 1fr; gap: 12px; padding: 14px; }
-      .sow-week-date-num { font-size: 22px; }
-      .sow-week-title { font-size: 17px; }
+    .sow-week-eyebrow {
+      font-size: 11.5px; letter-spacing: 0.24em; text-transform: uppercase;
+      color: var(--rose); font-weight: 600;
     }
+    .sow-week-title {
+      font-family: var(--font-heading); font-style: italic; font-weight: 400;
+      font-size: clamp(22px, 3vw, 28px); line-height: 1.2; color: var(--wine);
+    }
+    .sow-week-crops { font-size: 15.5px; color: var(--gray-600); line-height: 1.55; }
 
     /* ---------- reviews: Juliet-style quote cards ---------- */
     .reviews-summary {
@@ -758,16 +743,9 @@
       if (!section) return;
       var c = currentWindow();
       section.innerHTML = '<div class="sow-week-card">' +
-        '<div class="sow-week-date">' +
-          '<div class="sow-week-date-month">' + MONTHS[c.m - 1] + '</div>' +
-          '<div class="sow-week-date-num">' + c.d + '</div>' +
-          '<div class="sow-week-date-case">Humboldt</div>' +
-        '</div>' +
-        '<div class="sow-week-body">' +
-          '<div class="sow-week-eyebrow">Sow this week</div>' +
-          '<div class="sow-week-title">' + c.theme + '</div>' +
-          '<div class="sow-week-crops">' + c.crops + '</div>' +
-        '</div>' +
+        '<div class="sow-week-eyebrow">Sow this week &middot; Humboldt &middot; ' + MONTHS[c.m - 1] + ' ' + c.d + '</div>' +
+        '<div class="sow-week-title">' + c.theme + '</div>' +
+        '<div class="sow-week-crops">' + c.crops + '</div>' +
       '</div>';
     })();
 
