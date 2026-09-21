@@ -24,11 +24,12 @@
   <meta name="apple-mobile-web-app-title" content="Garden Faery">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Garden Faery | Gardener in Arcata & Humboldt County, CA</title>
+  <link rel="preload" as="image" href="hero-blooms.jpg" fetchpriority="high">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap"></noscript>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@900&family=Fraunces:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@900&family=Fraunces:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@900&family=Fraunces:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="shared.css?v=2026-07-18e">
   <script src="shared.js?v=2026-07-18e" defer></script>
   <script type="application/ld+json">
@@ -87,6 +88,17 @@
     .quotes .reveal.in:nth-child(4) { transition-delay: 0.36s; }
     .timeline .reveal.in:nth-child(2) { transition-delay: 0.1s; }
     .timeline .reveal.in:nth-child(3) { transition-delay: 0.2s; }
+    .timeline .reveal.in:nth-child(4) { transition-delay: 0.3s; }
+    .timeline .reveal.in:nth-child(5) { transition-delay: 0.4s; }
+    /* timeline motion: items slide in from the rail, dots pop, line draws */
+    .timeline-item.reveal.pre { transform: translateX(-26px); }
+    .timeline-item.reveal.in { transform: none; }
+    .timeline-item.reveal::before { transition: transform 0.5s cubic-bezier(.34,1.56,.64,1) 0.3s; }
+    .timeline-item.reveal.pre::before { transform: scale(0); }
+    .timeline-item.reveal.in::before { transform: scale(1); }
+    .float-card.reveal .timeline::before { transform-origin: top; transition: transform 1.8s cubic-bezier(.2,.7,.3,1) 0.25s; }
+    .float-card.reveal.pre .timeline::before { transform: scaleY(0); }
+    .float-card.reveal.in .timeline::before { transform: scaleY(1); }
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       .reveal.pre { opacity: 1; transform: none; }
@@ -282,6 +294,27 @@
     .timeline-item h3 { font-family: var(--font-heading); font-weight: 500; font-size: 21px; margin: 2px 0 4px; color: var(--wine); }
     .timeline-item p { font-size: 15.5px; color: var(--gray-600); margin: 0; line-height: 1.55; }
     .timeline-item.bloom h3 { color: var(--rose); }
+    .tl-photos { margin: 12px 0 2px; }
+    .tl-photos summary {
+      cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 7px;
+      font-size: 11.5px; letter-spacing: 0.2em; text-transform: uppercase;
+      font-weight: 600; color: var(--rose); user-select: none;
+    }
+    .tl-photos summary::-webkit-details-marker { display: none; }
+    .tl-photos summary::after { content: '\25BE'; font-size: 12px; transition: transform 0.25s; }
+    .tl-photos[open] summary::after { transform: rotate(180deg); }
+    .tl-photos summary:hover { color: var(--wine); }
+    .tl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
+    .photo-card { margin: 0; }
+    .photo-card img {
+      width: 100%; border-radius: 16px;
+      object-fit: cover; aspect-ratio: 4/3; display: block;
+      box-shadow: 0 8px 24px rgba(59, 42, 64, 0.14);
+    }
+    .photo-card figcaption {
+      margin-top: 9px; font-size: 12.5px; color: var(--gray-600);
+      text-align: center; line-height: 1.45;
+    }
 
     /* how-i-work pills */
     .how-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 36px; }
@@ -296,22 +329,18 @@
     .how-grid .soil p { color: var(--gray-600); }
     .how-grid .soil p strong { color: var(--wine); }
 
-    /* sow this week — a fourth tile in the stats family: peach ground,
-       letterspaced eyebrow, italic Fraunces theme line */
-    .sow-week { margin-top: 18px; }
-    .sow-week-card {
-      background: var(--peach); border-radius: 18px; padding: 26px 28px;
-      display: grid; gap: 7px;
+    /* sow this week — a slim seasonal ribbon above the nav (the same
+       pattern as the reference site's top banner) */
+    .sow-strip {
+      background: var(--coral); color: var(--wine);
+      text-align: center; padding: 9px 18px;
+      font-size: 13px; font-weight: 600; line-height: 1.45;
     }
-    .sow-week-eyebrow {
-      font-size: 11.5px; letter-spacing: 0.24em; text-transform: uppercase;
-      color: var(--rose); font-weight: 600;
+    .sow-strip b {
+      text-transform: uppercase; letter-spacing: 0.14em; font-size: 11.5px;
+      margin-right: 6px;
     }
-    .sow-week-title {
-      font-family: var(--font-heading); font-style: italic; font-weight: 400;
-      font-size: clamp(22px, 3vw, 28px); line-height: 1.2; color: var(--wine);
-    }
-    .sow-week-crops { font-size: 15.5px; color: var(--gray-600); line-height: 1.55; }
+    .sow-strip em { font-family: var(--font-heading); font-style: italic; font-weight: 400; font-size: 14.5px; }
 
     /* ---------- reviews: Juliet-style quote cards ---------- */
     .reviews-summary {
@@ -411,6 +440,7 @@
       .book-grid { grid-template-columns: 1fr; }
       .how-grid { grid-template-columns: 1fr; }
       .float-card { padding: 34px 24px; }
+      .tl-grid { grid-template-columns: 1fr; }
       .hero-center { padding: 90px 20px 70px; }
     }
     @media (max-width: 430px) {
@@ -421,6 +451,7 @@
 </head>
 <body>
 
+  <div class="sow-strip" id="sow-week-section"></div>
 
   <nav class="site-nav">
     <a href="index.html" class="nav-logo"><img src="garden-faery-logo.svg" alt="" class="nav-logo-img" aria-hidden="true" decoding="async">Garden Faery</a>
@@ -484,7 +515,6 @@
         <div class="stat reveal"><b>By the visit</b>
           <span><strong>Weekly, monthly, or one-off</strong> &mdash; whatever your garden needs</span></div>
       </div>
-      <div class="sow-week reveal" id="sow-week-section"></div>
 </div>
 </section>
 
@@ -540,15 +570,54 @@
           <div class="timeline-item reveal">
             <div class="when">Costa Rica</div>
             <h3>Permaculture at Verde Energia</h3>
-            <p>Soil health, water flow, whole-systems growing.</p>          </div>
+            <p>Soil health, water flow, whole-systems growing.</p>
+          <details class="tl-photos">
+            <summary>See photos</summary>
+            <div class="tl-grid">
+            <figure class="photo-card">
+              <img src="gallery/costa-rica-turmeric.jpg" alt="Taya standing in a pool full of freshly harvested turmeric at Verde Energia, Costa Rica" loading="lazy" decoding="async">
+              <figcaption>Washing a fresh turmeric harvest at Verde Energia</figcaption>
+            </figure>
+            <figure class="photo-card">
+              <img src="gallery/costa-rica-bananas.jpg" alt="Taya cutting down a banana tree at Verde Energia permaculture farm, Costa Rica" loading="lazy" decoding="async">
+              <figcaption>Cutting down my first banana tree</figcaption>
+            </figure>
+            </div>
+          </details>          </div>
           <div class="timeline-item reveal">
             <div class="when">North Carolina</div>
             <h3>Specialty Farm Manager, Mystic Roots Farm</h3>
-            <p>Built a mushroom grow + microgreens operation from scratch.</p>          </div>
+            <p>Built a mushroom grow + microgreens operation from scratch.</p>
+          <details class="tl-photos">
+            <summary>See photos</summary>
+            <div class="tl-grid">
+            <figure class="photo-card">
+              <img src="gallery/taya-with-microgreens.jpg" alt="Taya beside a lush flat of pea microgreens she grew at Mystic Roots Farm" loading="lazy" decoding="async">
+              <figcaption>Pea microgreens I grew at Mystic Roots</figcaption>
+            </figure>
+            <figure class="photo-card">
+              <img src="gallery/taya-oyster-mushroom-harvest.jpg" alt="Taya holding baskets of pink and yellow oyster mushrooms from her Mystic Roots grow" loading="lazy" decoding="async">
+              <figcaption>A mushroom flush from my Mystic Roots grow</figcaption>
+            </figure>
+            </div>
+          </details>          </div>
           <div class="timeline-item reveal">
             <div class="when">Humboldt County</div>
             <h3>Gentle beekeeping with Missy Bee</h3>
-            <p>Came for the redwoods, stayed for the people &mdash; and put down roots.</p>          </div>
+            <p>Came for the redwoods, stayed for the people &mdash; and put down roots.</p>
+          <details class="tl-photos">
+            <summary>See photos</summary>
+            <div class="tl-grid">
+            <figure class="photo-card">
+              <img src="gallery/honeybee-on-finger.jpg" alt="A honeybee resting on Taya's fingertip in Humboldt County" loading="lazy" decoding="async">
+              <figcaption>One of my honeybees, resting on my finger</figcaption>
+            </figure>
+            <figure class="photo-card">
+              <img src="gallery/honeybees-hive-frame.jpg" alt="A top-down view of a healthy honeybee hive with bees drawing fresh white comb" loading="lazy" decoding="async">
+              <figcaption>Fresh comb on a frame from a healthy hive</figcaption>
+            </figure>
+            </div>
+          </details>          </div>
           <div class="timeline-item bloom reveal">
             <div class="when">Spring 2026</div>
             <h3>Garden Faery blooms</h3>
@@ -704,11 +773,7 @@
       var section = document.getElementById('sow-week-section');
       if (!section) return;
       var c = currentWindow();
-      section.innerHTML = '<div class="sow-week-card">' +
-        '<div class="sow-week-eyebrow">Sow this week &middot; Humboldt &middot; ' + MONTHS[c.m - 1] + ' ' + c.d + '</div>' +
-        '<div class="sow-week-title">' + c.theme + '</div>' +
-        '<div class="sow-week-crops">' + c.crops + '</div>' +
-      '</div>';
+      section.innerHTML = '<b>Sow this week in Humboldt</b> <em>' + c.theme + '</em> &mdash; ' + c.crops;
     })();
 
     function subscribeNewsletter() {
