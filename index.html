@@ -311,26 +311,6 @@
       .sow-week-title { font-size: 17px; }
     }
 
-    /* ---------- gallery ---------- */
-    .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 44px; }
-    .gallery-item { position: relative; aspect-ratio: 1/1; overflow: hidden; cursor: pointer; border-radius: 18px; }
-    .gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s; }
-    .gallery-item:hover img { transform: scale(1.05); }
-    .gallery-item .overlay { position: absolute; inset: 0; background: rgba(59, 42, 64,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
-    .gallery-item:hover .overlay { opacity: 1; }
-    .overlay-icon { color: white; display: flex; align-items: center; }
-    .overlay-icon svg { width: 20px; height: 20px; }
-    /* lightbox */
-    .lightbox { display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; padding: 20px; }
-    .lightbox.active { display: flex; }
-    .lightbox img { max-width: 90vw; max-height: 85vh; object-fit: contain; border-radius: 8px; }
-    .lightbox-close { position: absolute; top: 16px; right: 20px; background: none; border: none; color: white; font-size: 32px; cursor: pointer; padding: 8px; line-height: 1; }
-    .lightbox-caption { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: white; font-size: 14px; font-weight: 600; text-align: center; text-shadow: 0 1px 4px rgba(0,0,0,0.5); }
-    .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.15); border: none; color: white; font-size: 28px; cursor: pointer; padding: 12px 16px; border-radius: 50%; transition: background 0.2s; }
-    .lightbox-nav:hover { background: rgba(255,255,255,0.3); }
-    .lightbox-prev { left: 16px; }
-    .lightbox-next { right: 16px; }
-
     /* ---------- reviews: Juliet-style quote cards ---------- */
     .reviews-summary {
       color: var(--gray-600); margin-top: 4px;
@@ -447,7 +427,6 @@
     <div class="nav-links">
       <a href="#top" class="active" data-spy="top">Home</a>
       <a href="#about" data-spy="about">About Me</a>
-      <a href="#gallery" data-spy="gallery">Gallery</a>
       <a href="#reviews" data-spy="reviews">Reviews</a>
       <a href="#contact" data-spy="contact">Contact</a>
       <a href="portal.html">Sign in</a>
@@ -492,8 +471,8 @@
         </div>
       </div>
       <figure class="photo-block reveal">
-        <img src="gallery/beds-in-bloom.jpg" alt="Three raised garden beds in bloom with sunflowers and cornflowers, redwoods behind" style="object-position: center 62%;" loading="lazy" decoding="async">
-        <figcaption>The raised beds, in bloom</figcaption>
+        <img src="gallery/petal-harvest-bench.jpg" alt="Wheelbarrow full of red and white rhododendron blooms on a sunlit lawn" style="object-position: center 60%;" loading="lazy" decoding="async">
+        <figcaption>A wheelbarrow full of blooms</figcaption>
       </figure>
 </div>
     <div class="wrap">
@@ -613,20 +592,8 @@
     </div>
 </div>
 
-  <!-- GALLERY -->
-  <section class="page-band gutter" id="gallery">
-    <div class="wrap">
-      <div class="reveal">
-        <p class="kicker">Gallery</p>
-        <h2>Bees, blooms &amp; <em>raised beds</em></h2>
-        <p class="section-intro" style="margin-bottom: 0;">Photos from the garden. Tap any of them for a closer look.</p>
-      </div>
-      <div class="gallery-grid reveal" id="gallery-grid"></div>
-    </div>
-</section>
-
   <!-- REVIEWS — quote cards, loaded live -->
-  <section class="page-band gutter" id="reviews" style="padding-top: 0;">
+  <section class="page-band gutter" id="reviews">
     <div class="wrap">
       <div class="reveal">
         <p class="kicker">Kind words</p>
@@ -690,15 +657,6 @@
       </div>
     </div>
 </div>
-
-  <!-- Lightbox for the gallery -->
-  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo viewer" tabindex="-1" onclick="closeLightbox(event)">
-    <button class="lightbox-close" aria-label="Close" onclick="closeLightbox()">&times;</button>
-    <button class="lightbox-nav lightbox-prev" aria-label="Previous photo" onclick="event.stopPropagation(); navLightbox(-1)">&lsaquo;</button>
-    <img id="lightbox-img" src="" alt="" decoding="async">
-    <button class="lightbox-nav lightbox-next" aria-label="Next photo" onclick="event.stopPropagation(); navLightbox(1)">&rsaquo;</button>
-    <div class="lightbox-caption" id="lightbox-caption"></div>
-  </div>
 
     <!-- The garden radio ('come sit by my garden') now lives in the floating
          corner dock injected by shared.js on every page - see injectGardenRadio. -->
@@ -870,90 +828,6 @@
       });
     }
 
-    // ===== Gallery grid + lightbox (from gallery.html) =====
-    var photos = [
-      { src: 'gallery/flower-field-dianthus.jpg', alt: 'Vibrant pink dianthus flower field', caption: 'The flower field in full bloom' },
-      { src: 'gallery/foxgloves.jpg', alt: 'Pink spotted foxglove spikes after the rain', caption: 'Foxgloves after the rain' },
-      { src: 'gallery/calla-lilies.jpg', alt: 'Golden calla lilies with speckled leaves in the sun', caption: 'Golden callas in the sun' },
-      { src: 'gallery/calendula-flowers-hand.jpg', alt: 'Hand holding yellow calendula blooms', caption: 'Calendula harvest' },
-      { src: 'gallery/honeybees-hive-frame.jpg', alt: 'Honeybees on a wooden hive frame', caption: 'Happy hive check' },
-      { src: 'gallery/honeybee-on-finger.jpg', alt: 'Honeybee perched on a fingertip', caption: 'A gentle visitor' },
-      { src: 'gallery/tomato-tomatillo-harvest.jpg', alt: 'Fresh cherry tomatoes and tomatillos', caption: 'Tomato and tomatillo haul' },
-      { src: 'gallery/fresh-beet-harvest.jpg', alt: 'Pulling a fresh beet from the soil', caption: 'Beet harvest day' },
-      { src: 'gallery/fresh-carrot-harvest.jpg', alt: 'Freshly pulled carrot with soil', caption: 'Straight from the dirt' },
-      { src: 'gallery/garlic-harvest-drying.jpg', alt: 'Garlic bulbs drying on a rack', caption: 'Garlic drying in the sun' },
-      { src: 'gallery/peach-roses.jpg', alt: 'Cluster of peach and cream roses by a brick path', caption: 'Peach roses by the path' },
-      { src: 'gallery/wild-mushroom-forage.jpg', alt: 'Colorful foraged wild mushrooms', caption: 'A wild mushroom spread' },
-      { src: 'gallery/taya-with-microgreens.jpg', alt: 'Taya smiling next to microgreens', caption: 'Your Garden Faery' },
-      { src: 'gallery/taya-holding-watermelons.jpg', alt: 'Taya holding two watermelons', caption: 'Watermelon season!' },
-      { src: 'gallery/taya-oyster-mushrooms-greenhouse.jpg', alt: 'Taya with oyster mushrooms in greenhouse', caption: 'Oyster mushroom harvest' },
-      { src: 'gallery/taya-lions-mane-greenhouse.jpg', alt: 'Taya holding lion\'s mane mushroom', caption: 'Lion\'s mane beauty' },
-      { src: 'gallery/blue-green-eggs.jpg', alt: 'Hand holding blue-green eggs', caption: 'Farm fresh eggs' },
-      { src: 'gallery/microgreen-sprouts-tray.jpg', alt: 'Tray of microgreen sprouts', caption: 'Tiny greens, big flavor' },
-      { src: 'gallery/petal-moss-path.jpg', alt: 'Fallen red petals scattered across a mossy branch in the sun', caption: 'Fallen petals on the moss' },
-      { src: 'gallery/petal-harvest-bench.jpg', alt: 'Garden bench piled with red and white rhododendron blooms', caption: 'A bench full of blooms' },
-      { src: 'gallery/greenhouse-growing.jpg', alt: 'Interior of a productive greenhouse', caption: 'Greenhouse vibes' },
-      { src: 'gallery/farm.jpg', alt: 'Taya on the farm in overalls', caption: 'Ready to work' },
-      { src: 'gallery/beds-in-bloom.jpg', alt: 'Three raised garden beds in bloom with sunflowers and cornflowers, redwoods behind', caption: 'The raised beds, in bloom' }
-    ];
-
-    var currentIndex = 0;
-    var lastFocusedEl = null;
-
-    (function buildGrid() {
-      var grid = document.getElementById('gallery-grid');
-      photos.forEach(function(photo, i) {
-        var item = document.createElement('div');
-        item.className = 'gallery-item';
-        item.onclick = function() { openLightbox(i); };
-        var img = document.createElement('img');
-        img.src = photo.src;
-        img.alt = photo.alt;
-        img.loading = 'lazy';
-        item.appendChild(img);
-        var overlay = document.createElement('div');
-        overlay.className = 'overlay';
-        overlay.innerHTML = '<span class="overlay-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
-        item.appendChild(overlay);
-        grid.appendChild(item);
-      });
-    })();
-
-    function openLightbox(index) {
-      currentIndex = index;
-      var lb = document.getElementById('lightbox');
-      document.getElementById('lightbox-img').src = photos[index].src;
-      document.getElementById('lightbox-img').alt = photos[index].alt;
-      document.getElementById('lightbox-caption').textContent = photos[index].caption;
-      lastFocusedEl = document.activeElement;
-      lb.classList.add('active');
-      document.body.style.overflow = 'hidden';
-      lb.focus();
-    }
-
-    function closeLightbox(e) {
-      if (e && e.target !== e.currentTarget) return;
-      document.getElementById('lightbox').classList.remove('active');
-      document.body.style.overflow = '';
-      if (lastFocusedEl && typeof lastFocusedEl.focus === 'function') lastFocusedEl.focus();
-      lastFocusedEl = null;
-    }
-
-    function navLightbox(dir) {
-      currentIndex = (currentIndex + dir + photos.length) % photos.length;
-      document.getElementById('lightbox-img').src = photos[currentIndex].src;
-      document.getElementById('lightbox-img').alt = photos[currentIndex].alt;
-      document.getElementById('lightbox-caption').textContent = photos[currentIndex].caption;
-    }
-
-    document.addEventListener('keydown', function(e) {
-      var lb = document.getElementById('lightbox');
-      if (!lb.classList.contains('active')) return;
-      if (e.key === 'Escape') closeLightbox();
-      if (e.key === 'ArrowLeft') navLightbox(-1);
-      if (e.key === 'ArrowRight') navLightbox(1);
-    });
-
     // ===== Reviews — rendered as Juliet-style quote cards, loaded live =====
     (function reviews() {
       var PB_URL = 'https://bookings.gardenfaery.love';
@@ -1076,7 +950,7 @@
             if (en.isIntersecting) setActive(en.target.id);
           });
         }, { rootMargin: '-25% 0px -65% 0px' });
-        ['top', 'about', 'gallery', 'reviews', 'contact'].forEach(function(id) {
+        ['top', 'about', 'reviews', 'contact'].forEach(function(id) {
           var el = document.getElementById(id);
           if (el) spy.observe(el);
         });
