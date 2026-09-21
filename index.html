@@ -237,8 +237,13 @@
     }
     .band .kicker { color: var(--coral); }
     .band > .gutter { position: relative; z-index: 1; }
-    /* Contact band: the petal-carpet photo under a wine wash, with the
-       Flutter card floating on top */
+    /* Photo bands: real garden photos under a wine wash, with the cream
+       cards floating on top */
+    #journey.band {
+      background:
+        linear-gradient(180deg, rgba(48,33,53,0.72) 0%, rgba(59,42,64,0.66) 50%, rgba(48,33,53,0.78) 100%),
+        url('band-callas.jpg') center 55% / cover no-repeat;
+    }
     #contact.band {
       background:
         linear-gradient(180deg, rgba(48,33,53,0.72) 0%, rgba(59,42,64,0.66) 50%, rgba(48,33,53,0.78) 100%),
@@ -538,7 +543,7 @@
 </section>
 
   <!-- MY PATH — dark band with floating journey card -->
-  <div class="band">
+  <div class="band" id="journey">
     <div class="gutter">
       <div class="float-card reveal">
         <p class="kicker">The journey</p>
