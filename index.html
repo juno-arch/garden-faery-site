@@ -92,25 +92,45 @@
       .reveal.pre { opacity: 1; transform: none; }
     }
 
-    /* ---------- hero: full-bleed photo band ---------- */
+    /* ---------- nav: tinted wine bar with light links (over the hero) ---------- */
+    .site-nav {
+      background: rgba(48, 33, 53, 0.88);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(255,255,255,0.14);
+    }
+    .site-nav .nav-logo { color: #fff; }
+    .site-nav .nav-logo-img { filter: brightness(0) invert(1); opacity: 0.92; }
+    .site-nav .nav-links a { color: rgba(255,255,255,0.82); }
+    .site-nav .nav-links a:hover { color: #fff; }
+    .site-nav .nav-links a.active { color: #fff; border-bottom-color: var(--coral); }
+    .site-nav .hamburger svg { stroke: #fff; }
+    @media (max-width: 600px) {
+      .site-nav .nav-links { background: rgba(48, 33, 53, 0.97); border-bottom: 1px solid rgba(255,255,255,0.14); }
+      .site-nav .nav-links a.active { background: rgba(255,255,255,0.08); }
+    }
+
+    /* ---------- hero: full-screen portrait of Taya under a wine wash,
+         headline floating at center (Her Mood Mentor-style) ---------- */
     .hero-band {
-      min-height: 92svh;
-      display: flex; flex-direction: column; justify-content: flex-end;
+      min-height: 100svh;
+      display: flex; flex-direction: column; justify-content: center;
       position: relative; overflow: hidden; isolation: isolate;
-      background-image: url('hero-zinnias.jpg');
+      background-image: url('farm.jpg');
       background-size: cover;
-      background-position: center;
+      background-position: center 22%;
     }
     .hero-band::after {
       content: '';
       position: absolute; inset: 0;
-      background: linear-gradient(180deg, rgba(40,28,44,0.08) 30%, rgba(40,28,44,0.62) 100%);
+      background:
+        linear-gradient(180deg, rgba(48,33,53,0.62) 0%, rgba(59,42,64,0.48) 42%, rgba(48,33,53,0.66) 100%),
+        rgba(59, 42, 64, 0.18);
       z-index: 1;
     }
     .hero-center {
       position: relative; z-index: 2;
-      display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-      text-align: center; padding: 120px 24px 96px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 110px 24px 110px;
     }
     .hero-eyebrow {
       font-size: 12.5px; letter-spacing: 0.3em; text-transform: uppercase;
@@ -132,6 +152,7 @@
       font-size: clamp(17px, 2vw, 20px);
       text-shadow: 0 1px 8px rgba(0,0,0,0.4);
     }
+    .hero-band .hero-sub strong { font-weight: 700; color: #fff; }
     .hero-cta-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 36px; align-items: center; justify-content: center; }
     .btn-pill {
       display: inline-block; text-decoration: none; text-align: center; cursor: pointer;
@@ -440,10 +461,9 @@
     <div class="hero-center">
       <p class="hero-eyebrow">Organic garden care &middot; Arcata &amp; Humboldt County</p>
       <h1 id="hero-headline">Your garden, tended <em>with magic.</em></h1>
-      <p class="hero-sub" id="hero-subtitle">I'm Taya — your local garden faery. I look over gardens in the Humboldt area.</p>
+      <p class="hero-sub" id="hero-subtitle">I'm Taya &mdash; <strong>your local garden faery</strong>. I look over gardens in the Humboldt area.</p>
       <div class="hero-cta-row">
         <a class="btn-pill" href="book.html" id="hero-cta" data-bee-landing>Book with Me</a>
-        <a class="btn-pill ghost" href="#about">Meet Taya</a>
       </div>
 </div>
 </div>
@@ -492,8 +512,8 @@
   <section class="page-band gutter" id="about" style="padding-top: 0;">
     <div class="wrap split flip">
       <figure class="photo-block reveal">
-        <img src="farm.jpg" alt="Taya, the Garden Faery, gardener in Arcata and Humboldt County" style="object-position: center 20%;" loading="lazy" decoding="async">
-        <figcaption>Taya &mdash; your garden faery</figcaption>
+        <img src="gallery/beds-in-bloom.jpg" alt="Three raised garden beds in bloom with sunflowers and cornflowers, redwoods behind" style="object-position: center 62%;" loading="lazy" decoding="async">
+        <figcaption>The raised beds, in bloom</figcaption>
       </figure>
       <div class="reveal">
         <p class="kicker">About me</p>
