@@ -576,8 +576,20 @@
         clearInterval(posTimer);
         if (on) posTimer = setInterval(() => { widget.getPosition((ms) => { lastPos = ms || 0; snapshot(); }); }, 2000);
       };
+      let playRetry = null;
+      const tryPlay = () => {
+        clearInterval(playRetry);
+        let attempts = 0;
+        widget.play();
+        playRetry = setInterval(() => {
+          if (playing || ++attempts > 8) { clearInterval(playRetry); playRetry = null; return; }
+          widget.play();
+        }, 300);
+      };
+
       const mark = (on) => {
         playing = on;
+        if (!on) { clearInterval(playRetry); playRetry = null; }
         document.body.classList.toggle('gf-song-playing', on);
         dock.classList.toggle('playing', on);
         trackPos(on);
@@ -602,7 +614,7 @@
         if (fresh && (st.idx || st.pos)) {
           const resume = !!st.playing && !pendingPlay;
           if (st.idx !== 0 || st.pos > 1500) loadSong(st.idx || 0, resume || pendingPlay, st.pos || 0);
-          else if (resume || pendingPlay) widget.play();
+          else if (resume || pendingPlay) tryPlay();
           if (resume) {
             // If the browser blocks the automatic hand-off, the visitor's
             // first tap anywhere picks the song back up where it was.
@@ -616,7 +628,7 @@
           pendingPlay = false;
         } else if (pendingPlay) {
           pendingPlay = false;
-          widget.play();
+          tryPlay();
         }
       };
       widget.bind(SC.Widget.Events.READY, onReady);
@@ -639,7 +651,7 @@
 
       window.gfSongToggle = function () {
         if (playing) { widget.pause(); return false; }
-        if (isReady) widget.play();
+        if (isReady) tryPlay();
         else pendingPlay = true;
         return true;
       };
