@@ -1,3 +1,22 @@
 .claude/worktrees/
 node_modules/
 package-lock.json
+
+# --- secrets guard (added Sep 25 2026) ---
+.env
+.env.*
+*.pem
+*.key
+keys/
+.secrets/
+*-admin*.txt
+*password*.txt
+*-credentials.txt
+.pin-login.json
+.hae-token
+.cal-token
+.cal-pin
+API-KEYS.md
+# never publish client data from a public repo
+clients*.json
+*.xlsx
