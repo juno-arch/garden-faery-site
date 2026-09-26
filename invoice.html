@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#4a1942">
-<title>Garden Faery — Invoice</title>
+<title>Garden Faery: Invoice</title>
 <meta name="description" content="Your Garden Faery invoice.">
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -192,15 +192,15 @@ function render(inv) {
         ((inv.discount_cents > 0) ? '<div class="row"><span>' + (inv.coupon_code ? 'Code ' + esc(inv.coupon_code) : 'Discount') + '</span><span>&minus;' + fmt(inv.discount_cents) + '</span></div>' : '') +
         ((inv.tax_cents > 0) ? '<div class="row"><span>Tax (' + (inv.tax_pct || 0) + '%)</span><span>' + fmt(inv.tax_cents) + '</span></div>' : '') +
         '<div class="row grand"><span>Total</span><span>' + fmt(inv.total_cents) + '</span></div>' +
-        (inv.paid_cents > 0 && !isPaid ? '<div class="row"><span>Paid</span><span>&minus;' + fmt(inv.paid_cents) + '</span></div><div class="row grand"><span>Balance</span><span>' + (overpaid ? 'Paid' : fmt(balance)) + '</span></div>' + (overpaid ? '<div class="row"><span></span><span style="font-size:0.82rem;color:#666;">Overpayment on record &mdash; please contact us.</span></div>' : '') : '') +
+        (inv.paid_cents > 0 && !isPaid ? '<div class="row"><span>Paid</span><span>&minus;' + fmt(inv.paid_cents) + '</span></div><div class="row grand"><span>Balance</span><span>' + (overpaid ? 'Paid' : fmt(balance)) + '</span></div>' + (overpaid ? '<div class="row"><span></span><span style="font-size:0.82rem;color:#666;">Overpayment on record. Please contact us.</span></div>' : '') : '') +
       '</div>' +
 
       (inv.notes ? '<div class="notes">' + esc(inv.notes) + '</div>' : '') +
       (inv.terms ? '<div class="notes" style="font-style:italic;">Terms: ' + esc(inv.terms) + '</div>' : '') +
 
       '<div class="actions">' +
-        (canPay ? '<button class="btn" onclick="payInvoice(\'bank\')" id="pay-bank">Pay by bank — ' + fmt(balance) + '</button>' : '') +
-        (canPay ? '<button class="btn secondary" onclick="payInvoice(\'card\')" id="pay-card">Pay by card — ' + fmt(cardTotal) + '</button>' : '') +
+        (canPay ? '<button class="btn" onclick="payInvoice(\'bank\')" id="pay-bank">Pay by bank: ' + fmt(balance) + '</button>' : '') +
+        (canPay ? '<button class="btn secondary" onclick="payInvoice(\'card\')" id="pay-card">Pay by card: ' + fmt(cardTotal) + '</button>' : '') +
         '<button class="btn secondary" onclick="window.print()">Print / Save PDF</button>' +
       '</div>' +
       (canPay

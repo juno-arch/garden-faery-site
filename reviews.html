@@ -115,7 +115,7 @@ async function load() {
     const summary = document.getElementById('summary');
 
     if (d.count === 0) {
-      summary.innerHTML = '<span>No reviews yet — be the first.</span>';
+      summary.innerHTML = '<span>No reviews yet. Be the first.</span>';
       list.innerHTML = '<div class="empty">When clients leave a few words, they\'ll show up here.</div>';
       return;
     }
@@ -158,7 +158,7 @@ async function load() {
         '<div class="review-stars">' + stars(rv.rating) + '</div>' +
         (rv.title ? '<div class="review-title">' + esc(rv.title) + '</div>' : '') +
         '<div class="review-body">' + esc(rv.body) + '</div>' +
-        '<div class="review-attrib">— ' + esc(rv.display_name) +
+        '<div class="review-attrib">' + esc(rv.display_name) +
           (rv.visit_date ? ' &middot; ' + niceDate(rv.visit_date) : '') +
         '</div>' +
       '</article>'

@@ -459,7 +459,7 @@ body {
   <!-- ===== AUTHED: portal ===== -->
   <section id="step-portal" class="step" style="display:none;">
     <div id="payment-success-banner" class="success-banner" style="display:none;">
-      ✓ Payment received — thank you! Your visit has been marked paid.
+      ✓ Payment received, thank you! Your visit has been marked paid.
 </div>
 
     <div class="portal-toolbar">
@@ -764,7 +764,7 @@ async function loadPortal() {
       localStorage.removeItem(STORAGE_TOKEN);
       localStorage.removeItem(STORAGE_EMAIL);
       showStep('step-email');
-      setError('email-error', data.error || 'Session expired — sign in again');
+      setError('email-error', data.error || 'Session expired. Sign in again');
       return;
     }
     _data = data;
@@ -1057,7 +1057,7 @@ async function closeAddCard() {
 
 async function submitAddCard() {
   setError('ac-error', '');
-  if (!_squareCard) { setError('ac-error', 'Card form not ready — try again.'); return; }
+  if (!_squareCard) { setError('ac-error', 'Card form not ready. Try again.'); return; }
   const btn = document.getElementById('ac-submit');
   btn.disabled = true; btn.textContent = 'Saving...';
   try {
@@ -1386,7 +1386,7 @@ async function submitBook() {
   const fmtFailDate = d => { try { return new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); } catch (_) { return d; } };
   if (created.length === 0) {
     const conflictDates = failed.map(f => fmtFailDate(f.date)).join(', ');
-    setError('bk-error', 'Could not book ' + (conflictDates ? conflictDates : 'those dates') + ' — ' +
+    setError('bk-error', 'Could not book ' + (conflictDates ? conflictDates : 'those dates') + ': ' +
       (failed[0] ? failed[0].err : 'they may have just been taken') + '. Please pick different dates and try again.');
     return;
   }

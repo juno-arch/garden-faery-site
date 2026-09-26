@@ -193,7 +193,7 @@ button.secondary {
   <!-- === STEP 1: enter email === -->
   <div id="step-email" class="step">
     <h1>Pay Garden Faery</h1>
-    <p class="sub">Enter your email — we'll send a one-time code so you can see and pay your outstanding visits.</p>
+    <p class="sub">Enter your email: we'll send a one-time code so you can see and pay your outstanding visits.</p>
     <div class="card">
       <label for="email">Email</label>
       <input type="email" id="email" autocomplete="email" inputmode="email" placeholder="your@email.com">
@@ -336,7 +336,7 @@ function renderList(items) {
   if (items.length === 0) {
     heading.textContent = "You're all paid up";
     sub.textContent = "No outstanding visits. Thank you!";
-    host.innerHTML = '<div class="empty"><div class="emoji"></div><div>Nothing to pay — enjoy your day.</div></div>';
+    host.innerHTML = '<div class="empty"><div class="emoji"></div><div>Nothing to pay. Enjoy your day.</div></div>';
     return;
   }
 
@@ -393,7 +393,7 @@ async function payBooking(bookingId) {
     });
     const data = await resp.json().catch(() => ({}));
     if (!resp.ok || !data.url) {
-      setError('list-error', 'Could not start checkout: ' + (data.error || ('HTTP ' + resp.status)) + ' — if this keeps happening, message Taya directly.');
+      setError('list-error', 'Could not start checkout: ' + (data.error || ('HTTP ' + resp.status)) + ' (if this keeps happening, message Taya directly).');
       document.querySelectorAll('.booking-pay button').forEach(b => b.disabled = false);
       return;
     }

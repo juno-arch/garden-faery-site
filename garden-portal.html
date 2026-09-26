@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Your Garden — Garden Faery</title>
+<title>Your Garden (Garden Faery)</title>
 
 <link rel="stylesheet" href="fonts/fonts-text.css">
 <link rel="stylesheet" href="shared.css?v=2026-09-26a">
@@ -175,7 +175,7 @@ function render(data) {
           return `<a href="${u}" target="_blank" rel="noopener"><img src="${u}?thumb=100x100" alt="${alt}" style="width:48px;height:48px;object-fit:cover;border-radius:5px;border:1px solid var(--gray-200)"></a>`;
         }).join('') + '</div>'
       : '';
-    return `<div class="care-row"><strong>${date}</strong> · ${escapeHtml(type)}${objName ? ' · ' + escapeHtml(objName) : ''}${ce.product_used ? ' · ' + escapeHtml(ce.product_used) : ''}${ce.notes ? ' — ' + escapeHtml(ce.notes.slice(0, 80)) : ''}${photos}</div>`;
+    return `<div class="care-row"><strong>${date}</strong> · ${escapeHtml(type)}${objName ? ' · ' + escapeHtml(objName) : ''}${ce.product_used ? ' · ' + escapeHtml(ce.product_used) : ''}${ce.notes ? ' (' + escapeHtml(ce.notes.slice(0, 80)) + ')' : ''}${photos}</div>`;
   }).join('');
   if (careHtml) {
     document.getElementById('i-care').innerHTML = '<h3 style="margin-top:10px;font-size:0.86rem">Recent care</h3>' + careHtml;
