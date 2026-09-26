@@ -524,7 +524,7 @@
     dock.innerHTML =
         '<div class="gf-radio-panel" hidden>'
       +   '<p class="gf-radio-note">a song for you, while you wander</p>'
-      +   '<iframe class="gf-radio-frame" title="come sit by my garden — Emory Hall (SoundCloud player)" allow="autoplay" src="' + SONG_EMBED + '"></iframe>'
+      +   '<iframe class="gf-radio-frame" title="come sit by my garden — Emory Hall (SoundCloud player)" allow="autoplay" data-src="' + SONG_EMBED + '"></iframe>'
       +   '<div class="gf-radio-row"><button type="button" class="gf-radio-next" aria-label="Skip to the next song">next song &rsaquo;</button></div>'
       +   '<p class="gf-radio-credit">the set: <a href="https://haleyheynderickx.bandcamp.com/track/oom-sha-la-la" target="_blank" rel="noopener">&ldquo;Oom Sha La La&rdquo;</a> &mdash; Haley Heynderickx &middot; <a href="https://trevorhallmusic.bandcamp.com/track/come-sit-by-my-garden" target="_blank" rel="noopener">&ldquo;come sit by my garden&rdquo;</a> &mdash; Emory Hall &amp; Trevor Hall &middot; <a href="https://courtneybarnett.bandcamp.com" target="_blank" rel="noopener">&ldquo;Avant Gardener&rdquo;</a> &mdash; Courtney Barnett</p>'
       + '</div>'
@@ -536,23 +536,41 @@
     const btn = dock.querySelector('.gf-radio-toggle');
     const panel = dock.querySelector('.gf-radio-panel');
     const OPEN_KEY = 'gf_radio_open';
+
+    // Privacy: nothing from SoundCloud loads until the visitor asks for
+    // music (opens the player or taps the bee). Until then the iframe has
+    // no src and the widget API script isn't added to the page.
+    let playerLoaded = false;
+    function loadPlayer() {
+      if (playerLoaded) return;
+      playerLoaded = true;
+      const frame = dock.querySelector('.gf-radio-frame');
+      frame.src = frame.dataset.src;
+      if (window.SC && window.SC.Widget) wireWidget();
+      else {
+        const s = document.createElement('script');
+        s.src = 'https://w.soundcloud.com/player/api.js';
+        s.onload = wireWidget;
+        document.head.appendChild(s);
+      }
+    }
+
     function setOpen(open) {
+      if (open) loadPlayer();
       panel.hidden = !open;
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
       btn.setAttribute('aria-label', open ? 'Garden song — close the player' : 'Garden song — open the player');
       try { localStorage.setItem(OPEN_KEY, open ? '1' : ''); } catch (e) {}
     }
     btn.addEventListener('click', () => setOpen(panel.hidden));
-    let openPref = false;
-    try { openPref = localStorage.getItem(OPEN_KEY) === '1'; } catch (e) {}
-    if (openPref) setOpen(true);
 
     // SoundCloud widget API — loaded on demand, then the bee can be the DJ.
     // The very FIRST bee click used to be swallowed when it arrived before
     // the widget finished loading; now the intent queues (pendingPlay) and
-    // is honored the moment the widget reports ready.
+    // is honored the moment the widget reports ready. That first tap is
+    // also what loads the player (loadPlayer).
     let pendingPlay = false;
-    window.gfSongToggle = function () { pendingPlay = !pendingPlay; return pendingPlay; };
+    window.gfSongToggle = function () { pendingPlay = !pendingPlay; loadPlayer(); return pendingPlay; };
 
     // Cross-page play-through: while the song plays we remember which track
     // and where in it (sessionStorage, this tab only). The next page picks
@@ -581,8 +599,10 @@
         clearInterval(playRetry);
         let attempts = 0;
         widget.play();
+        // Up to ~6s of retries: the player now loads on the first tap, so a
+        // cold widget can need a little longer before it accepts play().
         playRetry = setInterval(() => {
-          if (playing || ++attempts > 8) { clearInterval(playRetry); playRetry = null; return; }
+          if (playing || ++attempts > 20) { clearInterval(playRetry); playRetry = null; return; }
           widget.play();
         }, 300);
       };
@@ -659,13 +679,15 @@
       window.gfSongNext = function () { loadSong(songIdx + 1, true, 0); };
       dock.querySelector('.gf-radio-next')?.addEventListener('click', () => window.gfSongNext());
     }
-    if (window.SC && window.SC.Widget) wireWidget();
-    else {
-      const s = document.createElement('script');
-      s.src = 'https://w.soundcloud.com/player/api.js';
-      s.onload = wireWidget;
-      document.head.appendChild(s);
-    }
+
+    // The player also loads on arrival when the visitor already chose music:
+    // they left the panel open, or a song was still playing on the last page
+    // a moment ago (so the play-through can pick it back up).
+    let openPref = false;
+    try { openPref = localStorage.getItem(OPEN_KEY) === '1'; } catch (e) {}
+    if (openPref) setOpen(true);
+    const st0 = loadState();
+    if (st0 && st0.playing && (Date.now() - (st0.t || 0)) < 10 * 60 * 1000) loadPlayer();
   }
 
   ready(() => {
