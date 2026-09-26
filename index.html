@@ -471,7 +471,7 @@
   <nav class="site-nav">
     <a href="index.html" class="nav-logo"><img src="garden-faery-logo.svg" alt="" class="nav-logo-img" aria-hidden="true" decoding="async">Garden Faery</a>
     <button class="hamburger" onclick="var m=document.querySelector('.nav-links');m.classList.toggle('open');this.setAttribute('aria-expanded',m.classList.contains('open'))" aria-label="Menu" aria-expanded="false" aria-controls="nav-links"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-    <div class="nav-links">
+    <div class="nav-links" id="nav-links">
       <a href="#top" class="active" data-spy="top">Home</a>
       <a href="#about" data-spy="about">About Me</a>
       <a href="#reviews" data-spy="reviews">Reviews</a>
@@ -685,7 +685,7 @@
                 <textarea id="cf-message" required placeholder="Tell me about your garden! What you're growing, what you need help with, questions... anything helps."></textarea>
               </div>
               <button type="submit" class="form-btn">Send a Flutter</button>
-              <div class="form-note"></div>
+              <div class="form-note" role="status" aria-live="polite"></div>
             </form>
           </div>
           <div class="book-side">
@@ -696,12 +696,12 @@
             <div class="newsletter-mini">
               <h3>Get the Dirt</h3>
               <p>Seasonal garden wisdom, project updates, and new offerings. No spam, just good green vibes.</p>
-              <div class="newsletter-row">
+              <form class="newsletter-row" onsubmit="event.preventDefault(); subscribeNewsletter();" novalidate>
                 <label for="nl-email" class="sr-only">Email for newsletter</label>
                 <input type="email" id="nl-email" class="newsletter-input" placeholder="your@email.com" required>
-                <button onclick="subscribeNewsletter()" class="newsletter-btn">Sign Up</button>
-              </div>
-              <p id="nl-status" style="font-size:13px; color:var(--gray-600); font-style:italic; margin-top:8px; display:none;"></p>
+                <button type="submit" class="newsletter-btn">Sign Up</button>
+              </form>
+              <p id="nl-status" role="status" aria-live="polite" style="font-size:13px; color:var(--gray-600); font-style:italic; margin-top:8px; display:none;"></p>
             </div>
           </div>
         </div>

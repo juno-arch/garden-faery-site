@@ -365,7 +365,7 @@
         <label for="cf-message" class="sr-only">Your message</label>
         <textarea id="cf-message" required placeholder="Tell me about your garden! What you're growing, what you need help with, questions... anything helps."></textarea>
         <button type="submit" class="form-btn">Send a Flutter</button>
-        <div class="form-note"></div>
+        <div class="form-note" role="status" aria-live="polite"></div>
       </form>
     </div>
 
@@ -374,12 +374,12 @@
     <div class="newsletter">
       <h2>Get the Dirt</h2>
       <p>Seasonal garden wisdom, project updates, and new offerings. No spam, just good green vibes.</p>
-      <div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; justify-content:center;">
+      <form style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; justify-content:center;" onsubmit="event.preventDefault(); subscribeNewsletter();" novalidate>
         <label for="nl-email" class="sr-only">Email for newsletter</label>
         <input type="email" id="nl-email" class="newsletter-input" placeholder="your@email.com" required>
-        <button onclick="subscribeNewsletter()" class="newsletter-btn">Sign Up</button>
-      </div>
-      <p id="nl-status" style="font-size:13px; color:var(--text-secondary); font-style:italic; margin-top:8px; display:none;"></p>
+        <button type="submit" class="newsletter-btn">Sign Up</button>
+      </form>
+      <p id="nl-status" role="status" aria-live="polite" style="font-size:13px; color:var(--text-secondary); font-style:italic; margin-top:8px; display:none;"></p>
     </div>
   </div>
   </main>
