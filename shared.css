@@ -513,7 +513,7 @@ body.gf-song-playing .gf-bee-wrap.wiggling {
   transition: background 0.15s;
 }
 .gf-radio-next:hover { background: rgba(156, 90, 142, 0.08); }
-.gf-radio-credit { font-size: 11px; color: var(--gray-400, #a89c91); margin: 8px 0 0; text-align: center; }
+.gf-radio-credit { font-size: 11px; color: var(--gray-600, #6e5f55); margin: 8px 0 0; text-align: center; }
 .gf-radio-credit a { color: var(--rose, #9C5A8E); }
 @media (max-width: 480px) {
   .gf-radio { right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
