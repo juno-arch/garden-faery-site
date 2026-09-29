@@ -18,11 +18,11 @@
      butter, and rose carry the warm florals. Sage stays as the one green
      note. Legacy --plum / --pollen-gold / --petal-pink names are kept as
      aliases below so older pages keep rendering correctly. */
-  --wine:    #3B2A40;
-  --wine-soft: rgba(59, 42, 64, 0.78);
-  --rose:    #9C5A8E;
+  --wine:    #4F1F2C;   /* deep azalea garnet (was purple wine) */
+  --wine-soft: rgba(79, 31, 44, 0.78);
+  --rose:    #B23A55;   /* raspberry — sampled family of the hero azaleas */
   --coral:   #C8A24C;
-  --peach:   #D9CEE6;
+  --peach:   #F3D7DC;   /* pink blush */
   --butter:  #C8A24C;
   --cream:   #F2EDE8;
 
@@ -32,8 +32,8 @@
   --petal-pink: var(--rose);
   --petal-pink-light: var(--peach);
   --pollen-gold: var(--butter);
-  --spring-sage: #B6A6CE;       /* kept — single green nod */
-  --sage-light: #E6DFEF;
+  --spring-sage: #D8A0AC;       /* soft azalea blush (was lavender) */
+  --sage-light: #F1E0E4;
   --leaf-green: #5ea040;        /* kept — for any inline botanical SVGs */
 
   /* Neutrals + utility */
@@ -505,7 +505,7 @@ body.gf-song-playing .gf-bee-wrap.wiggling {
 .gf-radio-next {
   border: 1px solid rgba(156, 90, 142, 0.35);
   background: transparent;
-  color: var(--rose, #9C5A8E);
+  color: var(--rose, #B23A55);
   font-size: 12px;
   padding: 4px 12px;
   border-radius: 999px;
@@ -514,7 +514,7 @@ body.gf-song-playing .gf-bee-wrap.wiggling {
 }
 .gf-radio-next:hover { background: rgba(156, 90, 142, 0.08); }
 .gf-radio-credit { font-size: 11px; color: var(--gray-600, #6e5f55); margin: 8px 0 0; text-align: center; }
-.gf-radio-credit a { color: var(--rose, #9C5A8E); }
+.gf-radio-credit a { color: var(--rose, #B23A55); }
 @media (max-width: 480px) {
   .gf-radio { right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
 }

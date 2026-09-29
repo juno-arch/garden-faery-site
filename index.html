@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#3B2A40">
+  <meta name="theme-color" content="#2F211C">
   <meta name="description" content="Garden Faery. Organic garden care in Arcata and Humboldt County, CA. Your local gardener. Book a visit today.">
   <meta property="og:title" content="Garden Faery | Gardener in Arcata & Humboldt County, CA">
   <meta property="og:description" content="Organic garden care in Arcata and Humboldt County, CA. Your local gardener. Book a visit today.">
@@ -25,7 +25,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Garden Faery | Gardener in Arcata & Humboldt County, CA</title>
   <link rel="preload" as="image" href="hero-blooms.jpg" fetchpriority="high">
-  <link rel="stylesheet" href="shared.css?v=2026-09-26a">
+  <link rel="stylesheet" href="shared.css?v=2026-09-29r">
   <script src="shared.js?v=2026-09-26a" defer></script>
   <script type="application/ld+json">
   {
@@ -62,9 +62,9 @@
        ============================================================ */
     :root {
       --on-dark: #F5EFE8;
-      --band-dark: #3B2A40;
-      --band-dark-2: #533B59;
-      --hairline: rgba(59, 42, 64, 0.14);
+      --band-dark: #4F1F2C;
+      --band-dark-2: #763347;
+      --hairline: rgba(79, 31, 44, 0.14);
       --card-soft: #FBF8F4;
       --coral-light: #F3DFA0; /* coral lifted for legibility on dark photos */
     }
@@ -102,7 +102,7 @@
 
     /* ---------- nav: tinted wine bar with light links (over the hero) ---------- */
     .site-nav {
-      background: rgba(48, 33, 53, 0.88);
+      background: rgba(43, 30, 26, 0.92);
       backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
       border-bottom: 1px solid rgba(255,255,255,0.14);
     }
@@ -113,7 +113,7 @@
     .site-nav .nav-links a.active { color: var(--cream); border-bottom-color: var(--coral); }
     .site-nav .hamburger svg { stroke: var(--cream); }
     @media (max-width: 600px) {
-      .site-nav .nav-links { background: rgba(48, 33, 53, 0.97); border-bottom: 1px solid rgba(255,255,255,0.14); }
+      .site-nav .nav-links { background: rgba(43, 30, 26, 0.97); border-bottom: 1px solid rgba(255,255,255,0.14); }
       .site-nav .nav-links a.active { background: rgba(255,255,255,0.08); }
     }
 
@@ -131,8 +131,8 @@
       content: '';
       position: absolute; inset: 0;
       background:
-        linear-gradient(180deg, rgba(48,33,53,0.62) 0%, rgba(59,42,64,0.48) 42%, rgba(48,33,53,0.66) 100%),
-        rgba(59, 42, 64, 0.18);
+        linear-gradient(180deg, rgba(58,22,32,0.62) 0%, rgba(79,31,44,0.48) 42%, rgba(58,22,32,0.66) 100%),
+        rgba(79, 31, 44, 0.18);
       z-index: 1;
     }
     .hero-center {
@@ -176,7 +176,7 @@
     section.page-band { padding-block: 96px; }
     .kicker {
       font-size: 12.5px; letter-spacing: 0.3em; text-transform: uppercase;
-      color: #935586; font-weight: 600; margin-bottom: 16px; /* rose, a shade deeper: 4.6:1 on cream */
+      color: #A6354D; font-weight: 600; margin-bottom: 16px; /* raspberry, a shade deeper: keeps ~5:1 on cream */
     }
     .page-band h2, .band h2 {
       font-family: var(--font-heading); font-weight: 500;
@@ -196,14 +196,14 @@
     .photo-block {
       aspect-ratio: 4 / 4.6; border-radius: 26px;
       position: relative; overflow: hidden; margin: 0;
-      box-shadow: 0 18px 50px rgba(59, 42, 64, 0.18);
+      box-shadow: 0 18px 50px rgba(79, 31, 44, 0.18);
     }
     .photo-block img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
     .photo-block figcaption {
       position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%);
       z-index: 1; white-space: nowrap; max-width: 86%; overflow: hidden; text-overflow: ellipsis;
       font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 600;
-      color: var(--on-dark); background: rgba(45, 32, 50, 0.7); /* 5:1 even over a white patch */
+      color: var(--on-dark); background: rgba(56, 21, 31, 0.7); /* 5:1 even over a white patch */
       border-radius: 999px; padding: 7px 16px; text-align: center;
     }
 
@@ -243,19 +243,19 @@
        cards floating on top */
     #journey.band {
       background:
-        linear-gradient(180deg, rgba(48,33,53,0.72) 0%, rgba(59,42,64,0.66) 50%, rgba(48,33,53,0.78) 100%),
+        linear-gradient(180deg, rgba(58,22,32,0.72) 0%, rgba(79,31,44,0.66) 50%, rgba(58,22,32,0.78) 100%),
         url('band-callas.jpg') center 55% / cover no-repeat;
     }
     #contact.band {
       background:
-        linear-gradient(180deg, rgba(48,33,53,0.72) 0%, rgba(59,42,64,0.66) 50%, rgba(48,33,53,0.78) 100%),
+        linear-gradient(180deg, rgba(58,22,32,0.72) 0%, rgba(79,31,44,0.66) 50%, rgba(58,22,32,0.78) 100%),
         url('band-petals.jpg') center 68% / cover no-repeat;
     }
     .float-card {
       background: var(--card-soft); color: var(--wine);
       border-radius: 30px; padding: 48px 44px;
       max-width: 960px; margin: 0 auto;
-      box-shadow: 0 30px 80px rgba(20, 10, 24, 0.4);
+      box-shadow: 0 30px 80px rgba(26, 9, 15, 0.4);
     }
     .float-card .kicker { color: var(--rose); }
     .float-card h2 { font-size: clamp(30px, 5vw, 46px); }
@@ -275,7 +275,7 @@
     }
     .timeline-item.bloom::before {
       background: var(--rose);
-      box-shadow: 0 0 0 4px rgba(156, 90, 142, 0.18);
+      box-shadow: 0 0 0 4px rgba(178, 58, 85, 0.18);
     }
     .timeline-item .when {
       font-size: 11.5px; font-weight: 600; text-transform: uppercase;
@@ -299,7 +299,7 @@
     .photo-card img {
       width: 100%; border-radius: 16px;
       object-fit: cover; aspect-ratio: 4/3; display: block;
-      box-shadow: 0 8px 24px rgba(59, 42, 64, 0.14);
+      box-shadow: 0 8px 24px rgba(79, 31, 44, 0.14);
     }
     .photo-card figcaption {
       margin-top: 9px; font-size: 12.5px; color: var(--gray-600);
@@ -368,7 +368,7 @@
     .field textarea { resize: vertical; min-height: 110px; }
     .field input:focus, .field textarea:focus {
       outline: none; border-color: var(--rose);
-      box-shadow: 0 0 0 3px rgba(156, 90, 142, 0.18);
+      box-shadow: 0 0 0 3px rgba(178, 58, 85, 0.18);
     }
     .form-btn {
       width: 100%; padding: 15px; border: none; cursor: pointer;
@@ -400,13 +400,13 @@
       font-family: var(--font-body); font-size: 14px;
       background: var(--cream); color: var(--wine);
     }
-    .newsletter-input:focus { outline: none; border-color: var(--rose); box-shadow: 0 0 0 3px rgba(156, 90, 142,0.18); }
+    .newsletter-input:focus { outline: none; border-color: var(--rose); box-shadow: 0 0 0 3px rgba(178, 58, 85, 0.18); }
     .newsletter-btn { padding: 12px 22px; background: var(--rose); color: #fff; border: none; border-radius: 999px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: var(--font-body); white-space: nowrap; transition: background 0.2s; }
     .newsletter-btn:hover { background: var(--wine); }
 
     /* ---------- footer: airy, Fraunces name, quiet cream type ---------- */
     footer {
-      background: var(--band-dark);
+      background: #2F211C; /* espresso — Pollen's pick for the bars */
       padding: 64px 24px 58px;
       font-weight: 400; font-size: 15px;
       color: rgba(245, 239, 232, 0.72);
