@@ -464,46 +464,106 @@
       .hero-cta-row .btn-pill { flex: 1 1 100%; }
     }
 
-    /* ===== PINK-RED PREVIEW — purple removed: garnet ink, azalea-pink accent ===== */
+    /* ===== PALETTE PLAYGROUND — tap swatches (bottom left) to mix ===== */
     :root {
-      --rose: #C94F63;          /* azalea pink-red accent (was rose purple) */
-      --peach: #F6DCDD;         /* pink blush tiles */
-      --wine: #45222A;          /* deep garnet ink (was purple wine #3B2A40) */
+      --rose: #BE435F;          /* sampled from the hero azaleas */
+      --peach: #F7D9DF;
+      --wine: #45222A;
       --band-dark: #45222A;
       --band-dark-2: #6B3542;
       --hairline: rgba(69, 34, 42, 0.14);
     }
-    .site-nav { background: rgba(58, 28, 35, 0.88); }
-    @media (max-width: 600px) { .site-nav .nav-links { background: rgba(58, 28, 35, 0.97); } }
+    .site-nav { background: color-mix(in srgb, var(--band-dark) 90%, transparent); }
+    @media (max-width: 600px) { .site-nav .nav-links { background: color-mix(in srgb, var(--band-dark) 97%, transparent); } }
     .hero-band::after {
       background:
-        linear-gradient(180deg, rgba(58,28,35,0.62) 0%, rgba(69,34,42,0.48) 42%, rgba(58,28,35,0.66) 100%),
-        rgba(69, 34, 42, 0.18);
+        linear-gradient(180deg,
+          color-mix(in srgb, var(--band-dark) 62%, transparent) 0%,
+          color-mix(in srgb, var(--band-dark-2) 48%, transparent) 42%,
+          color-mix(in srgb, var(--band-dark) 66%, transparent) 100%);
     }
     #journey.band {
       background:
-        linear-gradient(180deg, rgba(58,28,35,0.72) 0%, rgba(69,34,42,0.66) 50%, rgba(58,28,35,0.78) 100%),
+        linear-gradient(180deg,
+          color-mix(in srgb, var(--band-dark) 72%, transparent) 0%,
+          color-mix(in srgb, var(--band-dark-2) 66%, transparent) 50%,
+          color-mix(in srgb, var(--band-dark) 78%, transparent) 100%),
         url('band-callas.jpg') center 55% / cover no-repeat;
     }
     #contact.band {
       background:
-        linear-gradient(180deg, rgba(58,28,35,0.72) 0%, rgba(69,34,42,0.66) 50%, rgba(58,28,35,0.78) 100%),
+        linear-gradient(180deg,
+          color-mix(in srgb, var(--band-dark) 72%, transparent) 0%,
+          color-mix(in srgb, var(--band-dark-2) 66%, transparent) 50%,
+          color-mix(in srgb, var(--band-dark) 78%, transparent) 100%),
         url('band-petals.jpg') center 68% / cover no-repeat;
     }
-    .photo-block figcaption { background: rgba(52, 26, 32, 0.6); }
-    .timeline-item.bloom::before { box-shadow: 0 0 0 4px rgba(201, 79, 99, 0.18); }
-    .field input:focus, .field textarea:focus, .newsletter-input:focus { box-shadow: 0 0 0 3px rgba(201, 79, 99, 0.18); }
-    .preview-tag {
-      position: fixed; left: 14px; bottom: 14px; z-index: 500;
-      font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600;
-      color: #fff; background: #C94F63; border-radius: 999px; padding: 6px 14px; opacity: 0.93;
+    .photo-block figcaption { background: color-mix(in srgb, var(--band-dark) 62%, transparent); }
+    .timeline-item.bloom::before { box-shadow: 0 0 0 4px color-mix(in srgb, var(--rose) 18%, transparent); }
+    .field input:focus, .field textarea:focus, .newsletter-input:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--rose) 18%, transparent); }
+
+    /* the mixer */
+    .mixer {
+      position: fixed; left: 12px; bottom: 12px; z-index: 600;
+      background: rgba(255,255,255,0.94); backdrop-filter: blur(6px);
+      border: 1px solid rgba(0,0,0,0.12); border-radius: 16px;
+      padding: 10px 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+      font-family: var(--font-body);
     }
+    .mixer .mx-label { font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700; color: #6e5f56; margin: 2px 0 4px; }
+    .mixer .mx-row { display: flex; gap: 7px; margin-bottom: 4px; }
+    .mixer button {
+      width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
+      border: 2px solid rgba(255,255,255,0.9); box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      padding: 0;
+    }
+    .mixer button.on { outline: 2px solid #333; outline-offset: 1px; }
 </style>
 </head>
 <body>
 
   <div class="sow-strip" id="sow-week-section"></div>
-  <span class="preview-tag">Pink-red preview</span>
+  <div class="mixer" id="mixer">
+    <div class="mx-label">Accent</div>
+    <div class="mx-row" id="mx-accent"></div>
+    <div class="mx-label">Dark ink</div>
+    <div class="mx-row" id="mx-ink"></div>
+  </div>
+  <script>
+    (function mixer() {
+      var ACCENTS = [
+        { name: 'your azaleas', rose: '#BE435F', peach: '#F7D9DF' },
+        { name: 'bright azalea',rose: '#D64C6B', peach: '#FADCE2' },
+        { name: 'watermelon',   rose: '#E05A70', peach: '#FBDDE1' },
+        { name: 'raspberry',    rose: '#B23A55', peach: '#F3D7DC' },
+        { name: 'dusty rose',   rose: '#C06A75', peach: '#F5DFE0' }
+      ];
+      var INKS = [
+        { name: 'garnet',      dark: '#45222A', dark2: '#6B3542' },
+        { name: 'deep azalea', dark: '#4F1F2C', dark2: '#763347' },
+        { name: 'espresso',    dark: '#3B2822', dark2: '#5E4136' }
+      ];
+      var r = document.documentElement.style;
+      function pick(row, list, apply) {
+        var host = document.getElementById(row);
+        list.forEach(function (c, i) {
+          var b = document.createElement('button');
+          b.style.background = c.rose || c.dark;
+          b.title = c.name;
+          b.onclick = function () {
+            host.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
+            b.classList.add('on');
+            apply(c);
+          };
+          if (i === 0) b.classList.add('on');
+          host.appendChild(b);
+        });
+      }
+      pick('mx-accent', ACCENTS, function (c) { r.setProperty('--rose', c.rose); r.setProperty('--peach', c.peach); });
+      pick('mx-ink', INKS, function (c) { r.setProperty('--wine', c.dark); r.setProperty('--band-dark', c.dark); r.setProperty('--band-dark-2', c.dark2); });
+    })();
+  </script>
+
 
   <nav class="site-nav">
     <a href="index.html" class="nav-logo"><img src="garden-faery-logo.svg" alt="" class="nav-logo-img" aria-hidden="true" decoding="async">Garden Faery</a>
