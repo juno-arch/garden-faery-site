@@ -464,24 +464,46 @@
       .hero-cta-row .btn-pill { flex: 1 1 100%; }
     }
 
-    /* ===== SOFT RED PREVIEW — azalea red takes the rose accent role ===== */
+    /* ===== PINK-RED PREVIEW — purple removed: garnet ink, azalea-pink accent ===== */
     :root {
-      --rose: #B3524E;          /* soft azalea red (was rose purple #9C5A8E) */
-      --peach: #F0D8D2;         /* blush tiles (was lavender-peach) */
+      --rose: #C94F63;          /* azalea pink-red accent (was rose purple) */
+      --peach: #F6DCDD;         /* pink blush tiles */
+      --wine: #45222A;          /* deep garnet ink (was purple wine #3B2A40) */
+      --band-dark: #45222A;
+      --band-dark-2: #6B3542;
+      --hairline: rgba(69, 34, 42, 0.14);
     }
-    .timeline-item.bloom::before { box-shadow: 0 0 0 4px rgba(179, 82, 78, 0.18); }
-    .field input:focus, .field textarea:focus, .newsletter-input:focus { box-shadow: 0 0 0 3px rgba(179, 82, 78, 0.18); }
+    .site-nav { background: rgba(58, 28, 35, 0.88); }
+    @media (max-width: 600px) { .site-nav .nav-links { background: rgba(58, 28, 35, 0.97); } }
+    .hero-band::after {
+      background:
+        linear-gradient(180deg, rgba(58,28,35,0.62) 0%, rgba(69,34,42,0.48) 42%, rgba(58,28,35,0.66) 100%),
+        rgba(69, 34, 42, 0.18);
+    }
+    #journey.band {
+      background:
+        linear-gradient(180deg, rgba(58,28,35,0.72) 0%, rgba(69,34,42,0.66) 50%, rgba(58,28,35,0.78) 100%),
+        url('band-callas.jpg') center 55% / cover no-repeat;
+    }
+    #contact.band {
+      background:
+        linear-gradient(180deg, rgba(58,28,35,0.72) 0%, rgba(69,34,42,0.66) 50%, rgba(58,28,35,0.78) 100%),
+        url('band-petals.jpg') center 68% / cover no-repeat;
+    }
+    .photo-block figcaption { background: rgba(52, 26, 32, 0.6); }
+    .timeline-item.bloom::before { box-shadow: 0 0 0 4px rgba(201, 79, 99, 0.18); }
+    .field input:focus, .field textarea:focus, .newsletter-input:focus { box-shadow: 0 0 0 3px rgba(201, 79, 99, 0.18); }
     .preview-tag {
       position: fixed; left: 14px; bottom: 14px; z-index: 500;
       font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600;
-      color: #fff; background: #B3524E; border-radius: 999px; padding: 6px 14px; opacity: 0.93;
+      color: #fff; background: #C94F63; border-radius: 999px; padding: 6px 14px; opacity: 0.93;
     }
 </style>
 </head>
 <body>
 
   <div class="sow-strip" id="sow-week-section"></div>
-  <span class="preview-tag">Soft red preview</span>
+  <span class="preview-tag">Pink-red preview</span>
 
   <nav class="site-nav">
     <a href="index.html" class="nav-logo"><img src="garden-faery-logo.svg" alt="" class="nav-logo-img" aria-hidden="true" decoding="async">Garden Faery</a>
