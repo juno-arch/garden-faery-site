@@ -677,8 +677,10 @@ async function sendCode() {
     }
     _email = email;
     _loginPhone = phone;
-    document.getElementById('code-heading').textContent = isEmail ? 'Check your email' : 'Check your phone';
-    document.getElementById('code-email-echo').textContent = isEmail ? email : maskPhone(phone);
+    // a phone sign-in's code comes by email while texts are off (the server says where it went)
+    const byEmail = isEmail || data.sent_to === 'email';
+    document.getElementById('code-heading').textContent = byEmail ? 'Check your email' : 'Check your phone';
+    document.getElementById('code-email-echo').textContent = isEmail ? email : (byEmail ? 'the email address on your account' : maskPhone(phone));
     showStep('step-code');
     setTimeout(() => document.getElementById('code').focus(), 100);
   } catch (err) {
