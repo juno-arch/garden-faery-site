@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#3B2A40">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <!-- HIDDEN TEST PAGE (Oct 12 2026): Garden Faery's first shop on Web Faery's own shop back end, Stripe TEST mode.
+       Not linked from anywhere, not in sitemap.xml, noindex. Calls https://bookings.gardenfaery.love/api/webfaery/shop/gardenfaery/
+       (catalog + checkout). See ~/Documents/Garden-Faery/web-faery-kit/garden-faery-shop-test.md -->
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="stylesheet" href="shared.css?v=2026-09-29r">
+  <script src="shared.js?v=2026-09-26a" defer></script>
+  <title>Seeds | Garden Faery</title>
+  <style>
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font-body); background: var(--bg); color: var(--text-primary); line-height: 1.6; }
+    h1, h2, h3 { font-family: var(--font-heading); color: var(--text-primary); line-height: 1.2; }
+
+    .site-nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 54px; background: var(--bg); border-bottom: 2px solid var(--accent-1); }
+    .nav-logo { font-family: 'Elsie Swash Caps', serif; font-size: 22px; font-weight: 900; color: var(--text-primary); text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 10px; }
+    .nav-logo-img { height: 32px; width: auto; flex-shrink: 0; }
+    .bag-pill { font-family: var(--font-body); font-size: 14px; font-weight: 700; color: var(--text-primary); background: rgba(255,255,255,0.6); border: 1px solid rgba(59,42,64,0.12); border-radius: 999px; padding: 8px 14px; min-height: 44px; cursor: pointer; }
+
+    .test-strip { background: #fff4d6; color: #5a4310; text-align: center; font-size: 13px; font-weight: 600; padding: 8px 16px; }
+
+    .shop-wrap { max-width: 960px; margin: 0 auto; padding: 36px 20px 48px; }
+    .shop-eyebrow { display: inline-block; text-transform: uppercase; letter-spacing: 0.18em; color: var(--coral); font-weight: 700; font-size: 0.78rem; margin-bottom: 8px; }
+    .shop-wrap > h1 { font-size: clamp(1.9rem, 5vw, 2.6rem); font-weight: 900; color: var(--wine); margin-bottom: 24px; }
+
+    .notice { border-radius: 14px; padding: 16px 18px; margin: 0 0 24px; font-size: 15px; background: rgba(255,255,255,0.65); border: 1px solid rgba(59,42,64,0.1); }
+    .notice strong { color: var(--wine); }
+    .notice[hidden] { display: none; }
+
+    .product { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 2px 14px rgba(59,42,64,0.07); border: 1px solid rgba(59,42,64,0.06); }
+    .product-media { aspect-ratio: 4/5; background: linear-gradient(135deg, var(--accent-1), var(--wine)); }
+    .product-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .product-body { padding: 28px 28px 30px 0; }
+    .product-body h2 { font-size: 1.7rem; color: var(--wine); margin-bottom: 6px; }
+    .price { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
+    .left { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+    .blurb { color: var(--gray-600); font-size: 1rem; line-height: 1.6; margin-bottom: 20px; }
+    .ship-line { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; }
+
+    .qty-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .qty-row label { font-weight: 600; font-size: 15px; }
+    .stepper { display: inline-flex; align-items: center; border: 1px solid rgba(59,42,64,0.18); border-radius: 10px; overflow: hidden; background: #fff; }
+    .stepper button { width: 44px; height: 44px; border: none; background: none; font-size: 20px; cursor: pointer; color: var(--text-primary); }
+    .stepper button:disabled { opacity: 0.35; cursor: default; }
+    .stepper output { min-width: 32px; text-align: center; font-weight: 700; }
+
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn { min-height: 48px; padding: 12px 22px; border-radius: 10px; font-family: var(--font-heading); font-size: 17px; font-weight: 600; cursor: pointer; border: 2px solid var(--wine); transition: background 0.2s, color 0.2s; }
+    .btn-primary { background: var(--wine); color: #fff; }
+    .btn-primary:hover { background: var(--highlight); border-color: var(--highlight); }
+    .btn-ghost { background: transparent; color: var(--wine); }
+    .btn:disabled { opacity: 0.5; cursor: default; }
+
+    .bag { margin-top: 28px; background: rgba(255,255,255,0.65); border: 1px solid rgba(59,42,64,0.1); border-radius: 16px; padding: 20px 22px; }
+    .bag h2 { font-size: 1.3rem; color: var(--wine); margin-bottom: 10px; }
+    .bag-line { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 15px; }
+    .bag-line.total { border-top: 1px solid rgba(59,42,64,0.12); margin-top: 6px; padding-top: 10px; font-weight: 700; }
+    .bag-empty { color: var(--text-secondary); font-size: 15px; }
+    .bag .btn-row { margin-top: 14px; }
+    .msg { margin-top: 12px; font-size: 14px; color: var(--wine); min-height: 1em; }
+
+    .loading { color: var(--text-secondary); font-style: italic; }
+
+    footer { text-align: center; padding: 20px 20px 24px; font-size: 14px; font-weight: 600; color: var(--accent-2); background: var(--text-primary); }
+    footer a { color: var(--accent-2); text-decoration: none; }
+
+    @media (max-width: 700px) {
+      .product { grid-template-columns: 1fr; gap: 0; }
+      .product-media { aspect-ratio: 4/3; }
+      .product-body { padding: 22px 20px 24px; }
+      .btn { flex: 1 1 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="site-nav">
+    <a href="index.html" class="nav-logo"><img src="garden-faery-logo.svg" alt="" class="nav-logo-img" aria-hidden="true" decoding="async">Garden Faery</a>
+    <button class="bag-pill" type="button" id="bag-pill" aria-controls="bag">Bag (0)</button>
+  </nav>
+  <div class="test-strip">Test shop: no real money moves. Use Stripe's test card 4242 4242 4242 4242.</div>
+
+  <main class="shop-wrap">
+    <span class="shop-eyebrow">From the garden</span>
+    <h1>Seeds</h1>
+
+    <div class="notice" id="notice" hidden role="status"></div>
+
+    <div id="products"><p class="loading">Gathering the seed packets...</p></div>
+
+    <section class="bag" id="bag" aria-live="polite">
+      <h2>Your bag</h2>
+      <div id="bag-lines"><p class="bag-empty">Nothing in your bag yet.</p></div>
+      <div class="btn-row"><button class="btn btn-primary" type="button" id="checkout" disabled>Check out</button></div>
+      <p class="msg" id="msg"></p>
+    </section>
+  </main>
+
+  <footer>
+    <a href="mailto:taya@gardenfaery.love">taya@gardenfaery.love</a> &middot; Arcata, CA
+    <div style="margin-top:6px;"><a href="https://gardenfaery.love" style="color:var(--accent-1);font-size:13px;">gardenfaery.love</a></div>
+  </footer>
+
+  <script>
+  (function () {
+    var API = 'https://bookings.gardenfaery.love';
+    var SHOP = API + '/api/webfaery/shop/gardenfaery';
+    var BAG_KEY = 'gf-shop-test-bag';
+    var products = {}, bag = {}, freeOver = null;
+    var shipping = { label: 'Flat rate shipping', cents: 100 }; // matches the shop's row; Stripe shows the real choice
+
+    // Seasonal colors (same palette logic as the rest of the site).
+    (function () {
+      var m = new Date().getMonth(), root = document.documentElement;
+      var P = { spring: ['#F2EDE8', '#9C5A8E', '#B6A6CE', '#C8A24C'], summer: ['#faf6f1', '#e8b828', '#b5c99a', '#7b2d6e'],
+                autumn: ['#faf3ea', '#d4943a', '#a67c52', '#7a3b4e'], winter: ['#f5f3f0', '#8fb0a5', '#506a6e', '#c4b5a0'] };
+      var p = m >= 2 && m <= 4 ? P.spring : m >= 5 && m <= 7 ? P.summer : m >= 8 && m <= 10 ? P.autumn : P.winter;
+      root.style.setProperty('--bg', p[0]); root.style.setProperty('--accent-1', p[1]);
+      root.style.setProperty('--accent-2', p[2]); root.style.setProperty('--highlight', p[3]);
+    })();
+
+    function $(id) { return document.getElementById(id); }
+    function money(c) { return '$' + (c / 100).toFixed(2); }
+    function el(tag, attrs, text) {
+      var e = document.createElement(tag);
+      for (var k in (attrs || {})) e.setAttribute(k, attrs[k]);
+      if (text !== undefined) e.textContent = text;
+      return e;
+    }
+    function photo(u) { return /^\/api\/files\//.test(u) ? API + u : u; }
+    function saveBag() { try { localStorage.setItem(BAG_KEY, JSON.stringify(bag)); } catch (_) {} }
+    function loadBag() { try { var b = JSON.parse(localStorage.getItem(BAG_KEY) || '{}'); return b && typeof b === 'object' ? b : {}; } catch (_) { return {}; } }
+    function notice(html) { var n = $('notice'); n.innerHTML = html; n.hidden = false; }
+
+    // Back from Stripe
+    var qs = new URLSearchParams(location.search);
+    if (qs.get('paid')) {
+      bag = {}; saveBag();
+      notice('<strong>Thank you!</strong> Your order is in. A receipt is on its way to your email, and I’ll pack your seeds by hand.');
+    } else if (qs.get('back')) {
+      notice('No charge was made. Your bag is still here whenever you’re ready.');
+    }
+    if (qs.get('paid') || qs.get('back')) history.replaceState(null, '', location.pathname);
+
+    function maxFor(p) {
+      if (!p || p.sold_out || p.state === 'sold_out' || p.state === 'on_hold') return 0;
+      return p.kind === 'limited' ? Math.min(10, p.left || 0) : p.kind === 'one_of_a_kind' ? 1 : 10;
+    }
+
+    function renderProducts(list) {
+      var box = $('products'); box.textContent = '';
+      if (!list.length) { box.appendChild(el('p', { class: 'loading' }, 'Nothing here just now. Check back soon!')); return; }
+      list.forEach(function (p) {
+        var art = el('article', { class: 'product' });
+        var media = el('div', { class: 'product-media' });
+        if (p.photos && p.photos[0]) media.appendChild(el('img', { src: photo(p.photos[0]), alt: 'Calendula flowers from Taya’s garden, held in her hand', decoding: 'async' }));
+        art.appendChild(media);
+        var body = el('div', { class: 'product-body' });
+        body.appendChild(el('h2', {}, p.title));
+        body.appendChild(el('p', { class: 'price' }, p.price));
+        var max = maxFor(p);
+        body.appendChild(el('p', { class: 'left' },
+          p.state === 'sold_out' || p.sold_out ? 'All gone for now.' :
+          p.state === 'on_hold' ? 'Someone is checking out with the last one. It may come back soon.' :
+          p.kind === 'limited' ? p.left + ' left' : ''));
+        body.appendChild(el('p', { class: 'blurb' }, p.blurb || ''));
+        body.appendChild(el('p', { class: 'ship-line' }, freeOver ? 'Shipping is ' + money(shipping.cents) + ', free over ' + freeOver + '.' : 'Shipping is a flat ' + money(shipping.cents) + ' (US only).'));
+
+        var qty = 1;
+        var row = el('div', { class: 'qty-row' });
+        row.appendChild(el('label', { id: 'qty-l-' + p.id }, 'How many'));
+        var st = el('div', { class: 'stepper', role: 'group', 'aria-labelledby': 'qty-l-' + p.id });
+        var minus = el('button', { type: 'button', 'aria-label': 'One fewer' }, '−');
+        var out = el('output', { 'aria-live': 'polite' }, '1');
+        var plus = el('button', { type: 'button', 'aria-label': 'One more' }, '+');
+        function sync() { out.textContent = qty; minus.disabled = qty <= 1; plus.disabled = qty >= Math.max(1, max - (bag[p.id] || 0)); }
+        minus.onclick = function () { if (qty > 1) { qty--; sync(); } };
+        plus.onclick = function () { qty++; sync(); };
+        st.appendChild(minus); st.appendChild(out); st.appendChild(plus);
+        row.appendChild(st);
+        body.appendChild(row);
+
+        var btns = el('div', { class: 'btn-row' });
+        var add = el('button', { type: 'button', class: 'btn btn-ghost' }, 'Add to bag');
+        var buy = el('button', { type: 'button', class: 'btn btn-primary' }, 'Buy now');
+        if (!max) { add.disabled = true; buy.disabled = true; row.hidden = true; }
+        add.onclick = function () {
+          var room = max - (bag[p.id] || 0);
+          if (room <= 0) { $('msg').textContent = 'That’s all of them in your bag already.'; return; }
+          bag[p.id] = (bag[p.id] || 0) + Math.min(qty, room); saveBag(); qty = 1; sync(); renderBag();
+          $('msg').textContent = 'Added to your bag.';
+        };
+        buy.onclick = function () { checkout([{ product: p.id, qty: Math.min(qty, max) }], buy); };
+        btns.appendChild(add); btns.appendChild(buy);
+        body.appendChild(btns);
+        art.appendChild(body);
+        box.appendChild(art);
+        sync();
+      });
+    }
+
+    function renderBag() {
+      var lines = $('bag-lines'); lines.textContent = '';
+      var ids = Object.keys(bag).filter(function (id) { return products[id] && bag[id] > 0; });
+      var count = 0, sub = 0;
+      ids.forEach(function (id) {
+        var p = products[id], n = Math.min(bag[id], 10); count += n; sub += n * p.price_cents;
+        var line = el('div', { class: 'bag-line' });
+        line.appendChild(el('span', {}, n + ' × ' + p.title));
+        var right = el('span');
+        right.appendChild(document.createTextNode(money(n * p.price_cents) + ' '));
+        var rm = el('button', { type: 'button', class: 'btn-ghost', style: 'border:none;background:none;color:var(--wine);text-decoration:underline;cursor:pointer;min-height:44px;font-size:14px;', 'aria-label': 'Take ' + p.title + ' out of your bag' }, 'remove');
+        rm.onclick = function () { delete bag[id]; saveBag(); renderBag(); renderProducts(Object.keys(products).map(function (k) { return products[k]; })); };
+        right.appendChild(rm);
+        line.appendChild(right);
+        lines.appendChild(line);
+      });
+      if (!count) lines.appendChild(el('p', { class: 'bag-empty' }, 'Nothing in your bag yet.'));
+      else {
+        var s = el('div', { class: 'bag-line' }); s.appendChild(el('span', {}, 'Shipping')); s.appendChild(el('span', {}, money(shipping.cents))); lines.appendChild(s);
+        var t = el('div', { class: 'bag-line total' }); t.appendChild(el('span', {}, 'Total')); t.appendChild(el('span', {}, money(sub + shipping.cents))); lines.appendChild(t);
+      }
+      $('bag-pill').textContent = 'Bag (' + count + ')';
+      $('checkout').disabled = !count;
+    }
+
+    var WORDS = {
+      not_ready: 'The shop isn’t quite open yet. Please try again a little later.',
+      closed: 'The shop is closed just now. Please check back soon.',
+      sold_out: 'Oh no, that just sold out.',
+      origin: 'Something got crossed. Please reload the page and try again.',
+      stripe: 'The payment page didn’t open. Nothing was charged. Please try again in a minute.',
+      slow_down: 'Lots of tries in a row. Please wait a few minutes and try again.',
+      unknown_product: 'That one isn’t available anymore. Please reload the page.'
+    };
+
+    function checkout(items, btn) {
+      $('msg').textContent = 'Opening the payment page...';
+      if (btn) btn.disabled = true;
+      fetch(SHOP + '/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: items }) })
+        .then(function (r) { return r.json().then(function (d) { return { status: r.status, d: d }; }, function () { return { status: r.status, d: {} }; }); })
+        .then(function (x) {
+          if (x.status === 200 && x.d.ok && /^https:\/\/checkout\.stripe\.com\//.test(x.d.url || '')) { location.href = x.d.url; return; }
+          var e = x.d.error || 'server';
+          $('msg').textContent = e === 'not_enough' ? 'Only ' + x.d.left + ' left right now. Please pick a smaller number.' : (WORDS[e] || 'Something went wrong. Nothing was charged. Please try again.');
+          if (btn) btn.disabled = false;
+          if (e === 'sold_out' || e === 'not_enough') load();
+        })
+        .catch(function () { $('msg').textContent = 'Couldn’t reach the shop. Please check your connection and try again.'; if (btn) btn.disabled = false; });
+    }
+
+    $('checkout').onclick = function () {
+      var items = Object.keys(bag).filter(function (id) { return products[id] && bag[id] > 0; }).map(function (id) { return { product: id, qty: Math.min(bag[id], 10) }; });
+      if (items.length) checkout(items, $('checkout'));
+    };
+    $('bag-pill').onclick = function () { $('bag').scrollIntoView({ behavior: 'smooth' }); };
+
+    function load() {
+      fetch(SHOP + '/catalog', { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(function (d) {
+          freeOver = d.shop && d.shop.free_shipping_over;
+          products = {}; (d.products || []).forEach(function (p) { products[p.id] = p; });
+          if (!qs.get('paid')) bag = loadBag();
+          Object.keys(bag).forEach(function (id) { if (!products[id]) delete bag[id]; });
+          renderProducts(d.products || []); renderBag();
+          if (d.shop && d.shop.open === false) notice('The shop is closed just now. Please check back soon.');
+        })
+        .catch(function () { $('products').innerHTML = '<p class="loading">The seed shelf didn’t load. Please reload the page.</p>'; });
+    }
+    load();
+  })();
+  </script>
+</body>
+</html>
